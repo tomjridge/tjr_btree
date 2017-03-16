@@ -1,5 +1,0 @@
-FLG -w @f@p@u@s@40-8-11-26-40
-
-PKG yojson ppx_deriving_yojson batteries extunix
-
-B .
