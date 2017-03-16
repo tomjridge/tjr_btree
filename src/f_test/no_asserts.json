@@ -1,0 +1,12 @@
+[
+{ "name": "tb", "params": [ ], "with_asserts": false },
+{ "name": "tim.t", "params": [ [ "Range", [ 1, 10 ] ] ], "with_asserts": false },
+
+{ "name": "tim.i", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": false },
+
+{ "name": "tii.f", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": false },
+
+{ "name": "tii.c", "params": [ [ "Range", [ 1, 10000 ] ] ], "with_asserts": false }
+
+]
+

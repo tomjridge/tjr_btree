@@ -1,0 +1,14 @@
+[
+{ "name": "tb", "params": [ ], "with_asserts": true },
+{ "name": "tim.t", "params": [ [ "Range", [ 1, 10 ] ] ], "with_asserts": true },
+
+{ "name": "tim.i", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+{ "name": "tim.ls", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+
+{ "name": "tii.u", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+
+{ "name": "tii.c", "params": [ [ "Range", [ 1, 10000 ] ] ], "with_asserts": true },
+{ "name": "tsi", "params": [ ], "with_asserts": true }
+
+]
+

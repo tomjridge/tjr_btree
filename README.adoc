@@ -1,0 +1,106 @@
+= `tjr_btree`: a COW B-tree library
+:toc: right
+:icons: font
+:nofooter:
+
+
+
+== Introduction
+
+`tjr_btree` is a B-tree library. The core is written in Isabelle/HOL
+and exported to OCaml (although it could easily be implemented in any
+language because the routines are very "concrete"). Further routines
+are written in OCaml.
+
+The B-tree is a simple COW B-tree supporting a sync operation. All
+sync-ed states are persistent on disk (imagine that blocks are written
+once and then never mutated), so operations such as "snapshot" are
+almost trivial.
+
+The B-tree supports the usual operations: `find`, `insert`, `delete`.
+In addition, there is an `insert_many` operation for inserting
+multiple key-value pairs at once. This operation is more efficient
+than repeatedly inserting. It is typically used when higher-level
+operations are cached and then flushed all at once.
+
+The routines are fully parameterized (e.g., by key and value type, key
+order, store type etc). It is easy to have many B-trees using the same
+store, even operating concurrently (although individual B-trees must
+be updated sequentially at the moment).
+
+The core is implemented in small-step operational style, with each
+disk access corresponding to a separate step. Thus, it should be
+feasible to introduce very fine-grained concurrency by interleaving
+individual steps of each operation (where multiple operations execute
+on different B-trees).
+
+== Relation to ImpFS
+
+ImpFS is a project to build an advanced high-performance filesystem.
+`tjr_btree` is the core library used by ImpFS.
+
+== Installation
+
+Type `make && make install` to make the library and install it using
+`ocamlfind`. You need various libraries from opam (see `bash_env.sh`
+for details).
+
+To build with nix, type `cd .nix/tjr_btree; nix-build`. The result is in `./result`.
+
+== Quickstart
+
+Look at link:./src/c_pre/btree_api.ml[] and link:./src/d_core/btree_simple.ml[]
+
+Then look at how a simple uncached `int -> int` map, backed by a file,
+works: link:./src/f_examples/int_int_filestore.ml[]
+
+A more extended example is in link:./src/f_examples/kv_store_small.ml[]
+
+
+== Main interfaces
+
+The file `btree_api.ml` contains the main interfaces. Most of these
+should be fairly easy to understand. We make liberal use of store
+passing via a monad. This simply means that operations are slightly different to what one might expect:
+
+----
+  val read: r -> blk m
+----
+
+This is the "read" operation for a block device, which takes `r` (a
+block id or reference) and returns a block `blk`. The type `blk m` is
+a computation that returns a `blk` (whereas one might expect `read` to
+have result type `blk` rather than `blk m` if one were using the
+imperative style of programming). The use of the monad `m` helps to
+structure the various effects that occur. To actually execute such an
+operation one might write:
+
+----
+  read r |> run s
+----
+
+Here, `s` is the state in which to run the read request. The result is
+typically a pair of an updated state and the block that was read. In
+addition, the monad takes care of errors that arise (so the code is
+not littered with exception handling). So the result is actually a
+pair of an updated state, and either the block that was read, or an
+error.
+
+
+== Directory contents
+
+
+This directory contains the `ocaml` code for the B-tree, and
+associated routines.
+
+- `b_from_isa` - B-tree core imported from Isabelle
+- `c_pre` - utils
+- `d_core` - a layer on top of the Isabelle code
+- `e_maps` - various common B-tree map types (string to string etc)
+- `e_stores` - various backing stores (file etc)
+- `e_user` - ignore
+- `f_examples`
+- `f_test`
+- `g_main`
+- `kv_main.sh` - example key-value store, simple usage
+
