@@ -90,20 +90,3 @@ pair of an updated state, and either the block that was read, or an
 error.
 
 
-== Directory contents
-
-
-This directory contains the `ocaml` code for the B-tree, and
-associated routines.
-
-- `b_from_isa` - B-tree core imported from Isabelle
-- `c_pre` - utils
-- `d_core` - a layer on top of the Isabelle code
-- `e_maps` - various common B-tree map types (string to string etc)
-- `e_stores` - various backing stores (file etc)
-- `e_user` - ignore
-- `f_examples`
-- `f_test`
-- `g_main`
-- `kv_main.sh` - example key-value store, simple usage
-
