@@ -15,7 +15,7 @@ stdenv.mkDerivation {
 
 name = "tjr_btree";
     
-src=../..;
+src=../../src;
 
 buildInputs = [ ocaml findlib opam op.yojson op.ocaml_batteries op.ppx_deriving ppx_deriving_yojson extunix ];
 

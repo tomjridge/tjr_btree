@@ -90,7 +90,7 @@ function init() {
 }
 
 function mk_links() {
-    echo "mk_links"
+    echo "mk_links..."
     init
     ln -s $link_files .
     touch _links
@@ -98,7 +98,7 @@ function mk_links() {
 
 
 function rm_links() {
-    echo "rm_links"
+    echo "rm_links..."
     init
     rm -f _links
     for f in $link_files; do rm -f `basename $f`; done
@@ -108,6 +108,7 @@ function rm_links() {
 # mlis ----------------------------------------
 
 function mk_mlis() {
+    echo "mk_mlis..."
     for f in $mls; do $ocamlc -i $f > tmp/${f/.ml/.mli}; done
 }
 

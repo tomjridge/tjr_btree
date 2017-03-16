@@ -20,7 +20,7 @@ all: _links
 
 
 _links:
-	`mk_links`
+	mk_links
 
 _test:
 	OCAMLRUNPARAM=b ./test_main.native ./default_tests.json
@@ -29,18 +29,18 @@ _generated:
 	$(MAKE) -C b_from_isa
 
 _mlis: 
-	`mk_mlis`
+	mk_mlis
 
 install:
-	`mk_meta`
-	`install`
+	mk_meta
+	install
 
 _remove: 
-	`remove`
+	remove
 
 _reinstall: 
-	`remove`
-	`install`
+	remove
+	install
 
 README.html: README.adoc
 	asciidoctor $<
@@ -60,7 +60,7 @@ clean:
 	rm -f *.{cmi,cmo,cmx,o} a.out *.cma *.cmxa *.a *.byte *.native 
 
 real_clean: clean
-	`rm_links`
+	rm_links
 
 FORCE:
 

@@ -54,7 +54,10 @@ Look at link:./src/c_pre/btree_api.ml[] and link:./src/d_core/btree_simple.ml[]
 Then look at how a simple uncached `int -> int` map, backed by a file,
 works: link:./src/f_examples/int_int_filestore.ml[]
 
-A more extended example is in link:./src/f_examples/kv_store_small.ml[]
+A more extended example is in
+link:./src/f_examples/kv_store_small.ml[] . You can run some simple
+use cases by executing link:./src/kv_main.sh[]
+
 
 
 == Main interfaces
