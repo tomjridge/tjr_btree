@@ -86,6 +86,16 @@ let main args = (
           (* print_endline "insert ok"; *)
         )
     )
+  | ["delete";fn;k] -> (
+      from_file ~fn ~create:false ~init:false
+      |> (fun t -> 
+          Btree_.Raw_map.delete (SS.from_string k)
+          |> Sem.run (t.store,t.page_ref) 
+          |> (function ((store,page_ref),Ok()) -> 
+              ignore (sync {store;page_ref}));
+          (* print_endline "insert ok"; *)
+        )
+    )
   | ["list";fn] -> (
       from_file ~fn  ~create:false ~init:false 
       |> (fun t -> 
