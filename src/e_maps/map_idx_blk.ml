@@ -30,12 +30,14 @@ module Make = functor (ST:STORE) -> (struct
       type key = idx [@@deriving yojson]
       type value = blk [@@deriving yojson]
       let key_ord = Int_.key_ord
-      let equal_value = fun _ -> failwith (__LOC__ ^ ": equal_value")
+      let equal_value (v1:value) v2 = (v1 = v2)
     end
     let _ = (module KV : KEY_VALUE)
 
     (* implement RAW_MAP *)
     module RM = struct
+      module KV=KV
+      module ST=ST
       type bt_ptr = ST.page_ref
       type 'a m = ('a,ST.store * bt_ptr) Sem.m
 
@@ -87,5 +89,7 @@ module Make = functor (ST:STORE) -> (struct
         )
 
     end
+
+    let _ = (module RM : RAW_MAP)
 
 end)

@@ -57,6 +57,7 @@ btree_simple.ml \
 \
 map_int_int.ml \
 map_digest_int.ml map_digest_to_string_int.ml map_string_int.ml map_string_string_small.ml \
+map_idx_blk.ml \
 \
 block_device.ml file_store.ml \
 in_mem_store.ml bytestore.ml \
