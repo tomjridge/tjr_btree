@@ -139,6 +139,11 @@ module type KEY_VALUE = sig
   val equal_value : value -> value -> bool (* only for wf checking *)
 end
 
+module Int_ = struct
+  type key = int
+  let key_ord: key -> key -> int = fun k1 (k2:int) -> Pervasives.compare k1 k2
+end
+
 module type CONSTANTS = sig
   val max_leaf_size : int
   val max_node_keys : int
@@ -208,8 +213,8 @@ end
 (* block device ---------------------------------------- *)
 
 module Types = struct
-  type blk = string
-  type blk_id = int
+  type blk = string [@@deriving yojson]
+  type blk_id = int [@@deriving yojson]
 end
 
 module type BUFFER = sig
@@ -229,7 +234,9 @@ end
 
 let _ = (module Buffer: BUFFER)
 
-
+(* FIXME do we want pages to have a similar structure ie with sz? or
+   perhaps carve out some subsets of string with fixed sizes? pages
+   are blocks without ids *)
 module type BLOCK = (sig
   type t = Types.blk
   type id = Types.blk_id
