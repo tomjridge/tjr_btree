@@ -1,26 +1,39 @@
 (* an lru cache ---------------------------------------- *)
 
-module type KEY_VALUE = Internal_api.KEY_VALUE
+module type KEY_VALUE = Btree_api.KEY_VALUE
 
-module Sem = Internal_api.Sem
-
-module type S = sig
+module type MAP = sig
   module KV : KEY_VALUE
   open KV
-  type t  (* underlying state *)
-  type 'a m = ('a,t) Sem.m
-  val find: key -> value option m
-  val insert: key -> value -> unit m
-  val delete: key -> unit m
+  type 'a m
+  type map  (* a reference to some part of the state; actually some ops on kv  *)
+  val find: map -> key -> value option m
+  val insert: map -> key -> value -> unit m
+  val delete: map -> key -> unit m
 end
 
+module type MONAD = sig
+  type 'a m 
+  type 'a ref_
+
+  val bind: ('a -> 'b m) -> 'a m -> 'b m
+  val return: 'a -> 'a m  
+  val get: 'a ref_ -> 'a m
+  val set: 'a ref_ -> 'a -> unit m
+end
+
+(* input signature *)
+module type S = sig
+  include MONAD
+  include MAP with type 'a m := 'a m
+end
 
 module Make = functor (S:S) -> struct
-  open Internal_api
+  open Btree_api
   open Btree_util
-  open Sem
 
   module S = S
+  open S
   open S.KV
 
   module Map = Map.Make(
@@ -34,7 +47,7 @@ module Make = functor (S:S) -> struct
 
   module Queue = Map_int
 
-  type c_t = {  (* state of cache *)
+  type cache = {  (* state of cache *)
     max_size: int;
     current: time;
     map: (value option*time*dirty) Map.t;  
@@ -43,6 +56,7 @@ module Make = functor (S:S) -> struct
     queue: key Queue.t; (* map from time to key that was accessed at that time *)
   }
 
+  type cache_ref = cache S.ref_
 
   (* for testing, we typically need to normalize wrt. time *)
   let normalize c = (
@@ -87,14 +101,14 @@ module Make = functor (S:S) -> struct
       queue=Queue.empty
     })
   
-  type t = {cache:c_t;store:S.t}
+  type 'a m = 'a S.m
 
-  type 'a m = ('a,t) Sem.m
-
+  (*
   let lens = Lens.{
       from=(fun x -> (x.store,x)); to_=(fun (s,x) -> { x with store=s })}
 
   let lift x = Sem.with_lens lens x
+*)
 
   (* the cache never has more than max_size elts; the queue never has
      more than max_size elts 
@@ -116,19 +130,21 @@ module Make = functor (S:S) -> struct
     )
   )
 
-  let get_cache: unit  ->  c_t m = (fun () s -> (s,Ok s.cache))
+(*
+  let get_cache: unit  ->  cache m = (fun () s -> (s,Ok s.cache))
   (* inc c.current on put *)
-  let put_cache: c_t -> unit  m = (fun c s -> 
+  let put_cache: cache -> unit  m = (fun c s -> 
       wf c;
       ({s with cache={c with current=c.current+1}},Ok()))
+*)
 
   exception E_
 
 
-  let evict c = (
+  let evict r c = (
     let card = Map.cardinal c.map in
     match (card > c.max_size) with (* FIXME inefficient *)
-    | false -> put_cache c
+    | false -> S.set r c
     | true -> (
         (* how many to evict? *)
         let n = card - (3 * c.max_size / 4) in

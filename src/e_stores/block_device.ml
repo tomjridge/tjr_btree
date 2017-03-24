@@ -14,12 +14,12 @@
 module Defaults = struct
 
   (* page of block? at this level we prefer block; in mem we use page *)
-  type block = Btree_api.Simple.page 
+  type block = Internal_api.Simple.page 
 
   let page_size = 4096 (* bytes *)
 
   (* block ref *)
-  type block_ref = Btree_api.Simple.page_ref[@@deriving yojson]
+  type block_ref = Internal_api.Simple.page_ref[@@deriving yojson]
 
   (* to make an empty block before writing to disk *)
   let empty () = String.make page_size (Char.chr 0) 
@@ -30,7 +30,7 @@ end
 (* a block device backed by a file ---------------------------------------- *)
 
 module Blkdev_on_fd (* : BLOCK_DEVICE *) = struct
-  open Btree_api
+  open Internal_api
   module Block = Mk_block(struct let block_size=4096 end)
   type fd = Unix.file_descr
   type t = fd
@@ -90,7 +90,7 @@ module Blkdev_on_fd (* : BLOCK_DEVICE *) = struct
 
 end
 
-let _ = (module Blkdev_on_fd : Btree_api.BLOCK_DEVICE)
+let _ = (module Blkdev_on_fd : Internal_api.BLOCK_DEVICE)
 
 
 

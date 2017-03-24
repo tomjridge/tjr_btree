@@ -10,7 +10,7 @@ module ST = File_store.Recycling_filestore
 
 module Uncached = struct
 
-  open Btree_api
+  open Internal_api
   open Block_device
 
   module X_ = Map_int_int.Make(ST)
@@ -39,7 +39,7 @@ module Uncached = struct
 
 end
 
-(* FIXME want this let _ = (module Int_int_filestore.Btree : Btree_api.MAP) *)
+(* FIXME want this let _ = (module Int_int_filestore.Btree : Internal_api.MAP) *)
 
 
 (* a high-level cache over Insert_many -------------------------------------- *)
@@ -47,7 +47,7 @@ end
 (* we cache at the map level *)
 
 module Cached (* : Btree.S *) = struct
-  open Btree_api
+  open Internal_api
   open Btree_util
   open Uncached
 
@@ -70,7 +70,7 @@ module Cached (* : Btree.S *) = struct
 
   end
 
-  open Btree_api
+  open Internal_api
 
   (* FIXME monads a bit of a hassle :( *)
   let sync : unit -> unit m = (

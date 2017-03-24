@@ -38,7 +38,7 @@ let _ = (module KV : Btree.KEY_VALUE_TYPES)
 
 (* instantiate Btree.Simple.Make() ----------------------------------------- *)
 
-module Make = functor (ST:Btree_api.Simple.STORE) -> struct
+module Make = functor (ST:Internal_api.Simple.STORE) -> struct
   module ST = ST
   module Simple = Btree_simple.Make(
     struct 
@@ -46,7 +46,7 @@ module Make = functor (ST:Btree_api.Simple.STORE) -> struct
       module ST=ST
       open KV
       open Small_string
-      let pp: (key,value) Btree_api.Pickle_params.t = Pickle.(
+      let pp: (key,value) Internal_api.Pickle_params.t = Pickle.(
           let p_k = (fun k -> Examples.p_string_w_len (to_string k)) in
           let u_k = (Examples.u_string_w_len |> U.map from_string) in
           {

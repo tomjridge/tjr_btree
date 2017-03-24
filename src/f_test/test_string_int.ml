@@ -104,7 +104,7 @@ smart-panther-36
 lazy-termite-3
 helpless-snake-32 |} |> Tjr_string.split_on_all ~sub:"\n"
 
-open Btree_api
+open Internal_api
 open Block_device
 
 module FS = File_store.Filestore

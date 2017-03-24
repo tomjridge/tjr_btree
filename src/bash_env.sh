@@ -16,7 +16,7 @@ test -f $root/config.sh && source $root/config.sh
 
 # ,bos.setup  ppx_assert,ppx_assert.runtime-lib,sexplib,core,lru-cache,\ ,core_kernel
 
-PKGS="-package num,yojson,ppx_deriving_yojson,batteries,extunix"
+PKGS="-package num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 
 # -package tjr_lib"
 
@@ -50,7 +50,7 @@ gen_isa.ml \
 our.ml \
 \
 tjr_string.ml \
-test.ml pickle.ml btree_api.ml btree_util.ml cache.ml \
+test.ml pickle.ml btree_api.ml internal_api.ml experimental_api.ml btree_util.ml cache.ml functional_store.ml \
 \
 btree.ml 
 btree_simple.ml \

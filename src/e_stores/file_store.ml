@@ -2,12 +2,12 @@ open Block_device
 
 (* a store backed by a file ---------------------------------------- *)
 
-(* we target Btree_api.Simple.STORE *)
+(* we target Internal_api.Simple.STORE *)
 
 module Filestore = struct
-  open Btree_api
+  open Internal_api
 
-  include Btree_api.Simple
+  include Internal_api.Simple
 
   type store = { 
     fd: Blkdev_on_fd.fd; 
@@ -80,9 +80,9 @@ module Filestore = struct
 
 end
 
-let _ = (module Filestore : Btree_api.STORE)
+let _ = (module Filestore : Internal_api.STORE)
 
-let _ = (module Filestore : Btree_api.Simple.STORE)
+let _ = (module Filestore : Internal_api.Simple.STORE)
 
 
 
@@ -110,7 +110,7 @@ module Cache = Map.Make(
 
 
 module Recycling_filestore = struct
-  open Btree_api
+  open Internal_api
 
   type page_ref = Filestore.page_ref [@@deriving yojson]
   type page = Filestore.page
@@ -246,9 +246,9 @@ module Recycling_filestore = struct
 end
 
 
-let _ = (module Recycling_filestore : Btree_api.STORE)
+let _ = (module Recycling_filestore : Internal_api.STORE)
 
-let _ = (module Recycling_filestore : Btree_api.Simple.STORE)
+let _ = (module Recycling_filestore : Internal_api.Simple.STORE)
 
 
 
@@ -261,7 +261,7 @@ let _ = (module Recycling_filestore : Btree_api.Simple.STORE)
 (*
 module Raw_block_device = struct
 
-  open Btree_api
+  open Internal_api
 
   let block_size = Defaults.page_size
 

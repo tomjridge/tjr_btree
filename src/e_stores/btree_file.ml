@@ -13,7 +13,7 @@
 *)
 
 open Our.Util
-open Btree_api
+open Internal_api
 
 (* type blk_index = int *)
 type offset = int
@@ -62,7 +62,7 @@ module Make = functor (S:S) -> struct
   open Block_device
   open Btree
 
-  open Btree_api.Sem
+  open Internal_api.Sem
       
   (* use this to store the length of the buffer *)
   let meta_key = -1

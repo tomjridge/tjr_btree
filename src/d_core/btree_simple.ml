@@ -10,7 +10,7 @@ open Btree_util
 module type STORE = Btree.STORE with type page_ref=int and type page=string
 
 (* input to Make *)
-module type S = Btree_api.Simple.S
+module type S = Internal_api.Simple.S
 
 module Make = functor (S:S) -> (struct
 

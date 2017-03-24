@@ -31,7 +31,7 @@ end
 (* setup ---------------------------------------- *)
 
 module Map_int = Btree_util.Map_int
-open Btree_api
+open Internal_api
 open Example
 
 open Example.Btree

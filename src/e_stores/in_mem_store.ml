@@ -59,7 +59,7 @@ module Make = functor (S:S) -> struct
     type page_ref = PR.page_ref  [@@deriving yojson]
     type store = {free:int; m:page Map_int.t}
 
-    type 'a m = ('a,store) Btree_api.State_error_monad.m
+    type 'a m = ('a,store) Internal_api.State_error_monad.m
 
     (* for yojson *)
     type store' = {free':int; m':(int * page) list}[@@deriving yojson]
@@ -82,7 +82,7 @@ module Make = functor (S:S) -> struct
 
   end (* ST *)
 
-  let _ = (module ST : Btree_api.STORE)
+  let _ = (module ST : Internal_api.STORE)
 
 
   (* want to construct Btree.Main.S in order to call Main.Make *)

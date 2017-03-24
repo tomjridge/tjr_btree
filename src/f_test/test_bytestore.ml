@@ -31,7 +31,7 @@ module Disk = struct
   type store_error  (* no constructors *)
   let empty_disk = {free=0; map=Map_int.empty}
 
-  type 'a m = ('a,store) Btree_api.Sem.m  
+  type 'a m = ('a,store) Internal_api.Sem.m  
 
   type block = Params.block (* 4096 *)
   type blk_id = Params.blk_id
@@ -89,14 +89,14 @@ end
 
 let _ = (module Disk: Disk_t)
 
-let _ = (module Disk: Btree_api.STORE)
+let _ = (module Disk: Internal_api.STORE)
 
 
 (* btree backed by Disk ---------------------------------------- *)
 
 module Btree' (* : Ext_bytestore.Btree_t *) = struct 
 
-  open Btree_api
+  open Internal_api
   module Disk = Disk
   type ref_t = int
 
@@ -148,8 +148,8 @@ end)
 (* write and read back various length strings *)
 
 open Disk
-open Btree_api.Sem
-open Btree_api
+open Internal_api.Sem
+open Internal_api
 
 let test len = (
   let buf = Bytes.make len 'a' in

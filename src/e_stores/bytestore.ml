@@ -30,7 +30,7 @@ module type Disk_t = sig
   module Buff: Buff_t
   type store
 
-  type 'a m = ('a,store) Btree_api.Sem.m
+  type 'a m = ('a,store) Internal_api.Sem.m
   (* type store_error *)
   type block
   type blk_id = int
@@ -80,7 +80,7 @@ module Make = functor (S:S) -> struct
   open Disk
   open Btree
 
-  open Btree_api.Sem
+  open Internal_api.Sem
   open Disk
       
   (* use this to store the length of the buffer *)

@@ -1,5 +1,21 @@
 (* test int int map backed by a file ---------------------------------------- *)
 
+module State_monad : sig
+  type ('a,'s) m = 's -> ('s * 'a)
+  val return: 'a -> ('a,'s) m
+  val bind: ('a -> ('b,'s) m) -> ('a,'s) m -> ('b,'s) m
+  val run: 's -> ('a,'s) m -> ('s * 'a)
+end = struct
+  type ('a,'s) m = 's -> ('s * 'a)
+  let return: 'a -> ('a,'s) m = fun x -> fun s -> (s,x)
+  let bind: ('a -> ('b,'s) m) -> ('a,'s) m -> ('b,'s) m = 
+    fun f m -> fun s ->
+      m s |> (fun (s',a) -> f a s') 
+  let run: 's -> ('a,'s) m -> 's * 'a = fun s -> fun m -> m s
+end
+
+module S_m = State_monad
+
 (* common ---------------------------------------- *)
 
 open Btree_util
@@ -11,9 +27,9 @@ module Uncached_ = Int_int_filestore.Uncached
 module Btree = Uncached_.Btree_simple_.Btree
 
 module RM = Btree.Raw_map
-module Sem = Btree_api.Sem
+module Sem = Internal_api.Sem
 
-let run = Btree_api.State_monad.run
+let run = State_monad.run
 
 module ST = Int_int_filestore.ST
 module FS = Uncached_

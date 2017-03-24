@@ -26,11 +26,11 @@ end
 (* simplified structs ---------------------------------------- *)
 
 
-module type KEY_VALUE_TYPES = Btree_api.KEY_VALUE
+module type KEY_VALUE_TYPES = Internal_api.KEY_VALUE
 
-module type CONSTANTS = Btree_api.CONSTANTS
+module type CONSTANTS = Internal_api.CONSTANTS
 
-module type STORE = Btree_api.STORE
+module type STORE = Internal_api.STORE
 
 
 (* construct non-simple versions suitable for isa -------------------------- *)
@@ -63,7 +63,7 @@ module Mk_st = functor (ST:STORE) -> struct
     type page_ref = ST.page_ref[@@deriving yojson]
 
     open Our
-    open Btree_api
+    open Internal_api
     let to_our_monad: 
       ('a,store) State_error_monad.m -> ('a,store) Our.Monad.m_t = (
       fun x -> Our.Monad.M(
@@ -209,7 +209,7 @@ module Main = struct
           !s'
       )
 
-      open Btree_api
+      open Internal_api
 
       let find: 
         KV_.key -> Store.page_ref -> (KV_.value_t option,Store.store) Sem.m = (
@@ -277,7 +277,7 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Btree_api
+      open Internal_api
 
       let step : t -> t = (fun x ->
           x.store |> (Insert.insert_step x.is |> Our.Monad.dest_M)
@@ -355,7 +355,7 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Btree_api
+      open Internal_api
 
       let step : t -> t = (fun x ->
           x.store |> (Insert_many.insert_step x.is|>Our.Monad.dest_M)
@@ -431,7 +431,7 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Btree_api
+      open Internal_api
 
       let step : t -> t = (fun x ->
           x.store |> (Delete.delete_step x.ds|>Our.Monad.dest_M)
@@ -486,9 +486,9 @@ module Main = struct
 
     module Raw_map (* : RAW_MAP *) = struct
       open Our_
-      open Btree_api
+      open Internal_api
       module KV = S.KV
-      module ST = S.ST           let _ = (module ST: Btree_api.STORE)
+      module ST = S.ST           let _ = (module ST: Internal_api.STORE)
       type bt_ptr = ST.page_ref
       type 'a m = ('a,ST.store * bt_ptr) Sem.m
       
@@ -542,14 +542,14 @@ module Main = struct
 
     end
     
-    let _ = (module Raw_map : Btree_api.RAW_MAP)
+    let _ = (module Raw_map : Internal_api.RAW_MAP)
 
 
 
     (* Leaf_stream_ ---------------------------------------- *)
 
     module Leaf_stream_ = (struct 
-      open Btree_api
+      open Internal_api
       open Btree_util
       open Our_
       module KV = Raw_map.KV
@@ -630,140 +630,10 @@ module Main = struct
 
     end)  (* Leaf_stream_ *)
 
-    let _ = (module Leaf_stream_ : Btree_api.LEAF_STREAM)
+    let _ = (module Leaf_stream_ : Internal_api.LEAF_STREAM)
 
   end)  (* Make *)
 
 end (* Main *)
 
 
-
-    (* Imperative_leaf_stream ---------------------------------------- *)
-
-    (*
-    module Imperative_leaf_stream = (struct
-      module ST = Raw_map.ST
-      module KV = Raw_map.KV
-      module LS = Leaf_stream_
-      open KV          
-      open Btree_api 
-      let mk: ST.store -> ST.page_ref -> 
-        (ST.store * LS.t) ref * (key,value) imperative_leaf_stream_t 
-        = (
-        fun s r ->
-          let t = LS.mk r |> Sem.run s 
-                  |> (fun (s',res) -> 
-                      match res with 
-                      | Ok t -> t
-                      | Error e -> (failwith (__LOC__ ^ e)))
-          in
-          let st = ref (s,t) in
-          let step () = (
-            let (s,t) = (fst !st,snd !st) in
-            LS.step t |> Sem.run s
-            |> (fun (s',res) -> 
-                st:=(s',t);
-                match res with
-                | Ok res -> (
-                    match res with
-                    | None -> false
-                    | Some t' -> (st:=(s',t'); true)
-                  )
-                | Error e -> (failwith (__LOC__ ^ e))
-              ))
-          in
-          let get_kvs () = (
-            let (s,t) = (fst !st,snd !st) in
-            LS.get_kvs t) 
-          in
-          (st,{ step; get_kvs }))
-
-    end)
-
-    let _ = (module Imperative_leaf_stream : Btree_api.IMPERATIVE_LEAF_STREAM)
-
-*)
-
-
-
-    (* Map_with_exceptions ---------------------------------------- *)
-
-(*
-    module Map_with_exceptions (* : MAP_WITH_EXCEPTIONS *) = struct
-      module KV = Raw_map.KV
-      module ST = Raw_map.ST
-      type bt_ptr = ST.page_ref
-                     
-      open Btree_api
-      type 'a m = ('a,ST.store * bt_ptr) State_monad.m
-
-      let conv: 'a Raw_map.m -> 'a m = (fun m -> fun s ->
-        m s |> (fun (s',res) -> (
-              match res with
-              | Ok x -> (s',x)
-              | Error e -> failwith e)))
-
-      open KV
-      module RM_ = Raw_map
-
-      let empty: ST.store -> ST.store * bt_ptr = (fun s ->
-          RM_.empty |> Sem.run s |> (fun (s',res) ->
-            match res with
-            | Ok r' -> (s',r')
-            | Error e -> failwith e))
-
-      let insert: key -> value -> unit m = (fun k v ->
-          RM_.insert k v|>conv)
-
-      let insert_many: key -> value -> (key*value) list -> unit m = (
-        fun k v kvs -> RM_.insert_many k v kvs |> conv)
-
-      let find: key -> value option m = (fun k ->
-          RM_.find k |> conv)
-
-      let delete: key -> unit m = (fun k ->
-          RM_.delete k |> conv)
-    end
-*)
-
-    (* Imperative_map ---------------------------------------- *)
-
-(*
-    module Imperative_map = struct
-      open Btree_api
-      module T_ = (struct
-        module ST = Raw_map.ST
-        module KV = Raw_map.KV
-        open KV
-        module MWE_ = Map_with_exceptions
-        let mk:ST.store ref -> ST.page_ref ref -> (key,value) imperative_map_t  
-          = (fun s r -> 
-              let lift = (fun f x ->  
-                  (* lift f x = ... type check problems *)
-                  f x |> S_m.run (!s,!r)
-                  |>(fun ((s',r'),v) -> (
-                        r:=r';
-                        s:=s';
-                        v
-                      )))
-              in
-              let insert: key -> value -> unit = (fun k v ->
-                  lift (fun (k,v) -> MWE_.insert k v) (k,v))
-              in
-              let insert_many: key -> value -> (key*value) list -> unit = (
-                fun k v kvs -> 
-                  lift (fun (k,v,kvs) -> MWE_.insert_many k v kvs) (k,v,kvs))
-              in
-              let find: key -> value option = (fun k ->
-                  lift MWE_.find k)
-              in
-              let delete: key -> unit = (lift MWE_.delete) in
-              { insert; insert_many; find; delete })
-
-      end)  (* T_ *)
-
-      let _ = (module T_ : IMPERATIVE_MAP)
-      include T_
-
-    end (* Imperative_map *)
-*)

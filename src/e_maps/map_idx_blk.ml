@@ -9,12 +9,12 @@ is a pointer to the blk on disk
 *)
 
 
-open Btree_api
+open Internal_api
 
 type idx = Types.blk_id [@@deriving yojson]
 type blk = Types.blk [@@deriving yojson]
 
-module type STORE = Btree_api.Simple.STORE 
+module type STORE = Internal_api.Simple.STORE 
   with type page = blk and type page_ref=idx
 
 (* STORE.page = string which is Types.blk assuming lengths ok *)
@@ -29,7 +29,7 @@ module Make = functor (ST:STORE) -> (struct
     module KV = struct
       type key = idx [@@deriving yojson]
       type value = blk [@@deriving yojson]
-      let key_ord = Int_.key_ord
+      let key_ord = Int_key.key_ord
       let equal_value (v1:value) v2 = (v1 = v2)
     end
     let _ = (module KV : KEY_VALUE)

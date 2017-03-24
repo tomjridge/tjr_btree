@@ -5,12 +5,12 @@
 (* note that the use of time means that we need to normalize timings
    (and current time) in order to exhaust state space *)
 
-open Btree_api
+open Internal_api
 open Sem
 open Btree_util
 
 module KV = Map_int_int.KV
-let _ = (module KV : Btree_api.KEY_VALUE)
+let _ = (module KV : Internal_api.KEY_VALUE)
 
 open KV
 

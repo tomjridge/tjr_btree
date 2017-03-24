@@ -3,7 +3,7 @@
 (* we store the btree generation in block 0 *)
 
 
-open Btree_api
+open Internal_api
 open Map_string_string_small
 open Block_device
 open File_store
@@ -17,7 +17,7 @@ module KV = Map_string_string_small.KV
 module FS = Filestore
 
 open KV
-open Btree_api
+open Internal_api
 
 type t = {store: RF.store; page_ref:RF.page_ref}
 

@@ -17,11 +17,11 @@ module KV = struct
   let equal_value : value -> value -> bool = (=)
 end
 
-let _ = (module KV : Btree_api.KEY_VALUE)
+let _ = (module KV : Internal_api.KEY_VALUE)
 
 
 (* NB page=string *)
-module type STORE = Btree_api.Simple.STORE
+module type STORE = Internal_api.Simple.STORE
 
 
 module Make = functor (ST:STORE) -> struct
@@ -30,7 +30,7 @@ module Make = functor (ST:STORE) -> struct
     module KV=KV
     module ST=ST
     open KV
-    open Btree_api.Pickle_params
+    open Internal_api.Pickle_params
     let pp = Pickle.Examples.{
         p_k = p_int;
         u_k = u_int;
@@ -40,7 +40,7 @@ module Make = functor (ST:STORE) -> struct
         v_len = 4;
       }
   end)
-  let _ = (module Btree_simple.Btree.Raw_map : Btree_api.RAW_MAP)
+  let _ = (module Btree_simple.Btree.Raw_map : Internal_api.RAW_MAP)
 end
 
 

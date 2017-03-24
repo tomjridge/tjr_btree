@@ -10,7 +10,7 @@ let value_size = 4  (* 32 bit ints *)
 
 (* instantiate Btree.Simple.Make() ----------------------------------------- *)
 
-module Make = functor (ST:Btree_api.Simple.STORE) -> struct
+module Make = functor (ST:Internal_api.Simple.STORE) -> struct
   module ST = ST
   module Simple = Btree_simple.Make(
     struct 
@@ -32,7 +32,7 @@ module Make = functor (ST:Btree_api.Simple.STORE) -> struct
       module ST=ST
 
       open KV
-      let pp: (key,value) Btree_api.Pickle_params.t = Pickle.(
+      let pp: (key,value) Internal_api.Pickle_params.t = Pickle.(
         {
           p_k = (fun k -> Examples.p_string_w_len k);
           u_k = (Examples.u_string_w_len);
