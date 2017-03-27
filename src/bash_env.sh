@@ -49,6 +49,7 @@ bytes="test_main.byte"
 function mk_depend() {
     mkdir -p _depend
     for f in {b,c,d,e,f,g}_*; do
+    # for f in {b,c}_* d_core; do
         (cd $f && ocamldep -one-line -sort *.ml > ../_depend/$f)
     done
 }

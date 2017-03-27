@@ -40,7 +40,7 @@ let _ = (module KV : Btree.KEY_VALUE_TYPES)
 
 module Make = functor (ST:Internal_api.Simple.STORE) -> struct
   module ST = ST
-  module Simple = Btree_simple.Make(
+  module Simple = Btree_simple_internal.Make(
     struct 
       module KV = KV
       module ST=ST

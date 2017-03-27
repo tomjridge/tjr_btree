@@ -13,3 +13,4 @@ module Sem = State_error_monad.Sem
 module State_error_monad = State_error_monad.State_error_monad
 module Tjr_string = Tjr_string
 module Test = Test
+module World = World_monad.World

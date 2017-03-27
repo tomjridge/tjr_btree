@@ -26,7 +26,7 @@ let default_filename = "/tmp/store"
 
 module Uncached_ = Int_int_filestore.Uncached
 
-module Btree = Uncached_.Btree_simple_.Btree
+module Btree = Uncached_.Btree_simple_internal_.Btree
 
 module RM = Btree.Raw_map
 module Sem = Sem

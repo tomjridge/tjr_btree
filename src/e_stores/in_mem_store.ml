@@ -31,7 +31,7 @@ module Make = functor (S:S) -> struct
 
   module S = S
 
-  (* we put these outside the call to Btree_simple.Make, so we can
+  (* we put these outside the call to Btree_simple_internal.Make, so we can
      have visibility into the types, particularly the store type *)
   module C = S.C
   module KV = S.KV

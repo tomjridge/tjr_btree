@@ -26,7 +26,7 @@ module type STORE = Internal_api.Simple.STORE
 
 module Make = functor (ST:STORE) -> struct
   module ST = ST
-  module Btree_simple = Btree_simple.Make(struct
+  module Btree_simple_internal = Btree_simple_internal.Make(struct
     module KV=KV
     module ST=ST
     open KV
@@ -40,7 +40,7 @@ module Make = functor (ST:STORE) -> struct
         v_len = 4;
       }
   end)
-  let _ = (module Btree_simple.Btree.Raw_map : Internal_api.RAW_MAP)
+  let _ = (module Btree_simple_internal.Btree.Raw_map : Internal_api.RAW_MAP)
 end
 
 

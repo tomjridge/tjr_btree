@@ -4,35 +4,6 @@ open Prelude
 
 (* FIXME get rid of this/tidy it up *)
 
-module type CONSTANTS = sig
-  val max_leaf_size : int
-  val max_node_keys : int
-  val min_leaf_size : int
-  val min_node_keys : int
-end
-
-
-
-(* we require that the store makes errors explicit so we can
-   explicitly handle them (ie maintain invariants); if we don't have
-   any resources, then an exception just unwinds the stack (so is
-   safe); otherwise we need to use exceptions very carefully, in which
-   case we might as well be explicit *)
-module type STORE = sig
-  type page
-  type store
-  type page_ref [@@deriving yojson]
-
-  type 'a m = ('a,store) Sem.m
-
-  val free: page_ref list -> unit m
-  val alloc: page -> page_ref m
-  val dest_Store: store -> page_ref -> page
-  val page_ref_to_page: page_ref -> page m
-end
-
-
-module type KEY_VALUE = Btree_api.KEY_VALUE
 
 (* oft used instance *)
 module Int_key = struct
@@ -41,42 +12,7 @@ module Int_key = struct
 end
 
 
-(* a "raw" api, a layer over the stuff from isabelle -------------------- *)
 
-(* like a map, but pointers are explicit *)
-module type RAW_MAP = sig
-  module KV : KEY_VALUE
-  module ST : STORE
-  type bt_ptr = ST.page_ref
-
-  (* bt_ptr changes, as does store *)
-  type 'a m = ('a,ST.store * bt_ptr) Sem.m
-
-  open KV
-  val empty: unit -> (bt_ptr,ST.store) Sem.m
-  val insert: key -> value -> unit m
-  val insert_many: key -> value -> (key*value) list -> unit m
-  val find: key -> value option m
-  val delete: key -> unit m
-
-end
-
-
-(* leaf stream ---------------------------------------- *)
-
-(* this is a useful operation to support, but not needed always *)
-module type LEAF_STREAM = sig
-  module ST : STORE
-  module KV : KEY_VALUE
-  open KV
-
-  type t  (* pointer to somewhere in btree *)
-  type 'a m = ('a,ST.store * t) Sem.m
-
-  val mk: ST.page_ref -> (t,ST.store) Sem.m
-  val step: unit -> bool m  (* true if we have stepped *)
-  val get_kvs: unit -> (key*value) list m
-end
 
 
 
@@ -155,10 +91,15 @@ end
 
 
 
+
+
+
+
 (* simple interface ---------------------------------------- *)
 
-(* see Btree_simple *)
+(* see btree_simple_internal *)
 
+(*
 module Pickle_params = Btree_api.Pickle_params
 
 module Simple = struct
@@ -180,3 +121,4 @@ module Simple = struct
 end
 
 
+*)

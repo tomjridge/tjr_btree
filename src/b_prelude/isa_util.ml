@@ -9,3 +9,10 @@ let rresult_to_result = Our.Util.(fun x ->
     | Error (String_error x) -> Pervasives.Error x)
 
 
+module X = struct
+
+  let int_to_nat x = Gen_isa.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
+  let int_to_int x = Gen_isa.(
+      x |>Big_int.big_int_of_int|>(fun x -> Arith.Int_of_integer x))
+
+end

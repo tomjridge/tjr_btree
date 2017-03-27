@@ -14,7 +14,7 @@ let value_size = 4  (* 32 bit ints *)
 
 module Make = functor (ST:Internal_api.Simple.STORE) -> struct
 
-  module Simple = Btree_simple.Make(
+  module Simple = Btree_simple_internal.Make(
     struct 
 
       module KV = struct

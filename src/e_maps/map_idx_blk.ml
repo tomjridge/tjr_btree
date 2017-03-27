@@ -24,7 +24,7 @@ module Make = functor (ST:STORE) -> (struct
 
     module ST = ST
     module MII = Map_int_int.Make(ST)
-    module RM_ = MII.Btree_simple.Btree.Raw_map
+    module RM_ = MII.Btree_simple_internal.Btree.Raw_map
 
     (* NB this is not MII.KV, since value=blk not int *)
     module KV = struct

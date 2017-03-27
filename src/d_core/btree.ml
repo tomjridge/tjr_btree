@@ -3,54 +3,133 @@
 (* a layer over the isabelle code *)
 
 open Prelude
+open Btree_util
 
-(* misc ---------------------------------------- *)
-
-let dest_Some = function (Some x) -> x | _ -> failwith "dest_Some"
-
-let option_map f = function Some x -> Some(f x) | _ -> None
-
-let rec iter_step (f:'s -> 's option) (x:'s) = (
-  let s' = f x in
-  match s' with
-  | None -> x
-  | Some x' -> iter_step f x')
 
 
 (* isa translations ---------------------------------------- *)
 
-module X = struct
+module X = Isa_util.X
 
-  let int_to_nat x = Gen_isa.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
-  let int_to_int x = Gen_isa.(
-      x |>Big_int.big_int_of_int|>(fun x -> Arith.Int_of_integer x))
 
+(* module types: CONSTANTS etc -------------------- *)
+
+(* previously in internal_api *)
+
+module type KEY_VALUE = Btree_api.KEY_VALUE
+
+module type CONSTANTS = Btree_api.CONSTANTS
+
+
+(* we require that the store makes errors explicit so we can
+   explicitly handle them (ie maintain invariants); if we don't have
+   any resources, then an exception just unwinds the stack (so is
+   safe); otherwise we need to use exceptions very carefully, in which
+   case we might as well be explicit *)
+(*
+module type STORE' = sig
+  type page
+  type store
+  type page_ref [@@deriving yojson]
+
+  type 'a m = ('a,store) Sem.m
+
+  val free: page_ref list -> unit m
+  val alloc: page -> page_ref m
+  val dest_Store: store -> page_ref -> page
+  val page_ref_to_page: page_ref -> page m
+end
+*)
+
+(* like Btree_api.STORE, but no store id passed - the store is the
+   monad state *)
+module type STORE = sig
+  module Page : Btree_api.BLK_LIKE
+  open Page
+  type t
+  type 'a m = ('a,t) Sem.m
+  val free: r list -> unit m  (* free list *)
+  val alloc: Page.t -> r m
+  val page_ref_to_page: r -> Page.t m
+  val store_sync: unit m
+  include Btree_api.MONAD with type 'a m := 'a m
+end
+
+module type S = sig
+  module C : CONSTANTS
+  module KV: KEY_VALUE
+  module ST: STORE
+  (* this module's types depend on the previous modules *)
+  module FT : sig
+    open KV
+    open ST
+    type pframe =  
+        Node_frame of (key list * ST.Page.r list) |
+        Leaf_frame of (key * value) list[@@deriving yojson]
+    val frame_to_page : pframe -> ST.Page.t
+    val page_to_frame : ST.Page.t -> pframe
+  end
 end
 
 
 
-(* simplified structs ---------------------------------------- *)
+(* what results from calling Make ======================================== *)
+
+(* a "raw" api, a layer over the stuff from isabelle -------------------- *)
+
+(* like a map, but pointers are explicit *)
+module type RAW_MAP = sig
+  module KV : KEY_VALUE
+  module ST : STORE
+  type bt_ptr = ST.Page.r
+
+  (* bt_ptr changes, as does store *)
+  type 'a m = ('a,ST.t * bt_ptr) Sem.m
+
+  open KV
+  val empty: unit -> (bt_ptr,ST.t) Sem.m
+  val insert: key -> value -> unit m
+  val insert_many: key -> value -> (key*value) list -> unit m
+  val find: key -> value option m
+  val delete: key -> unit m
+
+end
 
 
-module type KEY_VALUE_TYPES = Internal_api.KEY_VALUE
+(* leaf stream ---------------------------------------- *)
 
-module type CONSTANTS = Internal_api.CONSTANTS
+(* this is a useful operation to support, but not needed always *)
+module type LEAF_STREAM = sig
+  module ST : STORE
+  module KV : KEY_VALUE
+  open KV
 
-module type STORE = Internal_api.STORE
+  type t  (* pointer to somewhere in btree *)
+  type 'a m = ('a,ST.t * t) Sem.m
+
+  val mk: ST.Page.r -> (t,ST.t) Sem.m
+  val step: unit -> bool m  (* true if we have stepped *)
+  val get_kvs: unit -> (key*value) list m
+end
+
 
 
 (* construct non-simple versions suitable for isa -------------------------- *)
 
-module Mk_kv = functor (KV:KEY_VALUE_TYPES) -> struct
-  open X
-  include KV
-  let key_eq k1 k2 = KV.key_ord k1 k2 = 0
-  let key_ord k1 k2 = KV.key_ord k1 k2|>int_to_int
-  let equal_keya k1 k2 = KV.key_ord k1 k2 = 0
-  let equal_key = Gen_isa.{HOL.equal = equal_keya}
-  let equal_value_ta = KV.equal_value
-  let equal_value_t = Gen_isa.{HOL.equal = equal_value_ta}
-
+module Mk_kv = functor (KV:KEY_VALUE) -> struct
+  module T_ = struct 
+    open X
+    include KV
+    type value_t = KV.value [@@deriving yojson]
+    let key_eq k1 k2 = KV.key_ord k1 k2 = 0
+    let key_ord k1 k2 = KV.key_ord k1 k2|>int_to_int
+    let equal_keya k1 k2 = KV.key_ord k1 k2 = 0
+    let equal_key = Gen_isa.{HOL.equal = equal_keya}
+    let equal_value_ta = KV.equal_value
+    let equal_value_t = Gen_isa.{HOL.equal = equal_value_ta}
+  end
+  let _ = (module T_ : Our.Key_value_types_t)
+  include T_
 end
 
 module Mk_c = functor (C:CONSTANTS) -> struct
@@ -64,12 +143,12 @@ end
 module Mk_st = functor (ST:STORE) -> struct
   module ST = ST
   module T (* : Our.Store_t *) = struct
-    type page = ST.page
-    type store = ST.store
-    type page_ref = ST.page_ref[@@deriving yojson]
+    type page = ST.Page.t
+    type store = ST.t
+    type page_ref = ST.Page.r[@@deriving yojson]
 
     open Our
-    open Internal_api
+
     let to_our_monad: 
       ('a,store) State_error_monad.m -> ('a,store) Our.Monad.m_t = (
       fun x -> Our.Monad.M(
@@ -88,10 +167,13 @@ module Mk_st = functor (ST:STORE) -> struct
     let alloc : page -> (page_ref, store) Monad.m_t = (fun p ->
         ST.alloc p |> to_our_monad)
 
-    let dest_Store : store -> page_ref -> page = ST.dest_Store
-
     let page_ref_to_page : page_ref -> (page, store) Monad.m_t = (fun r ->
         ST.page_ref_to_page r |> to_our_monad)
+
+    let dest_Store : store -> page_ref -> page = (fun s r -> 
+        page_ref_to_page r |> Monad.dest_M |> (fun f -> f s) 
+        |> (function (s',Ok(p)) -> p))
+
   end
 
   let _ = (module T : Our.Store_t)
@@ -104,23 +186,8 @@ end
 
 (* this is the most general interface to the btree routines *)
 
+(* FIXME just Make not Main.Make *)
 module Main = struct
-  module type S = sig
-    module C : CONSTANTS
-    module KV: KEY_VALUE_TYPES
-    module ST: STORE
-    (* this module's types depend on the previous modules *)
-    module FT : sig
-      open KV
-      open ST
-      type pframe =  
-          Node_frame of (key list * page_ref list) |
-          Leaf_frame of (key * value) list[@@deriving yojson]
-
-      val frame_to_page : pframe -> page
-      val page_to_frame : page -> pframe
-    end
-  end
 
   module Make = functor (S:S) -> (struct
 
@@ -133,12 +200,7 @@ module Main = struct
       module ST = Mk_st(S.ST)
       module Frame_types = struct
         module Store = ST
-        module Key_value_types = struct 
-          include KV
-          type value_t = value
-          let value_t_of_yojson = KV.value_of_yojson
-          let value_t_to_yojson = KV.value_to_yojson
-        end
+        module Key_value_types = KV
         include S.FT
       end
     end
@@ -215,8 +277,6 @@ module Main = struct
           !s'
       )
 
-      open Internal_api
-
       let find: 
         KV_.key -> Store.page_ref -> (KV_.value_t option,Store.store) Sem.m = (
         fun k r st ->
@@ -283,7 +343,6 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Internal_api
 
       let step : t -> t = (fun x ->
           x.store |> (Insert.insert_step x.is |> Our.Monad.dest_M)
@@ -361,8 +420,7 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Internal_api
-
+      
       let step : t -> t = (fun x ->
           x.store |> (Insert_many.insert_step x.is|>Our.Monad.dest_M)
           |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
@@ -437,7 +495,6 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      open Internal_api
 
       let step : t -> t = (fun x ->
           x.store |> (Delete.delete_step x.ds|>Our.Monad.dest_M)
@@ -492,19 +549,18 @@ module Main = struct
 
     module Raw_map (* : RAW_MAP *) = struct
       open Our_
-      open Internal_api
       module KV = S.KV
       module ST = S.ST           
-      let _ = (module ST: Internal_api.STORE)
+      let _ = (module ST: STORE)
 
-      type bt_ptr = ST.page_ref
-      type 'a m = ('a,ST.store * bt_ptr) Sem.m
+      type bt_ptr = ST.Page.r
+      type 'a m = ('a,ST.t * bt_ptr) Sem.m
       
       open KV
 
       let rresult_to_result = Isa_util.rresult_to_result
 
-      let empty: unit -> (bt_ptr,ST.store) Sem.m = (
+      let empty: unit -> (bt_ptr,ST.t) Sem.m = (
         fun () s -> (
             let m = Find.empty_btree ()|>Our.Monad.dest_M in
             m s |> (fun (s,r) -> (s,r|>rresult_to_result))
@@ -550,14 +606,13 @@ module Main = struct
 
     end
     
-    let _ = (module Raw_map : Internal_api.RAW_MAP)
+    let _ = (module Raw_map : RAW_MAP)
 
 
 
     (* Leaf_stream_ ---------------------------------------- *)
 
     module Leaf_stream_ = (struct 
-      open Internal_api
       open Btree_util
       open Our_
       module KV = Raw_map.KV
@@ -566,12 +621,12 @@ module Main = struct
       open Our_.Leaf_stream
 
       type t = Leaf_stream.ls_state
-      type 'a m = ('a,ST.store * t) Sem.m
+      type 'a m = ('a,ST.t * t) Sem.m
 
       let rresult_to_result = Isa_util.rresult_to_result
 
       (* repeatedly step till we get to the next leaf *)
-      let step_till_leaf_or_finished: t -> (t option,ST.store) Sem.m = (
+      let step_till_leaf_or_finished: t -> (t option,ST.t) Sem.m = (
         let open Our.Monad in
         fun lss -> 
         fun s ->
@@ -589,7 +644,7 @@ module Main = struct
           loop lss |> Our.Monad.dest_M |> (fun run -> run s) 
           |> (fun (s',res) -> (s',res|>rresult_to_result)))
 
-      let mk: ST.page_ref -> (t,ST.store) Sem.m = Sem.(
+      let mk: ST.Page.r -> (t,ST.t) Sem.m = Sem.(
         fun r ->
           mk_ls_state r 
           |> step_till_leaf_or_finished 
@@ -638,7 +693,7 @@ module Main = struct
 
     end)  (* Leaf_stream_ *)
 
-    let _ = (module Leaf_stream_ : Internal_api.LEAF_STREAM)
+    let _ = (module Leaf_stream_ : LEAF_STREAM)
 
   end)  (* Make *)
 

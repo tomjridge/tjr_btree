@@ -106,7 +106,7 @@ module Btree' (* : Ext_bytestore.Btree_t *) = struct
   
 
   open Disk
-  open Int_int_store.Btree_simple.Btree
+  open Int_int_store.Btree_simple_internal.Btree
 
   let empty_btree: unit -> ref_t m = (
     fun () -> Raw_map.empty ()

@@ -1,51 +1,38 @@
+(*
 open Prelude
 
 (* simple ------------------------------------------------------------ *)
 
 (* this is a simplified interface; does one particular mapping from FT
-   to bytes; assumes world monad is fixed *)
-
-(* we want to call Btree.make, with 'a m = 'a World.m *)
+   to bytes; assumes world is fixed *)
 
 open Btree
 open Btree_util
 
-module type S = sig
-  open Btree_api
-  module KV : KEY_VALUE
-  module ST: STORE with type Page.t = string
-  open KV
-  val pp : (key,value) Pickle_params.t
-end
+module type STORE = Btree.STORE with type page_ref=int and type page=string
+
+(* input to Make *)
+module type S = Internal_api.Simple.S
 
 module Make = functor (S:S) -> (struct
 
-    module S = S
+  module S = S
 
-    let _ = (module S.KV : Internal_api.KEY_VALUE)
-            
-
-    module ARG_ = (struct
+  module Btree = Btree.Main.Make(
+    struct
       module KV = S.KV
-      module ST = struct 
-        include S.ST
-        type page = Page.t
-        type page_ref = Page.r [@@deriving yojson]
-        type store = t
-        let dest_Store: store -> page_ref -> page = failwith "FIXME"
-      end
+      module ST = S.ST
 
       module C : CONSTANTS = struct
         open S
-        module Page = ST.Page
         let pp = S.pp
         let max_leaf_size = 
-          (Page.sz - 4 - 4) (* for tag and length *)
-          / (pp.k_len+pp.v_len)
+          (ST.page_size - 4 - 4) (* for tag and length *)
+                             / (pp.k_len+pp.v_len)
         let max_node_keys =
-          (Page.sz - 4 - 4 - 4 (* tag, length x 2 *)
-           - pp.v_len) (* always one val more than # keys *)
-          / (pp.k_len + pp.v_len)
+          (ST.page_size - 4 - 4 - 4 (* tag, length x 2 *)
+          - pp.v_len) (* always one val more than # keys *)
+            / (pp.k_len + pp.v_len)
         let min_leaf_size = 2
         let min_node_keys = 2
       end
@@ -54,9 +41,8 @@ module Make = functor (S:S) -> (struct
       module FT = struct
         open KV
         open ST
-        module Page = ST.Page
         type pframe =  
-            Node_frame of (key list * Page.r list) |
+            Node_frame of (key list * page_ref list) |
             Leaf_frame of (key * value) list[@@deriving yojson]
 
         open Btree_util
@@ -68,7 +54,7 @@ module Make = functor (S:S) -> (struct
 
         (* generic marshalling; format: int node_or_leaf; int number
            of entries; entries *)
-        let frame_to_page' : pframe -> Page.t = Pickle.P.(
+        let frame_to_page' : pframe -> page = Pickle.P.(
             fun p ->
               let is = Pickle.Examples.(
                   match p with
@@ -84,15 +70,15 @@ module Make = functor (S:S) -> (struct
               in
               let s = is |> Pickle.P.run_w_exception "" in 
               let _ = Test.test (fun _ ->
-                  let (l1,l2) = String.length s , Page.sz in
+                  let (l1,l2) = String.length s , ST.page_size in
                   let b =  l1 <= l2 in
                   (if (not b) then Printf.printf "%d %d" l1 l2);
                   assert b)
               in
-              s ^ (String.make (Page.sz - String.length s) (Char.chr 0))
+              s ^ (String.make (ST.page_size - String.length s) (Char.chr 0))
           )
 
-        let page_to_frame' : Page.t -> pframe = Pickle.U.(
+        let page_to_frame' : page -> pframe = Pickle.U.(
             fun buf -> 
               let x = Pickle.Examples.(
                   u_int |> bind (fun tag -> 
@@ -131,12 +117,8 @@ module Make = functor (S:S) -> (struct
 
       end (* FT *)
 
-    end) (* ARG_ *)
+    end) (* Btree.Main.Make *)
 
 
-    let _ = (module ARG_ : Btree.Main.S)
-
-    module Btree = Btree.Main.Make(ARG_)
-
-
-  end) (* Make *)
+end) (* Make *)
+*)

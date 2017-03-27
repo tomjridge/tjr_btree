@@ -15,14 +15,17 @@ end
 
 (* block device ---------------------------------------- *)
 
-module type DISK = sig
-  module BLK : sig
+module type BLK_LIKE = sig
     type t
-    type r  (* number/index of a block *)
+    type r = int [@@deriving yojson] (* number/index of a block *)
     val sz: int  (* size of a block in bytes *)
     val of_string: string -> (t,string) result
     val empty: unit -> t
   end
+
+
+module type DISK = sig
+  module BLK : BLK_LIKE
   open BLK
   type 'a m
   type t
@@ -53,10 +56,7 @@ end
    rewritten; maintains free list, but doesn't try to do anything
    fancy *)
 module type STORE = sig
-  module Page : sig
-    type t
-    type r (* ref *)
-  end
+  module Page : BLK_LIKE
   open Page
   type 'a m
   type t
@@ -65,6 +65,17 @@ module type STORE = sig
   val page_ref_to_page: t -> r -> Page.t m
   val store_sync: t -> unit m
   include MONAD with type 'a m := 'a m
+end
+
+
+(* tree constants ---------------------------------------- *)
+
+
+module type CONSTANTS = sig
+  val max_leaf_size : int
+  val max_node_keys : int
+  val min_leaf_size : int
+  val min_node_keys : int
 end
 
 

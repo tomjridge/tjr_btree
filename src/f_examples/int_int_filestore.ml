@@ -15,11 +15,11 @@ module Uncached = struct
   open Block_device
 
   module X_ = Map_int_int.Make(ST)
-  module Btree_simple_ = X_.Btree_simple
+  module Btree_simple_internal_ = X_.Btree_simple_internal
   (* module IIS_ = Int_int_store *)
 
   let from_file ~fn ~create ~init = (
-    let open Btree_simple_.Btree.S.FT in
+    let open Btree_simple_internal_.Btree.S.FT in
     let open ST in
     let fd = Blkdev_on_fd.from_file fn create init in
     (* now need to write the initial frame *)
@@ -82,7 +82,7 @@ module Cached (* : Btree.S *) = struct
       match kvs with 
       | [] -> (t,Ok ())
       | (k,v)::kvs -> (
-          let open Uncached.Btree_simple_.Btree in
+          let open Uncached.Btree_simple_internal_.Btree in
           Raw_map.insert_many k v kvs |> Sem.run (s,r) |> (fun ((s',r'),res) ->
               match res with
               | Ok () -> ((r',s',Map_int.empty),Ok())
