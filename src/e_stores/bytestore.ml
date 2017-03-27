@@ -15,7 +15,9 @@
 
 (* FIXME prefer btree_file? *)
 
-open Our.Util
+open Prelude
+
+open Our.Util (* FIXME no! *)
 
 type blk_index = int
 type offset = int
@@ -30,7 +32,7 @@ module type Disk_t = sig
   module Buff: Buff_t
   type store
 
-  type 'a m = ('a,store) Internal_api.Sem.m
+  type 'a m = ('a,store) Sem.m
   (* type store_error *)
   type block
   type blk_id = int
@@ -80,7 +82,7 @@ module Make = functor (S:S) -> struct
   open Disk
   open Btree
 
-  open Internal_api.Sem
+  open Sem
   open Disk
       
   (* use this to store the length of the buffer *)

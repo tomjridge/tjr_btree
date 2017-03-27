@@ -1,7 +1,7 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
 (* we store the btree generation in block 0 *)
-
+open Prelude
 
 open Internal_api
 open Map_string_string_small

@@ -1,5 +1,7 @@
 (* test int int map backed by a file ---------------------------------------- *)
 
+open Prelude
+
 module State_monad : sig
   type ('a,'s) m = 's -> ('s * 'a)
   val return: 'a -> ('a,'s) m
@@ -27,7 +29,7 @@ module Uncached_ = Int_int_filestore.Uncached
 module Btree = Uncached_.Btree_simple_.Btree
 
 module RM = Btree.Raw_map
-module Sem = Internal_api.Sem
+module Sem = Sem
 
 let run = State_monad.run
 

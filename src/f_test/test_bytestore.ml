@@ -1,5 +1,7 @@
 (* implement and test bytestore ---------------------------------------- *)
 
+open Prelude
+
 (* backing store is in memory;  *)
 
 open Bytestore
@@ -31,7 +33,7 @@ module Disk = struct
   type store_error  (* no constructors *)
   let empty_disk = {free=0; map=Map_int.empty}
 
-  type 'a m = ('a,store) Internal_api.Sem.m  
+  type 'a m = ('a,store) Sem.m  
 
   type block = Params.block (* 4096 *)
   type blk_id = Params.blk_id
@@ -148,7 +150,7 @@ end)
 (* write and read back various length strings *)
 
 open Disk
-open Internal_api.Sem
+open Sem
 open Internal_api
 
 let test len = (

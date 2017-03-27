@@ -3,7 +3,7 @@ open Prelude
 (* simple ------------------------------------------------------------ *)
 
 (* this is a simplified interface; does one particular mapping from FT
-   to bytes *)
+   to bytes; assumes world is fixed *)
 
 open Btree
 open Btree_util

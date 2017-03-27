@@ -1,9 +1,8 @@
-(* store passing with error *)
+(* deprecated, use btree_api.ml ---------------------------------------- *)
 
-module Lens = Lens.Lens
+open Prelude
 
-
-module Sem = State_error_monad.Sem
+(* FIXME get rid of this/tidy it up *)
 
 module type CONSTANTS = sig
   val max_leaf_size : int
@@ -82,12 +81,13 @@ end
 
 
 
-
+(* FIXME remove *)
 module Types = struct
   type blk = string [@@deriving yojson]
   type blk_id = int [@@deriving yojson]
 end
 
+(* FIXME remove *)
 module type BUFFER = sig
   type t
   val of_string: string -> t
@@ -105,6 +105,7 @@ end
 
 let _ = (module Buffer: BUFFER)
 
+(* FIXME remove in favour of btree_api *)
 (* FIXME do we want pages to have a similar structure ie with sz? or
    perhaps carve out some subsets of string with fixed sizes? pages
    are blocks without ids *)
@@ -158,17 +159,7 @@ end
 
 (* see Btree_simple *)
 
-module Pickle_params = struct
-  open Pickle
-  type ('k,'v) t = {
-    p_k: 'k -> P.m;
-    u_k: 'k U.m;
-    k_len: int;
-    p_v: 'v -> P.m;
-    u_v: 'v U.m;
-    v_len: int      
-  }
-end  
+module Pickle_params = Btree_api.Pickle_params
 
 module Simple = struct
   type page_ref = int[@@deriving yojson]

@@ -1,4 +1,5 @@
 (* a map from int to int backed by file store ------------------------------- *)
+open Prelude
 
 module KV = Map_int_int.KV
 

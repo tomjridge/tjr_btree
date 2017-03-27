@@ -1,5 +1,6 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
+open Prelude
 
 (* we concentrate on relatively small parameters *)
 

@@ -1,11 +1,8 @@
 (* various interfaces ---------------------------------------- *)
 
-module type KEY_VALUE = sig
-  type key [@@deriving yojson]
-  type value [@@deriving yojson]
-  val key_ord : key -> key -> int
-  val equal_value : value -> value -> bool (* only for wf checking *)
-end
+open Prelude
+
+module type KEY_VALUE = Prelude.KEY_VALUE
 
 (* monad ---------------------------------------- *)
 
@@ -36,7 +33,20 @@ module type DISK = sig
 end
 
 
+
 (* store ------------------------------------------------------------ *)
+
+module Pickle_params = struct
+  open Pickle
+  type ('k,'v) t = {
+    p_k: 'k -> P.m;
+    u_k: 'k U.m;
+    k_len: int;
+    p_v: 'v -> P.m;
+    u_v: 'v U.m;
+    v_len: int      
+  }
+end  
 
 (* this is the storage level immediately below btree; needs a notion
    of a free list; otherwise, this also makes clear that pages are not

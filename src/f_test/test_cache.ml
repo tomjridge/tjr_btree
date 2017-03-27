@@ -1,5 +1,7 @@
 (* testing cache ---------------------------------------- *)
 
+open Prelude
+
 (* in memory *)
 
 (* note that the use of time means that we need to normalize timings

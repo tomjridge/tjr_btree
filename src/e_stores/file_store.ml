@@ -1,3 +1,5 @@
+open Prelude
+
 open Block_device
 
 (* a store backed by a file ---------------------------------------- *)

@@ -1,3 +1,4 @@
+open Prelude
 
 let default_filename = "/tmp/store"
 

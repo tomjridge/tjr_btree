@@ -27,6 +27,8 @@ module Defaults = struct
 end
 *)
 
+open Prelude
+
 (* a block device backed by a file ---------------------------------------- *)
 
 module Blkdev_on_fd (* : BLOCK_DEVICE *) = struct

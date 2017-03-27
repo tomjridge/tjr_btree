@@ -1,6 +1,6 @@
 (* an lru cache ---------------------------------------- *)
 
-module type KEY_VALUE = Btree_api.KEY_VALUE
+module type KEY_VALUE = Key_value.KEY_VALUE
 
 module Sem = State_error_monad.Sem
 
@@ -16,7 +16,6 @@ end
 
 
 module Make = functor (S:S) -> struct
-  open Btree_api
   open Btree_util
   open Sem
   open Lens
