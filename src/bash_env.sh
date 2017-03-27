@@ -41,37 +41,53 @@ mk_cmxa="$DISABLE_NTVE ocamlfind ocamlopt $FLGS"
 
 # mls ----------------------------------------
 
-#btree.ml 
 
-# device.ml \
-
-mls=" \
-gen_isa.ml \
-our.ml \
-\
-tjr_string.ml \
-test.ml pickle.ml btree_api.ml internal_api.ml experimental_api.ml btree_util.ml cache.ml functional_store.ml \
-\
-btree.ml 
-btree_simple.ml \
-\
-map_int_int.ml \
-map_digest_int.ml map_digest_to_string_int.ml map_string_int.ml map_string_string_small.ml \
-map_idx_blk.ml \
-\
-block_device.ml file_store.ml \
-in_mem_store.ml bytestore.ml \
-\
-device.ml root.ml \
-\
-int_int_filestore.ml kv_store_small.ml \
-\
-exhaustive.ml test_bytestore.ml test_cache.ml test_in_mem.ml test_ii.ml test_string_int.ml \
-"
-# kv_store_small.ml
+# # from_isa
+# f1="gen_isa.ml our.ml"
 # 
+# # api (self-contained)
+# f2="btree_api.ml"
+# 
+# # prelude
+# f3="
+# isa_util.ml \
+# test.ml \
+# tjr_string.ml \
+# functional_store.ml \
+# lens.ml state_error_monad.ml \
+# pickle.ml \
+# btree_util.ml \
+# cache.ml \
+# prelude.ml
+# "
+# 
+# 
+# # core
+# f4="internal_api.ml btree.ml"
+# 
+# # simple
+# f5="btree_simple.ml"
+# 
+# # maps
+# f6="map_int_int.ml \
+# map_digest_int.ml map_digest_to_string_int.ml map_string_int.ml map_string_string_small.ml \
+# map_idx_blk.ml"
+# 
+# # stores
+# f7="block_device.ml file_store.ml \
+# in_mem_store.ml bytestore.ml"
+# 
+# # user
+# f8="device.ml root.ml"
+# 
+# # examples
+# f9="int_int_filestore.ml kv_store_small.ml"
+# 
+# # test
+# f10="exhaustive.ml test_bytestore.ml test_cache.ml test_in_mem.ml test_ii.ml test_string_int.ml"
 
-# test_in_mem.ml  test_ii.ml
+# remove some files using sed
+mls=`cat _depend/* | sed 's/gen_our.ml//g'`
 
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"
@@ -82,26 +98,33 @@ bytes="test_main.byte"
 
 
 
+# depend ----------------------------------------
+
+function mk_depend() {
+    mkdir -p _depend
+    for f in {b,c,d,e,f,g}_*; do
+        (cd $f && ocamldep -one-line -sort *.ml > ../_depend/$f)
+    done
+}
+
 
 
 # links ----------------------------------------
 
 function init() {
-    link_files=`ls b_from_isa/*.ml c_pre/*.ml d_core/*.ml e_maps/*.ml e_stores/*.ml e_user/*.ml f_examples/*.ml f_test/*.ml g_main/*.ml`
+    link_files=`ls {b,c,d,e,f,g}_*/*.ml`
 }
 
 function mk_links() {
     echo "mk_links..."
     init
     ln -s $link_files .
-    touch _links
 }
 
 
 function rm_links() {
     echo "rm_links..."
     init
-    rm -f _links
     for f in $link_files; do rm -f `basename $f`; done
 }
 

@@ -1,4 +1,6 @@
 (* extra stuff after running test.sh *)
+(*
+open Prelude
 
 let _ = Test.init_r
 
@@ -35,3 +37,4 @@ let _ = Delete.from_store s'.store s'
 
 
   |> M.Tree.tree_to_yojson |> Yojson.Safe.pretty_to_string |> print_endline
+*)

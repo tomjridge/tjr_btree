@@ -1,6 +1,11 @@
 (* a generic functional store ---------------------------------------- *)
 
-open Btree_util
+module Int = struct
+  type t = int 
+  let compare: t -> t -> int = Pervasives.compare 
+end
+
+module Map_int = Map.Make(Int)
 
 type 'a ref_ = int
 

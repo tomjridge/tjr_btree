@@ -12,6 +12,7 @@
 
 (* setup ---------------------------------------- *)
 
+open State_error_monad
 open Btree
 
 
@@ -59,7 +60,7 @@ module Make = functor (S:S) -> struct
     type page_ref = PR.page_ref  [@@deriving yojson]
     type store = {free:int; m:page Map_int.t}
 
-    type 'a m = ('a,store) Internal_api.State_error_monad.m
+    type 'a m = ('a,store) State_error_monad.m
 
     (* for yojson *)
     type store' = {free':int; m':(int * page) list}[@@deriving yojson]

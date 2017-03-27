@@ -11,7 +11,7 @@ libname:=$(shell source bash_env.sh && echo $${libname})#
 
 # ----------------------------------------
 
-all: _links
+all: _links _depend
 	$$ocamlc -c $$mls
 	$$ocamlopt -c $$mls
 	$$mk_cma -g -a -o $(libname).cma $$cmos
@@ -21,6 +21,7 @@ all: _links
 
 _links:
 	mk_links
+	touch $@
 
 _test:
 	OCAMLRUNPARAM=b ./test_main.native ./default_tests.json
@@ -45,6 +46,9 @@ _reinstall:
 README.html: README.adoc
 	asciidoctor $<
 
+_depend:
+	mkdir -p _depend
+	mk_depend
 
 # ----------------------------------------
 
@@ -61,6 +65,7 @@ clean:
 
 real_clean: clean
 	rm_links
+	rm -rf _links _depend
 
 FORCE:
 

@@ -9,18 +9,6 @@ module Set_int = Set.Make(Int)
 module Map_int = Map.Make(Int)
 module Map_string = Map.Make(String)
 
-
-let dest_Ok x = Our.Util.(
-  match x with
-  | Ok y -> y
-  | _ -> failwith "dest_Ok")
-
-let rresult_to_result = Our.Util.(fun x ->
-    match x with
-    | Ok y -> Pervasives.Ok y
-    | Error (String_error x) -> Pervasives.Error x)
-
-
 let impossible (x:string) = failwith ("impossible: "^x)
 
 let dest_Some x = match x with | Some x -> x | _ -> failwith "dest_Some"

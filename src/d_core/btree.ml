@@ -1,3 +1,5 @@
+open Prelude
+
 (* misc ---------------------------------------- *)
 
 let dest_Some = function (Some x) -> x | _ -> failwith "dest_Some"
@@ -183,7 +185,7 @@ module Main = struct
 
       let step : t -> t = (fun x ->
           x.store |> (Find.find_step x.fs |> Our.Monad.dest_M) 
-          |> (fun (s',y) -> (s',Btree_util.rresult_to_result y))
+          |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
           |> (fun (s',y) -> (
                 match y with
                 | Ok fs' -> ({ x with store = s';fs=fs'})
@@ -281,7 +283,7 @@ module Main = struct
 
       let step : t -> t = (fun x ->
           x.store |> (Insert.insert_step x.is |> Our.Monad.dest_M)
-          |> (fun (s',y) -> (s',rresult_to_result y))
+          |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
           |> (fun (s',y) -> 
               match y with
               | Ok is' -> ({ x with store = s'; is=is'})
@@ -359,7 +361,7 @@ module Main = struct
 
       let step : t -> t = (fun x ->
           x.store |> (Insert_many.insert_step x.is|>Our.Monad.dest_M)
-          |> (fun (s',y) -> (s',rresult_to_result y))
+          |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
           |> (fun (s',y) ->
               match y with
               | Ok is' -> { x with store=s';is=is' }
@@ -435,7 +437,7 @@ module Main = struct
 
       let step : t -> t = (fun x ->
           x.store |> (Delete.delete_step x.ds|>Our.Monad.dest_M)
-          |> (fun (s',y) -> (s',rresult_to_result y))
+          |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
           |> (fun (s',y) ->
               match y with
               | Ok ds' -> { x with store=s'; ds=ds' }
@@ -494,7 +496,7 @@ module Main = struct
       
       open KV
 
-      let rresult_to_result = Btree_util.rresult_to_result
+      let rresult_to_result = Isa_util.rresult_to_result
 
       let empty: unit -> (bt_ptr,ST.store) Sem.m = (
         fun () s -> (
@@ -560,7 +562,7 @@ module Main = struct
       type t = Leaf_stream.ls_state
       type 'a m = ('a,ST.store * t) Sem.m
 
-      let rresult_to_result = Btree_util.rresult_to_result
+      let rresult_to_result = Isa_util.rresult_to_result
 
       (* repeatedly step till we get to the next leaf *)
       let step_till_leaf_or_finished: t -> (t option,ST.store) Sem.m = (

@@ -4,25 +4,25 @@ set +x
 
 # execute various commands on a store
 
-FN=./btree.store
+STORE=./btree.store
 MAIN=main.native
 
-rm -f /tmp/store
-./$MAIN kv init $FN
+rm -f $STORE
+./$MAIN kv init $STORE
 echo
-./$MAIN kv insert $FN k1 v1
+./$MAIN kv insert $STORE k1 v1
 echo
-./$MAIN kv list $FN
+./$MAIN kv list $STORE
 echo
-./$MAIN kv insert $FN k2 v2 
+./$MAIN kv insert $STORE k2 v2 
 echo
-./$MAIN kv insert $FN k3 v3 
+./$MAIN kv insert $STORE k3 v3 
 echo
-./$MAIN kv list $FN
+./$MAIN kv list $STORE
 
 
 for i in `seq 4 1000`; do
-    ./$MAIN kv insert $FN k$i v$i
+    ./$MAIN kv insert $STORE k$i v$i
 done
 
 # for 1000 inserts, with syncing after each insert
