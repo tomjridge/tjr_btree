@@ -45,8 +45,15 @@ end
    of a free list; otherwise, this also makes clear that pages are not
    rewritten; maintains free list, but doesn't try to do anything
    fancy *)
+
+module type PAGE_LIKE = sig
+  type t
+  type r = ptr [@@deriving yojson]
+end
+
+
 module type STORE = sig
-  module Page : BLK_LIKE
+  module Page : PAGE_LIKE
   open Page
   type 'a m 
   type t

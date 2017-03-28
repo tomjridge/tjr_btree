@@ -4,7 +4,7 @@
 
 open Prelude
 open Btree_util
-
+open Btree_api
 
 
 (* isa translations ---------------------------------------- *)
@@ -53,11 +53,7 @@ end
 (* like Btree_api.STORE, but no store id passed - the store is the
    monad state *)
 module type STORE = sig
-  (* following is a weaker version of BLK_LIKE *)
-  module Page : sig 
-    type t 
-    type r[@@deriving yojson] 
-  end
+  module Page : PAGE_LIKE
   open Page
   type t
   type 'a m = ('a,t) Sem.m

@@ -46,6 +46,8 @@ module type S = sig
   val pp : (key,value) Pickle_params.t
 end
 
+(* FIXME may want to alter this so it provides the inputs to
+   Btree.Make rather than calling directly; then we can reuse *)
 module Make = functor (S:S) -> (struct
 
     module S = S

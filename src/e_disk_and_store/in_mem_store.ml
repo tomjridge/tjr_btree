@@ -9,15 +9,14 @@
 *)
 
 
+open Prelude
+open Btree_api
 
-(* setup ---------------------------------------- *)
-
-open State_error_monad
-open Btree
+module M = (World : MONAD with type 'a m = 'a World.m)
 
 
 module type S = sig
-  module KV : Btree_api.KEY_VALUE
+  module KV : KEY_VALUE
   module C : Btree.CONSTANTS  
 end
 
@@ -34,50 +33,69 @@ module Make = functor (S:S) -> (struct
     module C = S.C
     module KV = S.KV
 
-    module Page = Btree.struct 
-      type page_ref = int[@@deriving yojson]
+    module Page_ = struct
+      type r = Btree_api.ptr [@@deriving yojson]
     end
 
     module FT = struct
       open KV
-      open PR
       type pframe =  
-          Node_frame of (key list * page_ref list) |
+          Node_frame of (key list * Page_.r list) |
           Leaf_frame of (key * value) list[@@deriving yojson]
-
       type page = pframe[@@deriving yojson]
 
       let frame_to_page : pframe -> page = fun x -> x
       let page_to_frame : page -> pframe = fun x -> x
-
     end
 
-    module ST = struct
+    module Page = struct
+      include Page_
+      type t = FT.pframe [@@deriving yojson]
+      type fixme
+    end
 
-      type page = FT.page  [@@deriving yojson]
-      type page_ref = PR.page_ref  [@@deriving yojson]
-      type store = {free:int; m:page Map_int.t}
+    let _ = (module Page : PAGE_LIKE)
 
-      type 'a m = ('a,store) State_error_monad.m
+    (* want to call Btree.Make *)
+    module ST (* : Btree.STORE *) = struct
+      module Page = Page
+      open Page
+      include M
+      open M
+
+      type store = {free:int; m:Page.t Map_int.t}
+      type t = store World.r
 
       (* for yojson *)
-      type store' = {free':int; m':(int * page) list}[@@deriving yojson]
+      type store' = {free':int; m':(int * Page.t) list}[@@deriving yojson]
 
       let store_to_' s = {free'=s.free; m'=s.m|>Map_int.bindings}
 
+      (*
       let dest_Store : store -> page_ref -> page = (
         fun s r -> Map_int.find r s.m)
+*)
+      let get_store: t -> store m = (
+        fun t -> World.get t)
 
-      let page_ref_to_page: page_ref -> page m = (
-        fun r -> (fun s -> (s,Ok(Map_int.find r s.m))))
+      let put_store: t -> store -> unit m = (
+        fun t s -> World.set t s)
 
-      let alloc: page -> page_ref m = (
-        fun p -> (fun s ->
-            let f = s.free in
-            ({free=(f+1);m=Map_int.add f p s.m}),Ok(f)))
+      let free: t -> Page.r list -> unit m = (
+        fun t rs -> return ())  (* no-op *)
 
-      let free: page_ref list -> unit m = (
-        fun ps -> (fun s -> (s,Ok(()))))
+      let alloc: t -> Page.t -> Page.r m = (
+        fun t p -> 
+          get_store t |> bind (fun s -> 
+              let s' = {free=s.free+1; m=Map_int.add s.free p s.m} in
+              put_store t s' |> bind (fun () -> 
+                return s.free)))
+
+      let page_ref_to_page: t -> Page.r -> Page.t m = (
+        fun t r -> get_store t |> bind (fun s ->
+            Map_int.find r s.m |> return))
+
+      let store_sync: t -> unit m = (fun t -> return ())  (* no-op *)
 
     end (* ST *)
 
@@ -85,7 +103,7 @@ module Make = functor (S:S) -> (struct
 
 
     (* want to construct Btree.Main.S in order to call Main.Make *)
-    module Btree = Btree.Main.Make(struct 
+    module Btree = Btree.Make(struct 
         module C = C
         module KV = KV
         module FT = FT

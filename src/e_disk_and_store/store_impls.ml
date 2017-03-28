@@ -1,6 +1,9 @@
 (* STORE impl backed by disk ---------------------------------------- *)
 
 open Prelude
+open Btree_api
+
+module M = Disk_impls.M
 
 (* uses a simple free counter to allocate new blocks *)
 
