@@ -15,7 +15,7 @@ end
 
 (* block device ---------------------------------------- *)
 
-type ptr = int
+type ptr = int [@@deriving yojson]
 
 module type BLK_LIKE = sig
     type t
