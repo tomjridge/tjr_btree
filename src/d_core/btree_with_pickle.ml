@@ -1,101 +1,56 @@
-(*
+(* btree_with_pickle ---------------------------------------- *)
 
-(* simple ------------------------------------------------------------ *)
-
-(* this is a simplified interface; does one particular mapping from FT
-   to bytes; assumes world monad is fixed *)
+(* like btree, but with pickling rather than some other frame -> page
+   mapping *)
 
 open Prelude
-
-(* we want to call Btree.make, with 'a m = 'a World.m *)
-
-open Btree_util
-
-(* 
-
-   the idea: all "mutable" state is represented by the world; so a
-   particular store is represented by a world reference/wref (eg to a
-   blkid->blk in mem map), twinned with a world state; the world
-   evolves, and the contents of the cell change, but the wref remains
-   fixed
-
-   we want to stack eg multiple stores on top of each other; for this
-   reason, even stores are identified by an id
-
-*)
+open Btree_api
 
 
+module Pickle_params = struct
+  open Pickle
+  type ('k,'v) t = {
+    p_k: 'k -> P.m;
+    u_k: 'k U.m;
+    k_len: int;
+    p_v: 'v -> P.m;
+    u_v: 'v U.m;
+    v_len: int      
+  }
+end  
 
-(* refine what we expect from STORE *)
-module type STORE_ = sig
-  open Btree_api
-  module Page : BLK_LIKE with type t = string (* refined *)
+module type CONSTANTS = Btree.CONSTANTS
+
+(* a refinement of Btree.STORE *)
+module type STORE = sig
+  module Page: BLK_LIKE with type t = string
   open Page
-  type 'a m = 'a World.m  (* we are always in the world monad *)
-  type store  
-  type t = store World.r  (* how we represent the store, wrt a world *)      
-  val free: t -> r list -> unit m  (* free list *)
-  val alloc: t -> Page.t -> r m
-  val page_ref_to_page: t -> r -> Page.t m
-  val store_sync: t -> unit m
+  type t
+  type 'a m = ('a,t) Sem.m
+  val free: r list -> unit m  (* free list *)
+  val alloc: Page.t -> r m
+  val page_ref_to_page: r -> Page.t m
+  val store_sync: unit m
   include MONAD with type 'a m := 'a m
 end
 
-(* check that STORE_ is a refinement of STORE *)
-module X_ = functor(ST:STORE_) -> struct
-  module ST_ : Btree_api.STORE = ST
+(* check STORE is a refinement of Btree.STORE *)
+module X_ = functor (S:STORE) -> struct
+  module ST_ : Btree.STORE = S
 end
 
-(* constants are computed; page is a string; id is a fixed cell in the
-   world *)
 module type S = sig
-  open Btree_api
-  module RM: Btree.RAW_MAP
-  module LS: Btree.LEAF_STREAM with module KV=KV and module ST=ST
+  module KV: KEY_VALUE
+  module ST: STORE    
   open KV
   val pp : (key,value) Pickle_params.t
-  val id : ST.t
 end
-
-
-(* we have btree.ml; we want btree_api.ml 
-
-BT.S -> BT.T
-^         |
-|         v
-THIS.S   THIS.T
-
-*)
-
-FIXME refine btree.ml with particular frame type mappings
-
 
 module Make = functor (S:S) -> (struct
 
     module S = S
 
-    (* Btree.STORE *)
-    module ST_ = (struct
-      module Page = S.ST.Page
-      open Page
-      type t = S.ST.store
-      type 'a m = ('a,t) Sem.m
-      let free: r list -> unit m = World.(
-        fun rs ->
-          id |> World.get |> bind (fun store ->
-              
- S.ST.free S.id rs)
-    end)
-
-    let _ = (module ST_ : Btree.STORE)
-    
-
-
-  
-  end)
-
-
-    module ARG_ = (struct
+    module S_ = (struct
       module KV = S.KV
       module ST = struct 
         include S.ST
@@ -201,13 +156,12 @@ module Make = functor (S:S) -> (struct
 
       end (* FT *)
 
-    end) (* ARG_ *)
+    end) (* S_ *)
 
 
-    let _ = (module ARG_ : Btree.S)
+    let _ = (module S_ : Btree.S)
 
-    module Btree = Btree.Main.Make(ARG_)
+    module Btree = Btree.Make(S_)
 
 
   end) (* Make *)
-*)

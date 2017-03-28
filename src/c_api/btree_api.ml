@@ -15,9 +15,11 @@ end
 
 (* block device ---------------------------------------- *)
 
+type ptr = int
+
 module type BLK_LIKE = sig
     type t
-    type r = int [@@deriving yojson] (* number/index of a block *)
+    type r = ptr [@@deriving yojson] (* number/index of a block *)
     val sz: int  (* size of a block in bytes *)
     val of_string: string -> (t,string) result
     val empty: unit -> t
@@ -30,7 +32,7 @@ module type DISK = sig
   type 'a m
   type t
   val read: t -> r -> BLK.t m
-  val write: t -> r * BLK.t -> unit m  
+  val write: t -> r -> BLK.t -> unit m  
   val disk_sync: t -> unit m
   include MONAD with type 'a m := 'a m
 end
@@ -39,18 +41,6 @@ end
 
 (* store ------------------------------------------------------------ *)
 
-module Pickle_params = struct
-  open Pickle
-  type ('k,'v) t = {
-    p_k: 'k -> P.m;
-    u_k: 'k U.m;
-    k_len: int;
-    p_v: 'v -> P.m;
-    u_v: 'v U.m;
-    v_len: int      
-  }
-end  
-
 (* this is the storage level immediately below btree; needs a notion
    of a free list; otherwise, this also makes clear that pages are not
    rewritten; maintains free list, but doesn't try to do anything
@@ -58,7 +48,7 @@ end
 module type STORE = sig
   module Page : BLK_LIKE
   open Page
-  type 'a m
+  type 'a m 
   type t
   val free: t -> r list -> unit m  (* free list *)
   val alloc: t -> Page.t -> r m
@@ -67,16 +57,6 @@ module type STORE = sig
   include MONAD with type 'a m := 'a m
 end
 
-
-(* tree constants ---------------------------------------- *)
-
-
-module type CONSTANTS = sig
-  val max_leaf_size : int
-  val max_node_keys : int
-  val min_leaf_size : int
-  val min_node_keys : int
-end
 
 
 (* map ------------------------------------------------------------ *)

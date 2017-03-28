@@ -18,7 +18,16 @@ module X = Isa_util.X
 
 module type KEY_VALUE = Btree_api.KEY_VALUE
 
-module type CONSTANTS = Btree_api.CONSTANTS
+
+(* tree constants ---------------------------------------- *)
+
+
+module type CONSTANTS = sig
+  val max_leaf_size : int
+  val max_node_keys : int
+  val min_leaf_size : int
+  val min_node_keys : int
+end
 
 
 (* we require that the store makes errors explicit so we can
@@ -44,7 +53,11 @@ end
 (* like Btree_api.STORE, but no store id passed - the store is the
    monad state *)
 module type STORE = sig
-  module Page : Btree_api.BLK_LIKE
+  (* following is a weaker version of BLK_LIKE *)
+  module Page : sig 
+    type t 
+    type r[@@deriving yojson] 
+  end
   open Page
   type t
   type 'a m = ('a,t) Sem.m
@@ -182,16 +195,13 @@ module Mk_st = functor (ST:STORE) -> struct
 end
 
 
-(* main functor ---------------------------------------- *)
+(* make functor ---------------------------------------- *)
 
 (* this is the most general interface to the btree routines *)
 
-(* FIXME just Make not Main.Make *)
-module Main = struct
-
-  module Make = functor (S:S) -> (struct
-
+module Make = functor (S:S) -> (struct
     (* set up to call our.make ---------------------------------------- *)
+    
     module S = S
     (* don't want these infecting the namespace *)
     module Btree_private = struct
@@ -205,16 +215,20 @@ module Main = struct
       end
     end
 
+
     (* use our.make functor ---------------------------------------- *)
+
     module Our_ = Our.Make(Btree_private.C)(Btree_private.Frame_types)
 
 
+    (* find ---------------------------------------- *)
+
     (* Raw_map exposes a monad, but here we repeatedly run the step
        function; this allows us to check various invariants *)
-    module Find_ = (struct  (* ---------------------------------------- *)
+    module Find_ = (struct 
       open Our_
       module KV_ = Key_value_types
-      
+
       (* FIXME wrap in constructor to get nice type? *)
       type t = {
         tree: Tree.tree;
@@ -231,7 +245,7 @@ module Main = struct
         Test.log __LOC__;
         Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
         Test.test (fun _ -> 
-          assert (Find.wellformed_find_state s.store s.tree s.fs));            
+            assert (Find.wellformed_find_state s.store s.tree s.fs));            
       )
 
       let check_trans s s' = (
@@ -297,7 +311,9 @@ module Main = struct
     end)
 
 
-    module Insert_ = (struct  (* ---------------------------------------- *)
+    (* insert ---------------------------------------- *)
+
+    module Insert_ = (struct  
       open Our_
       module KV_ = Key_value_types
       module ST_ = Store
@@ -324,12 +340,12 @@ module Main = struct
         Test.test (fun _ ->
             assert (Insert.wellformed_insert_state s.t s.k s.v s.store s.is))
       )
-      
+
       let check_trans x y = (
         last_trans:=Some(x,y);
         (* Test.log __LOC__;
-        Test.log (x.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
-        Test.log (y.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+           Test.log (x.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
+           Test.log (y.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
         check_state x;
         check_state y
       )
@@ -375,7 +391,9 @@ module Main = struct
 
 
 
-    module Insert_many_ = struct  (* ---------------------------------------- *)
+    (* insert many ---------------------------------------- *)
+
+    module Insert_many_ = struct 
 
       open Our_
       module KV_ = Key_value_types
@@ -420,7 +438,7 @@ module Main = struct
       exception E of (t*string)
 
       open Btree_util
-      
+
       let step : t -> t = (fun x ->
           x.store |> (Insert_many.insert_step x.is|>Our.Monad.dest_M)
           |> (fun (s',y) -> (s',Isa_util.rresult_to_result y))
@@ -451,7 +469,9 @@ module Main = struct
     end
 
 
-    module Delete_ = (struct  (* ---------------------------------------- *)
+    (* delete ---------------------------------------- *)
+
+    module Delete_ = (struct 
       open Our_
       module KV_ = Key_value_types
       module ST_ = Store
@@ -472,7 +492,7 @@ module Main = struct
         Test.log __LOC__;
         Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
         Test.test (fun _ -> 
-          assert (Delete.wellformed_delete_state s.t s.k s.store s.ds))
+            assert (Delete.wellformed_delete_state s.t s.k s.store s.ds))
       )
 
       let check_trans x y = (
@@ -523,7 +543,7 @@ module Main = struct
             ((!s').store,Ok r)
           ) with E(t,e) -> (t.store,Error e))
 
-      
+
       (* need some pretty *)
       let from_store s t = Delete.(
           let from_store s f = (
@@ -545,7 +565,7 @@ module Main = struct
 
 
 
-    (* Raw_map ---------------------------------------- *)
+    (* raw map ---------------------------------------- *)
 
     module Raw_map (* : RAW_MAP *) = struct
       open Our_
@@ -555,7 +575,7 @@ module Main = struct
 
       type bt_ptr = ST.Page.r
       type 'a m = ('a,ST.t * bt_ptr) Sem.m
-      
+
       open KV
 
       let rresult_to_result = Isa_util.rresult_to_result
@@ -605,12 +625,12 @@ module Main = struct
 
 
     end
-    
+
     let _ = (module Raw_map : RAW_MAP)
 
 
 
-    (* Leaf_stream_ ---------------------------------------- *)
+    (* leaf stream ---------------------------------------- *)
 
     module Leaf_stream_ = (struct 
       open Btree_util
@@ -645,16 +665,16 @@ module Main = struct
           |> (fun (s',res) -> (s',res|>rresult_to_result)))
 
       let mk: ST.Page.r -> (t,ST.t) Sem.m = Sem.(
-        fun r ->
-          mk_ls_state r 
-          |> step_till_leaf_or_finished 
-          |> bind (
-            fun topt ->
-              match topt with 
-              (* from an initial ref, should always get to leaf via
-                 step_till_leaf_or_finished *)
-              | None -> err ("impossible: " ^ __LOC__)
-              | Some x -> return x))
+          fun r ->
+            mk_ls_state r 
+            |> step_till_leaf_or_finished 
+            |> bind (
+              fun topt ->
+                match topt with 
+                (* from an initial ref, should always get to leaf via
+                   step_till_leaf_or_finished *)
+                | None -> err ("impossible: " ^ __LOC__)
+                | Some x -> return x))
 
       let step: unit -> bool m = (
         fun () ->
@@ -696,7 +716,5 @@ module Main = struct
     let _ = (module Leaf_stream_ : LEAF_STREAM)
 
   end)  (* Make *)
-
-end (* Main *)
 
 

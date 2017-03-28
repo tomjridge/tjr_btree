@@ -17,6 +17,9 @@ module World = struct
           | (s',Ok y) -> (f y s')
       ))
 
+  let mk_ref: 'a -> 'a r m = (fun x s -> 
+      FS_.mk_ref x s |> (fun (s',r) -> (s',Ok r)))
+
   let set: 'a r -> 'a -> unit m = (fun r v s -> 
       FS_.set r v s |> (fun s' -> (s',Ok())))
 
