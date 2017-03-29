@@ -64,7 +64,7 @@ module Make = functor (S:S) -> (struct
       open M
 
       type store = {free:int; m:Page.t Map_int.t}
-      type t = store World.r
+      type t = store World.r * World.t
 
       (* for yojson *)
       type store' = {free':int; m':(int * Page.t) list}[@@deriving yojson]
