@@ -10,6 +10,10 @@ findlib=op.findlib;
 opam=pkgs.opam;
 ppx_deriving_yojson=op.callPackage ../ppx_deriving_yojson { };
 extunix=op.callPackage ../extunix { };
+extlib=op.ocaml_extlib_maximal;
+merlin=op.merlin; # for emacs
+emacs=pkgs.emacs; # for mini programming environment
+tuareg=pkgs.emacsPackages.tuaregMode; 
 in 
 stdenv.mkDerivation {
 
@@ -17,7 +21,12 @@ name = "tjr_btree";
     
 src=../../src;
 
-buildInputs = [ ocaml findlib opam op.yojson op.ocaml_batteries op.ppx_deriving ppx_deriving_yojson extunix ];
+# make these available in env
+emacs=emacs;
+merlin=merlin;
+tuareg=tuareg;
+
+buildInputs = [ ocaml findlib opam op.yojson op.ocaml_batteries op.ppx_deriving ppx_deriving_yojson extunix extlib merlin emacs ];
 
 configurePhase = ''true''; 	 # Skip configure
 
