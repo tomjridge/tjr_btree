@@ -113,11 +113,11 @@ function remove() {
 }
 
 
-# new_bak ----------------------------------------
-
-function new_bak() {
-    local n=1 
-    while [ -f "$1.bak.$n" ]; do ((++n)); done
-    echo "$1.bak.$n"
-}
+# # new_bak ----------------------------------------
+# 
+# function new_bak() {
+#     local n=1 
+#     while [ -f "$1.bak.$n" ]; do ((++n)); done
+#     echo "$1.bak.$n"
+# }
 
