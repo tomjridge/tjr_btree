@@ -2,24 +2,23 @@
 
 open Prelude
 
-module type KEY_VALUE = Prelude.KEY_VALUE
-
 (* monad ---------------------------------------- *)
 
+(*
 module type MONAD = sig
   type 'a m
   val return: 'a -> 'a m
   val bind: ('a -> 'b m) -> 'a m -> 'b m
 end
-
+*)
 
 (* block device ---------------------------------------- *)
 
-type ptr = int [@@deriving yojson]
+type blk_index = int
 
 module type BLK_LIKE = sig
     type t
-    type r = ptr [@@deriving yojson] (* number/index of a block *)
+    type r = blk_index [@@deriving yojson] (* number/index of a block *)
     val sz: int  (* size of a block in bytes *)
     val of_string: string -> (t,string) result
     val empty: unit -> t
@@ -34,13 +33,59 @@ module type DISK = sig
   val read: t -> r -> BLK.t m
   val write: t -> r -> BLK.t -> unit m  
   val disk_sync: t -> unit m
-  include MONAD with type 'a m := 'a m
+end
+
+
+(* params ---------------------------------------- *)
+
+type constants = Isa_util.constants
+
+type ('k,'v) params = {
+  compare_k: 'k -> 'k -> int;
+  equal_v: 'v -> 'v -> bool;
+  cs0: constants;
+}
+
+(* store ------------------------------------------------------------ *)
+
+type page_ref = int
+
+type 'a m = 'a World.m
+
+type ('k,'v) frame = ('k,'v,page_ref) Frame.t
+
+(* want to have poly defns; store type exposed since needed in btree *)
+module Store : sig
+  type ('k,'v,'t) t
+  val params: ('k,'v,'t) t -> ('k,'v) params
+  val store_free: ('k,'v,'t) t -> page_ref list -> unit m
+  val store_read: ('k,'v,'t) t -> page_ref -> ('k, 'v) frame m
+  val store_alloc : ('k,'v,'t) t -> ('k, 'v) frame -> page_ref m
+  val t: ('k,'v,'t) t -> 't World.r
+end = struct
+  type ('k,'v,'t) t = {
+    params: ('k,'v) params;
+    store_free: page_ref list -> unit m;
+    store_read : page_ref -> ('k, 'v) frame m;
+    store_alloc : ('k, 'v) frame -> page_ref m;
+    t: 't World.r
+  }
+  let params s = s.params
+  let store_free: ('k,'v,'t) t -> page_ref list -> unit m = (
+    fun s -> s.store_free)
+  let store_read: ('k,'v,'t) t -> page_ref -> ('k, 'v) frame m = (
+    fun s -> s.store_read)
+  let store_alloc : ('k,'v,'t) t -> ('k, 'v) frame -> page_ref m = (
+    fun s -> s.store_alloc)
+  let t = fun s -> s.t
 end
 
 
 
-(* store ------------------------------------------------------------ *)
 
+
+
+(*
 (* this is the storage level immediately below btree; needs a notion
    of a free list; otherwise, this also makes clear that pages are not
    rewritten; maintains free list, but doesn't try to do anything
@@ -63,11 +108,41 @@ module type STORE = sig
   val store_sync: t -> unit m
   include MONAD with type 'a m := 'a m
 end
+*)
 
+(* leaf stream ---------------------------------------- *)
 
+type ('k,'v) leaf_stream = {
+  step: unit -> bool m;
+  get_kvs: unit -> ('k * 'v) list m;
+}
 
 (* map ------------------------------------------------------------ *)
 
+(* this exposes the impl type, so users can access the raw impl *)
+module Map : sig
+  type ('k,'v,'t) t
+  val find: ('k,'v,'t) t -> 'k -> 'v option m
+  val insert: ('k,'v,'t) t -> ('k * 'v) -> unit m
+  val delete: ('k,'v,'t) t -> 'k -> unit m
+  val get_leaf_stream: ('k,'v,'t) t -> ('k,'v) leaf_stream m
+end = struct
+  type ('k,'v,'t) t = {
+    find: 'k -> 'v option m;
+    insert: ('k * 'v) -> unit m;
+    delete: 'k -> unit m;
+    get_leaf_stream: unit -> ('k,'v) leaf_stream m;
+    t: 't World.r
+  }
+  let find: ('k,'v,'t) t -> 'k -> 'v option m = (fun m -> m.find)
+  let insert: ('k,'v,'t) t -> ('k * 'v) -> unit m = (fun m -> m.insert)
+  let delete: ('k,'v,'t) t -> 'k -> unit m = (fun m -> m.delete)
+  let get_leaf_stream: ('k,'v,'t) t -> ('k,'v) leaf_stream m = (fun m -> m.get_leaf_stream ())
+end
+
+
+  
+(*
 module type MAP = sig
   module KV : KEY_VALUE
   open KV
@@ -79,10 +154,9 @@ module type MAP = sig
   val delete: t -> key -> unit m
   include MONAD with type 'a m := 'a m
 end
+*)
 
-
-(* leaf stream ---------------------------------------- *)
-
+(*
 module type LEAF_STREAM = sig
   module KV : KEY_VALUE
   open KV
@@ -91,5 +165,5 @@ module type LEAF_STREAM = sig
   val step: t -> bool m
   val get_kvs: t -> (key * value) list m
 end
-
+*)
 

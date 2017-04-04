@@ -541,7 +541,7 @@ let rec dest_Node_frame
 
 end;; (*struct Frame*)
 
-module Params : sig
+module type PARAMS = sig
   type k
   val equal_k : k HOL.equal
   type v
@@ -551,10 +551,11 @@ module Params : sig
   type page_ref
   val cs0 : unit Prelude.constants_ext
   val ord0 : (k, unit) Key_value.key_order_ext
+  val mk_r2f : store -> page_ref -> (k, v, page_ref) Frame.t option
   val store_free : page_ref list -> unit mm
   val store_read : page_ref -> (k, v, page_ref) Frame.t mm
   val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
-end = struct
+end (* = struct
 
 type k = K of Arith.nat;;
 
@@ -581,13 +582,17 @@ let cs0 : unit Prelude.constants_ext
 let ord0 : (k, unit) Key_value.key_order_ext
   = Key_value.Key_order_ext ((fun _ _ -> Util.failwitha "FIXME"), ());;
 
+let rec mk_r2f s = Util.failwitha "FIXME";;
+
 let rec store_free rs = Util.failwitha "FIXME";;
 
 let rec store_read r = Util.failwitha "FIXME";;
 
 let rec store_alloc frm = Util.failwitha "FIXME";;
 
-end;; (*struct Params*)
+end;; *) (*struct Params*)
+
+module Make = functor (Params: PARAMS) -> (struct
 
 module Tree : sig
   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
@@ -908,16 +913,6 @@ let rec add_new_stack_frame
 
 end;; (*struct Tree_stack*)
 
-module Store : sig
-  val mk_r2f :
-    Params.store ->
-      Params.page_ref -> (Params.k, Params.v, Params.page_ref) Frame.t option
-end = struct
-
-let rec mk_r2f s = Util.failwitha "FIXME";;
-
-end;; (*struct Store*)
-
 module Monad : sig
   val dest_MM : 'a Params.mm -> Params.store -> Params.store * 'a Util.res
   val bind : ('a -> 'b Params.mm) -> 'a Params.mm -> 'b Params.mm
@@ -1022,7 +1017,7 @@ let rec mk_find_state k r = F_down (r, (k, (r, [])));;
 
 let rec wf_store_tree
   s r t =
-    let r2f = Store.mk_r2f s in
+    let r2f = Params.mk_r2f s in
     let sa = mk_r2t r2f (Tree.height t) in
     Option.equal_optiona (Tree.equal_tree Params.equal_k Params.equal_v) (sa r)
       (Some t);;
@@ -1036,7 +1031,7 @@ let rec wellformed_find_state
   s0 t0 fs =
     Util.assert_truea
       (let n = Tree.height t0 in
-       let r2f = Store.mk_r2f s0 in
+       let r2f = Params.mk_r2f s0 in
        let r2t = mk_r2t r2f n in
        let check_focus = wf_store_tree s0 in
        let check_stack =
@@ -1101,7 +1096,7 @@ let rec wf_f
   t0 k str r =
     Util.assert_truea
       (let n = Tree.height t0 in
-       let r2f = Store.mk_r2f str in
+       let r2f = Params.mk_r2f str in
        let r2t = Find.mk_r2t r2f n in
        let t = Util.rev_apply (r2t r) Util.dest_Some in
        Tree.wellformed_tree Params.equal_k Params.cs0
@@ -1116,7 +1111,7 @@ let rec wf_u
   t0 k str u =
     Util.assert_truea
       (let n = Tree.height t0 in
-       let r2f = Store.mk_r2f str in
+       let r2f = Params.mk_r2f str in
        let r2t = Find.mk_r2t r2f n in
        let (fo, stk) = u in
        let check_stack =
@@ -1481,7 +1476,7 @@ let rec wellformed_delete_state
   t0 k str ds =
     Util.assert_truea
       (let n = Tree.height t0 in
-       let r2f = Store.mk_r2f str in
+       let r2f = Params.mk_r2f str in
        let r2t = Find.mk_r2t r2f n in
        (match ds with D_down a -> wf_d t0 str a
          | D_up (fo, (stk, r)) ->
@@ -1527,7 +1522,7 @@ let rec wf_f
     Util.assert_truea
       (let n = Tree.height t0 in
        let ord = Params.ord0 in
-       let r2f = Store.mk_r2f str in
+       let r2f = Params.mk_r2f str in
        let r2t = Find.mk_r2t r2f n in
        (match r2t r with None -> false
          | Some t ->
@@ -1544,7 +1539,7 @@ let rec wf_u
     Util.assert_truea
       (let n = Tree.height t0 in
        let ord = Params.ord0 in
-       let r2f = Store.mk_r2f str in
+       let r2f = Params.mk_r2f str in
        let r2t = Find.mk_r2t r2f n in
        let _ = Find.wf_store_tree str in
        let check_stack =
@@ -1952,3 +1947,6 @@ let rec lss_is_finished
           | LS_up [] -> true | LS_up (_ :: _) -> false);;
 
 end;; (*struct Leaf_stream*)
+
+
+end)
