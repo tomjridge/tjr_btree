@@ -1,0 +1,37 @@
+--- isa_export.ml_	2017-04-04 14:44:54.780943130 +0100
++++ isa_export.ml	2017-04-04 14:46:21.739437822 +0100
+@@ -541,7 +541,7 @@ let rec dest_Node_frame
+ 
+ end;; (*struct Frame*)
+ 
+-module Params : sig
++module type PARAMS = sig
+   type k
+   val equal_k : k HOL.equal
+   type v
+@@ -554,7 +554,7 @@ module Params : sig
+   val store_free : page_ref list -> unit mm
+   val store_read : page_ref -> (k, v, page_ref) Frame.t mm
+   val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
+-end = struct
++end (* = struct
+ 
+ type k = K of Arith.nat;;
+ 
+@@ -587,7 +587,9 @@ let rec store_read r = Util.failwitha "F
+ 
+ let rec store_alloc frm = Util.failwitha "FIXME";;
+ 
+-end;; (*struct Params*)
++end;; *) (*struct Params*)
++
++module Make = functor (Params:PARAMS) -> (struct
+ 
+ module Tree : sig
+   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
+@@ -1952,3 +1954,5 @@ let rec lss_is_finished
+           | LS_up [] -> true | LS_up (_ :: _) -> false);;
+ 
+ end;; (*struct Leaf_stream*)
++
++end) (* Make *)

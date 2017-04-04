@@ -90,3 +90,7 @@ pair of an updated state, and either the block that was read, or an
 error.
 
 
+== Git branches
+
+- dev: where development takes place
+- master: releases
