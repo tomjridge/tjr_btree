@@ -40,12 +40,6 @@ end
 
 type constants = Isa_util.constants
 
-type ('k,'v) params = {
-  compare_k: 'k -> 'k -> int;
-  equal_v: 'v -> 'v -> bool;
-  cs0: constants;
-}
-
 (* store ------------------------------------------------------------ *)
 
 type page_ref = int
@@ -54,33 +48,42 @@ type 'a m = 'a World.m
 
 type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 
+module type Kv_store = Isa_util.PARAMS
+
 (* want to have poly defns; store type exposed since needed in btree *)
-module Store : sig
+module Store_open = struct
+  (* a "store" is actually.. what? *)
+  type ('k,'v,'store) t = {
+    compare_k: 'k -> 'k -> int;
+    equal_v: 'v -> 'v -> bool;
+    cs0: constants;
+    store_free: page_ref list -> unit m;
+    store_read : page_ref -> ('k, 'v) frame m;
+    store_alloc : ('k, 'v) frame -> page_ref m;
+    mk_r2f: 'store -> page_ref -> ('k,'v) frame option;
+    t: 'store World.r
+  }
+  let store_free: ('k,'v,'store) t -> page_ref list -> unit m = (
+    fun s -> s.store_free)
+  let store_read: ('k,'v,'store) t -> page_ref -> ('k, 'v) frame m = (
+    fun s -> s.store_read)
+  let store_alloc : ('k,'v,'store) t -> ('k, 'v) frame -> page_ref m = (
+    fun s -> s.store_alloc)
+  let mk_r2f = fun s t -> s.mk_r2f t
+  let t = fun s -> s.t
+end
+
+(*
+module Store_closed : sig
   type ('k,'v,'t) t
   val params: ('k,'v,'t) t -> ('k,'v) params
   val store_free: ('k,'v,'t) t -> page_ref list -> unit m
   val store_read: ('k,'v,'t) t -> page_ref -> ('k, 'v) frame m
   val store_alloc : ('k,'v,'t) t -> ('k, 'v) frame -> page_ref m
+  val mk_r2f: ('k,'v,'t) t -> 't -> page_ref -> ('k,'v) frame option
   val t: ('k,'v,'t) t -> 't World.r
-end = struct
-  type ('k,'v,'t) t = {
-    params: ('k,'v) params;
-    store_free: page_ref list -> unit m;
-    store_read : page_ref -> ('k, 'v) frame m;
-    store_alloc : ('k, 'v) frame -> page_ref m;
-    t: 't World.r
-  }
-  let params s = s.params
-  let store_free: ('k,'v,'t) t -> page_ref list -> unit m = (
-    fun s -> s.store_free)
-  let store_read: ('k,'v,'t) t -> page_ref -> ('k, 'v) frame m = (
-    fun s -> s.store_read)
-  let store_alloc : ('k,'v,'t) t -> ('k, 'v) frame -> page_ref m = (
-    fun s -> s.store_alloc)
-  let t = fun s -> s.t
-end
-
-
+end = Store_open
+*)
 
 
 
