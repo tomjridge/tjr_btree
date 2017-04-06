@@ -27,21 +27,6 @@ end
 
 type ('k,'v) pp = ('k,'v) Pickle_params.t
 
-let make_constants page_size pp = Pickle_params.(
-  let max_leaf_size = 
-    (page_size - 4 - 4) (* for tag and length *)
-    / (pp.k_len+pp.v_len)
-  in
-  let max_node_keys =
-    (page_size - 4 - 4 - 4 (* tag, length x 2 *)
-     - pp.v_len) (* always one val more than # keys *)
-    / (pp.k_len + pp.v_len)
-  in
-  let min_leaf_size = 2 in
-  let min_node_keys = 2 in
-  Constants.{ min_leaf_size; max_leaf_size; min_node_keys; max_node_keys}
-)
-
 module Page = struct
   type t = string
   type r = page_ref
@@ -53,6 +38,7 @@ type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 (* following assumes tags marshall to single int32 *)
 let node_tag = 0
 let leaf_tag = 1
+let tag_len = 4 (* bytes *)
 
 open Frame
 

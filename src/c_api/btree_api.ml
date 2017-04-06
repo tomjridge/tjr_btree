@@ -35,6 +35,11 @@ module type DISK = sig
   val disk_sync: t -> unit m
 end
 
+module Default_block = struct
+  type t = string
+  type r = int
+  type sz = int  (* in bytes *)
+end
 
 (* params ---------------------------------------- *)
 

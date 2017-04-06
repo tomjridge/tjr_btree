@@ -40,7 +40,8 @@ module Make_functor = (struct
   module type RR = sig
     module P : Isa_util.PARAMS
     open P
-    val find: k -> page_ref -> store -> store * (page_ref*(k*v)list,string) result
+    val find: 
+      k -> page_ref -> store -> store * (page_ref*(k*v)list,string) result
     val insert: k -> v -> page_ref -> store -> store * (page_ref,string)result
     val insert_many: k -> v -> (k*v)list -> 
       page_ref -> store-> store*(page_ref*(k*v)list,string)result
@@ -154,7 +155,8 @@ module Make_functor = (struct
 
           type finished = page_ref
 
-          let dest: t -> finished option = fun s -> s.is |> Insert.dest_i_finished
+          let dest: t -> finished option = 
+            fun s -> s.is |> Insert.dest_i_finished
 
           let step : t -> (t* (unit,string)result) = (fun x ->
               x.store 
@@ -304,7 +306,7 @@ module Make_functor = (struct
 
       end)
 
-      (* include ops in top level --------------------------------------------- *)
+      (* include ops in top level ------------------------------------------ *)
 
       module R = struct
         module P = P
@@ -348,8 +350,10 @@ module Poly = (struct
   module type Empty = sig end
 
   let make = (fun (type k') (type v') (type store') s ->
-      let (module S : Isa_util.PARAMS with type k = k' and type v = v' and type store = store' and type page_ref = int) = (
-        module struct
+      let 
+        (module S: Isa_util.PARAMS with type k = k' and type v = v' and 
+        type store = store' and type page_ref = int) = 
+        (module struct
           type k = k'
           type v = v'
           let compare_k = s.compare_k
@@ -365,7 +369,11 @@ module Poly = (struct
         end) 
       in
       (* let (module M : RR with module P = S) = (module Make_functor.Make(S)) in *)
-      let (module M : Make_functor.RR with type P.k = k' and type P.v = v' and type P.store = store' and type P.page_ref = int) = (module Make_functor.Make(S)) in
+      let 
+        (module M : Make_functor.RR with type P.k = k' and type P.v = v' and 
+        type P.store = store' and type P.page_ref = int) = 
+        (module Make_functor.Make(S))
+      in
       let r = { find=M.find } in
       r
     )
@@ -382,8 +390,8 @@ module Poly_world = (struct
   type page_ref = int
   type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 
-  type ('a,'store) m = 'store -> ('store * ('a,string)result)
-
+  (* type ('a,'store) m = 'store -> ('store * ('a,string)result) *)
+                                 
 (*                                 
   type ('k,'v,'store) t = {
     compare_k: 'k -> 'k -> int;
@@ -402,6 +410,15 @@ module Poly_world = (struct
     find: 'store t -> 'k -> (page_ref * ('k*'v) list) World.m
   }
 
+  (*
+  type ('k,'v,'t) map' = {
+    find: 't -> 'k -> (page_ref * ('k*'v) list) World.m
+  }
+  *)
+
+  (* FIXME could use this type instead of exposing 'store above *)
+  type ('k,'v) tt = T': ('k,'v,'store) pre_map * 'store * page_ref -> ('k,'v) tt
+
   
   let make = (fun (poly:('k,'v,'store)Poly.map) -> 
       let find: 'store t -> 'k -> (page_ref * ('k*'v) list) World.m = (
@@ -418,6 +435,9 @@ module Poly_world = (struct
 
 end)
 
+
+(* map-like interface ---------------------------------------- *)
+
 module Map = (struct
 
   open Poly_world
@@ -429,23 +449,164 @@ module Map = (struct
     find: 'k->page_ref->'store->'store*(page_ref * ('k*'v) list,string)result
   }
 
-  type world_value = WV: ('k,'v,'store) pre_wv -> world_value
+  type ('k,'v) world_value = WV: ('k,'v,'store) pre_wv -> ('k,'v) world_value
 
-  type ('k,'v) map = world_value World.r
+  type ('k,'v) map = ('k,'v) world_value World.r
 
   (* this is an interface that mimics the standard map interface *)
   let find: ('k,'v) map -> 'k -> (page_ref * ('k*'v) list) World.m = (
     fun m k -> World.(
         get m |> bind (function WV wv -> (
               (* 'store existential in following *)
-            let wv = ((Obj.magic wv) : ('k,'v,'store) pre_wv) in
-            wv.find k wv.r wv.s |> (fun (s',res) -> 
-                match res with
-                | Ok (r,kvs) -> (
-                    set m (WV {wv with s=s'; r=r}) 
-                    |> bind (fun () -> return (r,kvs)))
-                | Error e -> (
-                    set m (WV {wv with s=s'})
-                    |> bind (fun () -> Sem.err e)))))))
+              (* let wv = ((Obj.magic wv) : ('k,'v,'store) pre_wv) in *)
+              wv.find k wv.r wv.s |> (fun (s',res) -> 
+                  match res with
+                  | Ok (r,kvs) -> (
+                      set m (WV {wv with s=s'; r=r}) 
+                      |> bind (fun () -> return (r,kvs)))
+                  | Error e -> (
+                      set m (WV {wv with s=s'})
+                      |> bind (fun () -> Sem.err e)))))))
 
 end)
+
+
+
+(* disk to store ---------------------------------------- *)
+
+(* use btree_pickle to convert a disk-like thing to a store-like
+   thing *)
+
+module Disk_to_store = (struct
+
+  module Block = struct
+    include Btree_api.Default_block
+  end
+
+  (* 't is the state of the underlying disk *)
+  type 't disk_ops = {
+    block_size: Block.sz;
+    read: Block.r -> 't -> ('t * (Block.t,string)result);
+    write: Block.r -> Block.t -> 't -> ('t * (unit,string)result);
+    disk_sync: 't -> ('t * (unit,string)result);
+  }
+
+  module Target_ = struct
+    type ('k,'v,'store) t = ('k,'v,'store) Poly.t 
+  end
+
+  type ('k,'v) pp = ('k,'v) Btree_with_pickle.Pickle_params.t
+
+  let tag_len = Btree_with_pickle.tag_len
+
+  type 't store = {
+    disk: 't;
+    free: int
+  }    
+
+  type ('a,'t) m = ('a,'t) Poly.m
+  type page_ref = Poly.page_ref
+
+  type ('k,'v) frame = ('k,'v) Poly.frame
+  
+  module BWP = Btree_with_pickle
+
+  (* convert a disk to a store using pickling and a free counter; assume
+     page size and block size are the same; aim for Poly.t *)
+  let disk2store page_size (disk_ops:'disk disk_ops) (pp:('k,'v) pp) 
+      compare_k equal_v 
+    = (
+      assert (disk_ops.block_size = page_size);
+      let cs0 = Constants.make_constants page_size tag_len pp.k_len pp.v_len in
+      let store_free: page_ref list -> (unit,'disk store) m = (
+        fun rs -> fun t -> (t,Ok()))  (* no-op *)
+      in
+      let store_alloc: ('k,'v) frame -> (page_ref,'disk store) m = (fun f ->
+          f|>BWP.frame_to_page page_size pp|>(fun p ->
+              fun (s:'disk store) -> 
+                disk_ops.write s.free p s.disk 
+                |> (fun (disk',res) -> (
+                      match res with
+                      | Ok () -> ({free=s.free+1; disk=disk'},Ok s.free)
+                      | Error e -> ({s with disk=disk'},Error e)))))
+      in
+      let store_read: page_ref -> (('k,'v)frame,'disk store) m = (
+        fun r (s:'disk store) ->
+          disk_ops.read r (s.disk) |> (fun (disk',res) -> 
+              match res with
+              | Ok blk -> (
+                  blk |> BWP.page_to_frame page_size pp |> (fun f -> 
+                      {s with disk=disk'},Ok f))
+              | Error e -> (s,Error e)))
+      in
+      let mk_r2f: 'disk store -> page_ref -> ('k,'v) frame option = (
+          fun s r -> 
+            store_read r s |> (function (_,Ok f) -> Some f 
+                                      | _ -> (ignore(assert(false)); None)))
+      in
+      let r : ('k,'v,'disk store) Poly.t = 
+        Poly.({compare_k; equal_v; cs0; 
+               store_free; store_read; store_alloc; mk_r2f} )
+      in
+      r
+    )
+
+end)
+
+
+(* FIXME do we need something that takes a disk (with World.m) and produces a map (with World.m)? or a Poly.store to a Poly.store with World.m? *)
+
+
+(* if we have access to some state passing map, with arbitrary impl type 't *)
+module Map_final = struct
+
+  type ('k,'v,'t) pre_map = {
+    find: 'k -> 't -> ('t * ('v option,string)result)
+  }
+
+  type ('k,'v) wv = WV: ('k,'v,'t) pre_map -> ('k,'v) wv
+
+  type ('k,'v) map = ('k,'v) wv World.r
+
+  module type Ops = sig
+    val find: ('k,'v) map -> 'k -> 'v option World.m
+  end
+
+end
+
+
+
+(* if we have access to a map using a world *)
+module Map_final' = struct
+
+  type ('k,'v,'wr) pre_map = {
+    find: 'wr -> 'k -> 'v option World.m
+  }
+
+  type ('k,'v) wv = WV: ('k,'v,'t) pre_map -> ('k,'v) wv
+
+  type ('k,'v) map = ('k,'v) wv World.r
+
+  module type Ops = sig
+    val find: ('k,'v) map -> 'k -> 'v option World.m
+  end
+
+end
+
+
+(* making ref type explicit *)
+module Map_final' = struct
+
+  type ('k,'v,'r,'t) pre_map = {
+    find: 'r -> 'k -> 't -> 't * ('v option,string) result
+  }
+
+  type ('k,'v) wv = WV: ('k,'v,'r,'t) pre_map -> ('k,'v) wv
+
+  type ('k,'v) map = ('k,'v) wv World.r
+
+  module type Ops = sig
+    val find: ('k,'v) map -> 'k -> 't -> 't * ('v option,string)result
+  end
+
+end
