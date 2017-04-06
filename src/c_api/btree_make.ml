@@ -398,7 +398,7 @@ module Poly_world = (struct
 
   type 'store t = ('store*page_ref) World.r
 
-  type ('k,'v,'store) map = {
+  type ('k,'v,'store) pre_map = {
     find: 'store t -> 'k -> (page_ref * ('k*'v) list) World.m
   }
 
@@ -418,3 +418,33 @@ module Poly_world = (struct
 
 end)
 
+module Map = (struct
+
+  open Poly_world
+
+  type ('k,'v,'store) pre_wv = {
+    r:page_ref;
+    s:'store;
+    find: 'k->page_ref->'store->'store*(page_ref * ('k*'v) list,string)result
+  }
+
+  type world_value = WV: ('k,'v,'store) pre_wv -> world_value
+
+  type ('k,'v) map = world_value World.r
+
+  (* this is an interface that mimics the standard map interface *)
+  let find: ('k,'v) map -> 'k -> (page_ref * ('k*'v) list) World.m = (
+    fun m k -> World.(
+        get m |> bind (function WV wv -> (
+              (* 'store existential in following *)
+            let wv = ((Obj.magic wv) : ('k,'v,'store) pre_wv) in
+            wv.find k wv.r wv.s |> (fun (s',res) -> 
+                match res with
+                | Ok (r,kvs) -> (
+                    set m {wv with s=s'; r=r} 
+                    |> bind (fun () -> return (r,kvs)))
+                | Error e -> (
+                    set m {wv with s=s'} 
+                    |> bind (fun () -> Sem.err e)))))))
+
+end)
