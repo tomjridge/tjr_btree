@@ -4,7 +4,7 @@ module World = struct
 
   module FS_ = Functional_store
   type t = FS_.t
-  type 'a r = 'a FS_.r
+  type 'a r = 'a FS_.T_.r
              
   type 'a m = ('a,t) State_error_monad.Sem.m
 

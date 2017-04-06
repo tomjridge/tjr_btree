@@ -422,6 +422,7 @@ module Map = (struct
 
   open Poly_world
 
+  (* FIXME use Poly_world.pre_map? remove Poly_world? *)
   type ('k,'v,'store) pre_wv = {
     r:page_ref;
     s:'store;
@@ -441,10 +442,10 @@ module Map = (struct
             wv.find k wv.r wv.s |> (fun (s',res) -> 
                 match res with
                 | Ok (r,kvs) -> (
-                    set m {wv with s=s'; r=r} 
+                    set m (WV {wv with s=s'; r=r}) 
                     |> bind (fun () -> return (r,kvs)))
                 | Error e -> (
-                    set m {wv with s=s'} 
+                    set m (WV {wv with s=s'})
                     |> bind (fun () -> Sem.err e)))))))
 
 end)
