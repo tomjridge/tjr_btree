@@ -1,25 +1,12 @@
 (* simple in-mem implementation, mainly for testing ----------------------------- *)
 
-(* NB pages are not simple byte arrays; they are frames; this avoids
-   need to fiddle with frame<->page mappings 
 
-
-   We are parametric over KV and C
-
-*)
-
+(* target Btree_make.Poly.t *)
 
 open Prelude
-open Btree_api
 
-module M = (World : MONAD with type 'a m = 'a World.m)
-
-
-module type S = sig
-  module KV : KEY_VALUE
-  module C : Btree.CONSTANTS  
-end
-
+open Btree_make
+module P = Poly
 
 module Map_int = Btree_util.Map_int
 
