@@ -1,47 +1,34 @@
 (* map from string (<=256 bytes) to int *)
 
-(* open Ext_block_device *)
+open Prelude
+open Map_prelude
 
 (* assumptions ---------------------------------------- *)
 
-let key_size = 256 + 4  (* length *)
+let key_size = 256 + 4  (* string + 4 bytes for length *)
 
 let value_size = 4  (* 32 bit ints *)
 
-(* instantiate Btree.Simple.Make() ----------------------------------------- *)
 
-module Make = functor (ST:Internal_api.Simple.STORE) -> struct
-  module ST = ST
-  module Simple = Btree_simple_internal.Make(
-    struct 
+(* KV ------------------------------------------------------------ *)
 
-      module KV = struct
+module KV = struct
+    type key = Small_string.t  [@@deriving yojson] 
+    type value = int  [@@deriving yojson]
+    let key_ord = String.compare
+    let equal_value x y = (x:int) = y
+  end (* KV *)
 
-        type key = string  [@@deriving yojson] (* 16 char strings *)
+open KV
+module EX_ = Pickle.Examples
 
-        type value = int  [@@deriving yojson]
+let pp: (key,value) Pickle_params.t = Pickle_params.(
+    {
+      p_k = (fun k -> k|>SS_.to_string|>EX_.p_string_w_len);
+      u_k = (EX_.u_string_w_len |> Pickle.U.map SS_.of_string);
+      k_len = key_size;
+      p_v = EX_.p_int;
+      u_v = EX_.u_int;
+      v_len = value_size;
+    })
 
-        let key_ord = String.compare
-
-        let equal_value x y = (x:int) = y
-
-      end (* KV *)
-
-      let _ = (module KV : Btree.KEY_VALUE_TYPES)
-
-      module ST=ST
-
-      open KV
-      let pp: (key,value) Internal_api.Pickle_params.t = Pickle.(
-        {
-          p_k = (fun k -> Examples.p_string_w_len k);
-          u_k = (Examples.u_string_w_len);
-          k_len = key_size;
-          p_v = Examples.p_int;
-          u_v = Examples.u_int;
-          v_len = value_size;
-        })
-
-    end) (* Make *)
-
-end

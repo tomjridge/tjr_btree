@@ -14,6 +14,15 @@ module type S = sig
     module Map: Btree_api.Map with module W = Store.W
 end
 
+open Btree_api
+
+module Page_ref_ops = struct
+    type 'w t = {
+        get_page_ref: 'w -> page_ref;
+        set_page_ref: page_ref -> 'w -> 'w;
+      }
+end
+
 module Make = functor (S: S) -> (struct
     open Btree_api
     module W = S.Store.W
@@ -21,10 +30,8 @@ module Make = functor (S: S) -> (struct
     module Map = S.Map                 
     open W
 
-    type page_ref_ops = {
-      get_page_ref: W.t -> page_ref;
-      set_page_ref: page_ref -> W.t -> W.t;
-    }
+    type page_ref_ops = W.t Page_ref_ops.t
+    open Page_ref_ops
 
     (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
     let make: page_ref_ops -> ('k,'v) Store.ops -> ('k,'v) Map.ops = (

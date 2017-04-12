@@ -17,23 +17,20 @@
 
 open Prelude
 
-open Our.Util (* FIXME no! *)
-
 type blk_index = int
 type offset = int
 
-module type Buff_t = sig  
+module type BUFFER = sig  
   type t
   val length: t -> int
   val create: int -> t
 end
 
-module type Disk_t = sig
-  module Buff: Buff_t
+module type DISK_T = sig
+  module Buff: BUFFER
   type store
 
   type 'a m = ('a,store) Sem.m
-  (* type store_error *)
   type block
   type blk_id = int
   val block_size: int 
@@ -44,8 +41,8 @@ module type Disk_t = sig
 end
 
 (* effectively a map from blk_index (include -1) to blk_id *)
-module type Btree_t = sig
-  module Disk : Disk_t
+module type BTREE = sig
+  module Disk : DISK_T
   type ref_t = int (* typically a blk_id; FIXME exposed to make debugging easier *)
   open Disk
   val empty_btree: unit -> ref_t m
@@ -56,8 +53,8 @@ end
 
 module type S = sig 
   (* in-memory buffer *)
-  module Buff: Buff_t
-  module Disk: Disk_t with module Buff = Buff
+  module Buff: BUFFER
+  module Disk: DISK_T with module Buff = Buff
 
   (* copy from in-mem buffer to block; expect start to be block
      aligned? expect end to be start+block_size unless last part of
@@ -68,7 +65,7 @@ module type S = sig
   val copy: Buff.t -> int (* start *) -> int (* end *) 
     -> Disk.block -> Disk.block
      *)
-  module Btree: Btree_t with module Disk = Disk
+  module Btree: BTREE with module Disk = Disk
 end
 
 

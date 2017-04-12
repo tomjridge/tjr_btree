@@ -1,57 +1,35 @@
 (* map from string to int using Digest.t MD5 128bit hash of string,
    and storing the real string as part of the value *)
 
-(* open Ext_block_device *)
+(* assume string has length <= 256 *)
 
-(* assumptions ---------------------------------------- *)
+open Prelude
+open Map_prelude
 
-let digest_size = 128/8 (* bytes *)
-
-let key_size = digest_size
+let key_size = 128/8
 
 let value_size = (4+256) + 4  (* length+string, int *)
 
-(* instantiate Btree.Simple.Make() ----------------------------------------- *)
 
-module Make = functor (ST:Internal_api.Simple.STORE) -> struct
+module KV = struct
+    type key = Digest.t  [@@deriving yojson] (* 16 char strings *)
+    type value = Small_string.t * int  [@@deriving yojson]
+    let key_ord = Digest.compare
+    let equal_value x y = (x:value) = y
+  end (* KV *)
 
-  module Simple = Btree_simple_internal.Make(
-    struct 
 
-      module KV = struct
+open KV
 
-        (* we map string to digest using hash *)
-        type pre_key = string
+module EX_ = Pickle.Examples
 
-        type digest_t = string  [@@deriving yojson]
+let pp: (key,value) Pickle_params.t = Pickle_params.(
+    {
+      p_k = (fun k -> k|>Digest.to_string|>EX_.p_string);
+      u_k = (EX_.u_string key_size |> Pickle.U.map Digest.of_string);
+      k_len = key_size;
+      p_v = (fun (s,i) -> let s = SS_.to_string s in EX_.(p_pair (p_string_w_len s) (p_int i)));
+      u_v = EX_.(u_pair u_string_w_len (fun _ -> u_int) |> Pickle.U.map (fun (s,i) -> (SS_.of_string s,i)));
+      v_len = value_size;
+    })
 
-        type key = digest_t  [@@deriving yojson] (* 16 char strings *)
-
-        type value = string * int  [@@deriving yojson]
-
-        let key_ord = Digest.compare
-
-        let equal_value x y = (x:value) = y
-
-      end (* KV *)
-
-      let _ = (module KV : Btree.KEY_VALUE_TYPES)
-
-      module ST=ST
-
-      open KV
-      let pp: (key,value) Internal_api.Pickle_params.t = Pickle.(
-        {
-          p_k = (fun k -> Examples.p_string k);
-          u_k = (Examples.u_string key_size);
-          k_len = key_size;
-          p_v = (fun (s,i) -> Examples.(p_pair (p_string_w_len s) (p_int i)));
-          u_v = Examples.(u_pair u_string_w_len (fun _ -> u_int));
-          v_len = value_size;
-        })
-
-    end) (* Make *)
-
-end
-
-(* FIXME check result type *)

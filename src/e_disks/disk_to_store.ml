@@ -3,6 +3,8 @@
 (* use btree_pickle to convert a disk-like thing to a store-like
    thing *)
 
+open Prelude
+
 module BA = Btree_api
 module BLK = BA.BLK
 
@@ -19,7 +21,7 @@ module Make = functor (S:S) -> (struct
   module Store = S.Store
   open BA
                   
-  type ('k,'v) pp = ('k,'v) Btree_with_pickle.Pickle_params.t
+  type ('k,'v) pp = ('k,'v) Pickle_params.t
 
   let tag_len = Btree_with_pickle.tag_len
 
