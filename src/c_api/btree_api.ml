@@ -26,57 +26,59 @@ module type WORLD = sig
   val return: 'a -> 'a m
 end
 
-module Make = functor (W:WORLD) -> (struct
-    module W_ = W
+
+(* block device ---------------------------------------- *)
+                      
+module type Disk = sig
+    module W : WORLD
     open W
-
-    (* block device ---------------------------------------- *)
-
-    module Disk = struct
-      type ops = {
+    type ops = {
         block_size: BLK.sz;
         read: BLK.r -> BLK.t m;
         write: BLK.r -> BLK.t -> unit m;
         disk_sync: unit -> unit m;
       }
-    end
+  end
 
-
-    (* store ------------------------------------------------------------ *)
-
-    module Store = struct
-      type ('k,'v) ops = {
+(* store ------------------------------------------------------------ *)
+                     
+module type Store = sig
+    module W : WORLD
+    open W
+    type ('k,'v) ops = {
         compare_k: 'k -> 'k -> int;
         equal_v: 'v -> 'v -> bool;
         cs0: constants;
         store_free: page_ref list -> unit m;
-        store_read : page_ref -> ('k, 'v) frame m;
+        store_read : page_ref -> ('k, 'v) frame m;  (* FIXME option? *)
         store_alloc : ('k, 'v) frame -> page_ref m;
         mk_r2f: t -> page_ref -> ('k,'v) frame option;
       }
-    end
+  end
 
 
-    (* map ------------------------------------------------------------ *)
+(* map ------------------------------------------------------------ *)
 
-    module Leaf_stream = struct 
-      type ('k,'v) leaf_stream
-      type ('k,'v) t = ('k,'v) leaf_stream
-      type ('k,'v) ops = {
-        step: ('k,'v) t -> ('k,'v) t option m;
-        get_kvs: ('k,'v) t -> ('k*'v) list m
-      }
-    end
 
-    module LS = Leaf_stream
+module type Map = sig
+    module W : WORLD
+    open W
+    module LS : sig 
+        module W : WORLD
+        open W
 
-    module Map = struct
-      type ('k,'v) ops = {
+        type ('k,'v) leaf_stream
+        type ('k,'v) t = ('k,'v) leaf_stream
+        type ('k,'v) ops = {
+            step: ('k,'v) t -> ('k,'v) t option m;
+            get_kvs: ('k,'v) t -> ('k*'v) list m
+          }
+      end
+
+    type ('k,'v) ops = {
         find: 'k -> 'v option m;
         insert: ('k * 'v) -> unit m;
         delete: 'k -> unit m;
         get_leaf_stream: unit -> ('k,'v) LS.t m;
       }
-    end
-
-  end)
+  end

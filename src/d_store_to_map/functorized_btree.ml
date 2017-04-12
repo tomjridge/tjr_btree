@@ -35,6 +35,7 @@ end
 
 (* take params and produce proper find etc *)
 
+(* don't use this directly - use the record version below *)
 module Make_functor = (struct 
 
   module type RR = sig
@@ -323,163 +324,14 @@ module Make_functor = (struct
 end) (* Make_functor *)
 
 
-(* remove functor ---------------------------------------- *)
-
-(* we want to get versions which use records rather than functors *)
 
 
-(* different ops address different maps etc, and store page_ref in different places *)
-
-module Make_map_ops = functor (W:Btree_api.WORLD) -> (struct
-    open Btree_api
-
-    module BA = Btree_api.Make(W)
-
-    open W
-    open BA
-
-    type page_ref_ops = {
-      get_page_ref: W.t -> page_ref;
-      set_page_ref: page_ref -> W.t -> W.t;
-    }
-
-    (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
-    let make: page_ref_ops -> ('k,'v) Store.ops -> ('k,'v) Map.ops = (
-      fun (type k') (type v') ops s ->
-      let 
-        (module S: Isa_util.PARAMS 
-          with type k = k' and type v = v' and  type store = W.t and type page_ref = int) 
-        = 
-        (module struct
-          type k = k'
-          type v = v'
-          let compare_k = Store.(s.compare_k)
-          let equal_v = s.equal_v
-          type store = W.t
-          type 'a m = store -> (store * ('a,string)result)
-          type page_ref = int
-          let cs0 = s.cs0
-          let mk_r2f = s.mk_r2f 
-          let store_read = s.store_read
-          let store_alloc = s.store_alloc
-          let store_free = s.store_free 
-        end) 
-      in
-      (* let (module M : RR with module P = S) = (module Make_functor.Make(S)) in *)
-      let 
-        (module M : Make_functor.RR 
-          with type P.k = k' and type P.v = v' and type P.store = W.t and type P.page_ref = int)
-        = 
-        (module Make_functor.Make(S))
-      in
-      let find: k' -> v' option m = fun k w ->
-        let r = ops.get_page_ref w in
-        M.find k r w |> (fun (w',res) -> 
-            match res with
-            | Ok (r',kvs) -> (w'|>ops.set_page_ref r', Ok (try Some(List.assoc k kvs) with _ -> None))
-            | Error e -> (w', Error e))
-      in
-      let insert: (k' * v') -> unit m = fun (k,v) w ->
-        let r = ops.get_page_ref w in
-        M.insert k v r w |> (fun (w',res) -> 
-            match res with
-            | Ok (r') -> (w'|>ops.set_page_ref r', Ok ())
-            | Error e -> (w', Error e))
-      in
-      let delete: k' -> unit m = fun k w ->
-        let r = ops.get_page_ref w in
-        M.delete k r w |> (fun (w',res) -> 
-            match res with
-            | Ok (r') -> (w'|>ops.set_page_ref r', Ok ())
-            | Error e -> (w', Error e))
-      in
-      let get_leaf_stream: unit -> (k',v') LS.t m = fun () w ->
-        let r = ops.get_page_ref w in
-        failwith "FIXME"
-      in
-      Map.{find; insert; delete; get_leaf_stream})
-
-  
-
-end)
 
 
-(* disk to store ---------------------------------------- *)
-
-(* use btree_pickle to convert a disk-like thing to a store-like
-   thing *)
-
-module Disk_to_store = (struct
-  module BA = Btree_api
-  module BLK = BA.BLK
-                 
-
-  (* 't is the state of the underlying disk *)
-  type 't disk_ops = 't BA.Disk.ops
-
-  module Target_ = struct
-    type ('k,'v,'store) t = ('k,'v,'store) Poly.t 
-  end
-
-  type ('k,'v) pp = ('k,'v) Btree_with_pickle.Pickle_params.t
-
-  let tag_len = Btree_with_pickle.tag_len
-
-  type 't store = {
-    disk: 't;
-    free: int
-  }    
-
-  type ('a,'t) m = ('a,'t) Poly.m
-  type page_ref = Poly.page_ref
-
-  type ('k,'v) frame = ('k,'v) Poly.frame
-  
-  module BWP = Btree_with_pickle
-
-  (* convert a disk to a store using pickling and a free counter; assume
-     page size and block size are the same; aim for Poly.t *)
-  let disk2store page_size (disk_ops:'disk disk_ops) (pp:('k,'v) pp) 
-      compare_k equal_v 
-    = (
-      assert (disk_ops.block_size = page_size);
-      let cs0 = Constants.make_constants page_size tag_len pp.k_len pp.v_len in
-      let store_free: page_ref list -> (unit,'disk store) m = (
-        fun rs -> fun t -> (t,Ok()))  (* no-op *)
-      in
-      let store_alloc: ('k,'v) frame -> (page_ref,'disk store) m = (fun f ->
-          f|>BWP.frame_to_page page_size pp|>(fun p ->
-              fun (s:'disk store) -> 
-                disk_ops.write s.free p s.disk 
-                |> (fun (disk',res) -> (
-                      match res with
-                      | Ok () -> ({free=s.free+1; disk=disk'},Ok s.free)
-                      | Error e -> ({s with disk=disk'},Error e)))))
-      in
-      let store_read: page_ref -> (('k,'v)frame,'disk store) m = (
-        fun r (s:'disk store) ->
-          disk_ops.read r (s.disk) |> (fun (disk',res) -> 
-              match res with
-              | Ok blk -> (
-                  blk |> BWP.page_to_frame page_size pp |> (fun f -> 
-                      {s with disk=disk'},Ok f))
-              | Error e -> (s,Error e)))
-      in
-      let mk_r2f: 'disk store -> page_ref -> ('k,'v) frame option = (
-          fun s r -> 
-            store_read r s |> (function (_,Ok f) -> Some f 
-                                      | _ -> (ignore(assert(false)); None)))
-      in
-      let r : ('k,'v,'disk store) Poly.t = 
-        Poly.({compare_k; equal_v; cs0; 
-               store_free; store_read; store_alloc; mk_r2f} )
-      in
-      r
-    )
-
-end)
+(* old ============================================================ *)
 
 
+(*
 (* FIXME do we need something that takes a disk (with World.m) and produces a map (with World.m)? or a Poly.store to a Poly.store with World.m? *)
 
 
@@ -497,11 +349,7 @@ module Map_final = struct
   end
 
 end
-
-
-
-(* old ============================================================ *)
-
+ *)
 
 (* poly, with the world monad ---------------------------------------- *)
 
