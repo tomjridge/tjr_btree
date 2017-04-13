@@ -11,6 +11,7 @@ type dirty = bool
 
 module Queue = Map_int
 
+(* FIXME need polymorphic map - batteries? ext? *)
 module Pmap = struct 
     type ('k,'v) t
     let map: ('v -> 'u) -> ('k,'v) t -> ('k,'u) t = fun _ -> failwith "FIXME"
@@ -27,8 +28,9 @@ type ('k,'v) cache_state = {
     max_size: int;
     current: time;
     map: ('k,'v option*time*dirty) Pmap.t;  
-    (* None indicates known not to be present at lower, or has been
-         deleted (depending on dirty) *)
+    (* None indicates known not to be present at lower (if
+         dirty=false), or has been deleted (if dirty=true); Some v
+         with dirty=true indicates that this needs to be flushed to lower *)
     queue: 'k Queue.t; (* map from time to key that was accessed at that time *)
   }
 
@@ -99,6 +101,8 @@ let wf c = (
     )
   )
 
+(* FIXME make standalone state-passing, and then glue onto 'a m? *)
+
 module Make = functor (Map_:Btree_api.Map) -> (struct
   module Map_ = Map_
   open Map_
@@ -106,26 +110,27 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
 
   type ('k,'v) cache_ops = {
     get_cache: unit -> ('k,'v) cache_state m;
-    put_cache: ('k,'v) cache_state -> unit  m (* FIXME should update the current time? or we do that? *)
+    put_cache: ('k,'v) cache_state -> unit m
   }
 
-(*
-  let get_cache: unit  ->  ('k,'v) cache_state m = (fun () s -> (s,Ok s.cache))
-  (* inc c.current on put *)
-  let put_cache: ('k,'v) cache_state -> unit  m = (fun c s -> 
-      wf c;
-      ({s with cache={c with current=c.current+1}},Ok()))
- *)
-
+  (* for quick abort *)
   exception E_
+
+  (* FIXME correctness of following not clear *)
 
   let make_cached_map :('k,'v) Map_.ops -> ('k,'v) cache_ops -> ('k,'v) Map_.ops = (
     fun map_ops cache_ops ->
 
+    (* update time on each put *)
+    let put_cache c = 
+      let c = {c with current=c.current+1} in 
+      cache_ops.put_cache c 
+    in
+
     let evict c = (
       let card = Pmap.cardinal c.map in
       match (card > c.max_size) with (* FIXME inefficient *)
-      | false -> cache_ops.put_cache c
+      | false -> put_cache c
       | true -> (
         (* how many to evict? *)
         let n = card - (3 * c.max_size / 4) in
@@ -165,17 +170,12 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
               | false -> loop es
               | true -> (
                 (* write out and continue *)
-                map_ops.insert k v |> bind (fun () -> loop es
-                                           )
-              ))))
+                map_ops.insert k v |> bind (fun () -> loop es) ))))
         in
         (loop !evictees) 
         |> bind (fun () ->
                  let c' = {c with map=(!map); queue=(!queue)} in
-                 cache_ops.put_cache c' 
-                 |> bind (fun () ->
-                          return () )))
-    )
+                 put_cache c' )))
     in
 
     let find k = (
@@ -193,8 +193,7 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
                (* add new entry *)
                let c = {c with queue=(Queue.add time' k c.queue) } in
                (* update cache *)
-               cache_ops.put_cache c |> bind (fun () -> 
-                                              return v))
+               put_cache c |> bind (fun () -> return v))
              with Not_found -> (
                (* retrieve from lower level *)
                (map_ops.find k) 
@@ -202,12 +201,11 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
                       fun v -> 
                       (* update cache *)
                       let time = c.current in
-                      let c = {c with map=(Pmap.add k (v,time,false) c.map) } in
+                      let dirty = false in
+                      let c = {c with map=(Pmap.add k (v,time,dirty) c.map) } in
                       (* update queue *)
                       let c = {c with queue=(Queue.add time k c.queue) } in
-                      evict c |> bind (fun () -> 
-                                       return v))))
-    )
+                      evict c |> bind (fun () -> return v)))))
     in
 
     let insert k v = (
@@ -218,14 +216,14 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
                let (v_,time,dirty) = Pmap.find k c.map in          
                (* update time *)
                let time' = c.current in
-               let c = {c with map=(Pmap.add k (Some v,time',dirty) c.map) } in
+               let dirty' = true in
+               let c = {c with map=(Pmap.add k (Some v,time',dirty') c.map) } in
                (* remove entry from queue *)
                let c = {c with queue=(Queue.remove time c.queue) } in
                (* add new entry *)
                let c = {c with queue=(Queue.add time' k c.queue) } in
                (* update cache *)
-               cache_ops.put_cache c |> bind (fun () -> 
-                                              return ()))
+               put_cache c)
              with Not_found -> (
                (* update cache *)
                let time = c.current in
@@ -233,8 +231,7 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
                let c = {c with map=(Pmap.add k (Some v,time,dirty) c.map) } in
                (* update queue *)
                let c = {c with queue=(Queue.add time k c.queue) } in
-               evict c))
-    )
+               evict c)))
     in
 
     let delete k = (
@@ -245,14 +242,13 @@ module Make = functor (Map_:Btree_api.Map) -> (struct
                let (v_,time,dirty) = Pmap.find k c.map in          
                (* update time *)
                let time' = c.current in
-               let dirty = true in
-               let c = {c with map=(Pmap.add k (None,time',dirty) c.map) } in
+               let dirty' = true in
+               let c = {c with map=(Pmap.add k (None,time',dirty') c.map) } in
                (* remove entry from queue *)
                let c = {c with queue=(Queue.remove time c.queue) } in
                (* add new entry *)
                let c = {c with queue=(Queue.add time' k c.queue) } in
-               evict c 
-               |> bind (fun () -> return ()))
+               evict c)
              with Not_found -> (
                let time = c.current in
                let dirty = true in
