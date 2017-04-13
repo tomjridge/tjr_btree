@@ -59,7 +59,7 @@ function mk_depend() {
 # links ----------------------------------------
 
 function init() {
-    link_files=`ls {b,c,d,e,f,g}_*/*.ml`
+    link_files=`ls {b,c,d,e,f,g,h,i,j,m}_*/*.ml`
 }
 
 function mk_links() {

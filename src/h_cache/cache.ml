@@ -69,10 +69,10 @@ let compare c1 c2 = (
           (c1.queue |> Map_int.bindings)
           (c2.queue |> Map_int.bindings)))
 
-let initial_cache = ({
+let mk_initial_cache () = ({
       max_size=8;
       current=0;
-      map=Pmap.empty (fun _ -> failwith "FIXME");
+      map=((Pmap.empty (fun _ -> failwith "FIXME")):('k,'v)Pmap.t);
       queue=Queue.empty
     })
   
