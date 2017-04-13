@@ -28,7 +28,8 @@ end
 
 
 (* block device ---------------------------------------- *)
-                      
+
+(* FIXME capitalize *)                      
 module type Disk = sig
     module W : WORLD
     open W
@@ -64,9 +65,6 @@ module type Map = sig
     module W : WORLD
     open W
     module LS : sig 
-        module W : WORLD
-        open W
-
         type ('k,'v) leaf_stream
         type ('k,'v) t = ('k,'v) leaf_stream
         type ('k,'v) ops = {
@@ -77,7 +75,7 @@ module type Map = sig
 
     type ('k,'v) ops = {
         find: 'k -> 'v option m;
-        insert: ('k * 'v) -> unit m;
+        insert: 'k -> 'v -> unit m;
         delete: 'k -> unit m;
         get_leaf_stream: unit -> ('k,'v) LS.t m;
       }

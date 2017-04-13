@@ -69,7 +69,7 @@ module Make = functor (S: S) -> (struct
             | Ok (r',kvs) -> (w'|>ops.set_page_ref r', Ok (try Some(List.assoc k kvs) with _ -> None))
             | Error e -> (w', Error e))
       in
-      let insert: (k' * v') -> unit m = fun (k,v) w ->
+      let insert: k' -> v' -> unit m = fun k v w ->
         let r = ops.get_page_ref w in
         M.insert k v r w |> (fun (w',res) -> 
             match res with
