@@ -103,7 +103,7 @@ let wf c = (
 
 (* FIXME make standalone state-passing, and then glue onto 'a m? *)
 
-module Make = functor (Map_:Btree_api.Map) -> (struct
+module Make = functor (Map_:Btree_api.MAP) -> (struct
     module Map_ = Map_
     open Map_
     open W

@@ -30,7 +30,7 @@ end
 (* block device ---------------------------------------- *)
 
 (* FIXME capitalize *)                      
-module type Disk = sig
+module type DISK = sig
   module W : WORLD
   open W
   type ops = {
@@ -41,9 +41,10 @@ module type Disk = sig
   }
 end
 
+
 (* store ------------------------------------------------------------ *)
 
-module type Store = sig
+module type STORE = sig
   module W : WORLD
   open W
   type ('k,'v) ops = {
@@ -60,8 +61,7 @@ end
 
 (* map ------------------------------------------------------------ *)
 
-
-module type Map = sig
+module type MAP = sig
   module W : WORLD
   open W
   module LS : sig 

@@ -9,8 +9,8 @@ module BA = Btree_api
 module BLK = BA.BLK
 
 module type S = sig
-    module Disk : Btree_api.Disk
-    module Store: Btree_api.Store with module W = Disk.W
+    module Disk : Btree_api.DISK
+    module Store: Btree_api.STORE with module W = Disk.W
 end
 
 module Make = functor (S:S) -> (struct

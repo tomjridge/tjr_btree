@@ -6,7 +6,7 @@ open Btree_api
 type fd = Unix.file_descr
 type t = fd
 
-module Make = functor (DSK:Disk) -> struct
+module Make = functor (DSK:DISK) -> struct
   module DSK = DSK
 
   (* now implement the DSK.ops type *)

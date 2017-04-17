@@ -4,67 +4,66 @@
 open Prelude
 
 module type S = sig
-    module W: Btree_api.WORLD
-    module Store: Btree_api.Store with module W = W
-    type k
-    type v
-    val compare_k: k -> k -> int
-    val equal_v: v -> v -> bool
+  module W: Btree_api.WORLD
+  module Store: Btree_api.STORE with module W = W
+  type k
+  type v
+  val compare_k: k -> k -> int
+  val equal_v: v -> v -> bool
 end
 
 module Make = functor (S:S) -> (struct
 
-  module W = S.W
-  open W
-  open S
+    module W = S.W
+    open W
+    open S
+        
+    type frame = (k,v) Btree_api.frame
+    type page_ref = Btree_api.page_ref
+    type page = frame
 
-  type frame = (k,v) Btree_api.frame
-  type page_ref = Btree_api.page_ref
-  type page = frame
-
-  type store = {free:int; map:frame Map_int.t}
-
-  type extra_ops = {
+    type store = {free:int; map:frame Map_int.t}
+                 
+    type extra_ops = {
       get_store: unit -> store m;
       set_store: store -> unit m;     
     }
 
-
-  let make (ops:extra_ops) (cs0:Constants.t) = (
-    let store_free: page_ref list -> unit m = (
-      fun rs -> return ())  (* no-op *)
-    in
-    let store_alloc: page -> page_ref m = (fun p -> 
-      ops.get_store () |> bind (fun s -> 
-      let s' = {free=s.free+1; map=Map_int.add s.free p s.map} in
-      ops.set_store s' |> bind (fun () -> 
-      return s.free)))
-    in
-    let store_read: page_ref -> frame m = (fun r ->
-      ops.get_store () |> bind (fun s ->
-      return (Map_int.find r s.map))) (* FIXME assumes present *)
-    in
-    let mk_r2f: t -> page_ref -> frame option = (
+    let make (ops:extra_ops) (cs0:Constants.t) = (
+      let store_free: page_ref list -> unit m = (
+        fun rs -> return ())  (* no-op *)
+      in
+      let store_alloc: page -> page_ref m = (fun p -> 
+          ops.get_store () |> bind (fun s -> 
+              let s' = {free=s.free+1; map=Map_int.add s.free p s.map} in
+              ops.set_store s' |> bind (fun () -> 
+                  return s.free)))
+      in
+      let store_read: page_ref -> frame m = (fun r ->
+          ops.get_store () |> bind (fun s ->
+              return (Map_int.find r s.map))) (* FIXME assumes present *)
+      in
+      let mk_r2f: t -> page_ref -> frame option = (
         fun t r -> 
-        let f = ops.get_store () |> bind (fun s ->
-                                      Map_int.find r s.map |> return)
-        in
-        t|>f|>(fun (_,res) -> 
-               match res with
-               | Ok frm -> Some frm
-               | _ -> None))
-    in
-    (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
-    Store.{ compare_k;equal_v;cs0;store_free;store_read;store_alloc;mk_r2f}
-  )
+          let f = ops.get_store () |> bind (fun s ->
+              Map_int.find r s.map |> return)
+          in
+          t|>f|>(fun (_,res) -> 
+              match res with
+              | Ok frm -> Some frm
+              | _ -> None))
+      in
+      (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
+      Store.{ compare_k;equal_v;cs0;store_free;store_read;store_alloc;mk_r2f}
+    )
 
-end)
+  end)
 
 
 
 (* old ============================================================ *)
 
-      (* for yojson *)
+(* for yojson *)
                                                  (*
       type store' = {free':int; m':(int * Page.t) list}[@@deriving yojson]
 

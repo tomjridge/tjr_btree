@@ -10,8 +10,8 @@
 open Functorized_btree
 
 module type S = sig
-    module Store: Btree_api.Store
-    module Map: Btree_api.Map with module W = Store.W
+    module Store: Btree_api.STORE
+    module Map: Btree_api.MAP with module W = Store.W
 end
 
 open Btree_api
