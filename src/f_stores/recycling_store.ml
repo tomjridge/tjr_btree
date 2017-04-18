@@ -1,5 +1,7 @@
 (* a recycling store on top of a normal store *)
 
+(* cache (page_ref -> frame), and if these refs freed without being synced, we recycle them *)
+
 (* a store that attempts to recycle blocks that will never end up on
    disk; we maintain a set of blocks that have been allocated and not
    freed since last sync (ie which need to be written), and a set of
@@ -10,135 +12,145 @@
 
 (* FIXME should use the LRU cache *)
 
+(*
 module type LOWER = sig  (* lower store *)
   include STORE with type Page.r = int and type 'a m = 'a World.m
   val alloc_block: t -> Page.r m
   val write: t -> Page.r -> Page.t -> unit m
 end
+*)
 
-module Recycling_store = functor (Lower:LOWER) -> struct
-  module R_ = (struct 
-    module Lower = Lower (* lower store *)
-    module Page = Lower.Page
+open Prelude
+open Btree_api
 
-    module Cache = Btree_util.Map_int
-    module FNS = Btree_util.Set_int (* free not synced *)
+(* need to cache page_ref to ('k,'v)frame *)
 
-    type cache = Page.t Cache.t
-    type fns = FNS.t  
-    type store = {
-      lower: Lower.t;  (* underlying store *)
-      cache: cache;  (* a cache of pages which need to be written *)
-      fns: fns  (* really this is "don't write to store on sync" *)
-      (* FIXME don't we also need to know which were allocated since last sync? *)
+module Map_page_ref = Map_int
+module Cache = Map_page_ref  (* maintain (page_ref -> frame) cache *)
+module FNS = Set_int (* free not synced page_refs *)
+
+type ('k,'v) cache = ('k,'v) frame Cache.t
+
+type fns = FNS.t 
+
+type ('k,'v) rec_store = {
+  cache: ('k,'v) cache;  (* a cache of pages which need to be written *)
+  fns: fns  (* really this is "don't write to store on sync" *)
+  (* FIXME don't we also need to know which were allocated since last sync? *)
+}
+
+module Make = functor (Store:STORE) -> (struct
+    module Store = Store
+    module W = Store.W
+    open W
+
+    (* we get passed the Store.ops to access the underlying store *)
+    
+    type ('k,'v) rec_ops = {
+      get: unit -> ('k,'v) rec_store m;
+      set: ('k,'v) rec_store -> unit m
     }
 
-    open World
-    type t = store World.r
-    type 'a m = 'a World.m
-    let bind = World.bind
-    let return = World.return
-
-    (* store.lower ---------- *)
-
-    let get_lower: t -> Lower.t m = (fun t ->
-        get t |> bind (fun s -> return s.lower))
-
-    (* store.cache ---------- *)
-
-    let get_cache: t -> cache m = (fun t ->
-        get t |> bind (fun s -> return s.cache))
-
-    let clear_cache: t -> unit m = (fun t -> 
-        get t |> bind (fun s -> 
-            set t {s with cache=Cache.empty}))
-
-    let cache_add: t -> Page.r -> Page.t -> unit m = (fun t r p ->
-        get t |> bind (fun s ->
-            set t {s with cache=Cache.add r p s.cache}))
-
-    let free: t -> Page.r list -> unit m = (fun t rs ->
-        get t |> bind (fun s ->
-            set t {s with fns=FNS.union s.fns (FNS.of_list rs)}))
-
-
-    (* store.fns ---------- *)
-
-    let get_fns: t -> fns m = (fun t ->
-        get t |> bind (fun s -> return s.fns))
-
-    let get_1_fns: t -> Page.r option m = (fun t -> 
-        get_fns t |> bind 
-          (fun fns -> 
-             match (FNS.is_empty fns) with
-             | true -> return None
-             | false -> 
-               fns
-               |> FNS.min_elt 
-               |> (fun r -> return (Some r))))
-
-    let fns_remove: t -> Page.r -> unit m = (
-      fun t r -> 
-        get t |> bind (fun s -> 
-            set t {s with fns=(FNS.remove r s.fns)}))
-
-
-
-    let alloc: t -> Page.t -> Page.r m = (fun t p ->
-        get_1_fns t |> bind
-          (fun r -> 
-             match r with 
-             | None -> (
-                 get_lower t |> bind (fun lower ->
-                     Lower.alloc_block lower |> bind (fun r ->
-                         cache_add t r p |> bind (fun () -> 
-                             return r))))
-             | Some r -> (
-                 (* just return a ref we allocated previously *)
-                 fns_remove t r |> bind (fun () -> 
-                     cache_add t r p |> bind (fun () -> 
-                         return r)))))
-
-    let page_ref_to_page: t -> Page.r -> Page.t m = (fun t r ->
-        get_cache t |> bind (fun cache -> 
-            (* consult cache first *)
-            (try Some(Cache.find r cache) with Not_found -> None)
-            |> (function
-                | Some p -> (return p)
-                | None -> (
-                    get_lower t |> bind (fun lower ->
-                        Lower.page_ref_to_page lower r)))))
-
-
-    (* FIXME on a sync, freed_not_synced needs to be updated? at least,
-       it isn't quite right at the moment *)
-    let store_sync: t -> unit m = (fun t ->
-        get_lower t |> bind (fun lower -> 
-            get_cache t |> bind (fun cache -> 
-                let es = Cache.bindings cache in
-                get_fns t |> bind (fun fns -> 
-                    let rec loop es = (
-                      match es with 
-                      | [] -> (return ())
-                      | (r,p)::es -> (
-                          match (FNS.mem r fns) with 
-                          | true -> loop es (* don't sync if freed *)
-                          | false -> (
-                              (* to avoid writes, we need to have access
-                                 to the write function from the lower
-                                 store *)
-                              Lower.write lower r  p |> bind (fun () ->
-                                  loop es))))
-                    in
-                    loop es |> bind (fun () -> 
-                        clear_cache t |> bind (fun () -> 
-                            Lower.store_sync lower))))))
+    let make: 
+      ('k,'v)Store.ops -> ('k,'v)rec_ops -> 
+      (unit -> page_ref m) -> (page_ref -> ('k,'v)frame->unit m) -> 
+      ('k,'v)Store.ops 
+      = (
+        fun lower ops lower_alloc_block lower_write_frame -> 
+          (* cache functions *)
+          let get_cache: unit -> ('k,'v) cache m = (fun () ->
+              ops.get() |> bind (fun s -> return s.cache))
+          in
+          let set_cache: ('k,'v) cache -> unit m = (fun c ->
+              ops.get() |> bind (fun s -> ops.set {s with cache=c}))
+          in
+          let clear_cache: unit -> unit m = (fun () -> set_cache Cache.empty) in
+          let cache_add: page_ref -> ('k,'v)frame -> unit m = (fun r p ->
+              get_cache () |> bind (fun c ->
+                  set_cache (Cache.add r p c)))
+          in
+          (* store.fns ---------- *)
+          let get_fns: unit -> fns m = (fun () ->
+              ops.get () |> bind (fun s -> return s.fns))
+          in
+          let set_fns: fns -> unit m = (fun fns ->
+              ops.get() |> bind (fun s -> ops.set {s with fns=fns}))
+          in
+          let get_1_fns: unit -> page_ref option m = (fun () -> 
+              get_fns () |> bind (fun fns -> 
+                  match (FNS.is_empty fns) with
+                  | true -> return None
+                  | false -> 
+                    fns
+                    |> FNS.min_elt 
+                    |> (fun r -> return (Some r))))
+          in
+          let fns_remove: page_ref -> unit m = (fun r -> 
+              ops.get () |> bind (fun s -> 
+                  ops.set {s with fns=(FNS.remove r s.fns)}))
+          in
+          let store_free: page_ref list -> unit m = (fun rs ->
+              get_fns () |> bind (fun fns ->
+                  set_fns (FNS.union fns (FNS.of_list rs))))
+          in
+          let store_alloc: ('k,'v)frame -> page_ref m = (fun p ->
+              get_1_fns () |> bind (fun r -> 
+                  match r with 
+                  | None -> (
+                      (* we need the lower store to be able to alloc without writing *)
+                      lower_alloc_block () |> bind (fun r ->
+                          cache_add r p |> bind (fun () -> 
+                              return r)))
+                  | Some r -> (
+                      (* just return a ref we allocated previously *)
+                      fns_remove r |> bind (fun () -> 
+                          cache_add r p |> bind (fun () -> 
+                              return r))) ))
+          in
+          let mk_r2f: W.t -> page_ref -> ('k,'v)frame option = (fun t ->
+              let lower_r2f = lower.mk_r2f t in
+              fun r -> (
+                  let m = (
+                    get_cache () |> bind (fun c -> 
+                        (* consult cache first *)
+                        (try Some(Cache.find r c) with Not_found -> None)
+                        |> (function
+                            | Some p -> (return (Some p))
+                            | None -> (
+                                return (lower_r2f r)))))
+                  in
+                  match (m t) with
+                  | (_,Ok f) -> f
+                  | (_,Error e) -> (
+                      (* assume only called on page_refs that are valid *)
+                      ignore(assert(false)); None)))  
+          in
+          (* FIXME on a sync, freed_not_synced needs to be updated? at least,
+             it isn't quite right at the moment ? *)
+          (* FIXME needs adding to the STORE interface *)
+          let store_sync: unit -> unit m = (fun () ->
+              get_cache () |> bind (fun cache -> 
+                  let es = Cache.bindings cache in
+                  get_fns () |> bind (fun fns -> 
+                      let rec loop es = (
+                        match es with 
+                        | [] -> (return ())
+                        | (r,p)::es -> (
+                            match (FNS.mem r fns) with 
+                            | true -> loop es (* don't sync if freed *)
+                            | false -> (
+                                (* lower_write_frame needed here *)
+                                lower_write_frame r p |> bind (fun () ->
+                                    loop es))))
+                      in
+                      loop es |> bind (fun () -> 
+                          clear_cache () |> bind (fun () -> 
+                              lower.store_sync ())))))
+          in
+          FIXME need to include store_sync in STORE intf
 
   end) (* R_ *)
 
-  let _ = (module R_ : STORE)
-
-  include R_
 end
 
 
