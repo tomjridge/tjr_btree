@@ -1,14 +1,10 @@
 (* a recycling store on top of a normal store *)
 
 (* a store that attempts to recycle blocks that will never end up on
-   disk *)
-
-(* a filestore which caches page writes and recycles page refs *)
-
-(* we maintain a set of blocks that have been allocated and not freed
-   since last sync (ie which need to be written), and a set of page
-   refs that have been allocated since last sync and freed without
-   being synced (ie which don't need to go to store at all) *)
+   disk; we maintain a set of blocks that have been allocated and not
+   freed since last sync (ie which need to be written), and a set of
+   page refs that have been allocated since last sync and freed
+   without being synced (ie which don't need to go to store at all) *)
 
 (* FIXME worth checking no alloc/free misuse? *)
 
