@@ -1,11 +1,5 @@
 (* btree_with_pickle ---------------------------------------- *)
 
-(* given a block-like store, we want to produce a Btree_make.Poly.t *)
-
-(* this is really somehow altering a set of operations so that they
-   use a (k,v) frame type rather than a raw bytes type *)
-
-
 (* like btree, but with pickling rather than some other frame -> page
    mapping *)
 
@@ -16,13 +10,7 @@ open Btree_api
 
 type ('k,'v) pp = ('k,'v) Pickle_params.t
 
-module Page = struct
-  type t = string
-  type r = page_ref
-  type sz = int  (* in bytes *)
-end
-
-type ('k,'v) frame = ('k,'v,page_ref) Frame.t
+module Page = BLK
 
 (* following assumes tags marshall to single int32 *)
 let node_tag = 0
@@ -30,8 +18,6 @@ let leaf_tag = 1
 let tag_len = 4 (* bytes *)
 
 open Frame
-
-
 
 (* generic marshalling; format: int node_or_leaf; int number
    of entries; entries *)

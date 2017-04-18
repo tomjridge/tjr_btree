@@ -9,14 +9,7 @@ open Btree_api
 open Functorized_btree
 
 module type S = sig
-  module W : sig
-    include WORLD
-    (* different ops address different maps etc, and store page_ref in different places *)
-    type page_ref_ops = {
-      get_page_ref: unit -> page_ref m;
-      set_page_ref: page_ref -> unit m;
-    }
-  end
+  module W : WORLD
   module Store: Btree_api.STORE with module W = W
   module Map: Btree_api.MAP with module W = W
 end
@@ -27,6 +20,12 @@ module Make = functor (S: S) -> (struct
     module Store = S.Store
     module Map = S.Map                 
     open W
+
+    (* different ops address different maps etc, and store page_ref in different places *)
+    type page_ref_ops = {
+      get_page_ref: unit -> page_ref m;
+      set_page_ref: page_ref -> unit m;
+    }
 
     (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
     let make: page_ref_ops -> ('k,'v) Store.ops -> ('k,'v) Map.ops = (

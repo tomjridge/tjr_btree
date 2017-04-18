@@ -2,48 +2,39 @@
 
 
 open Prelude
+open Btree_api
 
-module type S = sig
-  module W: Btree_api.WORLD
-  module Store: Btree_api.STORE with module W = W
-  type k
-  type v
-  val compare_k: k -> k -> int
-  val equal_v: v -> v -> bool
-end
 
-module Make = functor (S:S) -> (struct
+module Make = functor (Store:STORE) -> (struct
 
-    module W = S.W
+    module Store = Store
+    module W = Store.W
     open W
-    open S
-        
-    type frame = (k,v) Btree_api.frame
-    type page_ref = Btree_api.page_ref
-    type page = frame
 
-    type store = {free:int; map:frame Map_int.t}
+    type ('k,'v) page = ('k,'v)frame
+
+    type ('k,'v) store = {free:int; map:('k,'v)frame Map_int.t}
                  
-    type extra_ops = {
-      get_store: unit -> store m;
-      set_store: store -> unit m;     
+    type ('k,'v) extra_ops = {
+      get_store: unit -> ('k,'v) store m;
+      set_store: ('k,'v) store -> unit m;     
     }
 
-    let make (ops:extra_ops) (cs0:Constants.t) = (
+    let make compare_k equal_v (ops:('k,'v)extra_ops) (cs0:Constants.t) = (
       let store_free: page_ref list -> unit m = (
         fun rs -> return ())  (* no-op *)
       in
-      let store_alloc: page -> page_ref m = (fun p -> 
+      let store_alloc: ('k,'v)frame -> page_ref m = (fun p -> 
           ops.get_store () |> bind (fun s -> 
               let s' = {free=s.free+1; map=Map_int.add s.free p s.map} in
               ops.set_store s' |> bind (fun () -> 
                   return s.free)))
       in
-      let store_read: page_ref -> frame m = (fun r ->
+      let store_read: page_ref -> ('k,'v)frame m = (fun r ->
           ops.get_store () |> bind (fun s ->
               return (Map_int.find r s.map))) (* FIXME assumes present *)
       in
-      let mk_r2f: t -> page_ref -> frame option = (
+      let mk_r2f: t -> page_ref -> ('k,'v)frame option = (
         fun t r -> 
           let f = ops.get_store () |> bind (fun s ->
               Map_int.find r s.map |> return)
