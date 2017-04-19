@@ -1,7 +1,5 @@
 (* debug config  ---------------------------------------- *)
 
-(* FIXME move this *)
-
 type config = {
   check_wellformedness: bool
 }

@@ -13,7 +13,7 @@
 
 *)
 
-(* FIXME prefer btree_file? *)
+(* FIXME rename prefer btree_file? *)
 
 open Prelude
 

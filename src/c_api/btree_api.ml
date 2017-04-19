@@ -29,7 +29,6 @@ end
 
 (* block device ---------------------------------------- *)
 
-(* FIXME capitalize *)                      
 module type DISK = sig
   module W : WORLD
   open W

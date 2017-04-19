@@ -48,8 +48,6 @@ end
 
 (* various pickle/parsing routines ---------------------------------------- *)
 
-(* FIXME move to tjr_lib *)
-
 (* 
 
 what is the contract? that if you pickle, it affects a range, and

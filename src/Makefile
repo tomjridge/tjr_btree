@@ -50,9 +50,10 @@ _depend:
 	mkdir -p _depend
 	mk_depend
 
-# ----------------------------------------
+_codetags:
+	mk_codetags
 
-#	$$ocamlopt -g -linkpkg -o a.out $$mls # FIXME
+# ----------------------------------------
 
 %.native: %.ml $(libname).cmxa FORCE
 	$$ocamlopt -g -linkpkg -o $*.native $${libname}.cmxa $*.ml

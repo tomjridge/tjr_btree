@@ -32,7 +32,7 @@ module Make = functor (Store:STORE) -> (struct
       in
       let store_read: page_ref -> ('k,'v)frame m = (fun r ->
           ops.get_store () |> bind (fun s ->
-              return (Map_int.find r s.map))) (* FIXME assumes present *)
+              return (Map_int.find r s.map))) (* ASSUMES present *)
       in
       let mk_r2f: t -> page_ref -> ('k,'v)frame option = (
         fun t r -> 

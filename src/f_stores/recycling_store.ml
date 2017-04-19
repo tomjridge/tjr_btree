@@ -32,39 +32,31 @@ type ('k,'v) recycling_state = {
   (* FIXME don't we also need to know which were allocated since last sync? *)
 }
 
-(* the lower store needs to provide the following extra operations... *)
-module type LOWER = sig 
-  include STORE
-  open W
+module type S = sig
+  module Store: STORE
+  open Store
+  open Store.W
+
+  (* operations from lower store *)
   type ('k,'v) lower_ops = {
-    ops: ('k,'v) ops;
     (* allocate without writing *)
+    ops: ('k,'v) ops;
     store_alloc_page_ref : unit -> page_ref m;
     store_write_frame: page_ref -> ('k,'v) frame -> unit m;
   }
-end
 
-(* we provide extra operations *in addition to* store *)
-module type RECYCLING_STORE = sig
-  module W : WORLD
-  module Lower: LOWER with module W = W
-  module Upper: STORE with module W = W (* usual ops we provide *)
-  open W
-  (* additional ops we provide *)
+  (* we provide extra operations store_sync which flushes to lower *)
   type ('k,'v) rs_ops = {
-    ops: ('k,'v) Upper.ops;
+    ops: ('k,'v) ops; 
     store_sync: unit -> unit m;
   }
 end
 
-module type S = sig
-  module Recycling_store : RECYCLING_STORE
-end
-
 module Make = functor (S:S) -> (struct
     module S = S
-    open S.Recycling_store
-    open W
+    open S
+    open S.Store
+    open S.Store.W
 
     (* we get passed the Store.ops to access the underlying store *)        
     type ('k,'v) rs_params = {
@@ -73,29 +65,29 @@ module Make = functor (S:S) -> (struct
     }
 
     let make: 
-      ('k,'v) Store.ops -> ('k,'v)rs_params -> 
-      (unit -> page_ref m) -> (page_ref -> ('k,'v)frame->unit m) -> 
-      ('k,'v)Store.ops 
+      ('k,'v) lower_ops -> 
+      ('k,'v) rs_params -> 
+      ('k,'v) rs_ops 
       = (
-        fun lower ops lower_alloc_block lower_write_frame -> 
+        fun lower ps -> 
           (* cache functions *)
           let get_cache: unit -> ('k,'v) cache m = (fun () ->
-              ops.get_rs() |> bind (fun s -> return s.cache))
+              ps.get_rs() |> bind (fun s -> return s.cache))
           in
           let set_cache: ('k,'v) cache -> unit m = (fun c ->
-              ops.get_rs() |> bind (fun s -> ops.set_rs {s with cache=c}))
+              ps.get_rs() |> bind (fun s -> ps.set_rs {s with cache=c}))
           in
           let clear_cache: unit -> unit m = (fun () -> set_cache Cache.empty) in
           let cache_add: page_ref -> ('k,'v)frame -> unit m = (fun r p ->
               get_cache () |> bind (fun c ->
                   set_cache (Cache.add r p c)))
           in
-          (* store.fns ---------- *)
+          (* fns functions *)
           let get_fns: unit -> fns m = (fun () ->
-              ops.get_rs() |> bind (fun s -> return s.fns))
+              ps.get_rs() |> bind (fun s -> return s.fns))
           in
           let set_fns: fns -> unit m = (fun fns ->
-              ops.get_rs() |> bind (fun s -> ops.set_rs {s with fns=fns}))
+              ps.get_rs() |> bind (fun s -> ps.set_rs {s with fns=fns}))
           in
           let get_1_fns: unit -> page_ref option m = (fun () -> 
               get_fns () |> bind (fun fns -> 
@@ -119,7 +111,7 @@ module Make = functor (S:S) -> (struct
                   match r with 
                   | None -> (
                       (* we need the lower store to be able to alloc without writing *)
-                      lower_alloc_block () |> bind (fun r ->
+                      lower.store_alloc_page_ref () |> bind (fun r ->
                           cache_add r p |> bind (fun () -> 
                               return r)))
                   | Some r -> (
@@ -128,8 +120,17 @@ module Make = functor (S:S) -> (struct
                           cache_add r p |> bind (fun () -> 
                               return r))) ))
           in
+          let store_read: page_ref -> ('k,'v) frame m = (fun r ->
+              (* check cache, otherwise default to lower *)
+              get_cache () |> bind (fun c ->
+                  (try Some(Cache.find r c) with Not_found -> None)
+                  |> (function 
+                      | Some p -> return p
+                      | None -> lower.ops.store_read r)))
+          in
+          (* FIXME can't this be derived from store_read? why needed in interface? *)
           let mk_r2f: W.t -> page_ref -> ('k,'v)frame option = (fun t ->
-              let lower_r2f = lower.mk_r2f t in
+              let lower_r2f = lower.ops.mk_r2f t in
               fun r -> (
                   let m = (
                     get_cache () |> bind (fun c -> 
@@ -148,7 +149,6 @@ module Make = functor (S:S) -> (struct
           in
           (* FIXME on a sync, freed_not_synced needs to be updated? at least,
              it isn't quite right at the moment ? *)
-          (* FIXME needs adding to the STORE interface *)
           let store_sync: unit -> unit m = (fun () ->
               get_cache () |> bind (fun cache -> 
                   let es = Cache.bindings cache in
@@ -161,18 +161,21 @@ module Make = functor (S:S) -> (struct
                             | true -> loop es (* don't sync if freed *)
                             | false -> (
                                 (* lower_write_frame needed here *)
-                                lower_write_frame r p |> bind (fun () ->
+                                lower.store_write_frame r p |> bind (fun () ->
                                     loop es))))
                       in
                       loop es |> bind (fun () -> 
                           clear_cache () |> bind (fun () -> 
-                              lower.store_sync ())))))
+                              return () 
+                              (* NB syncing of lower levels done
+                                 manually lower.store_sync () *)
+                            )))))
           in
-          FIXME need to include store_sync in STORE intf
+          let ops = { 
+            lower.ops with store_free; store_read; store_alloc;mk_r2f } in
+          { ops; store_sync }) 
 
-  end) (* R_ *)
-
-end
+  end)
 
 
 

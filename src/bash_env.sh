@@ -102,6 +102,16 @@ EOF
 }
 
 
+# codetags ----------------------------------------
+
+function mk_codetags() {
+    init # link_files
+    for f in XXX TODO FIXME NOTE QQQ; do     # order of severity
+        grep $f $link_files || true; 
+    done
+}
+
+
 # ocamlfind install, remove, reinstall --------------------
 
 function install() {
