@@ -43,7 +43,7 @@ let frame_to_page':
           (if (not b) then Printf.printf "%d %d" l1 l2);
           assert b)
       in
-      s ^ (String.make (sz - String.length s) (Char.chr 0))
+      Page.of_string sz s
   )
 
 let page_to_frame' : ('k,'v) pp -> Page.t -> ('k,'v)frame = Pickle.U.(
@@ -61,7 +61,7 @@ let page_to_frame' : ('k,'v) pp -> Page.t -> ('k,'v)frame = Pickle.U.(
                       ret (Leaf_frame(kvs)))))
         )
       in
-      let (_,r) = x |> Pickle.U.run_w_exception buf in
+      let (_,r) = x |> Pickle.U.run_w_exception (Page.to_string buf) in
       r)
 
 (* FIXME can remove these once code is trusted *)
@@ -80,6 +80,6 @@ let page_to_frame sz pp p =
   let f = page_to_frame' pp p in
   let _ = Test.test (fun _ -> 
       let p' = frame_to_page' sz pp f in
-      assert Bytes.(to_string p = to_string p'))
+      assert (p = p'))
   in
   f

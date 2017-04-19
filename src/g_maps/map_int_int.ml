@@ -5,6 +5,7 @@ open Prelude
 module KV = struct
   type key = int[@@deriving yojson]
   type value = int[@@deriving yojson]
+  (* TODO change key_ord to compare_k; equal_value to equal_v *)
   let key_ord (x:int) y = Pervasives.compare x y
   let equal_value : value -> value -> bool = (=)
 end
@@ -20,4 +21,3 @@ let pp = Pickle.Examples.{
     u_v = u_int;
     v_len = 4;
   }
-

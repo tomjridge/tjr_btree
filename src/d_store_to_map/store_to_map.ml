@@ -10,8 +10,8 @@ open Functorized_btree
 
 module type S = sig
   module W : WORLD
-  module Store: Btree_api.STORE with module W = W
-  module Map: Btree_api.MAP with module W = W
+  module Store: STORE with module W = W
+  module Map: MAP with module W = W
 end
 
 module Make = functor (S: S) -> (struct

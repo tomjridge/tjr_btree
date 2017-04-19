@@ -35,13 +35,14 @@ module Make = functor (DSK:DISK) -> struct
               (* assert (n=block_size); we allow the file to expand
                  automatically, so no reason to read any bytes *)
               assert(n=0 || n=block_size);
-              return buf)))
+              return (BLK.of_string block_size buf))))
     in
     let write: BLK.r -> BLK.t -> unit m = (fun r buf -> 
         safely __LOC__ (
           ops.get_fd ()
           |> bind Unix.(fun fd ->
               ignore (lseek fd (r * block_size) SEEK_SET);
+              let buf = BLK.to_string buf in
               let n = single_write fd buf 0 block_size in
               assert (n=block_size);
               return ())))
@@ -54,3 +55,5 @@ module Make = functor (DSK:DISK) -> struct
   )
 
 end
+
+
