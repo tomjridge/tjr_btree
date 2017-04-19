@@ -1,5 +1,21 @@
 (* a map from int to int backed by file store ------------------------------- *)
 open Prelude
+open Btree_api
+
+(*
+
+* Layers
+
+| Cached | Uncached |                      | 
+| X      |          | high-level map cache | 
+| X      | X        | map                  | 
+| X      |          | recycling_store      | 
+| X      | X        | store                | 
+| X      |          | disk cache           | 
+| X      | X        | disk                 | 
+| X      | X        | fd                   | 
+
+*)
 
 module KV = Map_int_int.KV
 

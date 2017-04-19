@@ -3,23 +3,18 @@
 open Prelude
 open Map_prelude
 
-(* assumptions ---------------------------------------- *)
 
-let key_size = 256 + 4  (* length *)
-
-
-(* KV ------------------------------------------------------------ *)
+let key_size = Small_string.max_size + 4  (* length *)
 
 module KV = struct
   open SS_
   type key = SS_.t  [@@deriving yojson] 
   type value = SS_.t  [@@deriving yojson]
-  let key_ord x y = String.compare (to_string x) (to_string y)
-  let equal_value x y = (to_string x = to_string y)
-end (* KV *)
+  let key_ord = SS_.compare
+  let equal_value (x:value) y = (x=y)
+end
 
 open KV
-
 module EX_ = Pickle.Examples
 
 let pp: (key,value) Pickle_params.t = Pickle_params.(

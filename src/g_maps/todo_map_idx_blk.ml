@@ -1,4 +1,4 @@
-(* a map from index to blk, implemented as a map from index to bid *)
+(* TODO a map from index to blk, implemented as a map from index to bid *)
 
 (*
 
@@ -8,6 +8,7 @@ is a pointer to the blk on disk
 
 *)
 
+(*
 open Prelude
 
 open Internal_api
@@ -94,3 +95,4 @@ module Make = functor (ST:STORE) -> (struct
     let _ = (module RM : RAW_MAP)
 
 end)
+*)

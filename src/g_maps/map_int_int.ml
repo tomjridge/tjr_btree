@@ -2,14 +2,6 @@
 
 open Prelude
 
-(* assumptions ---------------------------------------- *)
-
-let int_size = 4  (* bytes *)
-
-
-(* KV --------------------------------------- *)
-
-(* for ints *)
 module KV = struct
   type key = int[@@deriving yojson]
   type value = int[@@deriving yojson]
@@ -21,12 +13,11 @@ open KV
 open Pickle_params
 
 let pp = Pickle.Examples.{
-      p_k = p_int;
-      u_k = u_int;
-      k_len = 4;
-      p_v = p_int;
-      u_v = u_int;
-      v_len = 4;
-         }
-
+    p_k = p_int;
+    u_k = u_int;
+    k_len = 4;
+    p_v = p_int;
+    u_v = u_int;
+    v_len = 4;
+  }
 

@@ -1,28 +1,24 @@
 (* map from string to int using Digest.t MD5 128bit hash of string *)
 
 open Prelude
+open Btree_api
 open Map_prelude
 
 open Digest
 
 module D_ = Digest
 
-(* k v ------------------------------------------------------------ *)
-
 module KV = struct
-    type key = Digest.t  [@@deriving yojson] (* 16 char strings *)
-    let key_size = Digest.sz
-    let key_ord = Digest.compare
+  type key = Digest.t  [@@deriving yojson] (* 16 char strings *)
+  let key_size = Digest.sz
+  let key_ord = Digest.compare
 
-    type value = int  [@@deriving yojson]
-    let value_size = 4  (* 32 bit ints *)
-    let equal_value x y = (x:int) = y
-  end
-
-(* pickling ------------------------------------------------------------ *)
+  type value = int  [@@deriving yojson]
+  let value_size = 4  (* 32 bit ints *)
+  let equal_value x y = (x:int) = y
+end
 
 open KV 
-open Btree_api
 
 let pp: (key,value) Pickle_params.t = Pickle.(
     {
