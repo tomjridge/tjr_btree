@@ -44,6 +44,7 @@ end
 
 (* store ------------------------------------------------------------ *)
 
+(* just an abstraction, so no sync? use sync on underlying disk? *)
 module type STORE = sig
   module W : WORLD
   open W

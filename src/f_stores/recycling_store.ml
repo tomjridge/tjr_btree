@@ -12,13 +12,6 @@
 
 (* FIXME should use the LRU cache *)
 
-(*
-module type LOWER = sig  (* lower store *)
-  include STORE with type Page.r = int and type 'a m = 'a World.m
-  val alloc_block: t -> Page.r m
-  val write: t -> Page.r -> Page.t -> unit m
-end
-*)
 
 open Prelude
 open Btree_api
@@ -33,36 +26,64 @@ type ('k,'v) cache = ('k,'v) frame Cache.t
 
 type fns = FNS.t 
 
-type ('k,'v) rec_store = {
+type ('k,'v) recycling_state = {
   cache: ('k,'v) cache;  (* a cache of pages which need to be written *)
   fns: fns  (* really this is "don't write to store on sync" *)
   (* FIXME don't we also need to know which were allocated since last sync? *)
 }
 
-module Make = functor (Store:STORE) -> (struct
-    module Store = Store
-    module W = Store.W
+(* the lower store needs to provide the following extra operations... *)
+module type LOWER = sig 
+  include STORE
+  open W
+  type ('k,'v) lower_ops = {
+    ops: ('k,'v) ops;
+    (* allocate without writing *)
+    store_alloc_page_ref : unit -> page_ref m;
+    store_write_frame: page_ref -> ('k,'v) frame -> unit m;
+  }
+end
+
+(* we provide extra operations *in addition to* store *)
+module type RECYCLING_STORE = sig
+  module W : WORLD
+  module Lower: LOWER with module W = W
+  module Upper: STORE with module W = W (* usual ops we provide *)
+  open W
+  (* additional ops we provide *)
+  type ('k,'v) rs_ops = {
+    ops: ('k,'v) Upper.ops;
+    store_sync: unit -> unit m;
+  }
+end
+
+module type S = sig
+  module Recycling_store : RECYCLING_STORE
+end
+
+module Make = functor (S:S) -> (struct
+    module S = S
+    open S.Recycling_store
     open W
 
-    (* we get passed the Store.ops to access the underlying store *)
-    
-    type ('k,'v) rec_ops = {
-      get: unit -> ('k,'v) rec_store m;
-      set: ('k,'v) rec_store -> unit m
+    (* we get passed the Store.ops to access the underlying store *)        
+    type ('k,'v) rs_params = {
+      get_rs: unit -> ('k,'v) recycling_state m;
+      set_rs: ('k,'v) recycling_state -> unit m
     }
 
     let make: 
-      ('k,'v)Store.ops -> ('k,'v)rec_ops -> 
+      ('k,'v) Store.ops -> ('k,'v)rs_params -> 
       (unit -> page_ref m) -> (page_ref -> ('k,'v)frame->unit m) -> 
       ('k,'v)Store.ops 
       = (
         fun lower ops lower_alloc_block lower_write_frame -> 
           (* cache functions *)
           let get_cache: unit -> ('k,'v) cache m = (fun () ->
-              ops.get() |> bind (fun s -> return s.cache))
+              ops.get_rs() |> bind (fun s -> return s.cache))
           in
           let set_cache: ('k,'v) cache -> unit m = (fun c ->
-              ops.get() |> bind (fun s -> ops.set {s with cache=c}))
+              ops.get_rs() |> bind (fun s -> ops.set_rs {s with cache=c}))
           in
           let clear_cache: unit -> unit m = (fun () -> set_cache Cache.empty) in
           let cache_add: page_ref -> ('k,'v)frame -> unit m = (fun r p ->
@@ -71,10 +92,10 @@ module Make = functor (Store:STORE) -> (struct
           in
           (* store.fns ---------- *)
           let get_fns: unit -> fns m = (fun () ->
-              ops.get () |> bind (fun s -> return s.fns))
+              ops.get_rs() |> bind (fun s -> return s.fns))
           in
           let set_fns: fns -> unit m = (fun fns ->
-              ops.get() |> bind (fun s -> ops.set {s with fns=fns}))
+              ops.get_rs() |> bind (fun s -> ops.set_rs {s with fns=fns}))
           in
           let get_1_fns: unit -> page_ref option m = (fun () -> 
               get_fns () |> bind (fun fns -> 
@@ -86,8 +107,8 @@ module Make = functor (Store:STORE) -> (struct
                     |> (fun r -> return (Some r))))
           in
           let fns_remove: page_ref -> unit m = (fun r -> 
-              ops.get () |> bind (fun s -> 
-                  ops.set {s with fns=(FNS.remove r s.fns)}))
+              get_fns () |> bind (fun fns -> 
+                  set_fns (FNS.remove r fns)))
           in
           let store_free: page_ref list -> unit m = (fun rs ->
               get_fns () |> bind (fun fns ->
