@@ -41,57 +41,43 @@ end
 
 (* block device ---------------------------------------- *)
 
-module type DISK = sig
-  module W : WORLD
-  open W
-  type ops = {
-    block_size: BLK.sz;
-    read: BLK.r -> BLK.t m;
-    write: BLK.r -> BLK.t -> unit m;
-    disk_sync: unit -> unit m;
-  }
-end
+type ('a,'s) m = ('a,'s) Simple_monad.m
+
+type 's disk_ops = {
+  block_size: BLK.sz;
+  read: BLK.r -> (BLK.t,'s) m;
+  write: BLK.r -> BLK.t -> (unit,'s) m;
+  disk_sync: unit -> (unit,'s) m;
+}
 
 
 (* store ------------------------------------------------------------ *)
 
 (* just an abstraction, so no sync? use sync on underlying disk? *)
-module type STORE = sig
-  module W : WORLD
-  open W
-  type ('k,'v) ops = {
-    compare_k: 'k -> 'k -> int;
-    equal_v: 'v -> 'v -> bool;
-    cs0: constants;
-    store_free: page_ref list -> unit m;
-    store_read : page_ref -> ('k, 'v) frame m;  (* FIXME option? *)
-    store_alloc : ('k, 'v) frame -> page_ref m;
-    mk_r2f: t -> page_ref -> ('k,'v) frame option;
-  }
-end
+type ('k,'v,'s) store_ops = {
+  compare_k: 'k -> 'k -> int;
+  equal_v: 'v -> 'v -> bool;
+  cs0: constants;
+  store_free: page_ref list -> (unit,'s) m;
+  store_read : page_ref -> (('k, 'v) frame,'s) m;  (* FIXME option? *)
+  store_alloc : ('k, 'v) frame -> (page_ref,'s) m;
+  mk_r2f: 's -> page_ref -> ('k,'v) frame option;
+}
 
 
 (* map ------------------------------------------------------------ *)
 
-module type MAP = sig
-  module W : WORLD
-  open W
-  module LS : sig 
-    type ('k,'v) leaf_stream
-    type ('k,'v) t = ('k,'v) leaf_stream
-    type ('k,'v) ops = {
-      step: ('k,'v) t -> ('k,'v) t option m;
-      get_kvs: ('k,'v) t -> ('k*'v) list m
-    }
-  end
-
-  type ('k,'v) ops = {
-    find: 'k -> 'v option m;
-    insert: 'k -> 'v -> unit m;
-    delete: 'k -> unit m;
-    get_leaf_stream: unit -> ('k,'v) LS.t m;
-  }
-end
+type ('k,'v) leaf_stream
+type ('k,'v,'s) ls_ops = {
+  step: ('k,'v) leaf_stream -> (('k,'v) leaf_stream option,'s) m;
+  get_kvs: ('k,'v) leaf_stream -> (('k*'v) list,'s) m
+}
+type ('k,'v,'s) map_ops = {
+  find: 'k -> ('v option,'s) m;
+  insert: 'k -> 'v -> (unit,'s) m;
+  delete: 'k -> (unit,'s) m;
+  get_leaf_stream: unit -> ('k,'v,'s) ls_ops;
+}
 
 
 

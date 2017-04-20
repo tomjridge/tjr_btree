@@ -1,12 +1,18 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
-(* we store the btree generation in block 0 *)
-open Prelude
 
-open Internal_api
-open Map_string_string_small
-open Block_device
-open File_store
+
+module W = struct
+  type t = {
+    fd: Disk_on_fd.fd;
+    free: page_ref;
+    root: page_ref; (* pointer to root of btree *)
+  }
+  type 'a m = ('a,t) Simple_monad.m
+  let bind: ('a -> 'b m) -> 'a m -> 'b m = Simple_monad.bind
+  let return: 'a -> 'a m = Simple_monad.return
+end
+
 
 module RF = File_store.Recycling_filestore
 

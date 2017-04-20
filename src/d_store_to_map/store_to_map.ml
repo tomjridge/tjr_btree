@@ -14,6 +14,17 @@ module type S = sig
   module Map: MAP with module W = W
 end
 
+(* different ops address different maps etc, and store page_ref in different places *)
+module Page_ref_ops = struct
+  open Simple_monad
+  type 's page_ref_ops = {
+    get_page_ref: unit -> (page_ref,'s) m;
+    set_page_ref: page_ref -> (unit,'s) m;
+  }
+end
+
+open Page_ref_ops
+
 module Make = functor (S: S) -> (struct
     module S = S
     module W = S.W
@@ -21,11 +32,6 @@ module Make = functor (S: S) -> (struct
     module Map = S.Map                 
     open W
 
-    (* different ops address different maps etc, and store page_ref in different places *)
-    type page_ref_ops = {
-      get_page_ref: unit -> page_ref m;
-      set_page_ref: page_ref -> unit m;
-    }
 
     (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
     let make: page_ref_ops -> ('k,'v) Store.ops -> ('k,'v) Map.ops = (

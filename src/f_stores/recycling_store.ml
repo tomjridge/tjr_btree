@@ -32,6 +32,7 @@ type ('k,'v) recycling_state = {
   (* FIXME don't we also need to know which were allocated since last sync? *)
 }
 
+
 module type S = sig
   module Store: STORE
   open Store
