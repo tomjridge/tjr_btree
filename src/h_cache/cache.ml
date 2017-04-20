@@ -4,6 +4,8 @@
    version *)
 
 open Prelude
+open Btree_api
+
 
 type time = int
 
@@ -99,8 +101,6 @@ let mk_initial_cache compare_k = ({
      map and queue agree on timings
 
 *)
-
-
 let wf c = (
   Test.test (
     fun () -> 
@@ -113,10 +113,11 @@ let wf c = (
   )
 )
 
-module Make = functor (Map_:Btree_api.MAP) -> struct
-  module Map_ = Map_
-  open Map_
+module Make = functor (W:WORLD) -> struct
+  module W = W
   open W
+  module Api = Make_api(W)
+  open Api
 
   type ('k,'v) cache_ops = {
     get_cache: unit -> ('k,'v) cache_state m;
@@ -129,7 +130,7 @@ module Make = functor (Map_:Btree_api.MAP) -> struct
   (* FIXME correctness of following not clear *)
 
   let make_cached_map: 
-    ('k,'v) Map_.ops -> ('k,'v) cache_ops -> ('k,'v) Map_.ops = (
+    ('k,'v) map_ops -> ('k,'v) cache_ops -> ('k,'v) map_ops = (
     fun map_ops cache_ops ->
 
       (* update time on each put *)

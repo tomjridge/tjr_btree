@@ -38,71 +38,25 @@ module type WORLD = sig
   val return: 'a -> 'a m
 end
 
+module Make_api = functor (W:WORLD) -> (struct
 
-(* block device ---------------------------------------- *)
-
-type ('a,'s) m = ('a,'s) Simple_monad.m
-
-type 's disk_ops = {
-  block_size: BLK.sz;
-  read: BLK.r -> (BLK.t,'s) m;
-  write: BLK.r -> BLK.t -> (unit,'s) m;
-  disk_sync: unit -> (unit,'s) m;
-}
-
-
-(* store ------------------------------------------------------------ *)
-
-(* just an abstraction, so no sync? use sync on underlying disk? *)
-type ('k,'v,'s) store_ops = {
-  compare_k: 'k -> 'k -> int;
-  equal_v: 'v -> 'v -> bool;
-  cs0: constants;
-  store_free: page_ref list -> (unit,'s) m;
-  store_read : page_ref -> (('k, 'v) frame,'s) m;  (* FIXME option? *)
-  store_alloc : ('k, 'v) frame -> (page_ref,'s) m;
-  mk_r2f: 's -> page_ref -> ('k,'v) frame option;
-}
-
-
-(* map ------------------------------------------------------------ *)
-
-type ('k,'v) leaf_stream
-type ('k,'v,'s) ls_ops = {
-  step: ('k,'v) leaf_stream -> (('k,'v) leaf_stream option,'s) m;
-  get_kvs: ('k,'v) leaf_stream -> (('k*'v) list,'s) m
-}
-type ('k,'v,'s) map_ops = {
-  find: 'k -> ('v option,'s) m;
-  insert: 'k -> 'v -> (unit,'s) m;
-  delete: 'k -> (unit,'s) m;
-  get_leaf_stream: unit -> ('k,'v,'s) ls_ops;
-}
-
-
-
-(* make all types given W ------------------------------------------- *)
-
-module Make = functor (W:WORLD) -> struct
-  
-  module W = W
-  open W
-
-  module Disk = struct
     module W = W
-    type ops = {
+    open W
+
+    (* block device ---------------------------------------- *)
+
+    type disk_ops = {
       block_size: BLK.sz;
       read: BLK.r -> BLK.t m;
       write: BLK.r -> BLK.t -> unit m;
       disk_sync: unit -> unit m;
     }
-  end
 
-  let _ = (module Disk : DISK)
 
-  module Store = struct
-    module W = W
-    type ('k,'v) ops = {
+    (* store ------------------------------------------------------------ *)
+
+    (* just an abstraction, so no sync? use sync on underlying disk? *)
+    type ('k,'v) store_ops = {
       compare_k: 'k -> 'k -> int;
       equal_v: 'v -> 'v -> bool;
       cs0: constants;
@@ -111,30 +65,28 @@ module Make = functor (W:WORLD) -> struct
       store_alloc : ('k, 'v) frame -> page_ref m;
       mk_r2f: t -> page_ref -> ('k,'v) frame option;
     }
-  end
-
-  let _ = (module Store : STORE)
 
 
-  module Map = struct
-    module W = W
-    module LS = struct 
-      type ('k,'v) leaf_stream
-      type ('k,'v) t = ('k,'v) leaf_stream
-      type ('k,'v) ops = {
-        step: ('k,'v) t -> ('k,'v) t option m;
-        get_kvs: ('k,'v) t -> ('k*'v) list m
-      }
-    end
-    type ('k,'v) ops = {
+    (* map ------------------------------------------------------------ *)
+
+    type ('k,'v) leaf_stream
+    type ('k,'v) ls_ops = {
+      step: ('k,'v) leaf_stream -> ('k,'v) leaf_stream option m;
+      get_kvs: ('k,'v) leaf_stream -> ('k*'v) list m
+    }
+    type ('k,'v) map_ops = {
       find: 'k -> 'v option m;
       insert: 'k -> 'v -> unit m;
       delete: 'k -> unit m;
-      get_leaf_stream: unit -> ('k,'v) LS.t m;
+      get_leaf_stream: unit -> ('k,'v) ls_ops;
     }
-  end
-
-  let _ = (module Map : MAP)
 
 
-end
+end)
+
+(*
+type ('k,'v) kv_params = {
+  compare_k: 'k -> 'k -> int;
+  equal_v: 'v -> 'v -> bool;
+}
+*)

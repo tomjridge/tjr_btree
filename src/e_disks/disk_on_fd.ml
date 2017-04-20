@@ -6,12 +6,11 @@ open Btree_api
 type fd = Unix.file_descr
 type t = fd
 
-module Make = functor (DSK:DISK) -> struct
-  module DSK = DSK
+module Make = functor (W:WORLD) -> struct
 
-  (* now implement the DSK.ops type *)
-  open DSK
-  open DSK.W
+  module Api = Make_api(W)
+  open Api
+  open W
 
   type fd_ops = {
     get_fd: unit -> fd m;
@@ -49,7 +48,8 @@ module Make = functor (DSK:DISK) -> struct
     in
     let disk_sync: unit -> unit m = (fun () -> 
         safely __LOC__ (
-          ops.get_fd () |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
+          ops.get_fd () 
+          |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
     in
     {block_size;read;write;disk_sync}
   )

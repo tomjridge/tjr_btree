@@ -1,6 +1,7 @@
 (* a recycling store on top of a normal store *)
 
-(* cache (page_ref -> frame), and if these refs freed without being synced, we recycle them *)
+(* cache (page_ref -> frame), and if these refs freed without being
+   synced, we recycle them *)
 
 (* a store that attempts to recycle blocks that will never end up on
    disk; we maintain a set of blocks that have been allocated and not
@@ -17,49 +18,45 @@ open Prelude
 open Btree_api
 
 (* need to cache page_ref to ('k,'v)frame *)
-
 module Map_page_ref = Map_int
-module Cache = Map_page_ref  (* maintain (page_ref -> frame) cache *)
+module Cache = Map_page_ref  (* Cache.t ~ (page_ref -> frame) *)
 module FNS = Set_int (* free not synced page_refs *)
 
 type ('k,'v) cache = ('k,'v) frame Cache.t
 
 type fns = FNS.t 
 
+(*
+- a cache of pages which need to be written
+- fns, the "freed-not-synced" page_refs; really this is "don't write to store on sync"
+
+FIXME don't we also need to know which were allocated since last sync?
+*) 
 type ('k,'v) recycling_state = {
-  cache: ('k,'v) cache;  (* a cache of pages which need to be written *)
-  fns: fns  (* really this is "don't write to store on sync" *)
-  (* FIXME don't we also need to know which were allocated since last sync? *)
+  cache: ('k,'v) cache; 
+  fns: fns 
 }
 
 
-module type S = sig
-  module Store: STORE
-  open Store
-  open Store.W
+module Make = functor (W:WORLD) -> (struct
+    open W
+    module Api = Make_api(W)
+    open Api
 
-  (* operations from lower store *)
-  type ('k,'v) lower_ops = {
-    (* allocate without writing *)
-    ops: ('k,'v) ops;
-    store_alloc_page_ref : unit -> page_ref m;
-    store_write_frame: page_ref -> ('k,'v) frame -> unit m;
-  }
+    (* operations from lower store *)
+    type ('k,'v) lower_ops = {
+      (* allocate without writing *)
+      store_ops: ('k,'v) store_ops;
+      store_alloc_page_ref : unit -> page_ref m;
+      store_write_frame: page_ref -> ('k,'v) frame -> unit m;
+    }
 
-  (* we provide extra operations store_sync which flushes to lower *)
-  type ('k,'v) rs_ops = {
-    ops: ('k,'v) ops; 
-    store_sync: unit -> unit m;
-  }
-end
+    (* we provide extra operations store_sync which flushes to lower *)
+    type ('k,'v) rs_ops = {
+      store_ops: ('k,'v) store_ops; 
+      store_sync: unit -> unit m;
+    }
 
-module Make = functor (S:S) -> (struct
-    module S = S
-    open S
-    open S.Store
-    open S.Store.W
-
-    (* we get passed the Store.ops to access the underlying store *)        
     type ('k,'v) rs_params = {
       get_rs: unit -> ('k,'v) recycling_state m;
       set_rs: ('k,'v) recycling_state -> unit m
@@ -127,11 +124,11 @@ module Make = functor (S:S) -> (struct
                   (try Some(Cache.find r c) with Not_found -> None)
                   |> (function 
                       | Some p -> return p
-                      | None -> lower.ops.store_read r)))
+                      | None -> lower.store_ops.store_read r)))
           in
           (* FIXME can't this be derived from store_read? why needed in interface? *)
           let mk_r2f: W.t -> page_ref -> ('k,'v)frame option = (fun t ->
-              let lower_r2f = lower.ops.mk_r2f t in
+              let lower_r2f = lower.store_ops.mk_r2f t in
               fun r -> (
                   let m = (
                     get_cache () |> bind (fun c -> 
@@ -172,9 +169,9 @@ module Make = functor (S:S) -> (struct
                                  manually lower.store_sync () *)
                             )))))
           in
-          let ops = { 
-            lower.ops with store_free; store_read; store_alloc;mk_r2f } in
-          { ops; store_sync }) 
+          let store_ops = { 
+            lower.store_ops with store_free; store_read; store_alloc;mk_r2f } in
+          { store_ops; store_sync }) 
 
   end)
 

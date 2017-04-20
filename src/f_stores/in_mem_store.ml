@@ -1,26 +1,28 @@
-(* simple in-mem implementation, mainly for testing ----------------------------- *)
+(* simple in-mem implementation, mainly for testing ----------------- *)
 
 
 open Prelude
 open Btree_api
 
 
-module Make = functor (Store:STORE) -> (struct
+module Make = functor (W:WORLD) -> (struct
 
-    module Store = Store
-    module W = Store.W
+    module W = W
     open W
+
+    module Api = Make_api(W)
+    open Api
 
     type ('k,'v) page = ('k,'v)frame
 
     type ('k,'v) store = {free:int; map:('k,'v)frame Map_int.t}
                  
-    type ('k,'v) extra_ops = {
+    type ('k,'v) in_mem_ops = {
       get_store: unit -> ('k,'v) store m;
       set_store: ('k,'v) store -> unit m;     
     }
 
-    let make compare_k equal_v (ops:('k,'v)extra_ops) (cs0:Constants.t) = (
+    let make compare_k equal_v (ops:('k,'v) in_mem_ops) (cs0:Constants.t) = (
       let store_free: page_ref list -> unit m = (
         fun rs -> return ())  (* no-op *)
       in
@@ -45,7 +47,7 @@ module Make = functor (Store:STORE) -> (struct
               | _ -> None))
       in
       (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
-      Store.{ compare_k;equal_v;cs0;store_free;store_read;store_alloc;mk_r2f}
+      { compare_k;equal_v;cs0;store_free;store_read;store_alloc;mk_r2f}
     )
 
   end)

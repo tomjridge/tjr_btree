@@ -5,19 +5,10 @@
 open Prelude
 open Btree_api
 
-module type S = sig
-  module W : WORLD
-  module Disk : DISK with module W = W
-  module Store: STORE with module W = W
-end
-
-module Make = functor (S:S) -> (struct
-
-    module S = S
-    module W = S.W
+module Make = functor (W:WORLD) -> (struct
     open W
-    module Disk = S.Disk
-    module Store = S.Store
+    module Api = Make_api(W)
+    open Api
 
     type ('k,'v) pp = ('k,'v) Pickle_params.t
 
@@ -32,7 +23,7 @@ module Make = functor (S:S) -> (struct
 
     (* convert a disk to a store using pickling and a free counter; assume
        page size and block size are the same; aim for Poly.t *)
-    let disk_to_store page_size (disk_ops:Disk.ops) (pp:('k,'v) pp) free_ops
+    let disk_to_store page_size (disk_ops:disk_ops) (pp:('k,'v) pp) free_ops
         compare_k equal_v 
       = (
         assert (disk_ops.block_size = page_size);
@@ -57,9 +48,9 @@ module Make = functor (S:S) -> (struct
             store_read r t |> (function (_,Ok f) -> Some f 
                                       | _ -> (ignore(assert(false)); None)))
         in
-        let r : ('k,'v)Store.ops = 
-          Store.({compare_k; equal_v; cs0; 
-                  store_free; store_read; store_alloc; mk_r2f} )
+        let r : ('k,'v)store_ops = 
+          {compare_k; equal_v; cs0; 
+           store_free; store_read; store_alloc; mk_r2f}
         in
         r
       )
