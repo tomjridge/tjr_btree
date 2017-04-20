@@ -70,10 +70,10 @@ module Make_api = functor (W:WORLD) -> (struct
     (* map ------------------------------------------------------------ *)
 
     module LS = struct
-      type ('k,'v) leaf_stream (* TODO *)
+      type ('k,'v) leaf_stream = TODO
       type ('k,'v) ls_ops = {
         step: ('k,'v) leaf_stream -> ('k,'v) leaf_stream option m;
-        get_kvs: ('k,'v) leaf_stream -> ('k*'v) list m
+        get_kvs: ('k,'v) leaf_stream -> ('k*'v) list
       }
     end
     open LS
@@ -81,7 +81,7 @@ module Make_api = functor (W:WORLD) -> (struct
       find: 'k -> 'v option m;
       insert: 'k -> 'v -> unit m;
       delete: 'k -> unit m;
-      get_leaf_stream: unit -> ('k,'v) ls_ops;
+      get_leaf_stream: unit -> ('k,'v) leaf_stream ;
     }
 
 
