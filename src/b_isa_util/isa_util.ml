@@ -48,7 +48,8 @@ module Poly_params = struct
 end
 *)
 
-(* wrapper around isa_export.make *)
+(* wrapper around isa_export.make; aim to use this rather than
+   isa_export.make *)
 module Make = functor (P:PARAMS) -> (struct
     module P = P
     module S_ = struct
@@ -83,6 +84,9 @@ module Make = functor (P:PARAMS) -> (struct
         fun f -> P.store_alloc f |> m2mm)
     end
     module IEM = Isa_export.Make(S_)
+    module Tree = struct
+      type ('k,'v) tree = ('k,'v) IEM.Tree.tree
+    end
     type 'a m = P.store -> P.store * ('a,string)result
     let dest_MM = function S_.MM f -> (fun s -> 
         f s 
@@ -91,117 +95,53 @@ module Make = functor (P:PARAMS) -> (struct
                            | IE.Util.Ok x -> Ok x
                            | IE.Util.Error (String_error y) -> Error y)))
     let mm2m = dest_MM
-    module Find_ = IEM.Find                    
-    open Find_
     let lift f x = x |> f |>dest_MM
-    let find_step: find_state -> find_state m = lift find_step
-    let dest_f_finished fs = fs |> Find_.dest_f_finished |> (fun r ->
-        match r with
-        | None -> None
-        | Some (r0, (k, (r, (kvs, stk)))) -> Some(r,kvs))
 
-    module Insert_ = IEM.Insert
-    open Insert_
-    let insert_step: insert_state -> insert_state m = lift insert_step
-    let dest_i_finished is = is |> Insert_.dest_i_finished
-                                     
-    module Insert_many_ = IEM.Insert_many
-    open Insert_many_
-    let insert_many_step: i_state_t -> i_state_t m = lift insert_step
-    let dest_im_finished is = is |> Insert_many_.dest_i_finished
+    module Find = struct
+      type find_state = IEM.Find.find_state
+      let mk_find_state = IEM.Find.mk_find_state
+      let find_step: find_state -> find_state m = lift IEM.Find.find_step
+      (* modify dest_f_finished to omit some unneeded info? FIXME remove? *)
+      let dest_f_finished fs = fs |> IEM.Find.dest_f_finished |> (fun r ->
+          match r with
+          | None -> None
+          | Some (r0, (k, (r, (kvs, stk)))) -> Some(r,kvs))
+      let wellformed_find_state = IEM.Find.wellformed_find_state
+    end
 
+    module Insert = struct
+      type insert_state = IEM.Insert.insert_state
+      let mk_insert_state = IEM.Insert.mk_insert_state
+      let insert_step: insert_state -> insert_state m = 
+        lift IEM.Insert.insert_step
+      let dest_i_finished = IEM.Insert.dest_i_finished
+      let wellformed_insert_state = IEM.Insert.wellformed_insert_state
+    end                             
 
-    module Delete_ = IEM.Delete
-    open Delete_
-    let delete_step: delete_state -> delete_state m = lift delete_step
-    let dest_d_finished ds = ds |> Delete_.dest_d_finished 
-    (* FIXME further wrappers go here *)
+    module Insert_many = struct
+      type i_state_t = IEM.Insert_many.i_state_t 
+      let mk_insert_state = IEM.Insert_many.mk_insert_state
+      let insert_many_step: i_state_t -> i_state_t m = 
+        lift IEM.Insert_many.insert_step
+      let dest_im_finished = IEM.Insert_many.dest_i_finished (* NB rename *)
+    end                             
+
+    module Delete = struct
+      type delete_state = IEM.Delete.delete_state
+      let mk_delete_state = IEM.Delete.mk_delete_state
+      let delete_step: delete_state -> delete_state m = 
+        lift IEM.Delete.delete_step
+      let dest_d_finished = IEM.Delete.dest_d_finished
+      let wellformed_delete_state = IEM.Delete.wellformed_delete_state
+    end
+
+    module Leaf_stream = struct 
+      type ls_state = IEM.Leaf_stream.ls_state
+      let mk_ls_state : P.page_ref -> ls_state = IEM.Leaf_stream.mk_ls_state
+      let lss_step: ls_state -> ls_state m = lift IEM.Leaf_stream.lss_step
+      let dest_LS_leaf: ls_state -> (P.k*P.v) list option = 
+        IEM.Leaf_stream.dest_LS_leaf
+      let lss_is_finished : ls_state -> bool = IEM.Leaf_stream.lss_is_finished
+    end
 
 end)
-
-(* Isa_export.Make signatures:
-
-module Find : sig
-  type btree
-  type find_state
-  val mk_r2t :
-    (Params.page_ref -> (Params.k, Params.v, Params.page_ref) Frame.t option) ->
-      Arith.nat -> Params.page_ref -> (Params.k, Params.v) Tree.tree option
-  val find_step : find_state -> find_state Params.mm
-  val empty_btree : unit -> btree Params.mm
-  val mk_find_state : Params.k -> Params.page_ref -> find_state
-  val wf_store_tree :
-    Params.store -> Params.page_ref -> (Params.k, Params.v) Tree.tree -> bool
-  val dest_f_finished :
-    find_state ->
-      (Params.page_ref *
-        (Params.k *
-          (Params.page_ref *
-            ((Params.k * Params.v) list *
-              (Params.k, Params.page_ref, unit)
-                Tree_stack.ts_frame_ext list)))) option
-  val wellformed_find_state :
-    Params.store -> (Params.k, Params.v) Tree.tree -> find_state -> bool
-end = struct
-
-module Insert : sig
-  type i12_t = I1 of Params.page_ref |
-    I2 of (Params.page_ref * (Params.k * Params.page_ref))
-  type insert_state = I_down of (Find.find_state * Params.v) |
-    I_up of
-      (i12_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
-    | I_finished of Params.page_ref
-  val insert_step : insert_state -> insert_state Params.mm
-  val dest_i_finished : insert_state -> Params.page_ref option
-  val mk_insert_state : Params.k -> Params.v -> Params.page_ref -> insert_state
-  val wellformed_insert_state :
-    Params.store ->
-      (Params.k, Params.v) Tree.tree ->
-        Params.k -> Params.v -> insert_state -> bool
-end = struct
-
-module Delete : sig
-  type del_t = D_small_leaf of (Params.k * Params.v) list |
-    D_small_node of (Params.k list * Params.page_ref list) |
-    D_updated_subtree of Params.page_ref
-  type delete_state = D_down of (Find.find_state * Params.page_ref) |
-    D_up of
-      (del_t *
-        ((Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list *
-          Params.page_ref))
-    | D_finished of Params.page_ref
-  val delete_step : delete_state -> delete_state Params.mm
-  val dest_d_finished : delete_state -> Params.page_ref option
-  val mk_delete_state : Params.k -> Params.page_ref -> delete_state
-  val wellformed_delete_state :
-    (Params.k, Params.v) Tree.tree ->
-      Params.k -> Params.store -> delete_state -> bool
-end = struct
-
-module Insert_many : sig
-  type i_t = I1 of (Params.page_ref * (Params.k * Params.v) list) |
-    I2 of ((Params.page_ref * (Params.k * Params.page_ref)) *
-            (Params.k * Params.v) list)
-  type i_state_t =
-    I_down of (Find.find_state * (Params.v * (Params.k * Params.v) list)) |
-    I_up of
-      (i_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
-    | I_finished of (Params.page_ref * (Params.k * Params.v) list)
-  val insert_step : i_state_t -> i_state_t Params.mm
-  val dest_i_finished :
-    i_state_t -> (Params.page_ref * (Params.k * Params.v) list) option
-  val mk_insert_state :
-    Params.k ->
-      Params.v -> (Params.k * Params.v) list -> Params.page_ref -> i_state_t
-end = struct
-
-module Leaf_stream : sig
-  type ls_state
-  val lss_step : ls_state -> ls_state Params.mm
-  val mk_ls_state : Params.page_ref -> ls_state
-  val dest_LS_leaf : ls_state -> ((Params.k * Params.v) list) option
-  val lss_is_finished : ls_state -> bool
-end = struct
-
-
-*)

@@ -1,4 +1,8 @@
 (* construct map from store ---------------------------------------- *)
+
+(* this includes code to construct initial states (eg init find_state)
+   and apply the step functions repeatedly *)
+
 open Prelude
 (*open Btree_api *)
 
@@ -50,15 +54,14 @@ module Make_functor = (struct
   end
 
   module Make = functor (P:Isa_util.PARAMS) -> (struct
-
       module P_ = P
-
-      module IU = Isa_util.Make(P)
-      module IEM = IU.IEM
-
       open P
 
-      let mk_r2t r2f r = IEM.Find.mk_r2t r2f (Isa_util.X.int_to_nat 1000) r
+      module IU = Isa_util.Make(P)
+      open IU
+
+      (* FIXME avoid IEM. - add needed functions to eg IU.Find *)
+      let mk_r2t r2f r = IU.IEM.Find.mk_r2t r2f (Isa_util.X.int_to_nat 1000) r
       let mk_r2t s r = mk_r2t (P.mk_r2f s) r
 
 
@@ -67,8 +70,6 @@ module Make_functor = (struct
       (* Raw_map exposes a monad, but here we repeatedly run the step
          function; this allows us to check various invariants *)
       module Find_ = (struct 
-        open IEM
-
         module S = (struct
           (* FIXME remove tree when not testing *)
           type t = {
@@ -97,11 +98,11 @@ module Make_functor = (struct
 
           type finished = page_ref * (k * v) list
 
-          let dest: t -> finished option = fun s -> s.fs|>IU.dest_f_finished
+          let dest: t -> finished option = fun s -> s.fs|>Find.dest_f_finished
 
           let step : t -> (t * (unit,string)result) = (fun x ->
               x.store 
-              |> IU.find_step x.fs
+              |> Find.find_step x.fs
               |> (fun (s',y) -> 
                   match y with
                   | Ok fs' -> ({ x with store=s';fs=fs'},Ok ())
@@ -116,8 +117,8 @@ module Make_functor = (struct
           fun k0 r s -> {
               tree=mk_r2t s r |> dest_Some; store=s; fs=Find.mk_find_state k0 r}
 
-        let find: 
-          k -> page_ref -> store -> store * (page_ref*(k*v)list,string) result = (
+        let find: k -> page_ref -> store -> 
+          store * (page_ref*(k*v)list,string) result = (
           fun k r s ->
             let s = mk k r s in
             Iter_.run s |> (fun (s,r) -> (s.store,r)))
@@ -127,7 +128,6 @@ module Make_functor = (struct
       (* insert ---------------------------------------- *)
 
       module Insert_ = (struct  
-        open IEM
         module S = (struct 
           type t = {
             t: (k,v) Tree.tree;
@@ -161,7 +161,7 @@ module Make_functor = (struct
 
           let step : t -> (t* (unit,string)result) = (fun x ->
               x.store 
-              |> IU.insert_step x.is 
+              |> Insert.insert_step x.is 
               |> (fun (s',y) -> 
                   match y with
                   | Ok is' -> ({ x with store=s';is=is'},Ok ())
@@ -188,7 +188,6 @@ module Make_functor = (struct
       (* insert many ---------------------------------------- *)
 
       module Insert_many_ = (struct 
-        open IEM
         module S = (struct
           type t = {
             t: (k,v) Tree.tree;
@@ -206,11 +205,11 @@ module Make_functor = (struct
           type finished = (page_ref * (k*v) list) 
 
           let dest: state -> finished option = 
-            fun s -> s.is |> Insert_many.dest_i_finished
+            fun s -> s.is |> Insert_many.dest_im_finished
 
           let step : t -> (t*(unit,string)result) = (fun x ->
               x.store 
-              |> IU.insert_many_step x.is
+              |> Insert_many.insert_many_step x.is
               |> (fun (s',y) -> 
                   match y with
                   | Ok is' -> ({ x with store=s';is=is'},Ok ())
@@ -239,7 +238,6 @@ module Make_functor = (struct
       (* delete ---------------------------------------- *)
 
       module Delete_ = (struct 
-        open IEM
         module S = (struct           
           type t = {
             t:(k,v)Tree.tree;
@@ -264,7 +262,7 @@ module Make_functor = (struct
 
           let step : t -> (t*(unit,string)result) = (fun x ->
               x.store 
-              |> IU.delete_step x.ds
+              |> Delete.delete_step x.ds
               |> (fun (s',y) -> 
                   match y with
                   | Ok ds' -> ({ x with store=s';ds=ds'},Ok ())
@@ -307,6 +305,28 @@ module Make_functor = (struct
 
       end)
 
+
+      (* leaf stream ---------------------------------------- *)
+
+      module Leaf_stream_ = (struct 
+        (* we need to repeatedly step the leaf state to the point that
+           we hit a leaf and dest_LS_leaf <> None *)
+        type ls_state = IU.Leaf_stream.ls_state
+        let rec next_leaf: ls_state -> ls_state m = Simple_monad.(fun s ->
+            s |> IU.Leaf_stream.lss_step |> bind (fun s' ->
+                match (IU.Leaf_stream.dest_LS_leaf s') with
+                | None -> next_leaf s'
+                | Some _ -> return s'))
+        let mk_leaf_stream : P.page_ref -> ls_state m = (fun r ->
+          IU.Leaf_stream.mk_ls_state r |> next_leaf)
+        let get_kvs: ls_state -> (k*v) list = (fun s ->
+            s |> IU.Leaf_stream.dest_LS_leaf |> dest_Some)  (* guaranteed <> None *)
+
+      end)
+
+
+
+      (* FIXME remove this? *)
       (* include ops in top level ------------------------------------------ *)
 
       module R = struct

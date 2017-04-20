@@ -27,19 +27,6 @@ type ('k,'v) params = {
   equal_v:'v -> 'v -> bool;
 }
 
-(* 
-module Make = functor (W:WORLD) -> (struct
-    module W = W
-    open W
-    module Api = Make_api(W)
-    open Api
-
-    module D = Disk_on_fd.Make(W)
-    module S = Disk_to_store.Make(W)
-    module RS = Recycling_store.Make(W)
-    module M = Store_to_map.Make(W)
-end)
-*)
 
 module Make_uncached = 
   functor (S0:sig type k type v val ps: (k,v) params end) -> (struct
