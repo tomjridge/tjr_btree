@@ -331,7 +331,10 @@ module Make_functor = (struct
                     | None -> next_leaf s'
                     | Some _ -> return (Some s'))))
         let mk_leaf_stream' : P.page_ref -> ls_state m = Simple_monad.(fun r ->
-          IU.Leaf_stream.mk_ls_state r |> next_leaf |> bind (fun s -> return (dest_Some s)))
+            IU.Leaf_stream.mk_ls_state r |> (fun s ->
+                match (IU.Leaf_stream.dest_LS_leaf s) with
+                | None -> (next_leaf s |> bind (fun s -> return (dest_Some s)))
+                | Some _ -> return s))
         let get_kvs: ls_state -> (k*v) list = (fun s ->
             s |> IU.Leaf_stream.dest_LS_leaf |> dest_Some)  (* guaranteed <> None *)
         let rec mk_ls_step: ls_state -> (unit -> (k,v,store) ls_ops option m) = Simple_monad.(fun s -> 
