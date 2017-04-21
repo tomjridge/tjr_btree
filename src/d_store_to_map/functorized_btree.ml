@@ -320,7 +320,9 @@ module Make_functor = (struct
 
       module Leaf_stream_ = (struct 
         (* we need to repeatedly step the leaf state to the point that
-           we hit a leaf and dest_LS_leaf <> None *)
+           we hit a leaf and dest_LS_leaf <> None; INVARIANT every
+           ls_state constructed or exposed here has dest_LS_leaf <>
+           None *)
         type ls_state = IU.Leaf_stream.ls_state
         let rec next_leaf: ls_state -> ls_state option m = Simple_monad.(fun s ->
             match (IU.Leaf_stream.lss_is_finished s) with
@@ -337,21 +339,17 @@ module Make_functor = (struct
                 | Some _ -> return s))
         let get_kvs: ls_state -> (k*v) list = (fun s ->
             s |> IU.Leaf_stream.dest_LS_leaf |> dest_Some)  (* guaranteed <> None *)
-        let rec mk_ls_step: ls_state -> (unit -> (k,v,store) ls_ops option m) = Simple_monad.(fun s -> 
-            fun () -> (
-                next_leaf s |> bind (fun s' ->
-                    match s' with 
-                    | None -> return None 
-                    | Some s' -> return (Some{ 
-                        ls_step=(fun () -> mk_ls_step s' ());
-                        ls_kvs=(fun () -> get_kvs s)
-                      }))))          
+        let rec mk_ls_ops: ls_state -> (k,v,store) ls_ops = Simple_monad.(fun s -> 
+            {
+              ls_step=(fun () ->
+                  next_leaf s |> bind (fun s' ->
+                      match s' with 
+                      | None -> return None 
+                      | Some s' -> return (Some(mk_ls_ops s'))));
+              ls_kvs=(fun () -> get_kvs s)
+            })
         let mk_leaf_stream: P.page_ref -> (k,v,store) ls_ops m = Simple_monad.(fun r ->
-            mk_leaf_stream' r |> bind (fun s ->
-                return {
-                  ls_step=mk_ls_step s;
-                  ls_kvs=(fun () -> get_kvs s)
-                }))
+            mk_leaf_stream' r |> bind (fun s -> return (mk_ls_ops s)))
         (* TODO the above is horrible cos trying to hide ls_state type; better approach? *)
       end)
 
