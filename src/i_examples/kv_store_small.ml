@@ -20,6 +20,7 @@ include G.Make_uncached (struct
     }
   end)
 
+(*
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
@@ -53,3 +54,4 @@ let main args = (
 
 
 
+*)

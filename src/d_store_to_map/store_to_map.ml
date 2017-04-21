@@ -63,10 +63,12 @@ module Make = functor (W: WORLD) -> (struct
                 M.delete k r |> bind (fun r' ->
                     page_ref_ops.set_page_ref r')))
         in
-        let get_leaf_stream: unit -> (k',v') LS.ls_ops = fun () ->
-          failwith "TODO get_leaf_stream"
+        let mk_leaf_stream: unit -> (k',v',W.t) ls_ops = (fun () ->
+            {
+              
+            failwith "TODO get_leaf_stream")
         in
-        Map.{find; insert; delete; get_leaf_stream})
+        Map.{find; insert; delete; mk_leaf_stream})
 
   end)
 

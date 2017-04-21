@@ -19,6 +19,7 @@ module type PARAMS = sig
   type v
   val compare_k: k -> k -> int
   val equal_v: v -> v -> bool
+  (* TODO rename store to world? *)
   type store
   type 'a m = (store -> store * 'a res)
   type page_ref
@@ -51,7 +52,6 @@ end
 (* wrapper around isa_export.make; aim to use this rather than
    isa_export.make *)
 module Make = functor (P:PARAMS) -> (struct
-    module P = P
     module S_ = struct
       type k = P.k
       type v = P.v
