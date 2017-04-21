@@ -596,7 +596,7 @@ let rec dest_Node_frame
 
 end;; (*struct Frame*)
 
-module type PARAMS : sig
+module type PARAMS = sig
   type k
   val equal_k : k HOL.equal
   type v

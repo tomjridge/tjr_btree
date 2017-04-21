@@ -60,13 +60,13 @@ module Make = functor (P:PARAMS) -> (struct
       type store = P.store
       type 'a mm = MM of (store -> store * 'a IE.Util.res)
       type page_ref = P.page_ref
-      let cs0: unit IE.Prelude.constants_ext = IE.Prelude.Constants_ext(
+      let constants: unit IE.Prelude.constants_ext = IE.Prelude.Constants_ext(
           P.cs0.min_leaf_size|>X.int_to_nat,
           P.cs0.max_leaf_size|>X.int_to_nat,
           P.cs0.min_node_keys|>X.int_to_nat,
           P.cs0.max_node_keys|>X.int_to_nat,
           ())
-      let ord0: (k, unit) IE.Key_value.key_order_ext = IE.Key_value.(
+      let compare_k: (k, unit) IE.Key_value.key_order_ext = IE.Key_value.(
           Key_order_ext ((fun k1 k2 -> P.compare_k k1 k2 < 0), ())
       )
       let mk_r2f: store -> page_ref -> (k, v, page_ref) Frame.t option = (

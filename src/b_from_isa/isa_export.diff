@@ -1,11 +1,11 @@
 --- /tmp/isa_export.ml	2017-04-21 15:36:32.655040582 +0100
-+++ isa_export.ml.patched	2017-04-21 15:41:53.495822023 +0100
++++ isa_export.ml.patched	2017-04-21 15:42:59.429627288 +0100
 @@ -596,7 +596,7 @@ let rec dest_Node_frame
  
  end;; (*struct Frame*)
  
 -module Params : sig
-+module type PARAMS : sig
++module type PARAMS = sig
    type k
    val equal_k : k HOL.equal
    type v
