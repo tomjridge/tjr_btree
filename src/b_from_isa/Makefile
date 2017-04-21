@@ -6,7 +6,7 @@ FN:=isa_export
 
 all: $(FN).ml
 
-# make this after editing our.ml
+# make this after re-exporting from isa
 # https://forums.anandtech.com/threads/best-practices-for-creating-patch-with-diff.2264468/
 $(FN).diff: /tmp/$(FN).ml $(FN).ml.patched
 	diff -u3 -p /tmp/$(FN).ml $(FN).ml.patched >$@ 

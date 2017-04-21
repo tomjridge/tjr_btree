@@ -1,15 +1,15 @@
---- /tmp/isa_export.ml	2017-04-04 16:29:11.440981046 +0100
-+++ isa_export.ml.patched	2017-04-04 16:42:05.967519252 +0100
-@@ -541,7 +541,7 @@ let rec dest_Node_frame
+--- /tmp/isa_export.ml	2017-04-21 15:36:32.655040582 +0100
++++ isa_export.ml.patched	2017-04-21 15:41:53.495822023 +0100
+@@ -596,7 +596,7 @@ let rec dest_Node_frame
  
  end;; (*struct Frame*)
  
 -module Params : sig
-+module type PARAMS = sig
++module type PARAMS : sig
    type k
    val equal_k : k HOL.equal
    type v
-@@ -555,7 +555,7 @@ module Params : sig
+@@ -610,7 +610,7 @@ module Params : sig
    val store_free : page_ref list -> unit mm
    val store_read : page_ref -> (k, v, page_ref) Frame.t mm
    val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
@@ -18,21 +18,22 @@
  
  type k = K of Arith.nat;;
  
-@@ -590,7 +590,9 @@ let rec store_read r = Util.failwitha "F
+@@ -645,7 +645,9 @@ let rec store_read r = Util.failwitha "F
  
  let rec store_alloc frm = Util.failwitha "FIXME";;
  
 -end;; (*struct Params*)
 +end;; *) (*struct Params*)
 +
-+module Make = functor (Params: PARAMS) -> (struct
++module Make = functor (Params:PARAMS) -> struct
  
  module Tree : sig
    type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
-@@ -1945,3 +1947,6 @@ let rec lss_is_finished
-           | LS_up [] -> true | LS_up (_ :: _) -> false);;
+@@ -1977,3 +1979,6 @@ let rec lss_is_finished
+           | Pre_params.LS_up (_ :: _) -> false);;
  
  end;; (*struct Leaf_stream*)
 +
 +
-+end)
++end
+\ No newline at end of file
