@@ -30,6 +30,8 @@ type page_ref = int
 
 type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 
+(* TODO hide implementation details of this type? *)
+type ('k,'v) ls_state = ('k,'v,page_ref) Isa_export.Pre_params.ls_state
 
 module type WORLD = sig 
   type t
@@ -55,7 +57,7 @@ module Make_api = functor (W:WORLD) -> (struct
 
     (* store ------------------------------------------------------------ *)
 
-    (* just an abstraction, so no sync? use sync on underlying disk? *)
+    (* just an abstraction, so no sync; use sync on underlying disk *)
     type ('k,'v) store_ops = {
       compare_k: 'k -> 'k -> int;
       equal_v: 'v -> 'v -> bool;
@@ -69,16 +71,13 @@ module Make_api = functor (W:WORLD) -> (struct
 
     (* map ------------------------------------------------------------ *)
 
-    type ('k,'v) ls_ops = {
-      ls_step: unit -> ('k,'v) ls_ops option m;
-      ls_kvs: unit -> ('k*'v) list
-    }
-
     type ('k,'v) map_ops = {
       find: 'k -> 'v option m;
       insert: 'k -> 'v -> unit m;
       delete: 'k -> unit m;
-      mk_leaf_stream: unit -> ('k,'v) ls_ops;
+      mk_leaf_stream: unit -> ('k,'v) ls_state m;
+      ls_step: ('k,'v) ls_state -> ('k,'v) ls_state option m;
+      ls_kvs: ('k,'v) ls_state -> ('k*'v) list
     }
 
 

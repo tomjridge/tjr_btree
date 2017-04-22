@@ -136,7 +136,7 @@ module Make = functor (P:PARAMS) -> (struct
     end
 
     module Leaf_stream = struct 
-      type ls_state = IEM.Leaf_stream.ls_state
+      type ls_state = (P.k,P.v,P.page_ref) Isa_export.Pre_params.ls_state
       let mk_ls_state : P.page_ref -> ls_state = IEM.Leaf_stream.mk_ls_state
       let lss_step: ls_state -> ls_state m = lift IEM.Leaf_stream.lss_step
       let dest_LS_leaf: ls_state -> (P.k*P.v) list option = 

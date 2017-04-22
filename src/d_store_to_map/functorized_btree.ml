@@ -39,19 +39,13 @@ end
 
 (* take params and produce proper find etc *)
 
-(* don't want to expose ls_state, so use operation-passing *)
-type ('k,'v,'t) ls_ops = {
-  ls_step: unit -> 't -> 't * (('k,'v,'t) ls_ops option,string) result;
-  ls_kvs: unit -> ('k*'v) list
-}
-
-
 
 (* don't use this directly - use the record version below *)
 module Make_functor = (struct 
 
   (* used in store_to_map.ml *)
   module type RR = sig
+    open Isa_export.Pre_params
     module P : Isa_util.PARAMS
     open P
     val find: 
@@ -60,7 +54,9 @@ module Make_functor = (struct
     val insert_many: k -> v -> (k*v)list -> 
       page_ref -> store-> store*(page_ref*(k*v)list,string)result
     val delete: k -> page_ref -> store -> store * (page_ref,string)result
-    val mk_leaf_stream: page_ref -> store -> store*((k,v,store)ls_ops,string)result
+    val mk_leaf_stream: page_ref -> store -> store * ((k,v,page_ref)ls_state,string)result
+    val ls_step: (k,v,page_ref)ls_state -> store -> store * ((k,v,page_ref)ls_state option,string)result
+    val ls_kvs:  (k,v,page_ref)ls_state -> (k*v)list
   end
 
   module Make = functor (P:Isa_util.PARAMS) -> (struct
@@ -332,14 +328,15 @@ module Make_functor = (struct
                     match (IU.Leaf_stream.dest_LS_leaf s') with
                     | None -> next_leaf s'
                     | Some _ -> return (Some s'))))
-        let mk_leaf_stream' : P.page_ref -> ls_state m = Simple_monad.(fun r ->
+        let mk_leaf_stream : P.page_ref -> ls_state m = Simple_monad.(fun r ->
             IU.Leaf_stream.mk_ls_state r |> (fun s ->
                 match (IU.Leaf_stream.dest_LS_leaf s) with
                 | None -> (next_leaf s |> bind (fun s -> return (dest_Some s)))
                 | Some _ -> return s))
-        let get_kvs: ls_state -> (k*v) list = (fun s ->
+        let ls_kvs: ls_state -> (k*v) list = (fun s ->
             s |> IU.Leaf_stream.dest_LS_leaf |> dest_Some)  (* guaranteed <> None *)
-        let rec mk_ls_ops: ls_state -> (k,v,store) ls_ops = Simple_monad.(fun s -> 
+        let ls_step: ls_state -> ls_state option m = next_leaf
+(*        let rec mk_ls_ops: ls_state -> (k,v,store) ls_ops = Simple_monad.(fun s -> 
             {
               ls_step=(fun () ->
                   next_leaf s |> bind (fun s' ->
@@ -351,6 +348,7 @@ module Make_functor = (struct
         let mk_leaf_stream: P.page_ref -> (k,v,store) ls_ops m = Simple_monad.(fun r ->
             mk_leaf_stream' r |> bind (fun s -> return (mk_ls_ops s)))
         (* TODO the above is horrible cos trying to hide ls_state type; better approach? *)
+*)
       end)
 
 
@@ -365,6 +363,8 @@ module Make_functor = (struct
         let delete = Delete_.delete
         let insert_many = Insert_many_.insert_many
         let mk_leaf_stream = Leaf_stream_.mk_leaf_stream
+        let ls_step = Leaf_stream_.ls_step
+        let ls_kvs = Leaf_stream_.ls_kvs
       end
 
       let _ = (module R : RR)
