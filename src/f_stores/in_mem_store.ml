@@ -22,7 +22,7 @@ module Make = functor (W:WORLD) -> (struct
       set_store: ('k,'v) store -> unit m;     
     }
 
-    let make compare_k equal_v (ops:('k,'v) in_mem_ops) (cs0:Constants.t) = (
+    let make (kv_ops:('k,'v)kv_ops) (ops:('k,'v) in_mem_ops) (cs0:Constants.t) = (
       let store_free: page_ref list -> unit m = (
         fun rs -> return ())  (* no-op *)
       in
@@ -47,7 +47,7 @@ module Make = functor (W:WORLD) -> (struct
               | _ -> None))
       in
       (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
-      { compare_k;equal_v;cs0;store_free;store_read;store_alloc;mk_r2f}
+      { cs0;store_free;store_read;store_alloc;mk_r2f}
     )
 
   end)

@@ -33,6 +33,19 @@ type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 (* TODO hide implementation details of this type? *)
 type ('k,'v) ls_state = ('k,'v,page_ref) Isa_export.Pre_params.ls_state
 
+type ('k,'v) kv_ops = {
+  compare_k: 'k -> 'k -> int;
+  equal_v: 'v -> 'v -> bool;
+}
+
+(* typically we also are interested in pickling *)
+type ('k,'v) kv_params = {
+  pp:('k,'v) Pickle_params.t;
+  kv_ops: ('k,'v) kv_ops
+}
+
+
+
 module type WORLD = sig 
   type t
   type 'a m = t -> (t * ('a,string) result) 
@@ -59,8 +72,6 @@ module Make_api = functor (W:WORLD) -> (struct
 
     (* just an abstraction, so no sync; use sync on underlying disk *)
     type ('k,'v) store_ops = {
-      compare_k: 'k -> 'k -> int;
-      equal_v: 'v -> 'v -> bool;
       cs0: constants;
       store_free: page_ref list -> unit m;
       store_read : page_ref -> ('k, 'v) frame m;  (* FIXME option? *)

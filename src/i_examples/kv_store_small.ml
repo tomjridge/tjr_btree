@@ -15,8 +15,10 @@ include G.Make_uncached (struct
     type v = M_.KV.value
     let ps = {
       pp=M_.pp;
-      compare_k=M_.KV.key_ord;
-      equal_v=M_.KV.equal_value;  (* FIXME eliminate this redundancy - just provide ps in map_xxx.ml *)
+      kv_ops={
+        compare_k=M_.KV.key_ord;
+        equal_v=M_.KV.equal_value;  (* FIXME eliminate this redundancy - just provide ps in map_xxx.ml *)
+      }
     }
   end)
 

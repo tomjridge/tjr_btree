@@ -21,15 +21,9 @@ TODO: cached
 
 *)
 
-type ('k,'v) params = {
-  pp:('k,'v) Pickle_params.t;
-  compare_k: 'k -> 'k -> int;
-  equal_v:'v -> 'v -> bool;
-}
-
 
 module Make_uncached = 
-  functor (S0:sig type k type v val ps: (k,v) params end) -> (struct
+  functor (S0:sig type k type v val ps: (k,v) kv_params end) -> (struct
 
       let page_size = 4096
 
@@ -77,19 +71,17 @@ module Make_uncached =
           set_free=(fun free -> (fun t -> ({t with free}, Ok ())));
         }
       let store_ops = 
-        S.disk_to_store 
+        S.disk_to_store
           page_size 
           disk_ops 
           ps.pp 
           free_ops 
-          ps.compare_k
-          ps.equal_v
-
+          
       let page_ref_ops = M.{
           get_page_ref=(fun () -> (fun t -> (t,Ok t.root)));
           set_page_ref=(fun root -> (fun t -> ({t with root},Ok ())));
         }
-      let map_ops = M.make page_ref_ops store_ops
+      let map_ops = M.make page_ref_ops ps.kv_ops store_ops
 
 
       (* create --------------------------------------------------------- *)

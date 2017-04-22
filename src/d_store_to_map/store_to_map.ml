@@ -19,8 +19,8 @@ module Make = functor (W: WORLD) -> (struct
     }
 
     (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
-    let make: page_ref_ops -> ('k,'v) store_ops -> ('k,'v) map_ops = (
-      fun (type k') (type v') page_ref_ops store_ops ->
+    let make: page_ref_ops -> ('k,'v) kv_ops -> ('k,'v) store_ops -> ('k,'v) map_ops = (
+      fun (type k') (type v') page_ref_ops kv_ops store_ops ->
         let 
           (module S: Isa_util.PARAMS 
             with type k = k' and type v = v' and  type store = W.t and type page_ref = int) 
@@ -28,8 +28,8 @@ module Make = functor (W: WORLD) -> (struct
           (module struct
             type k = k'
             type v = v'
-            let compare_k = store_ops.compare_k
-            let equal_v = store_ops.equal_v
+            let compare_k = kv_ops.compare_k
+            let equal_v = kv_ops.equal_v
             type store = W.t
             type 'a m = 'a W.m
             type page_ref = int

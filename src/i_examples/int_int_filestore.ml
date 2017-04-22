@@ -10,8 +10,10 @@ module Uncached = G.Make_uncached (struct
     type v = int
     let ps = {
       pp=Map_int_int.pp;
-      compare_k=Pervasives.compare;
-      equal_v=(=);
+      kv_ops={
+        compare_k=Pervasives.compare;
+        equal_v=(=);
+      }
     }
   end)
 

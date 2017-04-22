@@ -23,8 +23,7 @@ module Make = functor (W:WORLD) -> (struct
 
     (* convert a disk to a store using pickling and a free counter; assume
        page size and block size are the same; aim for Poly.t *)
-    let disk_to_store page_size (disk_ops:disk_ops) (pp:('k,'v) pp) free_ops
-        compare_k equal_v 
+    let disk_to_store page_size (disk_ops:disk_ops) (pp:('k,'v)Pickle_params.t) free_ops
       = (
         assert (disk_ops.block_size = page_size);
         let cs0 = Constants.make_constants page_size tag_len pp.k_len pp.v_len in
@@ -48,10 +47,7 @@ module Make = functor (W:WORLD) -> (struct
             store_read r t |> (function (_,Ok f) -> Some f 
                                       | _ -> (ignore(assert(false)); None)))
         in
-        let r : ('k,'v)store_ops = 
-          {compare_k; equal_v; cs0; 
-           store_free; store_read; store_alloc; mk_r2f}
-        in
+        let r : ('k,'v)store_ops = {cs0; store_free; store_read; store_alloc; mk_r2f} in
         r
       )
 

@@ -1,5 +1,6 @@
-(* implement and test bytestore ---------------------------------------- *)
+(* TODO implement and test bytestore ---------------------------------------- *)
 
+(*XXX
 open Prelude
 
 (* backing store is in memory;  *)
@@ -19,8 +20,6 @@ module Buff = struct
   let length = Bytes.length
   let create = (fun n -> Bytes.make n (Char.chr 0))
 end
-
-let _ = (module Buff : Buff_t)
 
 (* FIXME here we want to have an in-mem store to page *)
 
@@ -173,3 +172,4 @@ let main () =
   print_newline ();
   ()
 
+XXX*)
