@@ -2,6 +2,7 @@
 
 (* we factor out the common code *)
 
+open Prelude
 
 module type S = sig
   module State : Set.OrderedType
@@ -14,8 +15,6 @@ module type S = sig
   val check_step_invariants: t -> t -> unit
 end
 
-
-open Btree_util
 
 module Make = functor (S:S) -> struct
   module S = S
@@ -51,7 +50,7 @@ module Make = functor (S:S) -> struct
   let test ops init = (
     let ts = ref (Some {todo=init; done_=STS.empty}) in
     while((!ts) <> None) do
-      ts:=step ops (!ts|>Btree_util.dest_Some) 
+      ts:=step ops (!ts|>dest_Some) 
     done;
     ()
   )

@@ -336,19 +336,6 @@ module Make_functor = (struct
         let ls_kvs: ls_state -> (k*v) list = (fun s ->
             s |> IU.Leaf_stream.dest_LS_leaf |> dest_Some)  (* guaranteed <> None *)
         let ls_step: ls_state -> ls_state option m = next_leaf
-(*        let rec mk_ls_ops: ls_state -> (k,v,store) ls_ops = Simple_monad.(fun s -> 
-            {
-              ls_step=(fun () ->
-                  next_leaf s |> bind (fun s' ->
-                      match s' with 
-                      | None -> return None 
-                      | Some s' -> return (Some(mk_ls_ops s'))));
-              ls_kvs=(fun () -> get_kvs s)
-            })
-        let mk_leaf_stream: P.page_ref -> (k,v,store) ls_ops m = Simple_monad.(fun r ->
-            mk_leaf_stream' r |> bind (fun s -> return (mk_ls_ops s)))
-        (* TODO the above is horrible cos trying to hide ls_state type; better approach? *)
-*)
       end)
 
 

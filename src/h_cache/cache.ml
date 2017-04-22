@@ -6,7 +6,6 @@
 open Prelude
 open Btree_api
 
-
 type time = int
 
 type dirty = bool
@@ -123,6 +122,14 @@ module Make = functor (W:WORLD) -> struct
     get_cache: unit -> ('k,'v) cache_state m;
     put_cache: ('k,'v) cache_state -> unit m
   }
+
+  (* TODO cache removes ls operations - not clear best way to implement these in presence of cache and recycling store *)
+  type ('k,'v) map_ops = {
+    find: 'k -> 'v option m;
+    insert: 'k -> 'v -> unit m;
+    delete: 'k -> unit m;
+  }
+
 
   (* for quick abort *)
   exception E_
@@ -271,7 +278,7 @@ module Make = functor (W:WORLD) -> struct
                 evict c)))
       in
       let get_leaf_stream () = failwith "FIXME" in
-      {find; insert; delete; get_leaf_stream}
+      {find; insert; delete}
   )
 
 end

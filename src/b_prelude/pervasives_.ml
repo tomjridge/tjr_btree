@@ -14,7 +14,7 @@ let dest_Some = function (Some x) -> x | _ -> failwith "dest_Some"
 
 let option_map f = function Some x -> Some(f x) | _ -> None
 
-
+let flush_out () = flush Pervasives.stdout
 
 let fd_from_file ~fn ~create ~init = Unix.(
     let flgs = [O_RDWR] @ (if create then [O_CREAT] else []) in

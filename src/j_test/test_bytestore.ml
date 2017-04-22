@@ -5,7 +5,6 @@ open Prelude
 (* backing store is in memory;  *)
 
 open Bytestore
-open Btree_util
 
 module Params = struct
   type page = string (* 4096 *)

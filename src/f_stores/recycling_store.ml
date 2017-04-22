@@ -1,5 +1,7 @@
 (* a recycling store on top of a normal store *)
 
+(* TODO implement a sound version of leaf stream operations given a recycling store *)
+
 (* cache (page_ref -> frame), and if these refs freed without being
    synced, we recycle them *)
 
