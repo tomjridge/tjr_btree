@@ -10,8 +10,8 @@ open Pickle_params
 module EX_ = Pickle.Examples
 
 module Digest = struct
-  include Digest
-  let size = Digest.sz
+  include Digest_.Digest
+  let size = sz
   let compare = Digest.compare  
 end
 

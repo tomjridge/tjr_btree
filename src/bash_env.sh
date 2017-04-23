@@ -38,17 +38,22 @@ mls=`cat _depend/* | sed 's/gen_our.ml//g'`
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"
 
-natives="test_main.native main.native"
+#TODO test_main.native
+natives="main.native"
 
-bytes="test_main.byte"
+# TODO test_main.byte
+bytes=""
 
-bcd=`echo {b,c,d,e,f,g,h,i,j,m}_*`
+# TODO j,m
+
+bcd=`echo {b,c,d,e,f,g,h,i}_*`
+bcd_mls=`ls {b,c,d,e,f,g,h,i}_*/*.ml`
 
 # depend ----------------------------------------
 
 function mk_depend() {
     mkdir -p _depend
-    for f in ${bcd}_*; do
+    for f in ${bcd}; do
     # for f in {b,c}_* d_core; do
         (cd $f && ocamldep -one-line -sort *.ml > ../_depend/$f)
     done
@@ -59,7 +64,7 @@ function mk_depend() {
 # links ----------------------------------------
 
 function init() {
-    link_files=`ls ${bcd}_*/*.ml`
+    link_files="${bcd_mls}"
 }
 
 function mk_links() {
