@@ -42,13 +42,13 @@ natives="test_main.native main.native"
 
 bytes="test_main.byte"
 
-
+bcd=`echo {b,c,d,e,f,g,h,i,j,m}_*`
 
 # depend ----------------------------------------
 
 function mk_depend() {
     mkdir -p _depend
-    for f in {b,c,d,e,f,g,h,i,j,m}_*; do
+    for f in ${bcd}_*; do
     # for f in {b,c}_* d_core; do
         (cd $f && ocamldep -one-line -sort *.ml > ../_depend/$f)
     done
@@ -59,7 +59,7 @@ function mk_depend() {
 # links ----------------------------------------
 
 function init() {
-    link_files=`ls {b,c,d,e,f,g,h,i,j,m}_*/*.ml`
+    link_files=`ls ${bcd}_*/*.ml`
 }
 
 function mk_links() {
