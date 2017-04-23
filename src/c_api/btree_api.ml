@@ -94,9 +94,3 @@ module Make_api = functor (W:WORLD) -> (struct
 
 end)
 
-(*
-type ('k,'v) kv_params = {
-  compare_k: 'k -> 'k -> int;
-  equal_v: 'v -> 'v -> bool;
-}
-*)

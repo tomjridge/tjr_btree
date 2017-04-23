@@ -1,8 +1,13 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
+(*
+FIXME have a single file with kv example ops and pp eg int_int_params
+
+then check to see that the example works before fixing up testing
+*)
+
 open Prelude
 open Btree_api
-open Map_prelude  (* FIXME move small_string to separate module, in /kv/ *)
 
 module G = Generic_kv_store
 
@@ -22,7 +27,6 @@ include G.Make_uncached (struct
     }
   end)
 
-(*
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
@@ -56,4 +60,3 @@ let main args = (
 
 
 
-*)
