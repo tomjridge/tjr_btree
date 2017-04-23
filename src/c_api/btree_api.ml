@@ -92,5 +92,18 @@ module Make_api = functor (W:WORLD) -> (struct
     }
 
 
+      (* for debugging *)
+      let all_kvs: ('k,'v)map_ops -> ('k * 'v) list m = Simple_monad.(
+        fun ops ->
+          let rec loop kvs s = (
+            let kvs' = ops.ls_kvs s in
+            let kvs = kvs@kvs' in
+            ops.ls_step s |> bind (fun s' ->
+                match s' with
+                | None -> return kvs
+                | Some s' -> loop kvs s'))
+      in
+      ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
+
 end)
 

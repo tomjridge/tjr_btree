@@ -8,24 +8,27 @@ then check to see that the example works before fixing up testing
 
 open Prelude
 open Btree_api
+open Small_string
 
 module G = Generic_kv_store
 
-module M_ = Map_string_string_small
+module X = Example_keys_and_values
 
 (* TODO use recycling store *)
-include G.Make_uncached (struct
+module Uncached = G.Make_uncached (struct
     open G
-    type k = M_.KV.key
-    type v = M_.KV.value
+    type k = Small_string.t
+    type v = Small_string.t
     let ps = {
-      pp=M_.pp;
+      pp=X.ss_ss_pp;
       kv_ops={
-        compare_k=M_.KV.key_ord;
-        equal_v=M_.KV.equal_value;  (* FIXME eliminate this redundancy - just provide ps in map_xxx.ml *)
+        compare_k=Small_string.compare;
+        equal_v=(=);  (* FIXME eliminate this redundancy - just provide ps in map_xxx.ml *)
       }
     }
   end)
+
+open Uncached
 
 let main args = (
   (* turn off wf checking *)
@@ -44,19 +47,11 @@ let main args = (
       |> (fun f -> f t |> function | (_,Ok _) -> ()))
   | ["list";fn] -> (
       let t = from_file ~fn  ~create:false ~init:false in
-      (* TODO need to get leaf_stream working properly *)
-      |> (fun t -> 
-          Btree_.Leaf_stream_.mk t.page_ref |> Sem.run t.store
-          |> function (store,Ok ls) -> 
-            Btree_.Leaf_stream_.all_kvs () |> Sem.run (t.store,ls) 
-            |> function (_,Ok kvs) -> 
-              (List.iter (fun (k,v) -> 
-                   Printf.printf "%s -> %s\n" (SS.to_string k) (SS.to_string v)) kvs);
-              print_endline "list ok"))
-  | _ -> (failwith ("Unrecognized args: "^
-                    (Tjr_string.concat_strings " " args)^
-                    __LOC__))
+      Uncached.Api.all_kvs map_ops 
+      |> (fun f -> f t |> function | (_,Ok kvs) -> (
+            List.iter (fun (k,v) -> 
+                Printf.printf "%s -> %s\n" (SS_.to_string k) (SS_.to_string v)) kvs);
+          print_endline "list ok"))
+  | _ -> (
+      failwith ("Unrecognized args: "^(Tjr_string.concat_strings " " args)^ __LOC__))
 )
-
-
-
