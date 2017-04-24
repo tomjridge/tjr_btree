@@ -1,58 +1,63 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
 open Prelude
+open Btree_api
 
 (* we concentrate on relatively small parameters *)
 
-(* example int int btree ---------------------------------------- *)
+type key = int
+type value = int
 
-module Example = struct 
-  open Btree
-  open In_mem_store
-  include In_mem_store.Make(struct 
-      module C : CONSTANTS = struct
-        let max_leaf_size = 5
-        let max_node_keys = 5
-        let min_leaf_size = 2
-        let min_node_keys = 2
-      end
+let kv_ops = Example_keys_and_values.int_int_kv_ops
 
-      module KV (* : KEY_VALUE_TYPES *) = struct 
-        type key = int[@@deriving yojson]
-        type value = int[@@deriving yojson]
-        let key_ord k1 k2 = Pervasives.compare k1 k2
-        let equal_value = (=)
-      end
-    end)
+let constants = Constants.{
+    max_leaf_size = 5;
+    max_node_keys = 5;
+    min_leaf_size = 2;
+    min_node_keys = 2;
+  }
 
-  let empty = Map_int.empty
+type store = (key,value)In_mem_store.store
 
-end
-
-(* setup ---------------------------------------- *)
-
-module Map_int = Btree_util.Map_int
-open Internal_api
-open Example
-
-open Example.Btree
-module Tree = Btree.Our_.Tree
-module Store = Example.ST
-
-
-
-(* state type for testing ---------------------------------------- *)
-
+(* we want to ignore the store and page_ref *)
 module Test_state = struct 
-    type t = { t:Tree.tree; s:Store.store;r:Store.page_ref }
-    (* we want to ignore the store and page_ref *)
-    let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
+  type t = { t:(key,value)Tree.tree;s:store;r:page_ref }
+  let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
 end
 module TS = Test_state
 
+module W = Make_world(Test_state)
+
+module Api = Make_api(W)
+
+module IMS_ = In_mem_store.Make(W)
+
+let store_ops = 
+  IMS_.make 
+    kv_ops 
+    { get_store=(fun () -> (fun t -> (t,Ok t.s)));
+      set_store=(fun s -> (fun t -> ({t with s},Ok ())));
+    }
+    constants
+
+
+module S2M = Store_to_map.Make(W)
+
+open! S2M
+
+let pr_ops = {
+  get_page_ref=(fun () -> fun t -> (t,Ok t.r));
+  set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
+}
+
+let r2t = S2M.make_r2t pr_ops kv_ops store_ops
+
+
+let map_ops = S2M.make pr_ops kv_ops store_ops
+
 (* for maintaing a set of states *)
 module Test_state_set = Set.Make(Test_state)
-module TSS = Test_state_set
+module TSET = Test_state_set
 
 
 type action = Insert of int | Delete of int
@@ -66,14 +71,6 @@ type action = Insert of int | Delete of int
 (* if we hit an exception, we want to know what the input tree was,
    and what the command was *)
 
-
-(* FIXME remove *)
-let (init_store, init_r) = (
-  let open Store in
-  let open Our_.Frame_types in
-  ({free=1;m=Map_int.empty |> Map_int.add 0 (Leaf_frame[])}, 0)
-)
-
 (* save so we know what the last action was *)
 let action = ref (Insert 0) 
 
@@ -83,13 +80,16 @@ type range_t = int list[@@deriving yojson]
 
 
 (* exhaustive testing ---------------------------------------- *)
-open Btree_util
+
+let (init_store,init_r) = In_mem_store.(
+  ({free=1;map=Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])}, 0)
+)
 
 let test range = TS.(
     Printf.printf "%s: exhaustive test, %d elts: " 
       __MODULE__ (List.length range);
     flush_out();
-    let s = ref TSS.(singleton {t=Tree.Leaf[];s=init_store;r=init_r }) in
+    let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=0 }) in
     let todo = ref (!s) in
     (* next states from a given tree *)
     let step t = 
@@ -97,41 +97,41 @@ let test range = TS.(
         range|>List.map (
           fun x -> 
             action:=Insert x; 
-            Raw_map.insert x x|>Sem.run (t.s,t.r)))
+            map_ops.insert x x|>(fun f -> f t)))
       in
       let r2 = (
         range|>List.map (
           fun x -> 
             action:=Delete x; 
-            Raw_map.delete x|> Sem.run (t.s,t.r)))
+            map_ops.delete x|>(fun f -> f t)))
       in
       r1@r2 |> List.map (
-        fun ((s',r'),res) -> 
+        fun (t',res) -> 
           match res with
-          | Ok () -> {t=Btree.Our_.Frame.r_to_t s' r'; s=s'; r=r' }
+          | Ok () -> {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r }
           | Error e -> (failwith (__LOC__^e)))
-      |> TSS.of_list
+      |> TSET.of_list
     in
     let _ = 
       (* FIXME this may be faster if we store todo as a list and check
          for membership when computing next state of the head of todo;
          use rev_append *)
       (* Printf.printf "test: starting while\n"; *)
-      while (not(TSS.is_empty !todo)) do
-        let nexts : TSS.t list = 
-          !todo|>TSS.elements|>List.map step in
+      while (not(TSET.is_empty !todo)) do
+        let nexts : TSET.t list = 
+          !todo|>TSET.elements|>List.map step in
         let next = List.fold_left 
-            (fun a b -> TSS.union a b) 
-            TSS.empty nexts 
+            (fun a b -> TSET.union a b) 
+            TSET.empty nexts 
         in
-        let new_ = TSS.diff next !s in
-        s:=TSS.union !s new_;
+        let new_ = TSET.diff next !s in
+        s:=TSET.union !s new_;
         todo:=new_;
         print_string "."; flush_out ();
         ()
       done
     in
-    Printf.printf "tests passed; num states explored: %d\n" (TSS.cardinal !s))
+    Printf.printf "tests passed; num states explored: %d\n" (TSET.cardinal !s))
 
 
 (* testing insert ---------------------------------------- *)
@@ -200,3 +200,13 @@ let test_leaf_stream range = (
   print_newline ()
 )
 
+
+
+
+
+(* FIXME remove *)
+let (init_store, init_r) = (
+  let open Store in
+  let open Our_.Frame_types in
+  ({free=1;m=Map_int.empty |> Map_int.add 0 (Leaf_frame[])}, 0)
+)

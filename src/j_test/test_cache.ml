@@ -1,20 +1,20 @@
 (* testing cache ---------------------------------------- *)
 
 open Prelude
+open Btree_api
+
+(* we test just cache behaviour, not linked with btree *)
 
 (* in memory *)
 
 (* note that the use of time means that we need to normalize timings
    (and current time) in order to exhaust state space *)
 
-open Internal_api
-open Sem
-open Btree_util
+type key = int
+type value = int
 
-module KV = Map_int_int.KV
-let _ = (module KV : Internal_api.KEY_VALUE)
+let int_int_pp = Example_keys_and_values.int_int_pp
 
-open KV
 
 module Op = struct
   type t = Find of key | Insert of key * value | Delete of key
@@ -22,67 +22,20 @@ end
 
 type op = Op.t
 
-(* our sample store ---------------------------------------- *)
 
-module ST (* : S *) = struct
-  module KV = KV
+(* test state ------------------------------------------------------- *)
 
-  type map = int Map_int.t
-
-  type t = { map: map; (* history: op list *) }
-
-  type 'a m = ('a,t) Sem.m
-
-  let get_map : unit -> map m = (fun () s -> (s,Ok s.map))
-  let put_map : map -> unit m = (fun t s -> ({map=t},Ok ()))
-  let put_op: op->unit m = 
-    (* (fun op s -> ({s with history=s.history@[op]},Ok())) *)
-    fun op s -> (s,Ok())
-
-  let find: key -> value option m = (
-    fun k -> 
-      put_op (Find k) |> bind (fun () -> 
-          get_map () |> bind (fun m ->
-              try (
-                return (Some(Map_int.find k m)))
-              with Not_found -> (
-                  return None
-                )
-            ))
-  )
-
-  let insert: key -> value -> unit m = (
-    fun k v -> 
-      put_op (Insert(k,v)) |> bind (fun () -> 
-          get_map () |> bind (fun m ->
-              let m' = Map_int.add k v m in
-              put_map m'))
-  )
-        
-  let delete: key -> unit m = (
-    fun k -> 
-      put_op (Delete(k)) |> bind (fun () -> 
-          get_map() |> bind (fun m -> 
-              put_map (Map_int.remove k m)))
-  )
-
-  let initial_state = { map=Map_int.empty; (* history=[]*) }
-
-end
-
-let _ = (module ST : Cache.S)
-
-module Cache_ = Cache.Make(ST)
-
-
-(* exhaustive testing ---------------------------------------- *)
-
-module Test_state = struct 
+module Pre = struct
   type t = {
     spec: int Map_int.t;
-    cache: Cache_.c_t;
-    store: ST.t
+    cache: (key,value)Cache.cache_state;
+    base_map: int Map_int.t;
   }
+end
+
+module Test_state = struct 
+  include Pre
+  open Pre
 
   let then_ f x = (if x=0 then f () else x)
 
@@ -91,25 +44,52 @@ module Test_state = struct
     (Pervasives.compare 
        (s1.spec |> Map_int.bindings) (s2.spec |> Map_int.bindings)) |> then_
       (fun () -> 
-         Cache_.compare s1.cache s2.cache) |> then_
+         Cache.compare s1.cache s2.cache) |> then_
       (fun () -> 
-         Map_int.compare Pervasives.compare s1.store.map s2.store.map))
+         Map_int.compare Pervasives.compare s1.base_map s2.base_map))
 
-
-  let init_cache = { Cache_.initial_cache with max_size=4} |> Cache_.normalize
+  let init_cache = Cache.mk_initial_cache Int.compare |> Cache.normalize
                         
-  let init_store = ST.initial_state
+  let init_base_map = Map_int.empty
                         
   let init_spec = Map_int.empty
 
-  let initial_state = { spec=init_spec; cache=init_cache; store=init_store }
+  let initial_state = { spec=init_spec; cache=init_cache; base_map=init_base_map }
 
 end
 
 let _ = (module Test_state: Set.OrderedType)
 
+module W = Make_world(struct type t = Test_state.t end)
+module Api = Make_api(W)
+open Api
+module Cache_ = Cache.Make(W)
 
-module S = struct
+type ('k,'v) maps_ops = ('k,'v) Cache_.map_ops
+open Cache_
+
+(* base map --------------------------------------------------------- *)
+
+let base_map_ops: (key,value) map_ops = {
+    find=(fun k -> (fun t -> 
+      (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None))));
+    insert=(fun k v -> (fun t -> failwith ""));
+    delete=(fun k -> failwith "");
+  }
+
+(* cached map ------------------------------------------------------- *)
+
+let cache_ops = {
+  get_cache=(fun () t -> (t,Ok t.cache));
+  set_cache=(fun cache t -> ({t with cache},Ok()))
+}
+
+let cached_map_ops = Cache_.make_cached_map base_map_ops cache_ops
+
+
+(* exhaustive testing ----------------------------------------------- *)
+
+module S (* : Exhaustive.S *)= struct
   module State = Test_state
   open State
 
@@ -118,25 +98,18 @@ module S = struct
 
   open Op
 
-  
   let step op t = (
-    let (c,s) = (t.cache,t.store) in
-    let post x = 
-      x 
-      |> Sem.run Cache_.{cache=c;store=s}
-      |> (fun (x,Ok _) -> {t with cache=x.cache; store=x.store})
-    in
     match op with
-    | Find k -> (Cache_.find k |> post)
+    | Find k -> (cached_map_ops.find k |> (fun f -> f t) |> function (t',Ok _) -> t')
     | Insert (k,v) -> (
-        Cache_.insert k v 
-        |> post 
-        |> (fun t' -> {t' with spec=Map_int.add k v t'.spec}))
+        cached_map_ops.insert k v 
+        |> (fun f -> f t)
+        |> (function (t',Ok ()) -> {t' with spec=Map_int.add k v t'.spec}))
     | Delete k -> (
-        Cache_.delete k
-        |> post
-        |> (fun t' -> {t' with spec=Map_int.remove k t'.spec}))
-  ) |> (fun x -> [{ x with cache=Cache_.normalize x.cache}])
+        cached_map_ops.delete k
+        |> (fun f -> f t)
+        |> (function (t',Ok ()) -> {t' with spec=Map_int.remove k t'.spec})))
+    |> (fun x -> [{ x with cache=Cache.normalize x.cache}])
 
 (* cache invariants:
 
@@ -155,8 +128,8 @@ module S = struct
    FIXME these are not currently checked
 *)
 
-  let check_invariants t = ()  (* FIXME *)
-  let check_step_invariants t t' = ()  (* FIXME *)
+  let check_invariants t = ()  (* TODO *)
+  let check_step_invariants t t' = ()  (* TODO *)
 end
 
 module E_ = Exhaustive.Make(S)
@@ -228,3 +201,6 @@ let _ = run (Cache_.insert 12 12)
 
 
 *)
+
+
+

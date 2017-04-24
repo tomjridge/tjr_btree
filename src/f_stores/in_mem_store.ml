@@ -5,50 +5,54 @@ open Prelude
 open Btree_api
 
 
-module Make = functor (W:WORLD) -> (struct
+type ('k,'v) page = ('k,'v)frame
+        
+type ('k,'v) store = {free:int; map:('k,'v)frame Map_int.t}                 
 
-    module W = W
-    open W
+let init_store = {free=0;map=Map_int.empty}
+
+module Make = functor (W:WORLD) -> (struct
 
     module Api = Make_api(W)
     open Api
 
-    type ('k,'v) page = ('k,'v)frame
+    module W = W
+    open W
 
-    type ('k,'v) store = {free:int; map:('k,'v)frame Map_int.t}
-                 
+
     type ('k,'v) in_mem_ops = {
       get_store: unit -> ('k,'v) store m;
       set_store: ('k,'v) store -> unit m;     
     }
 
-    let make (kv_ops:('k,'v)kv_ops) (ops:('k,'v) in_mem_ops) (cs0:Constants.t) = (
-      let store_free: page_ref list -> unit m = (
-        fun rs -> return ())  (* no-op *)
-      in
-      let store_alloc: ('k,'v)frame -> page_ref m = (fun p -> 
-          ops.get_store () |> bind (fun s -> 
-              let s' = {free=s.free+1; map=Map_int.add s.free p s.map} in
-              ops.set_store s' |> bind (fun () -> 
-                  return s.free)))
-      in
-      let store_read: page_ref -> ('k,'v)frame m = (fun r ->
-          ops.get_store () |> bind (fun s ->
-              return (Map_int.find r s.map))) (* ASSUMES present *)
-      in
-      let mk_r2f: t -> page_ref -> ('k,'v)frame option = (
-        fun t r -> 
-          let f = ops.get_store () |> bind (fun s ->
-              Map_int.find r s.map |> return)
-          in
-          t|>f|>(fun (_,res) -> 
-              match res with
-              | Ok frm -> Some frm
-              | _ -> None))
-      in
-      (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
-      { cs0;store_free;store_read;store_alloc;mk_r2f}
-    )
+    let make (kv_ops:('k,'v)kv_ops) (ops:('k,'v) in_mem_ops) (cs0:Constants.t) 
+      = (
+        let store_free: page_ref list -> unit m = (
+          fun rs -> return ())  (* no-op *)
+        in
+        let store_alloc: ('k,'v)frame -> page_ref m = (fun p -> 
+            ops.get_store () |> bind (fun s -> 
+                let s' = {free=s.free+1; map=Map_int.add s.free p s.map} in
+                ops.set_store s' |> bind (fun () -> 
+                    return s.free)))
+        in
+        let store_read: page_ref -> ('k,'v)frame m = (fun r ->
+            ops.get_store () |> bind (fun s ->
+                return (Map_int.find r s.map))) (* ASSUMES present *)
+        in
+        let mk_r2f: t -> page_ref -> ('k,'v)frame option = (
+          fun t r -> 
+            let f = ops.get_store () |> bind (fun s ->
+                Map_int.find r s.map |> return)
+            in
+            t|>f|>(fun (_,res) -> 
+                match res with
+                | Ok frm -> Some frm
+                | _ -> None))
+        in
+        (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
+        { cs0;store_free;store_read;store_alloc;mk_r2f}
+      )
 
   end)
 

@@ -1,41 +1,14 @@
-(* test int int map backed by a file ---------------------------------------- *)
+(* test int int map on file --------------------------------------- *)
+
+(* this is for performance testing *)
 
 open Prelude
 
-module State_monad : sig
-  type ('a,'s) m = 's -> ('s * 'a)
-  val return: 'a -> ('a,'s) m
-  val bind: ('a -> ('b,'s) m) -> ('a,'s) m -> ('b,'s) m
-  val run: 's -> ('a,'s) m -> ('s * 'a)
-end = struct
-  type ('a,'s) m = 's -> ('s * 'a)
-  let return: 'a -> ('a,'s) m = fun x -> fun s -> (s,x)
-  let bind: ('a -> ('b,'s) m) -> ('a,'s) m -> ('b,'s) m = 
-    fun f m -> fun s ->
-      m s |> (fun (s',a) -> f a s') 
-  let run: 's -> ('a,'s) m -> 's * 'a = fun s -> fun m -> m s
-end
-
-module S_m = State_monad
-
-(* common ---------------------------------------- *)
-
-open Btree_util
-
 let default_filename = "/tmp/store"
 
-module Uncached_ = Int_int_filestore.Uncached
+module Uncached = Int_int_filestore.Uncached
 
-module Btree = Uncached_.Btree_simple_internal_.Btree
-
-module RM = Btree.Raw_map
-module Sem = Sem
-
-let run = State_monad.run
-
-module ST = Int_int_filestore.ST
-module FS = Uncached_
-
+let map_ops = Uncached.map_ops
 
 (* test uncached ---------------------------------------- *)
 
@@ -46,22 +19,19 @@ module Test_uncached = struct
       __MODULE__ 
       (List.length range);
     flush_out();
-    let (s,r) = FS.from_file default_filename true true in
-    let sr = ref (s,r) in
-    let run = Sem.run_ref sr in
+    let t = Uncached.from_file default_filename true true in
+    let t = ref t in
     let xs = ref range in
     while (!xs <> []) do
       print_string "."; flush_out();
       let x = List.hd !xs in
-      run (RM.insert x (2*x));
+      (map_ops.insert x (2*x) |> (fun f -> f !t) |> function (t',Ok()) -> t:=t');
       xs:=List.tl !xs;
     done;
     print_newline ();
-    (* FIXME check res? *)
-    let (s,r) = !sr in
-    let s = ref s in
-    Sem.run_ref s (ST.sync ());
-    Unix.close ((!s).fs.fd);
+    (* FIXME check result? *)
+    let t = !t in
+    Unix.close (t.fd);
     ()
 
 end
@@ -70,6 +40,9 @@ include Test_uncached
 
 (* test cached ------------------------------------------------------------ *)
 
+(* TODO test cached *)
+
+(*
 module Test_cached = struct
 
   module Cached_ = Int_int_filestore.Cached
@@ -99,6 +72,7 @@ module Test_cached = struct
 end
 
 include Test_cached
+*)
 
 
 (* 

@@ -44,13 +44,18 @@ type ('k,'v) kv_params = {
   kv_ops: ('k,'v) kv_ops
 }
 
-
-
 module type WORLD = sig 
   type t
   type 'a m = t -> (t * ('a,string) result) 
   val bind: ('a -> 'b m) -> 'a m -> 'b m
   val return: 'a -> 'a m
+end
+
+module Make_world = functor (T:sig type t end) -> struct
+  type t = T.t
+  type 'a m = ('a,t) Simple_monad.m
+  let bind = Simple_monad.bind
+  let return = Simple_monad.return
 end
 
 module Make_api = functor (W:WORLD) -> (struct

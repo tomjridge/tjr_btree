@@ -256,61 +256,6 @@ let rec snd (x1, x2) = x2;;
 
 end;; (*struct Product_Type*)
 
-module Pre_params : sig
-  type ('a, 'b, 'c) ts_frame_ext =
-    Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c
-  val equal_ts_frame_ext :
-    'a HOL.equal -> 'b HOL.equal -> 'c HOL.equal ->
-      ('a, 'b, 'c) ts_frame_ext HOL.equal
-  type ('a, 'b, 'c) ls_state =
-    LS_down of ('c * ('a, 'c, unit) ts_frame_ext list) |
-    LS_leaf of (('a * 'b) list * ('a, 'c, unit) ts_frame_ext list) |
-    LS_up of ('a, 'c, unit) ts_frame_ext list
-  val f_t : ('a, 'b, 'c) ts_frame_ext -> 'b
-  val f_ks1 : ('a, 'b, 'c) ts_frame_ext -> 'a list
-  val f_ks2 : ('a, 'b, 'c) ts_frame_ext -> 'a list
-  val f_ts1 : ('a, 'b, 'c) ts_frame_ext -> 'b list
-  val f_ts2 : ('a, 'b, 'c) ts_frame_ext -> 'b list
-  val f_t_update :
-    ('a -> 'a) -> ('b, 'a, 'c) ts_frame_ext -> ('b, 'a, 'c) ts_frame_ext
-end = struct
-
-type ('a, 'b, 'c) ts_frame_ext =
-  Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c;;
-
-let rec equal_ts_frame_exta _A _B _C
-  (Ts_frame_ext (f_ks1a, f_ts1a, f_ta, f_ks2a, f_ts2a, morea))
-    (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
-    List.equal_lista _A f_ks1a f_ks1 &&
-      (List.equal_lista _B f_ts1a f_ts1 &&
-        (HOL.eq _B f_ta f_t &&
-          (List.equal_lista _A f_ks2a f_ks2 &&
-            (List.equal_lista _B f_ts2a f_ts2 && HOL.eq _C morea more))));;
-
-let rec equal_ts_frame_ext _A _B _C =
-  ({HOL.equal = equal_ts_frame_exta _A _B _C} :
-    ('a, 'b, 'c) ts_frame_ext HOL.equal);;
-
-type ('a, 'b, 'c) ls_state = LS_down of ('c * ('a, 'c, unit) ts_frame_ext list)
-  | LS_leaf of (('a * 'b) list * ('a, 'c, unit) ts_frame_ext list) |
-  LS_up of ('a, 'c, unit) ts_frame_ext list;;
-
-let rec f_t (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_t;;
-
-let rec f_ks1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks1;;
-
-let rec f_ks2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks2;;
-
-let rec f_ts1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts1;;
-
-let rec f_ts2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts2;;
-
-let rec f_t_update
-  f_ta (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
-    Ts_frame_ext (f_ks1, f_ts1, f_ta f_t, f_ks2, f_ts2, more);;
-
-end;; (*struct Pre_params*)
-
 module Prelude : sig
   type min_size_t = Small_root_node_or_leaf | Small_node | Small_leaf
   type 'a constants_ext =
@@ -576,79 +521,6 @@ let rec ordered_key_list
 
 end;; (*struct Key_value*)
 
-module Frame : sig
-  type ('a, 'b, 'c) t = Node_frame of ('a list * 'c list) |
-    Leaf_frame of ('a * 'b) list
-  val dest_Leaf_frame : ('a, 'b, 'c) t -> ('a * 'b) list
-  val dest_Node_frame : ('a, 'b, 'c) t -> 'a list * 'c list
-end = struct
-
-type ('a, 'b, 'c) t = Node_frame of ('a list * 'c list) |
-  Leaf_frame of ('a * 'b) list;;
-
-let rec dest_Leaf_frame
-  f = (match f with Node_frame _ -> Util.failwitha "dest_Leaf_frame"
-        | Leaf_frame x -> x);;
-
-let rec dest_Node_frame
-  f = (match f with Node_frame x -> x
-        | Leaf_frame _ -> Util.failwitha "dest_Node_frame");;
-
-end;; (*struct Frame*)
-
-module type PARAMS = sig
-  type k
-  val equal_k : k HOL.equal
-  type v
-  val equal_v : v HOL.equal
-  type store
-  type 'a mm = MM of (store -> store * 'a Util.res)
-  type page_ref
-  val mk_r2f : store -> page_ref -> (k, v, page_ref) Frame.t option
-  val compare_k : (k, unit) Key_value.key_order_ext
-  val constants : unit Prelude.constants_ext
-  val store_free : page_ref list -> unit mm
-  val store_read : page_ref -> (k, v, page_ref) Frame.t mm
-  val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
-end (* = struct
-
-type k = K of Arith.nat;;
-
-let rec equal_ka (K x) (K ya) = Arith.equal_nat x ya;;
-
-let equal_k = ({HOL.equal = equal_ka} : k HOL.equal);;
-
-type v = Ka of Arith.nat;;
-
-let rec equal_va (Ka x) (Ka ya) = Arith.equal_nat x ya;;
-
-let equal_v = ({HOL.equal = equal_va} : v HOL.equal);;
-
-type store = EMPTY__;;
-
-type 'a mm = MM of (store -> store * 'a Util.res);;
-
-type page_ref = EMPTY__;;
-
-let rec mk_r2f s = Util.failwitha "FIXME";;
-
-let compare_k : (k, unit) Key_value.key_order_ext
-  = Key_value.Key_order_ext ((fun _ _ -> Util.failwitha "FIXME"), ());;
-
-let constants : unit Prelude.constants_ext
-  = Prelude.Constants_ext
-      (Arith.zero_nat, Arith.zero_nat, Arith.zero_nat, Arith.zero_nat, ());;
-
-let rec store_free rs = Util.failwitha "FIXME";;
-
-let rec store_read r = Util.failwitha "FIXME";;
-
-let rec store_alloc frm = Util.failwitha "FIXME";;
-
-end;; *) (*struct Params*)
-
-module Make = functor (Params:PARAMS) -> struct
-
 module Tree : sig
   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
     Leaf of ('a * 'b) list
@@ -843,43 +715,72 @@ let rec wellformed_tree _A
 end;; (*struct Tree*)
 
 module Tree_stack : sig
+  type ('a, 'b, 'c) ts_frame_ext =
+    Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c
+  val equal_ts_frame_ext :
+    'a HOL.equal -> 'b HOL.equal -> 'c HOL.equal ->
+      ('a, 'b, 'c) ts_frame_ext HOL.equal
   val stack_map :
     ('a -> 'b) ->
-      ('c, 'a, unit) Pre_params.ts_frame_ext list ->
-        ('c, 'b, unit) Pre_params.ts_frame_ext list
+      ('c, 'a, unit) ts_frame_ext list -> ('c, 'b, unit) ts_frame_ext list
   val no_focus :
-    ('a, 'b, unit) Pre_params.ts_frame_ext list ->
-      ('a, ('b option), unit) Pre_params.ts_frame_ext list
-  val r_stk_to_rs :
-    (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list ->
-      Params.page_ref list
+    ('a, 'b, unit) ts_frame_ext list ->
+      ('a, ('b option), unit) ts_frame_ext list
+  val r_stk_to_rs : ('a, 'b, unit) ts_frame_ext list -> 'b list
   val dest_ts_frame :
-    ('a, 'b, unit) Pre_params.ts_frame_ext ->
+    ('a, 'b, unit) ts_frame_ext ->
       ('a list * 'b list) * ('b * ('a list * 'b list))
   val tree_to_stack :
-    Params.k ->
-      (Params.k, Params.v) Tree.tree ->
-        Arith.nat ->
-          (Params.k, Params.v) Tree.tree *
-            (Params.k, (Params.k, Params.v) Tree.tree, unit)
-              Pre_params.ts_frame_ext list
+    ('a, unit) Key_value.key_order_ext ->
+      'a -> ('a, 'b) Tree.tree ->
+              Arith.nat ->
+                ('a, 'b) Tree.tree *
+                  ('a, ('a, 'b) Tree.tree, unit) ts_frame_ext list
   val stack_to_lu_of_child :
-    ('a, 'b, unit) Pre_params.ts_frame_ext list -> 'a option * 'a option
+    ('a, 'b, unit) ts_frame_ext list -> 'a option * 'a option
   val add_new_stack_frame :
     ('a, unit) Key_value.key_order_ext ->
       'a -> 'a list * 'b list ->
-              ('a, 'b, unit) Pre_params.ts_frame_ext list ->
-                ('a, 'b, unit) Pre_params.ts_frame_ext list * 'b
+              ('a, 'b, unit) ts_frame_ext list ->
+                ('a, 'b, unit) ts_frame_ext list * 'b
 end = struct
 
+type ('a, 'b, 'c) ts_frame_ext =
+  Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c;;
+
+let rec equal_ts_frame_exta _A _B _C
+  (Ts_frame_ext (f_ks1a, f_ts1a, f_ta, f_ks2a, f_ts2a, morea))
+    (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
+    List.equal_lista _A f_ks1a f_ks1 &&
+      (List.equal_lista _B f_ts1a f_ts1 &&
+        (HOL.eq _B f_ta f_t &&
+          (List.equal_lista _A f_ks2a f_ks2 &&
+            (List.equal_lista _B f_ts2a f_ts2 && HOL.eq _C morea more))));;
+
+let rec equal_ts_frame_ext _A _B _C =
+  ({HOL.equal = equal_ts_frame_exta _A _B _C} :
+    ('a, 'b, 'c) ts_frame_ext HOL.equal);;
+
+let rec f_t_update
+  f_ta (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
+    Ts_frame_ext (f_ks1, f_ts1, f_ta f_t, f_ks2, f_ts2, more);;
+
+let rec f_ts2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts2;;
+
+let rec f_ts1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts1;;
+
+let rec f_ks2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks2;;
+
+let rec f_ks1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks1;;
+
+let rec f_t (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_t;;
+
 let rec ts_frame_map
-  g f = Pre_params.Ts_frame_ext
-          (Util.rev_apply f Pre_params.f_ks1,
-            Util.rev_apply (Util.rev_apply f Pre_params.f_ts1) (List.map g),
-            Util.rev_apply (Util.rev_apply f Pre_params.f_t) g,
-            Util.rev_apply f Pre_params.f_ks2,
-            Util.rev_apply (Util.rev_apply f Pre_params.f_ts2) (List.map g),
-            ());;
+  g f = Ts_frame_ext
+          (Util.rev_apply f f_ks1,
+            Util.rev_apply (Util.rev_apply f f_ts1) (List.map g),
+            Util.rev_apply (Util.rev_apply f f_t) g, Util.rev_apply f f_ks2,
+            Util.rev_apply (Util.rev_apply f f_ts2) (List.map g), ());;
 
 let rec stack_map f stk = Util.rev_apply stk (List.map (ts_frame_map f));;
 
@@ -887,27 +788,25 @@ let rec no_focus
   stk = Util.rev_apply (Util.rev_apply stk (stack_map (fun a -> Some a)))
           (fun a ->
             (match a with [] -> []
-              | frm :: aa -> Pre_params.f_t_update (fun _ -> None) frm :: aa));;
+              | frm :: aa -> f_t_update (fun _ -> None) frm :: aa));;
 
-let rec r_stk_to_rs xs = Util.rev_apply xs (List.map Pre_params.f_t);;
+let rec r_stk_to_rs xs = Util.rev_apply xs (List.map f_t);;
 
 let rec dest_ts_frame
-  f = ((Util.rev_apply f Pre_params.f_ks1, Util.rev_apply f Pre_params.f_ts1),
-        (Util.rev_apply f Pre_params.f_t,
-          (Util.rev_apply f Pre_params.f_ks2,
-            Util.rev_apply f Pre_params.f_ts2)));;
+  f = ((Util.rev_apply f f_ks1, Util.rev_apply f f_ts1),
+        (Util.rev_apply f f_t,
+          (Util.rev_apply f f_ks2, Util.rev_apply f f_ts2)));;
 
 let rec tree_to_stack
-  k t n =
+  compare_k k t n =
     (if Arith.equal_nat n Arith.zero_nat then (t, [])
-      else (match tree_to_stack k t (Arith.minus_nat n Arith.one_nat)
+      else (match tree_to_stack compare_k k t (Arith.minus_nat n Arith.one_nat)
              with (Tree.Node (ks, ts), stk) ->
-               let a = Key_value.split_ks_rs Params.compare_k k (ks, ts) in
+               let a = Key_value.split_ks_rs compare_k k (ks, ts) in
                let (aa, b) = a in
                let (ks1, ts1) = aa in
                (fun (ta, (ks2, ts2)) ->
-                 let frm = Pre_params.Ts_frame_ext (ks1, ts1, ta, ks2, ts2, ())
-                   in
+                 let frm = Ts_frame_ext (ks1, ts1, ta, ks2, ts2, ()) in
                  (ta, frm :: stk))
                  b
              | (Tree.Leaf _, _) -> Util.failwitha "tree_to_stack"));;
@@ -916,9 +815,7 @@ let rec stack_to_lu_of_child
   = function [] -> (None, None)
     | x :: stk ->
         let (l, u) = stack_to_lu_of_child stk in
-        let (ks1, ks2) =
-          (Util.rev_apply x Pre_params.f_ks1, Util.rev_apply x Pre_params.f_ks2)
-          in
+        let (ks1, ks2) = (Util.rev_apply x f_ks1, Util.rev_apply x f_ks2) in
         let la =
           (if not (List.null ks1) then Some (Util.rev_apply ks1 List.last)
             else l)
@@ -936,11 +833,104 @@ let rec add_new_stack_frame
     let (ks1, rs1) = aa in
     (fun (r, (ks2, rs2)) ->
       let (_, _) = stack_to_lu_of_child stk in
-      let frm = Pre_params.Ts_frame_ext (ks1, rs1, r, ks2, rs2, ()) in
+      let frm = Ts_frame_ext (ks1, rs1, r, ks2, rs2, ()) in
       (frm :: stk, r))
       b;;
 
 end;; (*struct Tree_stack*)
+
+module Pre_params : sig
+  type ('a, 'b, 'c) ls_state =
+    LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+    LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+    LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list
+  val dummy : unit
+end = struct
+
+type ('a, 'b, 'c) ls_state =
+  LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+  LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+  LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
+
+let dummy : unit = ();;
+
+end;; (*struct Pre_params*)
+
+module Frame : sig
+  type ('a, 'b, 'c) t = Node_frame of ('a list * 'c list) |
+    Leaf_frame of ('a * 'b) list
+  val dest_Leaf_frame : ('a, 'b, 'c) t -> ('a * 'b) list
+  val dest_Node_frame : ('a, 'b, 'c) t -> 'a list * 'c list
+end = struct
+
+type ('a, 'b, 'c) t = Node_frame of ('a list * 'c list) |
+  Leaf_frame of ('a * 'b) list;;
+
+let rec dest_Leaf_frame
+  f = (match f with Node_frame _ -> Util.failwitha "dest_Leaf_frame"
+        | Leaf_frame x -> x);;
+
+let rec dest_Node_frame
+  f = (match f with Node_frame x -> x
+        | Leaf_frame _ -> Util.failwitha "dest_Node_frame");;
+
+end;; (*struct Frame*)
+
+module type PARAMS = sig
+  type k
+  val equal_k : k HOL.equal
+  type v
+  val equal_v : v HOL.equal
+  type store
+  type 'a mm = MM of (store -> store * 'a Util.res)
+  type page_ref
+  val dummy : unit
+  val mk_r2f : store -> page_ref -> (k, v, page_ref) Frame.t option
+  val compare_k : (k, unit) Key_value.key_order_ext
+  val constants : unit Prelude.constants_ext
+  val store_free : page_ref list -> unit mm
+  val store_read : page_ref -> (k, v, page_ref) Frame.t mm
+  val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
+end (* = struct
+
+type k = K of Arith.nat;;
+
+let rec equal_ka (K x) (K ya) = Arith.equal_nat x ya;;
+
+let equal_k = ({HOL.equal = equal_ka} : k HOL.equal);;
+
+type v = Ka of Arith.nat;;
+
+let rec equal_va (Ka x) (Ka ya) = Arith.equal_nat x ya;;
+
+let equal_v = ({HOL.equal = equal_va} : v HOL.equal);;
+
+type store = EMPTY__;;
+
+type 'a mm = MM of (store -> store * 'a Util.res);;
+
+type page_ref = EMPTY__;;
+
+let dummy : unit = Pre_params.dummy;;
+
+let rec mk_r2f s = Util.failwitha "FIXME";;
+
+let compare_k : (k, unit) Key_value.key_order_ext
+  = Key_value.Key_order_ext ((fun _ _ -> Util.failwitha "FIXME"), ());;
+
+let constants : unit Prelude.constants_ext
+  = Prelude.Constants_ext
+      (Arith.zero_nat, Arith.zero_nat, Arith.zero_nat, Arith.zero_nat, ());;
+
+let rec store_free rs = Util.failwitha "FIXME";;
+
+let rec store_read r = Util.failwitha "FIXME";;
+
+let rec store_alloc frm = Util.failwitha "FIXME";;
+
+end;; *) (*struct Params*)
+
+module Make = functor (Params:PARAMS) -> struct
 
 module Monad : sig
   val dest_MM : 'a Params.mm -> Params.store -> Params.store * 'a Util.res
@@ -987,7 +977,7 @@ module Find : sig
           (Params.page_ref *
             ((Params.k * Params.v) list *
               (Params.k, Params.page_ref, unit)
-                Pre_params.ts_frame_ext list)))) option
+                Tree_stack.ts_frame_ext list)))) option
   val wellformed_find_state :
     Params.store -> (Params.k, Params.v) Tree.tree -> find_state -> bool
 end = struct
@@ -999,14 +989,14 @@ type find_state =
     (Params.page_ref *
       (Params.k *
         (Params.page_ref *
-          (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list)))
+          (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)))
   | F_finished of
       (Params.page_ref *
         (Params.k *
           (Params.page_ref *
             ((Params.k * Params.v) list *
               (Params.k, Params.page_ref, unit)
-                Pre_params.ts_frame_ext list))));;
+                Tree_stack.ts_frame_ext list))));;
 
 let rec mk_r2t
   s n r =
@@ -1067,7 +1057,7 @@ let rec wellformed_find_state
        let check_stack =
          (fun rstk tstk ->
            List.equal_lista
-             (Pre_params.equal_ts_frame_ext Params.equal_k
+             (Tree_stack.equal_ts_frame_ext Params.equal_k
                (Option.equal_option
                  (Tree.equal_tree Params.equal_k Params.equal_v))
                Product_Type.equal_unit)
@@ -1077,11 +1067,13 @@ let rec wellformed_find_state
        (match fs
          with F_down (_, (k, (r, stk))) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            check_focus r t_fo && check_stack stk t_stk
          | F_finished (_, (k, (r, (_, stk)))) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            check_focus r t_fo && check_stack stk t_stk));;
 
 end;; (*struct Find*)
@@ -1093,7 +1085,7 @@ module Delete : sig
   type delete_state = D_down of (Find.find_state * Params.page_ref) |
     D_up of
       (del_t *
-        ((Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list *
+        ((Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list *
           Params.page_ref))
     | D_finished of Params.page_ref
   val delete_step : delete_state -> delete_state Params.mm
@@ -1113,7 +1105,7 @@ type del_t = D_small_leaf of (Params.k * Params.v) list |
 type delete_state = D_down of (Find.find_state * Params.page_ref) |
   D_up of
     (del_t *
-      ((Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list *
+      ((Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list *
         Params.page_ref))
   | D_finished of Params.page_ref;;
 
@@ -1147,7 +1139,7 @@ let rec wf_u
        let check_stack =
          (fun rstk tstk ->
            List.equal_lista
-             (Pre_params.equal_ts_frame_ext Params.equal_k
+             (Tree_stack.equal_ts_frame_ext Params.equal_k
                (Option.equal_option
                  (Option.equal_option
                    (Tree.equal_tree Params.equal_k Params.equal_v)))
@@ -1173,7 +1165,8 @@ let rec wf_u
        (match fo
          with D_small_leaf kvs ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            let ms =
              (match stk with [] -> Some Prelude.Small_root_node_or_leaf
                | _ :: _ -> Some Prelude.Small_leaf)
@@ -1182,7 +1175,8 @@ let rec wf_u
              (check_wf ms (Tree.Leaf kvs) && check_focus t_fo kvs)
          | D_small_node (ks, rs) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            let ms =
              (match stk with [] -> Some Prelude.Small_root_node_or_leaf
                | _ :: _ -> Some Prelude.Small_node)
@@ -1197,7 +1191,8 @@ let rec wf_u
                check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs))
          | D_updated_subtree r ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            let ms =
              (match stk with [] -> Some Prelude.Small_root_node_or_leaf
                | _ :: _ -> None)
@@ -1524,7 +1519,7 @@ module Insert : sig
     I2 of (Params.page_ref * (Params.k * Params.page_ref))
   type insert_state = I_down of (Find.find_state * Params.v) |
     I_up of
-      (i12_t * (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list)
+      (i12_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
     | I_finished of Params.page_ref
   val insert_step : insert_state -> insert_state Params.mm
   val dest_i_finished : insert_state -> Params.page_ref option
@@ -1540,7 +1535,7 @@ type i12_t = I1 of Params.page_ref |
 
 type insert_state = I_down of (Find.find_state * Params.v) |
   I_up of
-    (i12_t * (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list)
+    (i12_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
   | I_finished of Params.page_ref;;
 
 let rec wf_d
@@ -1577,7 +1572,7 @@ let rec wf_u
        let check_stack =
          (fun rstk tstk ->
            List.equal_lista
-             (Pre_params.equal_ts_frame_ext Params.equal_k
+             (Tree_stack.equal_ts_frame_ext Params.equal_k
                (Option.equal_option
                  (Option.equal_option
                    (Tree.equal_tree Params.equal_k Params.equal_v)))
@@ -1591,7 +1586,8 @@ let rec wf_u
        (match u
          with (I1 r, stk) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            check_stack stk t_stk &&
              (match r2t r with None -> false
                | Some t ->
@@ -1602,7 +1598,8 @@ let rec wf_u
                      (Key_value.kvs_insert Params.equal_k ord (k, v))))
          | (I2 (r1, (ka, r2)), stk) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k t0 (List.size_list stk) in
+             Tree_stack.tree_to_stack Params.compare_k k t0 (List.size_list stk)
+             in
            check_stack stk t_stk &&
              let (l, ua) = Tree_stack.stack_to_lu_of_child t_stk in
              (match (r2t r1, r2t r2) with (None, _) -> false
@@ -1744,7 +1741,7 @@ module Insert_many : sig
   type i_state_t =
     I_down of (Find.find_state * (Params.v * (Params.k * Params.v) list)) |
     I_up of
-      (i_t * (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list)
+      (i_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
     | I_finished of (Params.page_ref * (Params.k * Params.v) list)
   val insert_step : i_state_t -> i_state_t Params.mm
   val dest_i_finished :
@@ -1760,7 +1757,7 @@ type i_t = I1 of (Params.page_ref * (Params.k * Params.v) list) |
 
 type i_state_t =
   I_down of (Find.find_state * (Params.v * (Params.k * Params.v) list)) |
-  I_up of (i_t * (Params.k, Params.page_ref, unit) Pre_params.ts_frame_ext list)
+  I_up of (i_t * (Params.k, Params.page_ref, unit) Tree_stack.ts_frame_ext list)
   | I_finished of (Params.page_ref * (Params.k * Params.v) list);;
 
 let rec step_up
@@ -1938,7 +1935,7 @@ let rec step_up
              (match ab with (_, (_, [])) -> Pre_params.LS_up fsa
                | (r, (ks2, ra :: rs)) ->
                  let fa =
-                   Pre_params.Ts_frame_ext
+                   Tree_stack.Ts_frame_ext
                      (ks1 @ [List.hd ks2], rs1 @ [r], ra, List.tl ks2, rs, ())
                    in
                  Pre_params.LS_down (ra, fa :: fsa)))
@@ -1957,7 +1954,7 @@ let rec step_down
                 with Frame.Node_frame (ks, rs) ->
                   let ra = List.hd rs in
                   let rsa = List.tl rs in
-                  let frm = Pre_params.Ts_frame_ext ([], [], ra, ks, rsa, ()) in
+                  let frm = Tree_stack.Ts_frame_ext ([], [], ra, ks, rsa, ()) in
                   Pre_params.LS_down (ra, frm :: fs)
                 | Frame.Leaf_frame kvs -> Pre_params.LS_leaf (kvs, fs))));;
 
@@ -1979,6 +1976,5 @@ let rec lss_is_finished
           | Pre_params.LS_up (_ :: _) -> false);;
 
 end;; (*struct Leaf_stream*)
-
 
 end

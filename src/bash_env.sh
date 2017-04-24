@@ -33,7 +33,7 @@ mk_cmxa="$DISABLE_NTVE ocamlfind ocamlopt $FLGS"
 # mls ----------------------------------------
 
 # remove some files using sed
-mls=`cat _depend/* | sed 's/gen_our.ml//g'`
+mls=`(test -e _depend/b_from_isa && cat _depend/*) | sed 's/gen_our.ml//g'`
 
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"
@@ -46,8 +46,8 @@ bytes=""
 
 # TODO j,m
 
-bcd=`echo {b,c,d,e,f,g,h,i}_*`
-bcd_mls=`ls {b,c,d,e,f,g,h,i}_*/*.ml`
+bcd=`echo {b,c,d,e,f,g,h,i,j,m}_*`
+bcd_mls=`ls {b,c,d,e,f,g,h,i,j,m}_*/*.ml`
 
 # depend ----------------------------------------
 

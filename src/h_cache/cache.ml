@@ -120,7 +120,7 @@ module Make = functor (W:WORLD) -> struct
 
   type ('k,'v) cache_ops = {
     get_cache: unit -> ('k,'v) cache_state m;
-    put_cache: ('k,'v) cache_state -> unit m
+    set_cache: ('k,'v) cache_state -> unit m
   }
 
   (* TODO cache removes ls operations - not clear best way to implement these in presence of cache and recycling store *)
@@ -143,7 +143,7 @@ module Make = functor (W:WORLD) -> struct
       (* update time on each put *)
       let put_cache c = 
         let c = {c with current=c.current+1} in 
-        cache_ops.put_cache c 
+        cache_ops.set_cache c 
       in
 
       let evict c = (

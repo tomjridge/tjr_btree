@@ -48,6 +48,7 @@ module Make_functor = (struct
     open Isa_export.Pre_params
     module P : Isa_util.PARAMS
     open P
+    val r2t: store -> page_ref -> (k,v)Tree.tree option
     val find: 
       k -> page_ref -> store -> store * (page_ref*(k*v)list,string) result
     val insert: k -> v -> page_ref -> store -> store * (page_ref,string)result
@@ -345,6 +346,7 @@ module Make_functor = (struct
 
       module R = struct
         module P = P
+        let r2t = mk_r2t
         let find = Find_.find
         let insert = Insert_.insert 
         let delete = Delete_.delete

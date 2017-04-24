@@ -40,13 +40,7 @@ module Make_uncached =
       end
       include T
 
-      module W0 = struct
-        type t = T.t
-        type 'a m = ('a,t) Simple_monad.m
-        let bind = Simple_monad.bind
-        let return = Simple_monad.return
-      end
-
+      module W0 = Make_world(T)
 
       open W0
       module Api = Make_api(W0)

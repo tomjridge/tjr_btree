@@ -53,6 +53,7 @@ end
    isa_export.make *)
 module Make = functor (P:PARAMS) -> (struct
     module S_ = struct
+      let dummy=()
       type k = P.k
       type v = P.v
       let equal_k = IE.HOL.{ equal=(fun k1 k2 -> P.compare_k k1 k2 = 0) }
@@ -85,7 +86,7 @@ module Make = functor (P:PARAMS) -> (struct
     end
     module IEM = Isa_export.Make(S_)
     module Tree = struct
-      type ('k,'v) tree = ('k,'v) IEM.Tree.tree
+      type ('k,'v) tree = ('k,'v) IE.Tree.tree
     end
     type 'a m = P.store -> P.store * ('a,string)result
     let dest_MM = function S_.MM f -> (fun s -> 

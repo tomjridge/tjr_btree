@@ -6,8 +6,7 @@ open Prelude
 
 module type S = sig
   module State : Set.OrderedType
-
-  type t = State.t 
+  open State
   type op (* operations *)
 
   val step: op -> t -> t list
