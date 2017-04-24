@@ -40,11 +40,13 @@ let main args = (
   | ["insert";fn;k;v] -> (
       let t = from_file ~fn ~create:false ~init:false in
       map_ops.insert (SS_.of_string k) (SS_.of_string v) 
-      |> (fun f -> f t |> function | (_,Ok _) -> ()) )
+      |> (fun f -> f t |> function | (t,Ok _) -> (
+            write_root_block t)))
   | ["delete";fn;k] -> (
       let t = from_file ~fn ~create:false ~init:false in
       map_ops.delete (SS_.of_string k) 
-      |> (fun f -> f t |> function | (_,Ok _) -> ()))
+      |> (fun f -> f t |> function | (t,Ok _) -> (
+            write_root_block t)))
   | ["list";fn] -> (
       let t = from_file ~fn  ~create:false ~init:false in
       Uncached.Api.all_kvs map_ops 

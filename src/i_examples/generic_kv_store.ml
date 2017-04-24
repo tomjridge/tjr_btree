@@ -100,12 +100,12 @@ module Make_uncached =
       let frame_to_page = Btree_with_pickle.frame_to_page sz ps.pp
       let page_to_frame = Btree_with_pickle.page_to_frame sz ps.pp
 
-      let write_root_block fd free root = (
-        let p : P.m = (p_pair (p_int free) (p_int root)) in
+      let write_root_block t = (
+        let p : P.m = (p_pair (p_int t.free) (p_int t.root)) in
         let s = p |> P.run_w_exception "" in
         let blk = Default_block.of_string disk_ops.block_size s in
         let _ = 
-          disk_ops.write 0 blk |> (fun f -> f (dummy fd)) 
+          disk_ops.write 0 blk |> (fun f -> f (dummy t.fd)) 
           |> function | (_,Ok ()) -> ()
         in
         ())
@@ -116,27 +116,30 @@ module Make_uncached =
           |> function (_,Ok blk) -> blk
         in
         let u = u_pair u_int (fun _ -> u_int) in
-        let (_,(free,root)) = u |> U.run_w_exception "" in
+        let (_,(free,root)) = u |> U.run_w_exception (BLK.to_string blk) in
         (free,root)
       )
 
       let from_file ~fn ~create ~init = (
         let fd = fd_from_file fn create init in
-        let (free,root) = (
-          match init with
-          | true -> (
-              (* now need to write the initial frame *)
-              let _ = 
-                let frm = Frame.Leaf_frame [] in
-                let p = frm|>frame_to_page in
-                disk_ops.write 1 p |> (fun f -> f (dummy fd))
-                |> function (_,Ok ()) -> ()
-              in
-              (* 0,1 are taken so 2 is free; 1 is the root of the btree *)
-              (2,1))
-          | false -> (read_root_block fd))
-        in
-        {fd; free; root})
+        match init with
+        | true -> (
+            (* now need to write the initial frame *)
+            let _ = 
+              let frm = Frame.Leaf_frame [] in
+              let p = frm|>frame_to_page in
+              disk_ops.write 1 p |> (fun f -> f (dummy fd))
+              |> function (_,Ok ()) -> ()
+            in
+            (* 0,1 are taken so 2 is free; 1 is the root of the btree *)
+            let (free,root) = (2,1) in
+            (* remember to write blk0 *)
+            let _ = write_root_block {fd;free;root} in
+            {fd;free;root})
+        | false -> (
+            let (free,root) = read_root_block fd in 
+            {fd; free; root})
+      )
 
     end) (* Uncached *)
 

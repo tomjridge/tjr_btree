@@ -20,7 +20,6 @@ echo
 echo
 ./$MAIN kv list $STORE
 
-
 for i in `seq 4 1000`; do
     ./$MAIN kv insert $STORE k$i v$i
 done
