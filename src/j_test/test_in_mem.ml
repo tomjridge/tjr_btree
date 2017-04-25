@@ -3,10 +3,9 @@
 open Prelude
 open Btree_api
 
-(* we concentrate on relatively small parameters *)
+module IE = Isa_export
 
-type key = int
-type value = int
+(* we concentrate on relatively small parameters *)
 
 let kv_ops = Example_keys_and_values.int_int_kv_ops
 
@@ -17,11 +16,11 @@ let constants = Constants.{
     min_node_keys = 2;
   }
 
-type store = (key,value)In_mem_store.store
+type store = (int,int)In_mem_store.store
 
 (* we want to ignore the store and page_ref *)
 module Test_state = struct 
-  type t = { t:(key,value)Tree.tree;s:store;r:page_ref }
+  type t = { t:(int,int)Tree.tree;s:store;r:page_ref }
   let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
 end
 module TS = Test_state
@@ -50,7 +49,7 @@ let pr_ops = {
   set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
 }
 
-let r2t = S2M.make_r2t pr_ops kv_ops store_ops
+let r2t = Store_to_map.mk_r2t pr_ops kv_ops store_ops
 
 
 let map_ops = S2M.make pr_ops kv_ops store_ops

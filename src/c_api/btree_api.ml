@@ -81,11 +81,14 @@ module Make_api = functor (W:WORLD) -> (struct
       store_free: page_ref list -> unit m;
       store_read : page_ref -> ('k, 'v) frame m;  (* FIXME option? *)
       store_alloc : ('k, 'v) frame -> page_ref m;
-      mk_r2f: t -> page_ref -> ('k,'v) frame option;
+      mk_r2f: t -> page_ref -> ('k,'v) frame option;  (* FIXME remove from Api and provide as extra function param? *)
     }
 
 
     (* map ------------------------------------------------------------ *)
+
+    (* FIXME make leafstream ops a different type - not always
+       available eg in cached *)
 
     type ('k,'v) map_ops = {
       find: 'k -> 'v option m;
@@ -97,8 +100,8 @@ module Make_api = functor (W:WORLD) -> (struct
     }
 
 
-      (* for debugging *)
-      let all_kvs: ('k,'v)map_ops -> ('k * 'v) list m = Simple_monad.(
+    (* for debugging *)
+    let all_kvs: ('k,'v)map_ops -> ('k * 'v) list m = Simple_monad.(
         fun ops ->
           let rec loop kvs s = (
             let kvs' = ops.ls_kvs s in
@@ -107,8 +110,8 @@ module Make_api = functor (W:WORLD) -> (struct
                 match s' with
                 | None -> return kvs
                 | Some s' -> loop kvs s'))
-      in
-      ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
+          in
+          ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
 
 end)
 

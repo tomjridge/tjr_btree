@@ -146,3 +146,8 @@ module Make = functor (P:PARAMS) -> (struct
     end
 
 end)
+
+
+
+let mk_r2t r2f s r = 
+  IE.Pre_params.mk_r2t r2f (X.int_to_nat 1000) r

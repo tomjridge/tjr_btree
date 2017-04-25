@@ -523,7 +523,7 @@ end;; (*struct Key_value*)
 
 module Tree : sig
   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
-    Leaf of ('a * 'b) list
+    Leaf of ('a * 'b) list [@@deriving yojson]
   val equal_tree : 'a HOL.equal -> 'b HOL.equal -> ('a, 'b) tree HOL.equal
   val height : ('a, 'b) tree -> Arith.nat
   val dest_Node : ('a, 'b) tree -> 'a list * ('a, 'b) tree list
@@ -538,7 +538,7 @@ module Tree : sig
 end = struct
 
 type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
-  Leaf of ('a * 'b) list;;
+  Leaf of ('a * 'b) list [@@deriving yojson];;
 
 let rec equal_tree _A _B =
   ({HOL.equal = equal_treea _A _B} : ('a, 'b) tree HOL.equal)
@@ -839,23 +839,6 @@ let rec add_new_stack_frame
 
 end;; (*struct Tree_stack*)
 
-module Pre_params : sig
-  type ('a, 'b, 'c) ls_state =
-    LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-    LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-    LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list
-  val dummy : unit
-end = struct
-
-type ('a, 'b, 'c) ls_state =
-  LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
-
-let dummy : unit = ();;
-
-end;; (*struct Pre_params*)
-
 module Frame : sig
   type ('a, 'b, 'c) t = Node_frame of ('a list * 'c list) |
     Leaf_frame of ('a * 'b) list
@@ -875,6 +858,40 @@ let rec dest_Node_frame
         | Leaf_frame _ -> Util.failwitha "dest_Node_frame");;
 
 end;; (*struct Frame*)
+
+module Pre_params : sig
+  type ('a, 'b, 'c) ls_state =
+    LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+    LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+    LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list
+  val dummy : unit
+  val mk_r2t :
+    ('a -> ('b, 'c, 'a) Frame.t option) ->
+      Arith.nat -> 'a -> ('b, 'c) Tree.tree option
+end = struct
+
+type ('a, 'b, 'c) ls_state =
+  LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+  LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
+  LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
+
+let dummy : unit = ();;
+
+let rec mk_r2t
+  s n r =
+    (if Arith.equal_nat n Arith.zero_nat then None
+      else (match s r with None -> None
+             | Some (Frame.Node_frame (ks, rs)) ->
+               let ts = List.map (mk_r2t s (Arith.minus_nat n Arith.one_nat)) rs
+                 in
+               (match List.filter Util.is_None ts
+                 with [] ->
+                   Some (Tree.Node
+                          (ks, Util.rev_apply ts (List.map Util.dest_Some)))
+                 | _ :: _ -> None)
+             | Some (Frame.Leaf_frame kvs) -> Some (Tree.Leaf kvs)));;
+
+end;; (*struct Pre_params*)
 
 module type PARAMS = sig
   type k
@@ -962,9 +979,6 @@ end;; (*struct Monad*)
 module Find : sig
   type btree
   type find_state
-  val mk_r2t :
-    (Params.page_ref -> (Params.k, Params.v, Params.page_ref) Frame.t option) ->
-      Arith.nat -> Params.page_ref -> (Params.k, Params.v) Tree.tree option
   val find_step : find_state -> find_state Params.mm
   val empty_btree : unit -> btree Params.mm
   val mk_find_state : Params.k -> Params.page_ref -> find_state
@@ -998,20 +1012,6 @@ type find_state =
               (Params.k, Params.page_ref, unit)
                 Tree_stack.ts_frame_ext list))));;
 
-let rec mk_r2t
-  s n r =
-    (if Arith.equal_nat n Arith.zero_nat then None
-      else (match s r with None -> None
-             | Some (Frame.Node_frame (ks, rs)) ->
-               let ts = List.map (mk_r2t s (Arith.minus_nat n Arith.one_nat)) rs
-                 in
-               (match List.filter Util.is_None ts
-                 with [] ->
-                   Some (Tree.Node
-                          (ks, Util.rev_apply ts (List.map Util.dest_Some)))
-                 | _ :: _ -> None)
-             | Some (Frame.Leaf_frame kvs) -> Some (Tree.Leaf kvs)));;
-
 let rec find_step
   fs = (match fs
          with F_down (r0, (k, (r, stk))) ->
@@ -1038,7 +1038,7 @@ let rec mk_find_state k r = F_down (r, (k, (r, [])));;
 let rec wf_store_tree
   s r t =
     let r2f = Params.mk_r2f s in
-    let sa = mk_r2t r2f (Tree.height t) in
+    let sa = Pre_params.mk_r2t r2f (Tree.height t) in
     Option.equal_optiona (Tree.equal_tree Params.equal_k Params.equal_v) (sa r)
       (Some t);;
 
@@ -1052,7 +1052,7 @@ let rec wellformed_find_state
     Util.assert_truea
       (let n = Tree.height t0 in
        let r2f = Params.mk_r2f s0 in
-       let r2t = mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        let check_focus = wf_store_tree s0 in
        let check_stack =
          (fun rstk tstk ->
@@ -1119,7 +1119,7 @@ let rec wf_f
     Util.assert_truea
       (let n = Tree.height t0 in
        let r2f = Params.mk_r2f str in
-       let r2t = Find.mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        let t = Util.rev_apply (r2t r) Util.dest_Some in
        Tree.wellformed_tree Params.equal_k Params.constants
          (Some Prelude.Small_root_node_or_leaf) Params.compare_k t &&
@@ -1134,7 +1134,7 @@ let rec wf_u
     Util.assert_truea
       (let n = Tree.height t0 in
        let r2f = Params.mk_r2f str in
-       let r2t = Find.mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        let (fo, stk) = u in
        let check_stack =
          (fun rstk tstk ->
@@ -1504,7 +1504,7 @@ let rec wellformed_delete_state
     Util.assert_truea
       (let n = Tree.height t0 in
        let r2f = Params.mk_r2f str in
-       let r2t = Find.mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        (match ds with D_down a -> wf_d t0 str a
          | D_up (fo, (stk, r)) ->
            wf_u t0 k str (fo, stk) &&
@@ -1550,7 +1550,7 @@ let rec wf_f
       (let n = Tree.height t0 in
        let ord = Params.compare_k in
        let r2f = Params.mk_r2f str in
-       let r2t = Find.mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        (match r2t r with None -> false
          | Some t ->
            Tree.wellformed_tree Params.equal_k Params.constants
@@ -1567,7 +1567,7 @@ let rec wf_u
       (let n = Tree.height t0 in
        let ord = Params.compare_k in
        let r2f = Params.mk_r2f str in
-       let r2t = Find.mk_r2t r2f n in
+       let r2t = Pre_params.mk_r2t r2f n in
        let _ = Find.wf_store_tree str in
        let check_stack =
          (fun rstk tstk ->

@@ -19,7 +19,7 @@ module Make = functor (W: WORLD) -> (struct
     }
 
     (* produce a ('k,'v) Map.ops, with page_ref state set/get via monad_ops *)
-    let make': page_ref_ops -> ('k,'v) kv_ops -> ('k,'v) store_ops -> ('k,'v) map_ops * (W.t -> page_ref -> ('k,'v)Tree.tree option) = (
+    let make: page_ref_ops -> ('k,'v) kv_ops -> ('k,'v) store_ops -> ('k,'v) map_ops = (
       fun (type k') (type v') page_ref_ops kv_ops store_ops ->
         let 
           (module S: Isa_util.PARAMS 
@@ -69,12 +69,7 @@ module Make = functor (W: WORLD) -> (struct
         in
         let ls_step: (k',v') ls_state -> (k',v') ls_state option m = M.ls_step in
         let ls_kvs: (k',v') ls_state -> (k' * v') list = M.ls_kvs in
-        (Map.{find; insert; delete; mk_leaf_stream; ls_step; ls_kvs},M.r2t))
+        Map.{find; insert; delete; mk_leaf_stream; ls_step; ls_kvs})
     
-    let make page_ref_ops kv_ops store_ops = make' page_ref_ops kv_ops store_ops |> fst
-
-    let make_r2t page_ref_ops kv_ops store_ops = make' page_ref_ops kv_ops store_ops |> snd
-
   end)
-
 

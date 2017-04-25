@@ -6,6 +6,7 @@
 open Prelude
 (*open Btree_api *)
 
+module IE = Isa_export
 
 module Iter = struct
   module type S = sig
@@ -28,7 +29,7 @@ module Iter = struct
                           assert(check_state s');
                           assert(check_trans s s');
                           run s')
-                      | (s',Error e) -> (s,Error(e))))
+                      | (s',Error e) -> (s',Error(e))))
         | Some x -> (s,Ok(x))
       )        
     end)
@@ -48,15 +49,19 @@ module Make_functor = (struct
     open Isa_export.Pre_params
     module P : Isa_util.PARAMS
     open P
-    val r2t: store -> page_ref -> (k,v)Tree.tree option
-    val find: 
+    val find: (k,v)Tree.tree option -> 
       k -> page_ref -> store -> store * (page_ref*(k*v)list,string) result
-    val insert: k -> v -> page_ref -> store -> store * (page_ref,string)result
-    val insert_many: k -> v -> (k*v)list -> 
+    val insert: (k,v)Tree.tree option -> 
+      k -> v -> page_ref -> store -> store * (page_ref,string)result
+    val insert_many: (k,v)Tree.tree option -> 
+      k -> v -> (k*v)list -> 
       page_ref -> store-> store*(page_ref*(k*v)list,string)result
-    val delete: k -> page_ref -> store -> store * (page_ref,string)result
-    val mk_leaf_stream: page_ref -> store -> store * ((k,v,page_ref)ls_state,string)result
-    val ls_step: (k,v,page_ref)ls_state -> store -> store * ((k,v,page_ref)ls_state option,string)result
+    val delete: (k,v)Tree.tree option -> 
+      k -> page_ref -> store -> store * (page_ref,string)result
+    val mk_leaf_stream: 
+      page_ref -> store -> store * ((k,v,page_ref)ls_state,string)result
+    val ls_step: (k,v,page_ref)ls_state -> 
+      store -> store * ((k,v,page_ref)ls_state option,string)result
     val ls_kvs:  (k,v,page_ref)ls_state -> (k*v)list
   end
 
@@ -67,9 +72,7 @@ module Make_functor = (struct
       module IU = Isa_util.Make(P)
       open IU
 
-      (* FIXME avoid IEM. - add needed functions to eg IU.Find *)
-      let mk_r2t r2f r = IU.IEM.Find.mk_r2t r2f (Isa_util.X.int_to_nat 1000) r
-      let mk_r2t s r = mk_r2t (P.mk_r2f s) r
+      let if_some f = function Some x -> f x | _ -> ()
 
 
       (* find ---------------------------------------- *)
@@ -78,9 +81,8 @@ module Make_functor = (struct
          function; this allows us to check various invariants *)
       module Find_ = (struct 
         module S = (struct
-          (* FIXME remove tree when not testing *)
           type t = {
-            tree: (k,v) Tree.tree;
+            tree: (k,v) Tree.tree option; (* NB for testing *)
             store: P.store;
             fs: Find.find_state
           }
@@ -90,18 +92,13 @@ module Make_functor = (struct
           let check_state s = (
             Test.log __LOC__;
             (* Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-            Test.test (fun _ -> 
-                assert (Find.wellformed_find_state s.store s.tree s.fs));
+            Test.test (fun _ ->
+                s.tree |> if_some (fun t -> 
+                    assert (Find.wellformed_find_state s.store t s.fs)));
             true
           )
 
-          let check_trans s s' = (
-            Test.log __LOC__;
-            (*        Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
-                      Test.log (s'.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-            (* check_state s && check_state s' - this shoudl check the transition not just the individual states *)
-            true
-          )
+          let check_trans s s' = (true)       (* TODO *)
 
           type finished = page_ref * (k * v) list
 
@@ -120,14 +117,14 @@ module Make_functor = (struct
         module Iter_ = Iter.Make(S)
         open S
 
-        let mk : k -> page_ref -> store -> t = 
-          fun k0 r s -> {
-              tree=mk_r2t s r |> dest_Some; store=s; fs=Find.mk_find_state k0 r}
+        let mk : (k,v) Tree.tree option -> k -> page_ref -> store -> t = 
+          fun t k0 r s -> {
+              tree=t; store=s; fs=Find.mk_find_state k0 r}
 
-        let find: k -> page_ref -> store -> 
+        let find: (k,v) Tree.tree option -> k -> page_ref -> store -> 
           store * (page_ref*(k*v)list,string) result = (
-          fun k r s ->
-            let s = mk k r s in
+          fun t k r s ->
+            let s = mk t k r s in
             Iter_.run s |> (fun (s,r) -> (s.store,r)))
       end)
 
@@ -137,7 +134,7 @@ module Make_functor = (struct
       module Insert_ = (struct  
         module S = (struct 
           type t = {
-            t: (k,v) Tree.tree;
+            tree: (k,v) Tree.tree option;
             k:k;
             v:v;
             store: P.store;
@@ -155,7 +152,8 @@ module Make_functor = (struct
           Test.log ("s.is" ^ (s.is |> Insert.i_state_t_to_yojson |> Yojson.Safe.to_string));
 *)
             Test.test (fun _ ->
-                assert (Insert.wellformed_insert_state s.store s.t s.k s.v s.is));
+                s.tree |> if_some (fun t ->
+                    assert (Insert.wellformed_insert_state s.store t s.k s.v s.is)));
             true
           )
 
@@ -179,14 +177,14 @@ module Make_functor = (struct
         module Iter_ = Iter.Make(S)
         open S
 
-        let mk: k -> v -> page_ref -> store -> t =
-          fun k v r s -> 
-            { t=mk_r2t s r|>dest_Some; 
+        let mk: (k,v)Tree.tree option -> k -> v -> page_ref -> store -> t =
+          fun t k v r s -> 
+            { tree=t; 
               k; v; store=s; is=(Insert.mk_insert_state k v r) }
 
-        let insert: k -> v -> page_ref -> store -> store * (page_ref,string)result = (
-          fun k v r store ->
-            let s = mk k v r store in
+        let insert: (k,v) Tree.tree option -> k -> v -> page_ref -> store -> store * (page_ref,string)result = (
+          fun t k v r store ->
+            let s = mk t k v r store in
             Iter_.run s |> (fun (s,r) -> (s.store,r)))
       end)
 
@@ -197,7 +195,7 @@ module Make_functor = (struct
       module Insert_many_ = (struct 
         module S = (struct
           type t = {
-            t: (k,v) Tree.tree;
+            tree: (k,v) Tree.tree option;
             k:k;
             v:v;
             store: P.store;
@@ -229,15 +227,15 @@ module Make_functor = (struct
 
         type kvs = (k*v) list
 
-        let mk: k -> v -> (k*v) list -> page_ref -> store -> t = 
-          fun k v kvs r s -> {
-              t=mk_r2t s r|>dest_Some;
+        let mk: (k,v) Tree.tree option -> k -> v -> (k*v) list -> page_ref -> store -> t = 
+          fun t k v kvs r s -> {
+              tree=t;
               k; v; store=s; is=(Insert_many.mk_insert_state k v kvs r)}
 
         let insert_many: 
-          k -> v -> kvs -> page_ref -> store-> store*(page_ref*kvs,string)result = (
-          fun k v kvs r store ->
-            let s = mk k v kvs r store in
+          (k,v) Tree.tree option -> k -> v -> kvs -> page_ref -> store-> store*(page_ref*kvs,string)result = (
+          fun t k v kvs r store ->
+            let s = mk t k v kvs r store in
             Iter_.run s |> (fun (s,r) -> (s.store,r)))
       end)
 
@@ -247,7 +245,7 @@ module Make_functor = (struct
       module Delete_ = (struct 
         module S = (struct           
           type t = {
-            t:(k,v)Tree.tree;
+            tree:(k,v)Tree.tree option;
             k:k;
             store:P.store;
             ds:Delete.delete_state
@@ -258,7 +256,8 @@ module Make_functor = (struct
             Test.log __LOC__;
             (* Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
             Test.test (fun _ -> 
-                assert (Delete.wellformed_delete_state s.t s.k s.store s.ds));
+                s.tree |> if_some (fun t -> 
+                    assert (Delete.wellformed_delete_state t s.k s.store s.ds)));
             true
           )
 
@@ -279,17 +278,17 @@ module Make_functor = (struct
         module Iter_ = Iter.Make(S)
         open S
 
-        let mk: store -> k -> page_ref -> t = 
-          fun s k r -> {
-              t=mk_r2t s r |> dest_Some; (* FIXME obviously we don't want this testing in normal operation *)
+        let mk: (k,v) Tree.tree option -> store -> k -> page_ref -> t = 
+          fun t s k r -> {
+              tree=t;
               k;
               store=s;
               ds=(Delete.mk_delete_state k r)
             }
 
-        let delete: k -> page_ref -> store -> store * (page_ref,string)result = (
-          fun k r s ->
-            mk s k r |> Iter_.run |> (fun (s,r) -> (s.store,r)))
+        let delete: (k,v) Tree.tree option -> k -> page_ref -> store -> store * (page_ref,string)result = (
+          fun t k r s ->
+            mk t s k r |> Iter_.run |> (fun (s,r) -> (s.store,r)))
 
         (* need some pretty *)
       (*
@@ -346,7 +345,6 @@ module Make_functor = (struct
 
       module R = struct
         module P = P
-        let r2t = mk_r2t
         let find = Find_.find
         let insert = Insert_.insert 
         let delete = Delete_.delete

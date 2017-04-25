@@ -1,15 +1,33 @@
---- /tmp/isa_export.ml	2017-04-24 16:55:22.354390989 +0100
-+++ isa_export.ml.patched	2017-04-24 16:57:55.526490791 +0100
-@@ -876,7 +876,7 @@ let rec dest_Node_frame
+--- /tmp/isa_export.ml	2017-04-25 12:07:36.457658914 +0100
++++ isa_export.ml.patched	2017-04-25 12:09:15.558288215 +0100
+@@ -523,7 +523,7 @@ end;; (*struct Key_value*)
  
- end;; (*struct Frame*)
+ module Tree : sig
+   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
+-    Leaf of ('a * 'b) list
++    Leaf of ('a * 'b) list [@@deriving yojson]
+   val equal_tree : 'a HOL.equal -> 'b HOL.equal -> ('a, 'b) tree HOL.equal
+   val height : ('a, 'b) tree -> Arith.nat
+   val dest_Node : ('a, 'b) tree -> 'a list * ('a, 'b) tree list
+@@ -538,7 +538,7 @@ module Tree : sig
+ end = struct
+ 
+ type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
+-  Leaf of ('a * 'b) list;;
++  Leaf of ('a * 'b) list [@@deriving yojson];;
+ 
+ let rec equal_tree _A _B =
+   ({HOL.equal = equal_treea _A _B} : ('a, 'b) tree HOL.equal)
+@@ -893,7 +893,7 @@ let rec mk_r2t
+ 
+ end;; (*struct Pre_params*)
  
 -module Params : sig
 +module type PARAMS = sig
    type k
    val equal_k : k HOL.equal
    type v
-@@ -891,7 +891,7 @@ module Params : sig
+@@ -908,7 +908,7 @@ module Params : sig
    val store_free : page_ref list -> unit mm
    val store_read : page_ref -> (k, v, page_ref) Frame.t mm
    val store_alloc : (k, v, page_ref) Frame.t -> page_ref mm
@@ -18,7 +36,7 @@
  
  type k = K of Arith.nat;;
  
-@@ -928,7 +928,9 @@ let rec store_read r = Util.failwitha "F
+@@ -945,7 +945,9 @@ let rec store_read r = Util.failwitha "F
  
  let rec store_alloc frm = Util.failwitha "FIXME";;
  
@@ -35,4 +53,3 @@
  end;; (*struct Leaf_stream*)
 +
 +end
-\ No newline at end of file
