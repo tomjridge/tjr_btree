@@ -12,6 +12,10 @@ let log_messages: string list ref = ref ["initial log"]
 
 let log s = (log_messages:=s::!log_messages)
 
+let warn s = (
+  print_endline ("WARNING: "^s);
+)
+
 let print_logs () = 
   !log_messages|>Extlib.ExtList.List.take 20 |> List.rev 
   |> List.iter print_endline

@@ -81,6 +81,8 @@ type range_t = int list[@@deriving yojson]
 
 (* exhaustive testing ---------------------------------------- *)
 
+(* TODO use exhaustive.ml *)
+
 let (init_store,init_r) = In_mem_store.(
   ({free=1;map=Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])}, 0)
 )
@@ -136,7 +138,9 @@ let test range = TS.(
 
 (* testing insert ---------------------------------------- *)
 
-(* do n inserts; check wf *)
+(* TODO do n inserts; check wf *)
+
+(*
 let test_insert range = (
   Printf.printf "%s: test_insert, %d inserts, check wf etc:" __MODULE__ (List.length range);
   flush_out();
@@ -148,7 +152,7 @@ let test_insert range = (
       print_string "."; flush_out();
       let x = List.hd !xs in
       let ((s0',r0'),res) = 
-        Raw_map.insert x (2*x) |>Sem.run (!s0,!r0) in
+        map_ops.insert x (2*x) |> (fun f -> fSem.run (!s0,!r0) in
       match res with
       | Error e -> (failwith (__LOC__ ^e))
       | Ok () -> 
@@ -162,14 +166,15 @@ let test_insert range = (
       ()
     )
 )
+*)
 
-
-(* testing leaf_stream ---------------------------------------- *)
+(* TODO testing leaf_stream ---------------------------------------- *)
 
 open Extlib.ExtList.List
 
 type t = int list [@@deriving yojson]
 
+(*
 let test_leaf_stream range = (
   Printf.printf "%s: test_leaf_stream, %d inserts, check wf etc:" 
     __MODULE__ 
@@ -201,12 +206,5 @@ let test_leaf_stream range = (
 )
 
 
+*)
 
-
-
-(* FIXME remove *)
-let (init_store, init_r) = (
-  let open Store in
-  let open Our_.Frame_types in
-  ({free=1;m=Map_int.empty |> Map_int.add 0 (Leaf_frame[])}, 0)
-)

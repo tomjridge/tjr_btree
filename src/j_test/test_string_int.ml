@@ -1,6 +1,6 @@
 open Prelude
-
-let default_filename = "/tmp/store"
+open Small_string
+(* TODO let default_filename = "/tmp/store" *)
 
 (* https://www.npmjs.com/package/human-readable-ids *)
 let strings = {|
@@ -105,57 +105,40 @@ smart-panther-36
 lazy-termite-3
 helpless-snake-32 |} |> Tjr_string.split_on_all ~sub:"\n"
 
-open Internal_api
-open Block_device
+module Uncached = String_int_filestore.Uncached
 
-module FS = File_store.Filestore
+let map_ops = Uncached.map_ops
 
-module MSI = Map_string_int.Make(FS)
+let store = Uncached.from_file Test_config.default_filename true true
 
-module RM = MSI.Simple.Btree.Raw_map
-
-let store = ref (
-    let fn = default_filename in
-    let create = true in
-    let init = true in
-    let fd = Blkdev_on_fd.from_file ~fn ~create ~init in
-    let y = FS.from_fd ~fd ~init in
-    y)
-
-let page_ref = Sem.run_ref store (RM.empty ())
-               
-let sr = ref (!store,page_ref)
-
-let run x = Sem.run_ref sr x
-
-open Btree_util
-
-module Map = Map_string
-
+(* TODO use exhaustive *)
 let test () = 
   Printf.printf "%s: " __MODULE__;
   flush_out();
   let xs = ref strings in
   let c = ref 1 in
-  let m = ref Map.empty in
+  let m = ref Map_string.empty in
+  let t = ref store in
   let _ = 
     while (!xs <> []) do
       print_string "."; flush_out();
       let (k,v) = (List.hd !xs, !c) in
       Test.log __LOC__;
       Test.log (Printf.sprintf "insert: %s %s" k (v|>string_of_int));
-      run (RM.insert k v);
-      m:=(Map.add k v !m);
+      begin 
+        map_ops.insert (SS_.of_string k) v
+        |> (fun f -> f !t) |> (function (t',Ok ()) -> t:=t') 
+      end;
+      m:=(Map_string.add k v !m);
       c:=!c+1;
       xs:=(List.tl !xs);
       ()
     done
   in
   (* check the bindings match *)
-  !m|>Map.bindings|>List.iter (fun (k,v) ->
-      assert (run (RM.find k) = Some v);
-      run (RM.delete k);
+  !m|>Map_string.bindings|>List.iter (fun (k,v) ->
+      (map_ops.find (SS_.of_string k) |> (fun f -> f !t) |> function (_,Ok res) -> assert (res = Some v));
+      (map_ops.delete (SS_.of_string k) |>(fun f -> f !t) |> function (t',Ok ()) -> t:=t');
       ());
-  Unix.close (!store).fd;
+  Unix.close (!t).fd;
   ()
-

@@ -4,7 +4,7 @@
 
 open Prelude
 
-let default_filename = "/tmp/store"
+let default_filename = "/tmp/store"  (* FIXME *)
 
 module Uncached = Int_int_filestore.Uncached
 
