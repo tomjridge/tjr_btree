@@ -38,13 +38,9 @@ mls=`(test -e _depend/b_from_isa && cat _depend/*) | sed 's/gen_our.ml//g'`
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"
 
-#TODO test_main.native
-natives="main.native"
+natives="main.native test_main.native"
 
-# TODO test_main.byte
-bytes=""
-
-# TODO j,m
+bytes="test_main.byte"
 
 bcd=`echo {b,c,d,e,f,g,h,i,j,m}_*`
 bcd_mls=`ls {b,c,d,e,f,g,h,i,j,m}_*/*.ml`

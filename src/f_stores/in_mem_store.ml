@@ -9,7 +9,7 @@ type ('k,'v) page = ('k,'v)frame
         
 type ('k,'v) store = {free:int; map:('k,'v)frame Map_int.t}                 
 
-let init_store = {free=0;map=Map_int.empty}
+(* let empty_store = {free=0;map=Map_int.empty}*)
 
 module Make = functor (W:WORLD) -> (struct
 
