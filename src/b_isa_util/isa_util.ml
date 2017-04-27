@@ -14,6 +14,7 @@ type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
 type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
 type ('k,'v,'r) im_state = ('k,'v,'r) IE.Insert_many.ist
 type ('k,'v,'r) delete_state = ('k,'v,'r) IE.Delete.delete_state
+type ('k,'v,'r) ls_state = ('k,'v,'r) IE.Leaf_stream.ls_state
 
 module Params_ = struct
   type 'k ps0 = { 
@@ -125,4 +126,15 @@ let dest_im_finished: ('k,'v,'r)im_state -> ('r*('k*'v)list) option =
   (* no wf *)
 
 
-(* TODO ls *)
+(* leaf stream ---------------------------------------- *)
+
+let mk_ls_state : 'r -> ('k,'v,'r) ls_state = Leaf_stream.mk_ls_state
+
+let ls_step ps1 ls: 't -> 't * ('k,'v,'r) ls_state res = 
+  Leaf_stream.lss_step (ps1|>X.x_ps1) ls
+
+let ls_dest_leaf ls = Leaf_stream.dest_LS_leaf ls
+
+let ls_is_finished lss : bool = (
+  lss |> Leaf_stream.lss_is_finished)
+
