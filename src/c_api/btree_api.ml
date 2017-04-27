@@ -24,94 +24,71 @@ end
 module BLK = Default_block
 
 
-type constants = Isa_util.constants
+type ('a,'t) m = ('a,'t) Simple_monad.m
 
-type page_ref = int
-
-type ('k,'v) frame = ('k,'v,page_ref) Frame.t
 
 (* TODO hide implementation details of this type? *)
-type ('k,'v) ls_state = ('k,'v,page_ref) Isa_export.Pre_params.ls_state
+type ('k,'v) ls_state (* TODO = ('k,'v,page_ref) Isa_export.Pre_params.ls_state *)
 
-type ('k,'v) kv_ops = {
-  compare_k: 'k -> 'k -> int;
-  equal_v: 'v -> 'v -> bool;
-}
+type 'k ord = 'k -> 'k -> int
+
+type page_ref = int
 
 (* typically we also are interested in pickling *)
 type ('k,'v) kv_params = {
   pp:('k,'v) Pickle_params.t;
-  kv_ops: ('k,'v) kv_ops
+  compare_k: 'k ord
 }
 
-module type WORLD = sig 
-  type t
-  type 'a m = t -> (t * ('a,string) result) 
-  val bind: ('a -> 'b m) -> 'a m -> 'b m
-  val return: 'a -> 'a m
-end
 
-module Make_world = functor (T:sig type t end) -> struct
-  type t = T.t
-  type 'a m = ('a,t) Simple_monad.m
-  let bind = Simple_monad.bind
-  let return = Simple_monad.return
-end
+(* block device ---------------------------------------- *)
 
-module Make_api = functor (W:WORLD) -> (struct
-
-    module W = W
-    open W
-
-    (* block device ---------------------------------------- *)
-
-    type disk_ops = {
-      block_size: BLK.sz;
-      read: BLK.r -> BLK.t m;
-      write: BLK.r -> BLK.t -> unit m;
-      disk_sync: unit -> unit m;
-    }
+type 't disk_ops = {
+  block_size: BLK.sz;
+  read: BLK.r -> (BLK.t,'t) m;
+  write: BLK.r -> BLK.t -> (unit,'t) m;
+  disk_sync: unit -> (unit,'t) m;
+}
 
 
-    (* store ------------------------------------------------------------ *)
+(* store ------------------------------------------------------------ *)
 
-    (* just an abstraction, so no sync; use sync on underlying disk *)
-    type ('k,'v) store_ops = {
-      cs0: constants;
-      store_free: page_ref list -> unit m;
-      store_read : page_ref -> ('k, 'v) frame m;  (* FIXME option? *)
-      store_alloc : ('k, 'v) frame -> page_ref m;
-      mk_r2f: t -> page_ref -> ('k,'v) frame option;  (* FIXME remove from Api and provide as extra function param? *)
-    }
+open Frame
 
-
-    (* map ------------------------------------------------------------ *)
-
-    (* FIXME make leafstream ops a different type - not always
-       available eg in cached *)
-
-    type ('k,'v) map_ops = {
-      find: 'k -> 'v option m;
-      insert: 'k -> 'v -> unit m;
-      delete: 'k -> unit m;
-      mk_leaf_stream: unit -> ('k,'v) ls_state m;
-      ls_step: ('k,'v) ls_state -> ('k,'v) ls_state option m;
-      ls_kvs: ('k,'v) ls_state -> ('k*'v) list
-    }
+(* just an abstraction, so no sync; use sync on underlying disk *)
+type ('k,'v,'r,'t) store_ops = {
+(*  cs0: Constants.t; *)
+  store_free: 'r list -> (unit,'t) m;
+  store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
+  store_alloc : ('k, 'v,'r) frame -> ('r,'t) m;
+}
 
 
-    (* for debugging *)
-    let all_kvs: ('k,'v)map_ops -> ('k * 'v) list m = Simple_monad.(
-        fun ops ->
-          let rec loop kvs s = (
-            let kvs' = ops.ls_kvs s in
-            let kvs = kvs@kvs' in
-            ops.ls_step s |> bind (fun s' ->
-                match s' with
-                | None -> return kvs
-                | Some s' -> loop kvs s'))
-          in
-          ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
+(* map ------------------------------------------------------------ *)
 
-end)
+type ('k,'v,'t) map_ops = {
+  find: 'k -> ('v option,'t) m;
+  insert: 'k -> 'v -> (unit,'t) m;
+  delete: 'k -> (unit,'t) m;
+}
+
+type ('k,'v,'t) ls_ops = {
+  mk_leaf_stream: unit -> (('k,'v) ls_state,'t) m;
+  ls_step: ('k,'v) ls_state -> (('k,'v) ls_state option,'t) m;
+  ls_kvs: ('k,'v) ls_state -> ('k*'v) list
+}
+
+
+(* for debugging *)
+let all_kvs: ('k,'v,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
+    fun ops ->
+      let rec loop kvs s = (
+        let kvs' = ops.ls_kvs s in
+        let kvs = kvs@kvs' in
+        ops.ls_step s |> bind (fun s' ->
+            match s' with
+            | None -> return kvs
+            | Some s' -> loop kvs s'))
+      in
+      ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
 

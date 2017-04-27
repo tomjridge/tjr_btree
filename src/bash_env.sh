@@ -33,7 +33,7 @@ mk_cmxa="$DISABLE_NTVE ocamlfind ocamlopt $FLGS"
 # mls ----------------------------------------
 
 # remove some files using sed
-mls=`(test -e _depend/b_from_isa && cat _depend/*) | sed 's/gen_our.ml//g'`
+mls=`(test -e _depend/b_isa_util && cat _depend/*) | sed 's/gen_our.ml//g'`
 
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"

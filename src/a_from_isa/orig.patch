@@ -1,0 +1,54 @@
+--- orig.ml	2017-04-27 16:09:58.285425418 +0100
++++ patched.ml	2017-04-27 16:23:21.435678339 +0100
+@@ -278,9 +278,14 @@ let rec is_none = function Some x -> fal
+ 
+ end;; (*struct Option*)
+ 
++module Res = struct
++  include Pervasives
++  type 'a res = ('a,string) result
++end
++
+ module Util : sig
++  include module type of Res
+   type error = String_error of string
+-  type 'a res = Ok of 'a | Error of error
+   val rev_apply : 'a -> ('a -> 'b) -> 'b
+   val unzip : ('a * 'b) list -> 'a list * 'b list
+   val from_to : Arith.nat -> Arith.nat -> Arith.nat list
+@@ -300,7 +305,7 @@ end = struct
+ 
+ type error = String_error of string;;
+ 
+-type 'a res = Ok of 'a | Error of error;;
++include Res
+ 
+ let rec rev_apply x f = f x;;
+ 
+@@ -375,7 +380,7 @@ let rec key_le ord k1 k2 = Arith.less_eq
+ 
+ let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
+ 
+-let rec kvs_equal x = Util.failwitha "FIXME patch" x;;
++let rec kvs_equal x y = (x=y)
+ 
+ let rec check_keys
+   cmp kl ks kr =
+@@ -579,7 +584,7 @@ let rec dest_Node
+   = function Node (ks, rs) -> (ks, rs)
+     | Leaf uu -> Util.failwitha "dest_Node";;
+ 
+-let rec tree_equal t1 t2 = Util.failwitha "FIXME patch";;
++let rec tree_equal t1 t2 = (t1=t2)
+ 
+ let rec tree_to_leaves
+   t0 = (match t0
+@@ -716,7 +721,7 @@ let rec no_focus
+ 
+ let rec r_stk_to_rs xs = Util.rev_apply xs (List.map f_t);;
+ 
+-let rec stack_equal s1 s2 = Util.failwitha "FIXME patch";;
++let rec stack_equal s1 s2 = (s1=s2)
+ 
+ let rec dest_ts_frame
+   f = ((Util.rev_apply f f_ks1, Util.rev_apply f f_ts1),
