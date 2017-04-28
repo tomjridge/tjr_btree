@@ -42,10 +42,10 @@ let map_option f = function Some x -> Some (f x) | _ -> None
 module Find = (struct 
   type ('k,'v,'r,'t) t = {
     tree: ('k,'v) Tree.tree option; (* NB for testing *)
+    r2f: ('t -> ('k,'v,'r) IU.r2f) option; (* NB testing *)
     store: 't;
     fs: ('k,'v,'r) IU.find_state;
     ps1: ('k,'v,'r,'t) IU.Params_.ps1;
-    r2f: 't -> ('k,'v,'r) IU.r2f
   }
 
   type ('k,'v,'r) finished = 'r * ('k * 'v) list
@@ -53,13 +53,15 @@ end)
 
 open Find
 
-let check_state s= (
+let check_state s = (
   Test.log __LOC__;
   (* Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
   Test.test (
     fun _ ->
       s.tree |> if_some (fun t -> 
-          assert (IU.wellformed_find_state s.ps1.ps0 (s.r2f s.store) t s.fs)));
+          s.r2f |> if_some (fun r2f -> 
+              assert (
+                IU.wellformed_find_state s.ps1.ps0 (r2f s.store) t s.fs))));
   true
 )
 
@@ -93,19 +95,18 @@ let find ps1 r2f t k r s : 't * ('r*('k*'v)list,string) result = (
   |> (fun (s,r) -> (s.store,r)))
 
 
-
 (* insert ---------------------------------------- *)
 
 module Insert = (struct  
   type ('k,'v,'r,'t) t = {
     tree: ('k,'v) Tree.tree option;
-      k:'k;
-      v:'v;
-      store: 't;
-      is: ('k,'v,'r) IU.insert_state;
-      ps1: ('k,'v,'r,'t) IU.Params_.ps1;
-      r2f: 't -> ('k,'v,'r) IU.r2f
-    }
+    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
+    k:'k;
+    v:'v;
+    store: 't;
+    is: ('k,'v,'r) IU.insert_state;
+    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+  }
 
   type 'r finished = 'r
 end)
@@ -122,7 +123,9 @@ let check_state s = (
 *)
   Test.test (fun _ ->
       s.tree |> if_some (fun t ->
-          assert (IU.wellformed_insert_state s.ps1.ps0 (s.r2f s.store) t s.k s.v s.is)));
+          s.r2f |> if_some (fun r2f -> 
+              assert (
+                IU.wellformed_insert_state s.ps1.ps0 (r2f s.store) t s.k s.v s.is))));
   true
 )
 
@@ -162,14 +165,14 @@ let insert ps1 r2f t k v r s = (
 module Im = (struct  
   type ('k,'v,'r,'t) t = {
     tree: ('k,'v) Tree.tree option;
-      k:'k;
-      v:'v;
-      kvs: ('k*'v) list;
-      store: 't;
-      is: ('k,'v,'r) IU.im_state;
-      ps1: ('k,'v,'r,'t) IU.Params_.ps1;
-      r2f: 't -> ('k,'v,'r) IU.r2f
-    }
+    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
+    k:'k;
+    v:'v;
+    kvs: ('k*'v) list;
+    store: 't;
+    is: ('k,'v,'r) IU.im_state;
+    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+  }
 
   type 'r finished = 'r
 end)
@@ -214,11 +217,11 @@ let insert_many ps1 r2f t k v kvs r s = (
 module Delete = (struct 
   type ('k,'v,'r,'t) t = {
     tree:('k,'v)Tree.tree option;
+    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
     k:'k;
     store:'t;
     ds: ('k,'v,'r) IU.delete_state;
     ps1: ('k,'v,'r,'t) IU.Params_.ps1;
-    r2f: 't -> ('k,'v,'r) IU.r2f
   }
 
   type 'r finished = 'r
@@ -231,8 +234,11 @@ let check_state s = (
   (* Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
   Test.test (fun _ -> 
       s.tree |> if_some (fun t -> 
-          assert (IU.wellformed_delete_state s.ps1.ps0 (s.r2f s.store) t s.k s.ds)));
-  true
+          s.r2f |> if_some (fun r2f -> 
+              assert (
+                IU.wellformed_delete_state 
+                  s.ps1.ps0 (r2f s.store) t s.k s.ds))));
+      true
 )
 
 let check_trans x y = (true)

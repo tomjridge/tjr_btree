@@ -21,8 +21,7 @@ module N = Iter_leaf_stream
 (* TODO another interface without r2f - no checking *)
 
 (* produce a map, with page_ref state set/get via monad_ops *)
-let make_map_ops ps1 r2f page_ref_ops : ('k,'v,'t) map_ops = (
-  let t0 = None in
+let make_map_ops' ps1 r2f t0 page_ref_ops : ('k,'v,'t) map_ops = (
   let find = (fun k ->
       page_ref_ops.get_page_ref () |> bind (fun r ->
           M.find ps1 r2f t0 k r |> bind (fun (r',kvs) -> 
@@ -41,7 +40,13 @@ let make_map_ops ps1 r2f page_ref_ops : ('k,'v,'t) map_ops = (
   in
   {find; insert; delete })
 
-let make_ls_ops ps1 r2f page_ref_ops : ('k,'v,'r,'t) ls_ops = (
+let make_checked_map_ops ps1 r2f t0 page_ref_ops = 
+  make_map_ops' ps1 (Some r2f) (Some t0) page_ref_ops
+
+let make_unchecked_map_ops ps1 page_ref_ops =
+  make_map_ops' ps1 None None page_ref_ops
+
+let make_ls_ops ps1 page_ref_ops : ('k,'v,'r,'t) ls_ops = (
   let mk_leaf_stream = (fun () ->
       page_ref_ops.get_page_ref () |> bind (fun r -> 
           N.mk_leaf_stream ps1 r))

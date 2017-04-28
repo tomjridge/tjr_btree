@@ -71,12 +71,10 @@ let page_ref_ops = SM.{
 
 open Isa_util.Params_
 
-let mk_map_ops ps1 r2f = 
-  SM.make_map_ops 
+let mk_unchecked_map_ops ps1 = 
+  SM.make_unchecked_map_ops 
     ps1
-    r2f 
     page_ref_ops
-
 
 let mk_ps1 constants compare_k pp : ('k,'v,'r,'t) ps1 = 
   let s = mk_store_ops pp in
@@ -88,6 +86,9 @@ let mk_ps1 constants compare_k pp : ('k,'v,'r,'t) ps1 =
     store_read;store_free; store_alloc
   }
 
+
+let mk_ls_ops ps1 = 
+  SM.make_ls_ops ps1 page_ref_ops
 
 (* create --------------------------------------------------------- *)
 

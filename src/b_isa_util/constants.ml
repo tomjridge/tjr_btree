@@ -5,7 +5,7 @@ type t = {
   max_node_keys: int
 }
 
-let make_constants page_size tag_len k_len v_len = (
+let make_constants ~page_size ~tag_len ~k_len ~v_len = (
   let max_leaf_size = 
     (page_size - tag_len - tag_len) (* for tag and length *)
     / (k_len+v_len)

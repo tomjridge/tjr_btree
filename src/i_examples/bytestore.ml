@@ -1,4 +1,4 @@
-(* store arbitrary byte buffers on top of a block store -------------------- *)
+(* TODO bytestore: store arbitrary byte buffers on top of a block store -------------------- *)
 
 (* each buffer is stored using an initial "metadata" block (eg
    recording the length of the file); the other blocks store the actual data
