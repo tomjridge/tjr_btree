@@ -27,18 +27,16 @@ module BLK = Default_block
 type ('a,'t) m = ('a,'t) Simple_monad.m
 
 
-(* TODO hide implementation details of this type? *)
-type ('k,'v) ls_state (* TODO = ('k,'v,page_ref) Isa_export.Pre_params.ls_state *)
-
 type 'k ord = 'k -> 'k -> int
 
-type page_ref = int
 
+(*
 (* typically we also are interested in pickling *)
 type ('k,'v) kv_params = {
   pp:('k,'v) Pickle_params.t;
   compare_k: 'k ord
 }
+*)
 
 
 (* block device ---------------------------------------- *)
@@ -57,7 +55,7 @@ open Frame
 
 (* just an abstraction, so no sync; use sync on underlying disk *)
 type ('k,'v,'r,'t) store_ops = {
-(*  cs0: Constants.t; *)
+  cs0: Constants.t; (* FIXME belongs here? *)
   store_free: 'r list -> (unit,'t) m;
   store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
   store_alloc : ('k, 'v,'r) frame -> ('r,'t) m;
@@ -72,15 +70,19 @@ type ('k,'v,'t) map_ops = {
   delete: 'k -> (unit,'t) m;
 }
 
-type ('k,'v,'t) ls_ops = {
-  mk_leaf_stream: unit -> (('k,'v) ls_state,'t) m;
-  ls_step: ('k,'v) ls_state -> (('k,'v) ls_state option,'t) m;
-  ls_kvs: ('k,'v) ls_state -> ('k*'v) list
+
+(* we only reveal lss when it points to a leaf *)
+type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)Isa_util.ls_state }
+
+type ('k,'v,'r,'t) ls_ops = {
+  mk_leaf_stream: unit -> (('k,'v,'r) lss,'t) m;
+  ls_step: ('k,'v,'r) lss -> (('k,'v,'r) lss option,'t) m;
+  ls_kvs: ('k,'v,'r) lss -> ('k*'v) list
 }
 
 
 (* for debugging *)
-let all_kvs: ('k,'v,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
+let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
     fun ops ->
       let rec loop kvs s = (
         let kvs' = ops.ls_kvs s in
@@ -92,3 +94,9 @@ let all_kvs: ('k,'v,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
       in
       ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
 
+
+(* fix page_ref --------------------------------------------------- *)
+
+type page_ref = int
+
+type ('k,'v) frame = ('k,'v,page_ref)Frame.frame

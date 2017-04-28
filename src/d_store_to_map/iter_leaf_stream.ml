@@ -5,13 +5,11 @@
    constructed or exposed here has dest_LS_leaf <> None *)
 
 open Prelude
+open Btree_api
 
 module IU = Isa_util
 
 open IU
-
-(* we only reveal lss when it points to a leaf *)
-type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)ls_state }
 
 let rec next_leaf ps1 lss : (('k,'v,'r) lss option,'t) m = (
   let open Simple_monad in
@@ -32,8 +30,7 @@ let mk_leaf_stream ps1 r : (('k,'v,'r)lss,'t) m = (
       next_leaf ps1 {kvs=[];ls} |> bind (fun lss' -> return (dest_Some lss')))
   | Some kvs -> return {kvs; ls})
 
-let ls_kvs ls : ('k*'v) list = (
-  ls |> ls_dest_leaf |> dest_Some)  (* guaranteed <> None *)
+let ls_kvs ls : ('k*'v) list = ls.kvs
 
-let ls_step ps1 ls = next_leaf ls
+let ls_step ps1 ls = next_leaf ps1 ls
 

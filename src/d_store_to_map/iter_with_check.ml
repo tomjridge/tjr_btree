@@ -258,7 +258,7 @@ let mk ps1 r2f t k r s = {
   r2f
 }
 
-let delete ps1 r2f t k r s : ('t * ('r option,string)result) = (
+let delete ps1 r2f t k r s : ('t * ('r,string)result) = (
   mk ps1 r2f t k r s 
   |> iter delete_ops 
   |> (fun (s,r) -> (s.store,r)))

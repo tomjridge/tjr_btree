@@ -6,8 +6,6 @@
 open Prelude
 open Btree_api
 
-
-
 type ('k,'v) pp = ('k,'v) Pickle_params.t
 
 module Page = BLK
@@ -16,8 +14,6 @@ module Page = BLK
 let node_tag = 0
 let leaf_tag = 1
 let tag_len = 4 (* bytes *)
-
-open Frame
 
 (* generic marshalling; format: int node_or_leaf; int number
    of entries; entries *)
@@ -54,11 +50,11 @@ let page_to_frame' : ('k,'v) pp -> Page.t -> ('k,'v)frame = Pickle.U.(
               | _ when tag = node_tag -> (
                   u_list pp.u_k |> bind (fun ks ->
                       u_list u_int |> bind (fun rs ->
-                          ret (Node_frame(ks,rs)))))
+                          ret (Frame.Node_frame(ks,rs)))))
               | _ when tag = leaf_tag -> (
                   let u = u_pair pp.u_k (fun k -> pp.u_v) in
                   u_list u |> bind (fun kvs -> 
-                      ret (Leaf_frame(kvs)))))
+                      ret (Frame.Leaf_frame(kvs)))))
         )
       in
       let (_,r) = x |> Pickle.U.run_w_exception (Page.to_string buf) in
