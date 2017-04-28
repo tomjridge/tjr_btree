@@ -24,27 +24,27 @@ module N = Iter_leaf_stream
 let make_map_ops' ps1 r2t page_ref_ops : ('k,'v,'t) map_ops = (
   let find = (fun k ->
       page_ref_ops.get_page_ref () |> bind (fun r ->
-          M.find ps1 r2t t0 k r |> bind (fun (r',kvs) -> 
-                  page_ref_ops.set_page_ref r' |> bind (fun () ->
-                      return (try Some(List.assoc k kvs) with _ -> None))))))
+          M.find ps1 r2t k r |> bind (fun (r',kvs) -> 
+              page_ref_ops.set_page_ref r' |> bind (fun () ->
+                  return (try Some(List.assoc k kvs) with _ -> None)))))
   in
   let insert = (fun k v ->
       page_ref_ops.get_page_ref () |> bind (fun r ->
-          M.insert ps1 r2f t0 k v r |> bind (fun r' -> 
+          M.insert ps1 r2t k v r |> bind (fun r' -> 
               page_ref_ops.set_page_ref r')))
   in
   let delete = (fun k ->
       page_ref_ops.get_page_ref () |> bind (fun r -> 
-          M.delete ps1 r2f t0 k r |> bind (fun r' ->
+          M.delete ps1 r2t k r |> bind (fun r' ->
               page_ref_ops.set_page_ref r')))
   in
   {find; insert; delete })
 
-let make_checked_map_ops ps1 r2f t0 page_ref_ops = 
-  make_map_ops' ps1 (Some r2f) (Some t0) page_ref_ops
+let make_checked_map_ops ps1 r2t page_ref_ops = 
+  make_map_ops' ps1 (Some r2t) page_ref_ops
 
 let make_unchecked_map_ops ps1 page_ref_ops =
-  make_map_ops' ps1 None None page_ref_ops
+  make_map_ops' ps1 None page_ref_ops
 
 let make_ls_ops ps1 page_ref_ops : ('k,'v,'r,'t) ls_ops = (
   let mk_leaf_stream = (fun () ->
