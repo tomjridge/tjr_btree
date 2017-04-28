@@ -4,6 +4,7 @@
 
 open Prelude
 open Btree_api
+open Page_ref_int
 
 type ('k,'v) pp = ('k,'v) Pickle_params.t
 

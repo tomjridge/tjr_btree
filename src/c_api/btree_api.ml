@@ -97,6 +97,9 @@ let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
 
 (* fix page_ref --------------------------------------------------- *)
 
-type page_ref = int
+module Page_ref_int = struct
+  type page_ref = int
 
-type ('k,'v) frame = ('k,'v,page_ref)Frame.frame
+  type ('k,'v) frame = ('k,'v,page_ref) Frame.frame
+end
+

@@ -22,6 +22,7 @@ module Int = struct
 end
 
 
+
 (* digest -> int ---------------------------------------------------- *)
 
 let digest_int_pp: (Digest.t,Int.t) Pickle_params.t = Pickle.(
@@ -64,10 +65,13 @@ let digest_ss_x_int_pp: (Digest.t,SS_.t*Int.t) Pickle_params.t = Pickle.(
 
 (* int -> int ------------------------------------------------------- *)
 
+
+(*
 let int_int_kv_ops = {
   compare_k=(Pervasives.compare : int -> int -> int);
   equal_v=(fun x y -> (x:int) = y);
 }
+*)
 
 let int_int_pp = EX_.{
     p_k = p_int;

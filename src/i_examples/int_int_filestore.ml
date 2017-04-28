@@ -6,16 +6,12 @@ open Example_keys_and_values
 
 module G = Generic_kv_store
 
-module Uncached = G.Make_uncached (struct 
-    open G
-    type k = int 
-    type v = int
-    let ps = {
-      pp=int_int_pp;
-      kv_ops={
-        compare_k=Pervasives.compare;
-        equal_v=(=);
-      }
-    }
-  end)
+(* FIXME put elsewhere? factor into mk_ps1? *)
+(* sz is page_size *)
+let cs sz = Constants.make_constants sz 4 4 4
 
+let mk_ps1 sz = G.mk_ps1 (cs sz) Int.compare Example_keys_and_values.int_int_pp
+
+let r2f = FIXME put in store_ops? really checking should be given a tree, to avoid these sorts of dependencies (or, r -> tree option ~ r2t)
+
+let mk_maps_ops sz = G.mk_maps_ops (mk_ps1 sz) r2f

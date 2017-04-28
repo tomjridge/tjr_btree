@@ -7,6 +7,7 @@
 open Prelude
 open Btree_api
 
+type page_ref = int
 
 type 't page_ref_ops = {
   get_page_ref: unit -> (page_ref,'t) m;
@@ -16,6 +17,8 @@ type 't page_ref_ops = {
 open Simple_monad
 module M = Iter_with_check
 module N = Iter_leaf_stream
+
+(* TODO another interface without r2f - no checking *)
 
 (* produce a map, with page_ref state set/get via monad_ops *)
 let make_map_ops ps1 r2f page_ref_ops : ('k,'v,'t) map_ops = (
