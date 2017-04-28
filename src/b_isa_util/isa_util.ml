@@ -8,7 +8,7 @@ type 'a res = 'a Util.res
 type ('a,'t) m = 't -> 't * 'a Util.res
 
 type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
-type ('k,'v,'r) r2f = ('r -> ('k,'v,'r) frame option)
+type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option) 
 
 type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
 type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
@@ -80,9 +80,9 @@ let dest_f_finished: ('k,'v,'r) find_state ->
       | Some  x -> Some (x5 x)))
   
 let wellformed_find_state: 
-  'k ps0 -> ('k,'v,'r) r2f -> ('k,'v) tree -> ('k,'v,'r) find_state -> bool = 
-  (fun ps0 r2f t fs -> 
-     Find.wellformed_find_state (ps0.compare_k|>X.x_cmp) r2f t fs)
+  'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree -> 't -> ('k,'v,'r) find_state -> bool = 
+  (fun ps0 r2t t s fs -> 
+     Find.wellformed_find_state (ps0.compare_k|>X.x_cmp) r2t t s fs)
 
 
 (* delete ---------------------------------------- *)
@@ -94,10 +94,11 @@ let delete_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) delete_state -> 't ->
 
 let dest_d_finished: ('k,'v,'r) delete_state -> 'r option = Delete.dest_d_finished
 
-let wellformed_delete_state: 'k ps0 -> ('k,'v,'r) r2f -> ('k,'v) tree -> 'k -> 
-      ('k,'v,'r) delete_state -> bool = (
-  fun ps0 r2f t k ds -> 
-    Delete.wellformed_delete_state (ps0|>X.x_ps0) r2f t k ds)
+let wellformed_delete_state: 
+  'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree -> 't -> 'k -> 
+  ('k,'v,'r) delete_state -> bool = (
+  fun ps0 r2t t s k ds -> 
+    Delete.wellformed_delete_state (ps0|>X.x_ps0) r2t t s k ds)
     
 
 (* insert ---------------------------------------- *)
@@ -109,10 +110,10 @@ let insert_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) insert_state -> 't ->
 
 let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = Insert.dest_i_finished
 
-let wellformed_insert_state: 'k ps0 -> ('k,'v,'r) r2f -> ('k,'v) tree -> 'k -> 'v -> 
-      ('k,'v,'r) insert_state -> bool = 
-  (fun ps0 r2f t k v is ->
-     Insert.wellformed_insert_state (ps0|>X.x_ps0) r2f t k v is)
+let wellformed_insert_state: 'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree 
+  -> 't -> 'k -> 'v -> ('k,'v,'r) insert_state -> bool = 
+  (fun ps0 r2t t s k v is ->
+     Insert.wellformed_insert_state (ps0|>X.x_ps0) r2t t s k v is)
 
 (* insert_many ---------------------------------------- *)
 let mk_im_state: 'k -> 'v -> ('k*'v) list -> 'r -> ('k,'v,'r) im_state = 
@@ -138,4 +139,5 @@ let ls_dest_leaf ls = Leaf_stream.dest_LS_leaf ls
 
 let ls_is_finished lss : bool = (
   lss |> Leaf_stream.lss_is_finished)
+
 

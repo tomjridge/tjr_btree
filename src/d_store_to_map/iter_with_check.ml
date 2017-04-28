@@ -39,10 +39,14 @@ let map_option f = function Some x -> Some (f x) | _ -> None
 
 (* Raw_map exposes a monad, but here we repeatedly run the step
    and check various invariants *)
+
+(* r2t takes a state s:'t and a page ref r:'r and produces an optional
+   tree; this is required for checking; if we have it, we also have
+   the initial tree *)
+
 module Find = (struct 
   type ('k,'v,'r,'t) t = {
-    tree: ('k,'v) Tree.tree option; (* NB for testing *)
-    r2f: ('t -> ('k,'v,'r) IU.r2f) option; (* NB testing *)
+    tr2t: (('k,'v) Tree.tree * ('k,'v,'r,'t)IU.r2t) option; 
     store: 't;
     fs: ('k,'v,'r) IU.find_state;
     ps1: ('k,'v,'r,'t) IU.Params_.ps1;
@@ -54,14 +58,11 @@ end)
 open Find
 
 let check_state s = (
-  Test.log __LOC__;
-  (* Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-  Test.test (
-    fun _ ->
-      s.tree |> if_some (fun t -> 
-          s.r2f |> if_some (fun r2f -> 
-              assert (
-                IU.wellformed_find_state s.ps1.ps0 (r2f s.store) t s.fs))));
+  s.tr2t |> if_some (fun (t,r2t) -> 
+      Test.log __LOC__;
+      (* Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+      Test.test (fun _ ->
+          assert (IU.wellformed_find_state s.ps1.ps0 r2t t s.store s.fs)));
   true
 )
 
@@ -81,16 +82,15 @@ let step : 't -> ('t * (unit,string)result) = (fun x ->
 
 let find_ops = { check_state; check_trans; step; dest } 
 
-let mk ps1 r2f t k r s = {
-    tree=t; 
-    store=s; 
-    fs=IU.mk_find_state k r;
-    ps1=ps1;
-    r2f=r2f
-  }
+let mk ps1 tr2t k r s = {
+  tr2t; 
+  store=s; 
+  fs=IU.mk_find_state k r;
+  ps1=ps1;
+}
 
-let find ps1 r2f t k r s : 't * ('r*('k*'v)list,string) result = (
-  mk ps1 r2f t k r s 
+let find ps1 tr2t k r s : 't * ('r*('k*'v)list,string) result = (
+  mk ps1 tr2t k r s 
   |> iter find_ops 
   |> (fun (s,r) -> (s.store,r)))
 
@@ -99,8 +99,7 @@ let find ps1 r2f t k r s : 't * ('r*('k*'v)list,string) result = (
 
 module Insert = (struct  
   type ('k,'v,'r,'t) t = {
-    tree: ('k,'v) Tree.tree option;
-    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
+    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t) option;
     k:'k;
     v:'v;
     store: 't;
@@ -121,11 +120,8 @@ let check_state s = (
           Test.log ("s.v" ^ (s.v |> KV_.value_t_to_yojson |> Yojson.Safe.to_string));
           Test.log ("s.is" ^ (s.is |> Insert.i_state_t_to_yojson |> Yojson.Safe.to_string));
 *)
-  Test.test (fun _ ->
-      s.tree |> if_some (fun t ->
-          s.r2f |> if_some (fun r2f -> 
-              assert (
-                IU.wellformed_insert_state s.ps1.ps0 (r2f s.store) t s.k s.v s.is))));
+  s.tr2t |> if_some (fun (t,r2t) -> 
+      assert (IU.wellformed_insert_state s.ps1.ps0 r2t t s.store s.k s.v s.is));
   true
 )
 
@@ -144,17 +140,16 @@ let step : 't -> ('t* (unit,string)result) = (fun s ->
 
 let insert_ops = { check_state; check_trans; step; dest } 
 
-let mk ps1 r2f t k v r s = {  
-  tree=t; 
+let mk ps1 tr2t k v r s = {  
+  tr2t; 
   k; v; 
   store=s; 
   is=(IU.mk_insert_state k v r);
   ps1;
-  r2f;
 }
 
-let insert ps1 r2f t k v r s = (
-  mk ps1 r2f t k v r s 
+let insert ps1 tr2t k v r s = (
+  mk ps1 tr2t k v r s 
   |> iter insert_ops
   |> (fun (s,r) -> (s.store,r)))
 
@@ -164,8 +159,7 @@ let insert ps1 r2f t k v r s = (
 
 module Im = (struct  
   type ('k,'v,'r,'t) t = {
-    tree: ('k,'v) Tree.tree option;
-    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
+    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t) option;
     k:'k;
     v:'v;
     kvs: ('k*'v) list;
@@ -196,17 +190,16 @@ let step : 't -> ('t* (unit,string)result) = (fun s ->
 
 let im_ops = { check_state; check_trans; step; dest } 
 
-let mk ps1 r2f t k v kvs r s = {  
-  tree=t; 
+let mk ps1 tr2t k v kvs r s = {  
+  tr2t; 
   k; v; kvs;
   store=s; 
   is=(IU.mk_im_state k v kvs r);
   ps1;
-  r2f;
 }
 
-let insert_many ps1 r2f t k v kvs r s = (
-  mk ps1 r2f t k v kvs r s 
+let insert_many ps1 tr2t k v kvs r s = (
+  mk ps1 tr2t k v kvs r s 
   |> iter im_ops
   |> (fun (s,r) -> (s.store,r)))
 
@@ -216,8 +209,7 @@ let insert_many ps1 r2f t k v kvs r s = (
 
 module Delete = (struct 
   type ('k,'v,'r,'t) t = {
-    tree:('k,'v)Tree.tree option;
-    r2f: ('t -> ('k,'v,'r) IU.r2f) option;
+    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t)option;
     k:'k;
     store:'t;
     ds: ('k,'v,'r) IU.delete_state;
@@ -230,15 +222,12 @@ end)
 open Delete
 
 let check_state s = (
-  Test.log __LOC__;
-  (* Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-  Test.test (fun _ -> 
-      s.tree |> if_some (fun t -> 
-          s.r2f |> if_some (fun r2f -> 
-              assert (
-                IU.wellformed_delete_state 
-                  s.ps1.ps0 (r2f s.store) t s.k s.ds))));
-      true
+  s.tr2t |> if_some (fun (t,r2t) -> 
+      Test.log __LOC__;
+      (* Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+      Test.test (fun _ -> 
+          assert (IU.wellformed_delete_state s.ps1.ps0 r2t t s.store s.k s.ds)));
+  true
 )
 
 let check_trans x y = (true)
@@ -255,17 +244,16 @@ let step : 't -> ('t*(unit,string)result) = (fun x ->
   
 let delete_ops = { check_state; check_trans; step; dest } 
 
-let mk ps1 r2f t k r s = {
-  tree=t; 
+let mk ps1 tr2t k r s = {
+  tr2t; 
   k;
   store=s; 
   ds=IU.mk_delete_state k r;
   ps1;
-  r2f
 }
 
-let delete ps1 r2f t k r s : ('t * ('r,string)result) = (
-  mk ps1 r2f t k r s 
+let delete ps1 tr2t k r s : ('t * ('r,string)result) = (
+  mk ps1 tr2t k r s 
   |> iter delete_ops 
   |> (fun (s,r) -> (s.store,r)))
 

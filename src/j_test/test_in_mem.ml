@@ -2,12 +2,28 @@
 
 open Prelude
 open Btree_api
+open In_mem_store
+open Page_ref_int
 
 (* we concentrate on relatively small parameters *)
 
-let pp = Example_keys_and_values.int_int_pp
+type key = int
+type value = int
 
+type tree = (key,value)Tree.tree
+type store = (key,value)im
 
+module Test_state = struct 
+  type t = { 
+    t:tree;
+    s:store;
+    r:page_ref 
+  }
+
+  (* compare: we want to ignore the store and page_ref *)
+  let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
+end
+open Test_state
 
 let constants = Constants.{
     max_leaf_size = 5;
@@ -16,38 +32,11 @@ let constants = Constants.{
     min_node_keys = 2;
   }
 
-type store = (int,int)In_mem_store.store
-
-(* we want to ignore the store and page_ref *)
-module Test_state = struct 
-  type t = { t:(int,int)Tree.tree;s:store;r:page_ref }
-  let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
-end
-module TS = Test_state
-
-module W = Make_world(Test_state)
-
-module Api = Make_api(W)
-
-module IMS_ = In_mem_store.Make(W)
-
-let store_ops = 
-  IMS_.make 
-    kv_ops 
-    { get_store=(fun () -> (fun t -> (t,Ok t.s)));
-      set_store=(fun s -> (fun t -> ({t with s},Ok ())));
-    }
-    constants
-
-
-module S2M = Store_to_map.Make(W)
-
-open! S2M
-
-let pr_ops = {
+let pr_ops = Store_to_map.{
   get_page_ref=(fun () -> fun t -> (t,Ok t.r));
   set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
 }
+
 
 let r2t = Store_to_map.mk_r2t pr_ops kv_ops store_ops
 
