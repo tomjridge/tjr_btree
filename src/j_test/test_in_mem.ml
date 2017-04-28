@@ -3,11 +3,11 @@
 open Prelude
 open Btree_api
 
-module IE = Isa_export
-
 (* we concentrate on relatively small parameters *)
 
-let kv_ops = Example_keys_and_values.int_int_kv_ops
+let pp = Example_keys_and_values.int_int_pp
+
+
 
 let constants = Constants.{
     max_leaf_size = 5;

@@ -3,40 +3,36 @@
 (* this is for performance testing *)
 
 open Prelude
+open Btree_api
+open Int_int_map_on_fd
 
 let default_filename = "/tmp/store"  (* FIXME *)
+let sz = 4096
 
-module Uncached = Int_int_filestore.Uncached
-
-let map_ops = Uncached.map_ops
+let map_ops = mk_unchecked_map_ops sz
 
 (* test uncached ---------------------------------------- *)
 
-module Test_uncached = struct 
+let test_uncached range = 
+  Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
+    __MODULE__ 
+    (List.length range);
+  flush_out();
+  let t = G.from_file default_filename true true pp in
+  let t = ref t in
+  let xs = ref range in
+  while (!xs <> []) do
+    print_string "."; flush_out();
+    let x = List.hd !xs in
+    (map_ops.insert x (2*x) |> (fun f -> f !t) |> function (t',Ok()) -> t:=t');
+    xs:=List.tl !xs;
+  done;
+  print_newline ();
+  (* FIXME check result? *)
+  let t = !t in
+  Unix.close (t.fd);
+  ()
 
-  let test_uncached range = 
-    Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
-      __MODULE__ 
-      (List.length range);
-    flush_out();
-    let t = Uncached.from_file default_filename true true in
-    let t = ref t in
-    let xs = ref range in
-    while (!xs <> []) do
-      print_string "."; flush_out();
-      let x = List.hd !xs in
-      (map_ops.insert x (2*x) |> (fun f -> f !t) |> function (t',Ok()) -> t:=t');
-      xs:=List.tl !xs;
-    done;
-    print_newline ();
-    (* FIXME check result? *)
-    let t = !t in
-    Unix.close (t.fd);
-    ()
-
-end
-
-include Test_uncached
 
 (* test cached ------------------------------------------------------------ *)
 

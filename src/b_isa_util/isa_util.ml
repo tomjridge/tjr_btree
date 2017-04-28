@@ -21,6 +21,7 @@ module Params_ = struct
     compare_k: 'k -> 'k -> int; 
     constants: Constants.t 
   }
+  (* TODO make these match up with store_ops *)
   type ('k,'v,'r,'t) ps1 = { 
     ps0: 'k ps0; 
     store_read: 'r -> 't -> ('t * ('k,'v,'r) frame res);

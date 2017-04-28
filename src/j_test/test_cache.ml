@@ -33,6 +33,8 @@ module Pre = struct
   }
 end
 
+open Pre
+
 module Test_state = struct 
   include Pre
   open Pre
@@ -60,17 +62,11 @@ end
 
 let _ = (module Test_state: Set.OrderedType)
 
-module W = Make_world(struct type t = Test_state.t end)
-module Api = Make_api(W)
-open Api
-module Cache_ = Cache.Make(W)
-
-type ('k,'v) maps_ops = ('k,'v) Cache_.map_ops
-open Cache_
+open Cache
 
 (* base map --------------------------------------------------------- *)
 
-let base_map_ops: (key,value) map_ops = {
+let base_map_ops: (key,value,t) map_ops = {
     find=(fun k -> (fun t -> 
       (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None))));
     insert=(fun k v -> (fun t -> failwith ""));
@@ -84,7 +80,7 @@ let cache_ops = {
   set_cache=(fun cache t -> ({t with cache},Ok()))
 }
 
-let cached_map_ops = Cache_.make_cached_map base_map_ops cache_ops
+let cached_map_ops = make_cached_map base_map_ops cache_ops
 
 
 (* exhaustive testing ----------------------------------------------- *)
@@ -126,6 +122,8 @@ module S (* : Exhaustive.S *)= struct
    (?) this looks like we need to do some more work here
 
    FIXME these are not currently checked
+
+   we already check internal invariants of course
 *)
 
   let check_invariants t = ()  (* TODO *)
