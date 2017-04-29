@@ -269,12 +269,22 @@ type nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 |
 
 end;; (*struct String*)
 
+module Option : sig
+  val is_none : 'a option -> bool
+end = struct
+
+let rec is_none = function Some x -> false
+                  | None -> true;;
+
+end;; (*struct Option*)
+
 module Util : sig
   type error = String_error of string
   type 'a res = Ok of 'a | Error of error
   val rev_apply : 'a -> ('a -> 'b) -> 'b
   val unzip : ('a * 'b) list -> 'a list * 'b list
   val from_to : Arith.nat -> Arith.nat -> Arith.nat list
+  val is_None : 'a option -> bool
   val failwitha : string -> 'a
   val split_at : Arith.nat -> 'a list -> 'a list * 'a list
   val dest_Some : 'a option -> 'a
@@ -299,6 +309,8 @@ let rec unzip
          rev_apply xs (List.map Product_Type.snd));;
 
 let rec from_to x y = List.upt x (Arith.suc y);;
+
+let rec is_None x = Option.is_none x;;
 
 let rec failwitha x = failwith "undefined";;
 
@@ -753,14 +765,6 @@ let rec add_new_stack_frame
 
 end;; (*struct Tree_stack*)
 
-module Pre_params : sig
-  val dummy : unit
-end = struct
-
-let dummy : unit = ();;
-
-end;; (*struct Pre_params*)
-
 module Frame : sig
   type ('a, 'b, 'c) frame = Node_frame of ('a list * 'c list) |
     Leaf_frame of ('a * 'b) list
@@ -781,70 +785,112 @@ let rec dest_Node_frame
 
 end;; (*struct Frame*)
 
-module Params : sig
-  type 'a ps0 = Ps0 of (('a -> 'a -> Arith.int) * unit Prelude.constants_ext)
-  type ('a, 'b, 'c, 'd) ps1 =
-    Ps1 of
-      ('a ps0 *
-        (('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
-          ((('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
-            ('c list -> 'd -> 'd * unit Util.res))))
-  val ps0 : ('a, 'b, 'c, 'd) ps1 -> 'a ps0
-  val csa : 'a ps0 -> unit Prelude.constants_ext
-  val cs : ('a, 'b, 'c, 'd) ps1 -> unit Prelude.constants_ext
-  val cmp_ka : 'a ps0 -> 'a -> 'a -> Arith.int
-  val cmp_k : ('a, 'b, 'c, 'd) ps1 -> 'a -> 'a -> Arith.int
+module Pre_params : sig
   val dummy : unit
-  val store_free : ('a, 'b, 'c, 'd) ps1 -> 'c list -> 'd -> 'd * unit Util.res
-  val store_read :
-    ('a, 'b, 'c, 'd) ps1 -> 'c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res
-  val store_alloc :
-    ('a, 'b, 'c, 'd) ps1 -> ('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res
+  val mk_r2t :
+    ('a -> 'b -> ('c, 'd, 'b) Frame.frame option) ->
+      Arith.nat -> 'a -> 'b -> ('c, 'd) Tree.tree option
 end = struct
 
-type 'a ps0 = Ps0 of (('a -> 'a -> Arith.int) * unit Prelude.constants_ext);;
+let dummy : unit = ();;
+
+let rec mk_r2ta
+  r2f n t r =
+    (if Arith.equal_nat n Arith.zero_nat then None
+      else (match r2f t r with None -> None
+             | Some (Frame.Node_frame (ks, rs)) ->
+               let ts =
+                 List.map (mk_r2ta r2f (Arith.minus_nat n Arith.one_nat) t) rs
+                 in
+               (match List.filter Util.is_None ts
+                 with [] ->
+                   Some (Tree.Node
+                          (ks, Util.rev_apply ts (List.map Util.dest_Some)))
+                 | _ :: _ -> None)
+             | Some (Frame.Leaf_frame kvs) -> Some (Tree.Leaf kvs)));;
+
+let rec mk_r2t x = mk_r2ta x;;
+
+end;; (*struct Pre_params*)
+
+module Params : sig
+  type 'a ps0 = Ps0 of (unit Prelude.constants_ext * ('a -> 'a -> Arith.int))
+  type ('a, 'b, 'c, 'd, 'e) store_ops_ext =
+    Store_ops_ext of
+      ('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
+        (('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
+        ('c list -> 'd -> 'd * unit Util.res) * 'e
+  type ('a, 'b, 'c, 'd) ps1 =
+    Ps1 of ('a ps0 * ('a, 'b, 'c, 'd, unit) store_ops_ext)
+  val ps0_cs : 'a ps0 -> unit Prelude.constants_ext
+  val cs : ('a, 'b, 'c, 'd) ps1 -> unit Prelude.constants_ext
+  val ps0_cmp_k : 'a ps0 -> 'a -> 'a -> Arith.int
+  val cmp_k : ('a, 'b, 'c, 'd) ps1 -> 'a -> 'a -> Arith.int
+  val dummy : unit
+  val ps1_ps0 : ('a, 'b, 'c, 'd) ps1 -> 'a ps0
+  val ps1_store_ops :
+    ('a, 'b, 'c, 'd) ps1 -> ('a, 'b, 'c, 'd, unit) store_ops_ext
+  val store_free :
+    ('a, 'b, 'c, 'd, 'e) store_ops_ext -> 'c list -> 'd -> 'd * unit Util.res
+  val store_read :
+    ('a, 'b, 'c, 'd, 'e) store_ops_ext ->
+      'c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res
+  val store_alloc :
+    ('a, 'b, 'c, 'd, 'e) store_ops_ext ->
+      ('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res
+end = struct
+
+type 'a ps0 = Ps0 of (unit Prelude.constants_ext * ('a -> 'a -> Arith.int));;
+
+type ('a, 'b, 'c, 'd, 'e) store_ops_ext =
+  Store_ops_ext of
+    ('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
+      (('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
+      ('c list -> 'd -> 'd * unit Util.res) * 'e;;
 
 type ('a, 'b, 'c, 'd) ps1 =
-  Ps1 of
-    ('a ps0 *
-      (('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
-        ((('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
-          ('c list -> 'd -> 'd * unit Util.res))));;
+  Ps1 of ('a ps0 * ('a, 'b, 'c, 'd, unit) store_ops_ext);;
 
-let rec dest_ps1 ps1 = let Ps1 ps1a = ps1 in
-                       ps1a;;
-
-let rec ps0 ps1 = let (p, (_, (_, _))) = dest_ps1 ps1 in
-                  p;;
+let rec dest_ps1 ps1 = let Ps1 a = ps1 in
+                       let (aa, b) = a in
+                       (aa, b);;
 
 let rec dest_ps0 ps0 = let Ps0 a = ps0 in
                        let (aa, b) = a in
                        (aa, b);;
 
-let rec csa
-  ps0 = Util.rev_apply (Util.rev_apply ps0 dest_ps0) Product_Type.snd;;
-
-let rec cs ps1 = Util.rev_apply (Util.rev_apply ps1 ps0) csa;;
-
-let rec cmp_ka
+let rec ps0_cs
   ps0 = Util.rev_apply (Util.rev_apply ps0 dest_ps0) Product_Type.fst;;
 
-let rec cmp_k ps1 = Util.rev_apply (Util.rev_apply ps1 ps0) cmp_ka;;
+let rec cs
+  ps1 = Util.rev_apply
+          (Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst)
+          ps0_cs;;
+
+let rec ps0_cmp_k
+  ps0 = Util.rev_apply (Util.rev_apply ps0 dest_ps0) Product_Type.snd;;
+
+let rec cmp_k
+  ps1 = Util.rev_apply
+          (Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst)
+          ps0_cmp_k;;
 
 let dummy : unit = Pre_params.dummy;;
 
-let rec store_free ps1 = let (_, (_, (_, f))) = dest_ps1 ps1 in
-                         f;;
+let rec ps1_ps0
+  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst;;
 
-let rec store_read ps1 = let (_, (r, (_, _))) = dest_ps1 ps1 in
-                         r;;
+let rec ps1_store_ops
+  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.snd;;
+
+let rec store_free
+  (Store_ops_ext (store_read, store_alloc, store_free, more)) = store_free;;
+
+let rec store_read
+  (Store_ops_ext (store_read, store_alloc, store_free, more)) = store_read;;
 
 let rec store_alloc
-  ps1 = let a = dest_ps1 ps1 in
-        let (_, aa) = a in
-        let (_, ab) = aa in
-        let (ac, _) = ab in
-        ac;;
+  (Store_ops_ext (store_read, store_alloc, store_free, more)) = store_alloc;;
 
 end;; (*struct Params*)
 
@@ -901,9 +947,10 @@ type ('a, 'b, 'c) find_state =
 
 let rec find_step
   ps1 fs =
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match fs
       with F_down (r0, (k, (r, stk))) ->
-        Util.rev_apply (Util.rev_apply ps1 Params.store_read r)
+        Util.rev_apply (Util.rev_apply store_ops Params.store_read r)
           (Monad.fmap
             (fun a ->
               (match a
@@ -990,7 +1037,8 @@ let rec wf_f
   ps0 r2t t0 s k r =
     Util.assert_truea
       (let (constants, k_ord) =
-         (Util.rev_apply ps0 Params.csa, Util.rev_apply ps0 Params.cmp_ka) in
+         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
+         in
        let t = Util.rev_apply (r2t s r) Util.dest_Some in
        Tree.wellformed_tree constants (Some Prelude.Small_root_node_or_leaf)
          k_ord t &&
@@ -1003,7 +1051,8 @@ let rec wf_u
   ps0 r2t t0 s k u =
     Util.assert_truea
       (let (constants, k_ord) =
-         (Util.rev_apply ps0 Params.csa, Util.rev_apply ps0 Params.cmp_ka) in
+         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
+         in
        let (fo, stk) = u in
        let check_stack =
          (fun rstk tstk ->
@@ -1068,6 +1117,7 @@ let rec frac_mult
 
 let rec post_steal_or_merge
   ps1 stk p_unused p_1 p_2 x =
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     let m = frac_mult in
     (match x
       with D1 c ->
@@ -1093,7 +1143,8 @@ let rec post_steal_or_merge
                     (D_small_node (Util.rev_apply p Frame.dest_Node_frame))
                 | false ->
                   Util.rev_apply
-                    (Util.rev_apply p (Util.rev_apply ps1 Params.store_alloc))
+                    (Util.rev_apply p
+                      (Util.rev_apply store_ops Params.store_alloc))
                     (Monad.fmap (fun a -> D_updated_subtree a))))
           in
         Util.rev_apply f (Monad.fmap (fun fa -> (fa, stk)))
@@ -1116,7 +1167,7 @@ let rec post_steal_or_merge
                 (D_small_node (Util.rev_apply p Frame.dest_Node_frame))
             | false ->
               Util.rev_apply
-                (Util.rev_apply p (Util.rev_apply ps1 Params.store_alloc))
+                (Util.rev_apply p (Util.rev_apply store_ops Params.store_alloc))
                 (Monad.fmap (fun a -> D_updated_subtree a)))
           in
         Util.rev_apply f (Monad.fmap (fun fa -> (fa, stk))));;
@@ -1198,116 +1249,123 @@ let rec get_sibling
 
 let rec step_up
   ps1 du =
-    (match du with (_, []) -> Util.impossible1 "delete, step_up"
-      | (D_small_leaf kvs, p :: stk) ->
-        let leaf = true in
-        let mk_c = (fun (ks, vs) -> Frame.Leaf_frame (List.zip ks vs)) in
-        let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-        let (aa, b) = a in
-        let (p_ks1, p_rs1) = aa in
-        (fun (_, (p_ks2, p_rs2)) ->
-          let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
-          let (right, ac) = ab in
-          let (ad, ba) = ac in
-          let (p_1, p_2) = ad in
-          (fun (p_k, r) ->
-            let frm = Util.rev_apply ps1 Params.store_read r in
-            let d12 =
-              Util.rev_apply frm
-                (Monad.fmap
-                  (fun frma ->
-                    steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
-                      mk_c (Util.rev_apply kvs Util.unzip) p_k
-                      (Util.rev_apply
-                        (Util.rev_apply frma Frame.dest_Leaf_frame)
-                        Util.unzip)))
-              in
-            let d12a =
-              Util.rev_apply d12
-                (Monad.bind
-                  (fun ae ->
-                    (match ae
-                      with D1 frma ->
-                        Util.rev_apply
-                          (Util.rev_apply frma
-                            (Util.rev_apply ps1 Params.store_alloc))
-                          (Monad.fmap (fun af -> D1 af))
-                      | D2 (frm1, (p_ka, frm2)) ->
-                        Util.rev_apply
-                          (Util.rev_apply frm1
-                            (Util.rev_apply ps1 Params.store_alloc))
-                          (Monad.bind
-                            (fun r1 ->
-                              Util.rev_apply
-                                (Util.rev_apply frm2
-                                  (Util.rev_apply ps1 Params.store_alloc))
-                                (Monad.fmap
-                                  (fun r2 -> D2 (r1, (p_ka, r2)))))))))
-              in
-            Util.rev_apply d12a
-              (Monad.bind (post_steal_or_merge ps1 stk p p_1 p_2)))
-            ba)
-          b
-      | (D_small_node (ks, rs), p :: stk) ->
-        let leaf = false in
-        let mk_c = (fun a -> Frame.Node_frame a) in
-        let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-        let (aa, b) = a in
-        let (p_ks1, p_rs1) = aa in
-        (fun (_, (p_ks2, p_rs2)) ->
-          let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
-          let (right, ac) = ab in
-          let (ad, ba) = ac in
-          let (p_1, p_2) = ad in
-          (fun (p_k, r) ->
-            let frm = Util.rev_apply ps1 Params.store_read r in
-            let d12 =
-              Util.rev_apply frm
-                (Monad.fmap
-                  (fun frma ->
-                    steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
-                      mk_c (ks, rs) p_k
-                      (Util.rev_apply frma Frame.dest_Node_frame)))
-              in
-            let d12a =
-              Util.rev_apply d12
-                (Monad.bind
-                  (fun ae ->
-                    (match ae
-                      with D1 frma ->
-                        Util.rev_apply
-                          (Util.rev_apply frma
-                            (Util.rev_apply ps1 Params.store_alloc))
-                          (Monad.fmap (fun af -> D1 af))
-                      | D2 (frm1, (p_ka, frm2)) ->
-                        Util.rev_apply
-                          (Util.rev_apply frm1
-                            (Util.rev_apply ps1 Params.store_alloc))
-                          (Monad.bind
-                            (fun r1 ->
-                              Util.rev_apply
-                                (Util.rev_apply frm2
-                                  (Util.rev_apply ps1 Params.store_alloc))
-                                (Monad.fmap
-                                  (fun r2 -> D2 (r1, (p_ka, r2)))))))))
-              in
-            Util.rev_apply d12a
-              (Monad.bind (post_steal_or_merge ps1 stk p p_1 p_2)))
-            ba)
-          b
-      | (D_updated_subtree r, p :: stk) ->
-        let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-        let (aa, b) = a in
-        let (ks1, rs1) = aa in
-        (fun (_, (ks2, rs2)) ->
-          Util.rev_apply
-            (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-              (Util.rev_apply ps1 Params.store_alloc))
-            (Monad.fmap (fun ra -> (D_updated_subtree ra, stk))))
-          b);;
+    let (f, stk) = du in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    (match stk with [] -> Util.impossible1 "delete, step_up"
+      | p :: stka ->
+        (match f
+          with D_small_leaf kvs ->
+            let leaf = true in
+            let mk_c = (fun (ks, vs) -> Frame.Leaf_frame (List.zip ks vs)) in
+            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
+            let (aa, b) = a in
+            let (p_ks1, p_rs1) = aa in
+            (fun (_, (p_ks2, p_rs2)) ->
+              let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
+              let (right, ac) = ab in
+              let (ad, ba) = ac in
+              let (p_1, p_2) = ad in
+              (fun (p_k, r) ->
+                let frm = Util.rev_apply store_ops Params.store_read r in
+                let d12 =
+                  Util.rev_apply frm
+                    (Monad.fmap
+                      (fun frma ->
+                        steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
+                          mk_c (Util.rev_apply kvs Util.unzip) p_k
+                          (Util.rev_apply
+                            (Util.rev_apply frma Frame.dest_Leaf_frame)
+                            Util.unzip)))
+                  in
+                let d12a =
+                  Util.rev_apply d12
+                    (Monad.bind
+                      (fun ae ->
+                        (match ae
+                          with D1 frma ->
+                            Util.rev_apply
+                              (Util.rev_apply frma
+                                (Util.rev_apply store_ops Params.store_alloc))
+                              (Monad.fmap (fun af -> D1 af))
+                          | D2 (frm1, (p_ka, frm2)) ->
+                            Util.rev_apply
+                              (Util.rev_apply frm1
+                                (Util.rev_apply store_ops Params.store_alloc))
+                              (Monad.bind
+                                (fun r1 ->
+                                  Util.rev_apply
+                                    (Util.rev_apply frm2
+                                      (Util.rev_apply store_ops
+Params.store_alloc))
+                                    (Monad.fmap
+                                      (fun r2 -> D2 (r1, (p_ka, r2)))))))))
+                  in
+                Util.rev_apply d12a
+                  (Monad.bind (post_steal_or_merge ps1 stka p p_1 p_2)))
+                ba)
+              b
+          | D_small_node (ks, rs) ->
+            let leaf = false in
+            let mk_c = (fun a -> Frame.Node_frame a) in
+            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
+            let (aa, b) = a in
+            let (p_ks1, p_rs1) = aa in
+            (fun (_, (p_ks2, p_rs2)) ->
+              let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
+              let (right, ac) = ab in
+              let (ad, ba) = ac in
+              let (p_1, p_2) = ad in
+              (fun (p_k, r) ->
+                let frm = Util.rev_apply store_ops Params.store_read r in
+                let d12 =
+                  Util.rev_apply frm
+                    (Monad.fmap
+                      (fun frma ->
+                        steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
+                          mk_c (ks, rs) p_k
+                          (Util.rev_apply frma Frame.dest_Node_frame)))
+                  in
+                let d12a =
+                  Util.rev_apply d12
+                    (Monad.bind
+                      (fun ae ->
+                        (match ae
+                          with D1 frma ->
+                            Util.rev_apply
+                              (Util.rev_apply frma
+                                (Util.rev_apply store_ops Params.store_alloc))
+                              (Monad.fmap (fun af -> D1 af))
+                          | D2 (frm1, (p_ka, frm2)) ->
+                            Util.rev_apply
+                              (Util.rev_apply frm1
+                                (Util.rev_apply store_ops Params.store_alloc))
+                              (Monad.bind
+                                (fun r1 ->
+                                  Util.rev_apply
+                                    (Util.rev_apply frm2
+                                      (Util.rev_apply store_ops
+Params.store_alloc))
+                                    (Monad.fmap
+                                      (fun r2 -> D2 (r1, (p_ka, r2)))))))))
+                  in
+                Util.rev_apply d12a
+                  (Monad.bind (post_steal_or_merge ps1 stka p p_1 p_2)))
+                ba)
+              b
+          | D_updated_subtree r ->
+            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
+            let (aa, b) = a in
+            let (ks1, rs1) = aa in
+            (fun (_, (ks2, rs2)) ->
+              Util.rev_apply
+                (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
+                  (Util.rev_apply store_ops Params.store_alloc))
+                (Monad.fmap (fun ra -> (D_updated_subtree ra, stka))))
+              b));;
 
 let rec delete_step
   ps1 s =
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match s
       with D_down (f, r0) ->
         (match Find.dest_f_finished f
@@ -1316,7 +1374,7 @@ let rec delete_step
               (Monad.fmap (fun fa -> D_down (fa, r0)))
           | Some (r0a, (k, (_, (kvs, stk)))) ->
             Util.rev_apply
-              (Util.rev_apply ps1 Params.store_free
+              (Util.rev_apply store_ops Params.store_free
                 (r0a :: Tree_stack.r_stk_to_rs stk))
               (Monad.bind
                 (fun _ ->
@@ -1343,7 +1401,7 @@ let rec delete_step
                         | false ->
                           Util.rev_apply
                             (Util.rev_apply (Frame.Leaf_frame kvsa)
-                              (Util.rev_apply ps1 Params.store_alloc))
+                              (Util.rev_apply store_ops Params.store_alloc))
                             (Monad.fmap
                               (fun r ->
                                 D_up (D_updated_subtree r, (stk, r0a)))))
@@ -1355,12 +1413,12 @@ let rec delete_step
               with D_small_leaf kvs ->
                 Util.rev_apply
                   (Util.rev_apply (Frame.Leaf_frame kvs)
-                    (Util.rev_apply ps1 Params.store_alloc))
+                    (Util.rev_apply store_ops Params.store_alloc))
                   (Monad.fmap (fun a -> D_finished a))
               | D_small_node (ks, rs) ->
                 Util.rev_apply
                   (Util.rev_apply (Frame.Node_frame (ks, rs))
-                    (Util.rev_apply ps1 Params.store_alloc))
+                    (Util.rev_apply store_ops Params.store_alloc))
                   (Monad.fmap (fun a -> D_finished a))
               | D_updated_subtree r -> Monad.return (D_finished r))
           | _ :: _ ->
@@ -1378,7 +1436,8 @@ let rec wellformed_delete_state
   ps0 r2t t0 s k ds =
     Util.assert_truea
       (let (_, k_ord) =
-         (Util.rev_apply ps0 Params.csa, Util.rev_apply ps0 Params.cmp_ka) in
+         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
+         in
        (match ds with D_down a -> wf_d k_ord r2t t0 s a
          | D_up (fo, (stk, r)) ->
            wf_u ps0 r2t t0 s k (fo, stk) &&
@@ -1420,7 +1479,8 @@ let rec wf_f
   ps0 r2t t0 s k v r =
     Util.assert_truea
       (let (cs, k_ord) =
-         (Util.rev_apply ps0 Params.csa, Util.rev_apply ps0 Params.cmp_ka) in
+         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
+         in
        (match r2t s r with None -> false
          | Some t ->
            Tree.wellformed_tree cs (Some Prelude.Small_root_node_or_leaf) k_ord
@@ -1478,6 +1538,7 @@ let rec step_up
   ps1 u =
     let (cs, _) =
       (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match u with (_, []) -> Util.impossible1 "insert, step_up"
       | (fo, x :: stk) ->
         let a = Tree_stack.dest_ts_frame x in
@@ -1488,7 +1549,7 @@ let rec step_up
             with I1 r ->
               Util.rev_apply
                 (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-                  (Util.rev_apply ps1 Params.store_alloc))
+                  (Util.rev_apply store_ops Params.store_alloc))
                 (Monad.fmap (fun ra -> (I1 ra, stk)))
             | I2 (r1, (k, r2)) ->
               let ks = ks1 @ [k] @ ks2 in
@@ -1499,19 +1560,19 @@ let rec step_up
                 with true ->
                   Util.rev_apply
                     (Util.rev_apply (Frame.Node_frame (ks, rs))
-                      (Util.rev_apply ps1 Params.store_alloc))
+                      (Util.rev_apply store_ops Params.store_alloc))
                     (Monad.fmap (fun r -> (I1 r, stk)))
                 | false ->
                   let (ks_rs1, (ka, ks_rs2)) = Key_value.split_node cs (ks, rs)
                     in
                   Util.rev_apply
                     (Util.rev_apply (Frame.Node_frame ks_rs1)
-                      (Util.rev_apply ps1 Params.store_alloc))
+                      (Util.rev_apply store_ops Params.store_alloc))
                     (Monad.bind
                       (fun r1a ->
                         Util.rev_apply
                           (Util.rev_apply (Frame.Node_frame ks_rs2)
-                            (Util.rev_apply ps1 Params.store_alloc))
+                            (Util.rev_apply store_ops Params.store_alloc))
                           (Monad.fmap
                             (fun r2a -> (I2 (r1a, (ka, r2a)), stk))))))))
           b);;
@@ -1525,12 +1586,13 @@ let rec step_bottom
   ps1 d =
     let (cs, k_ord) =
       (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     let (fs, v) = d in
     (match Find.dest_f_finished fs
       with None -> Util.impossible1 "insert, step_bottom"
       | Some (r0, (k, (_, (kvs, stk)))) ->
         Util.rev_apply
-          (Util.rev_apply ps1 Params.store_free
+          (Util.rev_apply store_ops Params.store_free
             (r0 :: Tree_stack.r_stk_to_rs stk))
           (Monad.bind
             (fun _ ->
@@ -1543,24 +1605,25 @@ let rec step_bottom
                   with true ->
                     Util.rev_apply
                       (Util.rev_apply (Frame.Leaf_frame kvsa)
-                        (Util.rev_apply ps1 Params.store_alloc))
+                        (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.fmap (fun a -> I1 a))
                   | false ->
                     let (kvs1, (ka, kvs2)) = Key_value.split_leaf cs kvsa in
                     Util.rev_apply
                       (Util.rev_apply (Frame.Leaf_frame kvs1)
-                        (Util.rev_apply ps1 Params.store_alloc))
+                        (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.bind
                         (fun r1 ->
                           Util.rev_apply
                             (Util.rev_apply (Frame.Leaf_frame kvs2)
-                              (Util.rev_apply ps1 Params.store_alloc))
+                              (Util.rev_apply store_ops Params.store_alloc))
                             (Monad.fmap (fun r2 -> I2 (r1, (ka, r2)))))))
                 in
               Util.rev_apply fo (Monad.fmap (fun foa -> (foa, stk))))));;
 
 let rec insert_step
   ps1 s =
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match s
       with I_down d ->
         let (fs, _) = d in
@@ -1574,7 +1637,7 @@ let rec insert_step
           | (I2 (r1, (k, r2)), []) ->
             Util.rev_apply
               (Util.rev_apply (Frame.Node_frame ([k], [r1; r2]))
-                (Util.rev_apply ps1 Params.store_alloc))
+                (Util.rev_apply store_ops Params.store_alloc))
               (Monad.fmap (fun a -> I_finished a))
           | (_, _ :: _) ->
             Util.rev_apply (step_up ps1 u) (Monad.fmap (fun a -> I_up a)))
@@ -1589,7 +1652,7 @@ let rec mk_insert_state k v r = I_down (Find.mk_find_state k r, v);;
 let rec wellformed_insert_state
   ps0 r2t t0 s k v is =
     Util.assert_truea
-      (let k_ord = Util.rev_apply ps0 Params.cmp_ka in
+      (let k_ord = Util.rev_apply ps0 Params.ps0_cmp_k in
        (match is with I_down a -> wf_d k_ord r2t t0 s a
          | I_up a -> wf_u r2t k_ord t0 s k v a
          | I_finished a -> wf_f ps0 r2t t0 s k v a));;
@@ -1622,6 +1685,7 @@ let rec step_up
   ps1 u =
     let (cs, _) =
       (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match u with (_, []) -> Util.impossible1 "insert, step_up"
       | (fo, x :: stk) ->
         let a = Tree_stack.dest_ts_frame x in
@@ -1632,7 +1696,7 @@ let rec step_up
             with I1 (r, kvs0) ->
               Util.rev_apply
                 (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-                  (Util.rev_apply ps1 Params.store_alloc))
+                  (Util.rev_apply store_ops Params.store_alloc))
                 (Monad.fmap (fun ra -> (I1 (ra, kvs0), stk)))
             | I2 ((r1, (k, r2)), kvs0) ->
               let ks = ks1 @ [k] @ ks2 in
@@ -1643,19 +1707,19 @@ let rec step_up
                 with true ->
                   Util.rev_apply
                     (Util.rev_apply (Frame.Node_frame (ks, rs))
-                      (Util.rev_apply ps1 Params.store_alloc))
+                      (Util.rev_apply store_ops Params.store_alloc))
                     (Monad.fmap (fun r -> (I1 (r, kvs0), stk)))
                 | false ->
                   let (ks_rs1, (ka, ks_rs2)) = Key_value.split_node cs (ks, rs)
                     in
                   Util.rev_apply
                     (Util.rev_apply (Frame.Node_frame ks_rs1)
-                      (Util.rev_apply ps1 Params.store_alloc))
+                      (Util.rev_apply store_ops Params.store_alloc))
                     (Monad.bind
                       (fun r1a ->
                         Util.rev_apply
                           (Util.rev_apply (Frame.Node_frame ks_rs2)
-                            (Util.rev_apply ps1 Params.store_alloc))
+                            (Util.rev_apply store_ops Params.store_alloc))
                           (Monad.fmap
                             (fun r2a ->
                               (I2 ((r1a, (ka, r2a)), kvs0), stk))))))))
@@ -1687,7 +1751,7 @@ let rec split_leaf
 let rec kvs_insert_2
   ps0 u kv newa existing =
     let (cs, k_ord) =
-      (Util.rev_apply ps0 Params.csa, Util.rev_apply ps0 Params.cmp_ka) in
+      (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k) in
     let step =
       (fun (acc, newb) ->
         (match
@@ -1715,18 +1779,20 @@ let rec step_bottom
   ps1 d =
     let (cs, _) =
       (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     let (fs, (v, kvs0)) = d in
     (match Find.dest_f_finished fs
       with None -> Util.impossible1 "insert, step_bottom"
       | Some (r0, (k, (_, (kvs, stk)))) ->
         Util.rev_apply
-          (Util.rev_apply ps1 Params.store_free
+          (Util.rev_apply store_ops Params.store_free
             (r0 :: Tree_stack.r_stk_to_rs stk))
           (Monad.bind
             (fun _ ->
               let (_, u) = Tree_stack.stack_to_lu_of_child stk in
               let (kvsa, kvs0a) =
-                kvs_insert_2 (Util.rev_apply ps1 Params.ps0) u (k, v) kvs0 kvs
+                kvs_insert_2 (Util.rev_apply ps1 Params.ps1_ps0) u (k, v) kvs0
+                  kvs
                 in
               let fo =
                 (match
@@ -1735,18 +1801,18 @@ let rec step_bottom
                   with true ->
                     Util.rev_apply
                       (Util.rev_apply (Frame.Leaf_frame kvsa)
-                        (Util.rev_apply ps1 Params.store_alloc))
+                        (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.fmap (fun r -> I1 (r, kvs0a)))
                   | false ->
                     let (kvs1, (ka, kvs2)) = split_leaf cs kvsa in
                     Util.rev_apply
                       (Util.rev_apply (Frame.Leaf_frame kvs1)
-                        (Util.rev_apply ps1 Params.store_alloc))
+                        (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.bind
                         (fun r1 ->
                           Util.rev_apply
                             (Util.rev_apply (Frame.Leaf_frame kvs2)
-                              (Util.rev_apply ps1 Params.store_alloc))
+                              (Util.rev_apply store_ops Params.store_alloc))
                             (Monad.fmap
                               (fun r2 -> I2 ((r1, (ka, r2)), kvs0a))))))
                 in
@@ -1756,6 +1822,7 @@ let rec insert_step
   ps1 s =
     let (_, _) = (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k)
       in
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
     (match s
       with I_down d ->
         let (fs, (_, _)) = d in
@@ -1769,7 +1836,7 @@ let rec insert_step
           | (I2 ((r1, (k, r2)), kvs0), []) ->
             Util.rev_apply
               (Util.rev_apply (Frame.Node_frame ([k], [r1; r2]))
-                (Util.rev_apply ps1 Params.store_alloc))
+                (Util.rev_apply store_ops Params.store_alloc))
               (Monad.fmap (fun r -> I_finished (r, kvs0)))
           | (_, _ :: _) ->
             Util.rev_apply (step_up ps1 u) (Monad.fmap (fun a -> I_up a)))
@@ -1822,7 +1889,8 @@ let rec step_leaf r = let a = r in
 let rec step_down
   ps1 rfs =
     let (r, fs) = rfs in
-    Util.rev_apply (Util.rev_apply ps1 Params.store_read r)
+    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    Util.rev_apply (Util.rev_apply store_ops Params.store_read r)
       (Monad.fmap
         (fun a ->
           (match a

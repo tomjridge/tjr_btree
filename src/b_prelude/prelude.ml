@@ -41,3 +41,5 @@ module Pickle_params = struct
     v_len: int      
   }
 end  
+
+include Isa_util_params

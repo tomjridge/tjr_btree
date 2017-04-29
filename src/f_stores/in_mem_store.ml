@@ -15,34 +15,29 @@ type ('k,'v,'t) in_mem_ops = {
 
 open Simple_monad
 
-let make ops cs0 = (
+let make (im_ops:('k,'v,'t)in_mem_ops) : ('k,'v,'r,'t) store_ops = (
   let store_free rs : (unit,'t) m = return () in (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
-    ops.get_store () |> bind (fun s -> 
+    im_ops.get_store () |> bind (fun s -> 
         let s' = {free=s.free+1; map=Map_int.add s.free f s.map} in
-        ops.set_store s' |> bind (fun () -> 
+        im_ops.set_store s' |> bind (fun () -> 
             return s.free))
   in
   let store_read r : (('k,'v) frame,'t) m =
-    ops.get_store () |> bind (fun s ->
+    im_ops.get_store () |> bind (fun s ->
         return (Map_int.find r s.map)) (* ASSUMES present *)
   in
-  { cs0;store_free;store_read;store_alloc}
+  { store_free; store_read; store_alloc }
 )
 
-(*
-  let mk_r2f: t -> page_ref -> ('k,'v)frame option = (
-    fun t r -> 
-      let f = ops.get_store () |> bind (fun s ->
-          Map_int.find r s.map |> return)
-      in
-      t|>f|>(fun (_,res) -> 
-          match res with
-          | Ok frm -> Some frm
-          | _ -> None))
-  in
-  (*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
-*)
+let mk_r2f get_store s r : ('k,'v)frame option = (
+  s|>get_store|>(fun im -> 
+      try Some (Map_int.find r im.map)
+      with Not_found -> None))
+
+  
+
+(*let store_sync: t -> unit m = (fun t -> return ())  (* no-op *) *)
 
 
 

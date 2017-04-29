@@ -4,16 +4,20 @@ open Prelude
 open Btree_api
 open In_mem_store
 open Page_ref_int
+open Isa_util.Export
 
 (* we concentrate on relatively small parameters *)
 
 type key = int
+let compare_k = Int.compare
+
 type value = int
 
 type tree = (key,value)Tree.tree
 type store = (key,value)im
+type frame = (key,value)Page_ref_int.frame
 
-module Test_state = struct 
+module T = struct 
   type t = { 
     t:tree;
     s:store;
@@ -23,7 +27,7 @@ module Test_state = struct
   (* compare: we want to ignore the store and page_ref *)
   let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
 end
-open Test_state
+open T
 
 let constants = Constants.{
     max_leaf_size = 5;
@@ -33,20 +37,25 @@ let constants = Constants.{
   }
 
 let pr_ops = Store_to_map.{
-  get_page_ref=(fun () -> fun t -> (t,Ok t.r));
-  set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
+    get_page_ref=(fun () -> fun t -> (t,Ok t.r));
+    set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
+  }
+
+let im_ops : ('k,'v,T.t) in_mem_ops = {
+  get_store=(fun () -> fun t -> (t,Ok t.s));
+  set_store=(fun s -> fun t -> ({t with s},Ok ()));
 }
 
+let r2f = In_mem_store.mk_r2f (fun s -> s.s)
 
-let r2t = Store_to_map.mk_r2t pr_ops kv_ops store_ops
+let r2t = Isa_util.mk_r2t r2f
 
+let ps0 = { compare_k; constants }
 
-let map_ops = S2M.make pr_ops kv_ops store_ops
+let map_ops = In_mem_map.mk_checked_map_ops ps0 r2t im_ops pr_ops
 
 (* for maintaing a set of states *)
-module Test_state_set = Set.Make(Test_state)
-module TSET = Test_state_set
-
+module TSET = Set.Make(T)
 
 type action = Insert of int | Delete of int
 
@@ -75,9 +84,9 @@ let (init_store,init_r) = In_mem_store.(
     { free=1; 
       map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
     }, 0
-)
+  )
 
-let test range = TS.(
+let test range = TSET.(
     Printf.printf "%s: exhaustive test, %d elts: " 
       __MODULE__ (List.length range);
     flush_out();

@@ -77,13 +77,9 @@ let mk_unchecked_map_ops ps1 =
     page_ref_ops
 
 let mk_ps1 constants compare_k pp : ('k,'v,'r,'t) ps1 = 
-  let s = mk_store_ops pp in
-  let (store_read,store_free,store_alloc) = 
-    (s.store_read,s.store_free,s.store_alloc)
-  in
-  {
+  { 
     ps0={ compare_k; constants };
-    store_read;store_free; store_alloc
+    store_ops=(mk_store_ops pp) 
   }
 
 

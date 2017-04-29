@@ -3,32 +3,25 @@ open IE
 open Frame
 open Tree
 
-type 'a res = 'a Util.res
+module Export = struct
+  type 'a res = 'a Util.res
 
-type ('a,'t) m = 't -> 't * 'a Util.res
+  type ('a,'t) m = 't -> 't * 'a Util.res
 
-type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
-type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option) 
+  type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
+  type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
+  type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option) 
 
-type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
-type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
-type ('k,'v,'r) im_state = ('k,'v,'r) IE.Insert_many.ist
-type ('k,'v,'r) delete_state = ('k,'v,'r) IE.Delete.delete_state
-type ('k,'v,'r) ls_state = ('k,'v,'r) IE.Leaf_stream.ls_state
-
-module Params_ = struct
-  type 'k ps0 = { 
-    compare_k: 'k -> 'k -> int; 
-    constants: Constants.t 
-  }
-  (* TODO make these match up with store_ops *)
-  type ('k,'v,'r,'t) ps1 = { 
-    ps0: 'k ps0; 
-    store_read: 'r -> 't -> ('t * ('k,'v,'r) frame res);
-    store_free: 'r list -> 't -> ('t * unit res);
-    store_alloc: ('k,'v,'r) frame -> 't -> ('t * 'r res);
-  }
+  type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
+  type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
+  type ('k,'v,'r) im_state = ('k,'v,'r) IE.Insert_many.ist
+  type ('k,'v,'r) delete_state = ('k,'v,'r) IE.Delete.delete_state
+  type ('k,'v,'r) ls_state = ('k,'v,'r) IE.Leaf_stream.ls_state
 end
+
+include Export
+
+module Params_ = Isa_util_params
 
 module X = struct
   let int_to_nat x = Isa_export.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
@@ -48,16 +41,19 @@ module X = struct
   let x_cmp cmp x y = cmp x y |> int_to_int
   let x_ps0 ps0 : 'k IE.Params.ps0 = (
     Ps0(
-      x_cmp ps0.compare_k,
-      ps0.constants|>x_constants))
+      ps0.constants|>x_constants,
+      x_cmp ps0.compare_k
+    ))
+
+  let x_store_ops store_ops : ('k,'v,'r,'t,unit) IE.Params.store_ops_ext = (
+    Store_ops_ext(
+      store_ops.store_read,
+      store_ops.store_alloc,
+      store_ops.store_free,()))
 
   let x_ps1 ps1 : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
       let open Params_ in
-      let r = ps1.store_read in
-      let a = ps1.store_alloc in
-      let f = ps1.store_free in
-      Ps1(ps1.ps0|>x_ps0,
-          (r,(a,f))))
+      Ps1(ps1.ps0|>x_ps0, ps1.store_ops|>x_store_ops))
   
 end
 
@@ -141,3 +137,6 @@ let ls_is_finished lss : bool = (
   lss |> Leaf_stream.lss_is_finished)
 
 
+(* r2t ---------------------------------------- *)
+
+let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (X.int_to_nat 1000)

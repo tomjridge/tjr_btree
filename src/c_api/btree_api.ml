@@ -53,13 +53,7 @@ type 't disk_ops = {
 
 open Frame
 
-(* just an abstraction, so no sync; use sync on underlying disk *)
-type ('k,'v,'r,'t) store_ops = {
-  cs0: Constants.t; (* FIXME belongs here? *)
-  store_free: 'r list -> (unit,'t) m;
-  store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
-  store_alloc : ('k, 'v,'r) frame -> ('r,'t) m;
-}
+type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Isa_util_params.store_ops
 
 
 (* map ------------------------------------------------------------ *)

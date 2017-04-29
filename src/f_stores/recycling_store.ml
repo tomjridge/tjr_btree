@@ -148,9 +148,7 @@ let make lower ps : ('k,'v,'r,'t) rs_ops = (
                          manually lower.store_sync () *)
                     )))))
   in
-  let store_ops = 
-    { lower.store_ops with store_free; store_read; store_alloc } 
-  in
+  let store_ops = { store_free; store_read; store_alloc } in
   { store_ops; store_sync })
 
 
