@@ -1,30 +1,33 @@
 (* simple in-mem implementation, mainly for testing ----------------- *)
 
-
 open Prelude
 open Btree_api
 open Page_ref_int
 
 (* in mem store *)
-type ('k,'v) im = {free:int; map:('k,'v)frame Map_int.t}  
+module O = struct
+  type ('k,'v) mem = {free:int; map:('k,'v)frame Map_int.t}  
 
-type ('k,'v,'t) in_mem_ops = {
-  get_store: unit -> (('k,'v) im,'t) m;
-  set_store: ('k,'v) im -> (unit,'t) m;     
-}
+  type ('k,'v,'t) mem_ops = {
+    get_store: unit -> (('k,'v) mem,'t) m;
+    set_store: ('k,'v) mem -> (unit,'t) m;     
+  }
+end
+
+include O
 
 open Simple_monad
 
-let make (im_ops:('k,'v,'t)in_mem_ops) : ('k,'v,'r,'t) store_ops = (
+let make (mem_ops:('k,'v,'t)mem_ops) : ('k,'v,'r,'t) store_ops = (
   let store_free rs : (unit,'t) m = return () in (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
-    im_ops.get_store () |> bind (fun s -> 
+    mem_ops.get_store () |> bind (fun s -> 
         let s' = {free=s.free+1; map=Map_int.add s.free f s.map} in
-        im_ops.set_store s' |> bind (fun () -> 
+        mem_ops.set_store s' |> bind (fun () -> 
             return s.free))
   in
   let store_read r : (('k,'v) frame,'t) m =
-    im_ops.get_store () |> bind (fun s ->
+    mem_ops.get_store () |> bind (fun s ->
         return (Map_int.find r s.map)) (* ASSUMES present *)
   in
   { store_free; store_read; store_alloc }

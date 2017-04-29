@@ -8,3 +8,5 @@ let bind : ('a -> ('b,'s) m) -> ('a,'s)m -> ('b,'s)m = fun f x s ->
   | (s',Error e) -> (s',Error e)
 
 let return x = fun s -> (s,Ok x)
+
+let err e = fun s -> (s,Error e)

@@ -6,46 +6,59 @@
 open Prelude
 open Btree_api
 
-type time = int
+module O = struct
 
-type dirty = bool
+  type time = int
 
-module Queue = Map_int
+  type dirty = bool
 
-(* following needs polymorphic map - 
-   batteries? no, only Pervasives.compare
-   extlib? yes, allows parameterization by compare 
-*)
+  module Queue = Map_int
 
-module Pmap = struct 
-  type ('k,'v) t = (*ExtLib.*) ('k,'v)PMap.t
-  let map: ('v -> 'u) -> ('k,'v) t -> ('k,'u) t = PMap.map
-  (* FIXME bindings and cardinal should be in ExtLib; also others *)
-  let bindings: ('k,'v) t -> ('k * 'v) list = (fun m -> 
-      let bs = ref [] in
-      PMap.iter (fun k v -> bs:=(k,v)::!bs) m;
-      List.rev !bs)
-  let empty: ('k -> 'k -> int) -> ('k,'v) t = PMap.create
-  let cardinal: ('k,'v) t -> int = (fun m ->
-      let x = ref 0 in
-      PMap.iter (fun k v -> x:=!x+1) m;
-      !x)
-  let iter: ('k -> 'v -> unit) -> ('k,'v) t -> unit = PMap.iter
-  let find: 'k -> ('k,'v) t -> 'v = PMap.find
-  let remove: 'k -> ('k,'v) t -> ('k,'v) t = PMap.remove
-  let add: 'k -> 'v -> ('k,'v) t -> ('k,'v) t = PMap.add
+  (* following needs polymorphic map - 
+     batteries? no, only Pervasives.compare
+     extlib? yes, allows parameterization by compare 
+  *)
+
+  module Pmap = struct 
+    type ('k,'v) t = (*ExtLib.*) ('k,'v)PMap.t
+    let map: ('v -> 'u) -> ('k,'v) t -> ('k,'u) t = PMap.map
+    (* FIXME bindings and cardinal should be in ExtLib; also others *)
+    let bindings: ('k,'v) t -> ('k * 'v) list = (fun m -> 
+        let bs = ref [] in
+        PMap.iter (fun k v -> bs:=(k,v)::!bs) m;
+        List.rev !bs)
+    let empty: ('k -> 'k -> int) -> ('k,'v) t = PMap.create
+    let cardinal: ('k,'v) t -> int = (fun m ->
+        let x = ref 0 in
+        PMap.iter (fun k v -> x:=!x+1) m;
+        !x)
+    let iter: ('k -> 'v -> unit) -> ('k,'v) t -> unit = PMap.iter
+    let find: 'k -> ('k,'v) t -> 'v = PMap.find
+    let remove: 'k -> ('k,'v) t -> ('k,'v) t = PMap.remove
+    let add: 'k -> 'v -> ('k,'v) t -> ('k,'v) t = PMap.add
+  end
+
+
+  type ('k,'v) cache_state = {  
+    max_size: int;
+    current: time;
+    map: ('k,'v option*time*dirty) Pmap.t;  
+    queue: 'k Queue.t; (* map from time to key that was accessed at that time *)
+  }
+  (* for map, None indicates known not to be present at lower (if
+     dirty=false), or has been deleted (if dirty=true); Some v with
+     dirty=true indicates that this needs to be flushed to lower *)
+
+
+  type ('k,'v,'t) cache_ops = {
+    get_cache: unit -> (('k,'v) cache_state,'t) m;
+    set_cache: ('k,'v) cache_state -> (unit,'t) m
+  }
+
 end
 
-
-type ('k,'v) cache_state = {  
-  max_size: int;
-  current: time;
-  map: ('k,'v option*time*dirty) Pmap.t;  
-  queue: 'k Queue.t; (* map from time to key that was accessed at that time *)
-}
-(* for map, None indicates known not to be present at lower (if
-   dirty=false), or has been deleted (if dirty=true); Some v with
-   dirty=true indicates that this needs to be flushed to lower *)
+open O
+open Simple_monad 
 
 
 (* for testing, we typically need to normalize wrt. time *)
@@ -111,18 +124,6 @@ let wf c = (
       ()
   )
 )
-
-type ('k,'v,'t) cache_ops = {
-  get_cache: unit -> (('k,'v) cache_state,'t) m;
-  set_cache: ('k,'v) cache_state -> (unit,'t) m
-}
-
-(* TODO need to take cache into account for ls ops  *)
-type ('k,'v,'t) map_ops = {
-  find: 'k -> ('v option,'t) m;
-  insert: 'k -> 'v -> (unit,'t) m;
-  delete: 'k -> (unit,'t) m;
-}
 
 
 (* for quick abort *)
@@ -193,7 +194,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 
   let find k = (
     cache_ops.get_cache () 
-    |> Sem.bind (
+    |> bind (
       fun c ->
         (* try to find in cache *)
         try (
@@ -223,7 +224,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 
   let insert k v = (
     cache_ops.get_cache () 
-    |> Sem.bind (
+    |> bind (
       fun c -> 
         try (
           let (v_,time,dirty) = Pmap.find k c.map in          
@@ -249,7 +250,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 
   let delete k = (
     cache_ops.get_cache () 
-    |> Sem.bind (
+    |> bind (
       fun c -> 
         try (
           let (v_,time,dirty) = Pmap.find k c.map in          
@@ -274,5 +275,3 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
   let get_leaf_stream () = failwith "FIXME" in
   {find; insert; delete}
 )
-
-

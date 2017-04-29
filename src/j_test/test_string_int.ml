@@ -105,9 +105,9 @@ smart-panther-36
 lazy-termite-3
 helpless-snake-32 |} |> Tjr_string.split_on_all ~sub:"\n"
 
-module Uncached = String_int_filestore.Uncached
+let sz = 4096
 
-let map_ops = Uncached.map_ops
+let map_ops = SS_int_map_on_fd.mk_checked_map_ops
 
 let store = Uncached.from_file Test_config.default_filename true true
 

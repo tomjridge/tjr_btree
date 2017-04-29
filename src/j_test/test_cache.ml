@@ -2,6 +2,7 @@
 
 open Prelude
 open Btree_api
+open Cache.O
 
 (* we test just cache behaviour, not linked with btree *)
 
@@ -10,63 +11,46 @@ open Btree_api
 (* note that the use of time means that we need to normalize timings
    (and current time) in order to exhaust state space *)
 
-type key = int
-type value = int
+module O = struct
+  type key = int
+  type value = int
+  type op = Find of key | Insert of key * value | Delete of key
 
-let int_int_pp = Example_keys_and_values.int_int_pp
-
-
-module Op = struct
-  type t = Find of key | Insert of key * value | Delete of key
-end
-
-type op = Op.t
-
-
-(* test state ------------------------------------------------------- *)
-
-module Pre = struct
-  type t = {
+  (* test state *)
+  type ts = {
     spec: int Map_int.t;
-    cache: (key,value)Cache.cache_state;
+    cache: (key,value)cache_state;
     base_map: int Map_int.t;
   }
 end
 
-open Pre
+open O
 
-module Test_state = struct 
-  include Pre
-  open Pre
+let int_int_pp = Example_keys_and_values.int_int_pp
 
-  let then_ f x = (if x=0 then f () else x)
+let then_ f x = (if x=0 then f () else x)
 
-  (* FIXME v inefficient *)
-  let compare s1 s2 = (
-    (Pervasives.compare 
-       (s1.spec |> Map_int.bindings) (s2.spec |> Map_int.bindings)) |> then_
-      (fun () -> 
-         Cache.compare s1.cache s2.cache) |> then_
-      (fun () -> 
-         Map_int.compare Pervasives.compare s1.base_map s2.base_map))
+(* FIXME v inefficient *)
+let compare s1 s2 = (
+  (Pervasives.compare 
+     (s1.spec |> Map_int.bindings) (s2.spec |> Map_int.bindings)) |> then_
+    (fun () -> 
+       Cache.compare s1.cache s2.cache) |> then_
+    (fun () -> 
+       Map_int.compare Pervasives.compare s1.base_map s2.base_map))
 
-  let init_cache = Cache.mk_initial_cache Int.compare |> Cache.normalize
-                        
-  let init_base_map = Map_int.empty
-                        
-  let init_spec = Map_int.empty
+let init_cache = Cache.mk_initial_cache Int.compare |> Cache.normalize
 
-  let initial_state = { spec=init_spec; cache=init_cache; base_map=init_base_map }
+let init_base_map = Map_int.empty
 
-end
+let init_spec = Map_int.empty
 
-let _ = (module Test_state: Set.OrderedType)
+let initial_state = { spec=init_spec; cache=init_cache; base_map=init_base_map }
 
-open Cache
 
-(* base map --------------------------------------------------------- *)
+(* base uncached map ------------------------------------------------ *)
 
-let base_map_ops: (key,value,t) map_ops = {
+let base_map_ops: (key,value,ts) map_ops = {
     find=(fun k -> (fun t -> 
       (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None))));
     insert=(fun k v -> (fun t -> failwith ""));
@@ -80,19 +64,14 @@ let cache_ops = {
   set_cache=(fun cache t -> ({t with cache},Ok()))
 }
 
-let cached_map_ops = make_cached_map base_map_ops cache_ops
+let cached_map_ops = Cache.make_cached_map base_map_ops cache_ops
 
 
 (* exhaustive testing ----------------------------------------------- *)
 
 module S (* : Exhaustive.S *)= struct
-  module State = Test_state
-  open State
-
-  type t = State.t
-  type op = Op.t
-
-  open Op
+  module State = struct type t = ts let compare = compare end
+  type op = O.op
 
   let step op t = (
     match op with
@@ -137,16 +116,20 @@ module E_ = Exhaustive.Make(S)
 
 let range = BatList.(range 1 `To 5)
 
-let ops = Op.(
+let ops = (
   range 
   |> List.map (fun k -> [Find k;Insert(k,2*k); Delete k])
   |> List.concat)
 
 let main () = (
   Printf.printf "%s: " __MODULE__;
-  E_.test ops (E_.STS.singleton Test_state.initial_state);
+  E_.test ops (E_.STS.singleton initial_state);
   ()
 )
+
+
+
+(* old ============================================================ *)
 
 (* let _ = main () *)
 

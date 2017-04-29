@@ -7,9 +7,7 @@
 open Prelude
 open Btree_api
 
-module IU = Isa_util
-
-open IU
+open Isa_util
 
 let rec next_leaf ps1 lss : (('k,'v,'r) lss option,'t) m = (
   let open Simple_monad in

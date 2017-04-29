@@ -1,46 +1,13 @@
 (* various interfaces ---------------------------------------- *)
 
+(* this module safe to open *)
+
 open Prelude
-
-
-module Default_block : sig
-  type t
-  type r = int
-  type sz = int  (* of a block, in bytes *)
-  val of_string: sz -> string -> t
-  val to_string: t -> string
-end = struct
-  type t = string
-  type r = int
-  type sz = int 
-  let of_string: sz -> string -> t = (
-    fun sz s ->
-      assert (String.length s <= sz); (* TODO asserts should be Test.assert *)
-      s ^ (String.make (sz - String.length s) (Char.chr 0))
-  )
-  let to_string: t -> string = fun x -> x
-end
-
-module BLK = Default_block
-
-
-type ('a,'t) m = ('a,'t) Simple_monad.m
-
-
-type 'k ord = 'k -> 'k -> int
-
-
-(*
-(* typically we also are interested in pickling *)
-type ('k,'v) kv_params = {
-  pp:('k,'v) Pickle_params.t;
-  compare_k: 'k ord
-}
-*)
-
+open Default
 
 (* block device ---------------------------------------- *)
 
+(* constants are relevant; compare_k not relevant *)
 type 't disk_ops = {
   block_size: BLK.sz;
   read: BLK.r -> (BLK.t,'t) m;
@@ -51,9 +18,8 @@ type 't disk_ops = {
 
 (* store ------------------------------------------------------------ *)
 
-open Frame
-
-type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Isa_util_params.store_ops
+(* constants and compare_k not relevant *)
+type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Isa_util.store_ops
 
 
 (* map ------------------------------------------------------------ *)

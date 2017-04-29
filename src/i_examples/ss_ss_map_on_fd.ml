@@ -11,51 +11,49 @@ open Btree_api
 open Small_string
 open Example_keys_and_values
 
-module G = Generic_kv_store
 
-let pp = ss_ss_pp
 
-let cs sz = Constants.make_constants sz 4 pp.k_len pp.v_len
+module S = struct
+  type k = Small_string.t
+  type v = Small_string.t
+  let pp = ss_ss_pp
+  let sz = 4096
+  let compare_k = Small_string.compare
+end
+
+module M = Map_on_fd.Make(S)  
+
+include M  
 
 (* TODO use recycling store *)
 
-let mk_ps1 sz = G.mk_ps1 (cs sz) Small_string.compare ss_ss_pp
+let map_ops = mk_unchecked_map_ops S.sz
 
-let mk_unchecked_map_ops sz = G.mk_unchecked_map_ops (mk_ps1 sz)  (* FIXME unchecked *)
-
-
-(* instantiate ---------------------------------------- *)
-
-let sz = 4096
-
-let map_ops = mk_unchecked_map_ops sz
-
-let ls_ops = G.mk_ls_ops (mk_ps1 sz)
+open Map_on_fd
+open S
 
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
   match args with
   | ["init"; fn] -> (
-      G.from_file ~fn ~create:true ~init:true ~pp
-      |> (fun t -> print_endline "init ok"))
+      from_file ~fn ~create:true ~init:true ~pp ~sz
+      |> (fun (t:t) -> print_endline "init ok"))
   | ["insert";fn;k;v] -> (
-      let t = G.from_file ~fn ~create:false ~init:false ~pp in
-      map_ops.insert (SS_.of_string k) (SS_.of_string v) 
-      |> (fun f -> f t |> function | (t,Ok _) -> (
-            G.write_root_block t)))
+      from_file ~fn ~create:false ~init:false ~pp ~sz 
+      |> map_ops.insert (SS_.of_string k) (SS_.of_string v) 
+      |> function (t,Ok _) -> (write_root_block sz t))
   | ["delete";fn;k] -> (
-      let t = G.from_file ~fn ~create:false ~init:false ~pp in
-      map_ops.delete (SS_.of_string k) 
-      |> (fun f -> f t |> function | (t,Ok _) -> (
-            G.write_root_block t)))
+      from_file ~fn ~create:false ~init:false ~pp ~sz
+      |> map_ops.delete (SS_.of_string k) 
+      |> function (t,Ok _) -> (write_root_block sz t))
   | ["list";fn] -> (
-      let t = G.from_file ~fn  ~create:false ~init:false ~pp in
-      all_kvs ls_ops 
-      |> (fun f -> f t |> function | (_,Ok kvs) -> (
-            List.iter (fun (k,v) -> 
-                Printf.printf "%s -> %s\n" (SS_.to_string k) (SS_.to_string v)) kvs);
-          print_endline "list ok"))
+      from_file ~fn  ~create:false ~init:false ~pp ~sz
+      |> all_kvs ls_ops 
+      |> function (_,Ok kvs) -> (
+          List.iter (fun (k,v) -> 
+              Printf.printf "%s -> %s\n" (SS_.to_string k) (SS_.to_string v)) kvs);
+        print_endline "list ok")
   | _ -> (
       failwith ("Unrecognized args: "^(Tjr_string.concat_strings " " args)^ __LOC__))
 )

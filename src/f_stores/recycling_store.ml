@@ -20,17 +20,18 @@ open Prelude
 open Btree_api
 open Page_ref_int
 
-(* need to cache page_ref to ('k,'v)frame *)
-module Map_page_ref = Map_int
-module Cache = Map_page_ref  (* Cache.t ~ (page_ref -> frame) *)
-module FNS = Set_int (* free not synced page_refs *)
+module O = struct
+  (* need to cache page_ref to ('k,'v)frame *)
+  module Map_page_ref = Map_int
+  module Cache = Map_page_ref  (* Cache.t ~ (page_ref -> frame) *)
+  module FNS = Set_int (* free not synced page_refs *)
 
-type ('k,'v) cache = ('k,'v) frame Cache.t
+  type ('k,'v) cache = ('k,'v) frame Cache.t
 
-type fns = FNS.t 
+  type fns = FNS.t 
 
 (*
-State:
+Recycling state:
 
 - a cache of pages which need to be written
 
@@ -39,29 +40,31 @@ State:
 
 FIXME don't we also need to know which were allocated since last sync?
 *) 
-type ('k,'v) recycling_state = {
-  cache: ('k,'v) cache; 
-  fns: fns 
-}
+  type ('k,'v) recycling_state = {
+    cache: ('k,'v) cache; 
+    fns: fns 
+  }
 
-(* allocate without writing *)
-(* operations from lower store *)
-type ('k,'v,'r,'t) lower_ops = {
-  store_ops: ('k,'v,'r,'t) store_ops;
-  store_alloc_page_ref : unit -> ('r,'t) m;
-  store_write_frame: 'r -> ('k,'v) frame -> (unit,'t) m;
-}
+  (* operations from lower store; allocate without writing *)
+  type ('k,'v,'r,'t) lower_ops = {
+    store_ops: ('k,'v,'r,'t) store_ops;
+    store_alloc_page_ref : unit -> ('r,'t) m;
+    store_write_frame: 'r -> ('k,'v) frame -> (unit,'t) m;
+  }
 
-(* we provide extra operations store_sync which flushes to lower *)
-type ('k,'v,'r,'t) rs_ops = {
-  store_ops: ('k,'v,'r,'t) store_ops; 
-  store_sync: unit -> (unit,'t) m;
-}
+  (* we provide extra operations store_sync which flushes to lower *)
+  type ('k,'v,'r,'t) rs_ops = {
+    store_ops: ('k,'v,'r,'t) store_ops; 
+    store_sync: unit -> (unit,'t) m;
+  }
 
-type ('k,'v,'t) rs_params = {
-  get_rs: unit -> (('k,'v) recycling_state,'t) m;
-  set_rs: ('k,'v) recycling_state -> (unit,'t) m
-}
+  type ('k,'v,'t) rs_params = {
+    get_rs: unit -> (('k,'v) recycling_state,'t) m;
+    set_rs: ('k,'v) recycling_state -> (unit,'t) m
+  }
+end
+
+open O
 
 open Simple_monad 
 

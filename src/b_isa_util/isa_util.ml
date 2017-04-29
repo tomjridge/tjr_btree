@@ -1,14 +1,15 @@
 module IE = Isa_export
 open IE
-open Frame
-open Tree
 
-module Export = struct
-  type 'a res = 'a Util.res
+module O = struct
+  (* safe to open O in other modules *)
+  include Store_ops
+  include Isa_util_params
 
-  type ('a,'t) m = 't -> 't * 'a Util.res
-
+  type ('k,'v,'r) frame = ('k,'v,'r) Frame.frame
+  type ('k,'v) tree = ('k,'v) Tree.tree
   type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
+
   type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
   type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option) 
 
@@ -19,9 +20,7 @@ module Export = struct
   type ('k,'v,'r) ls_state = ('k,'v,'r) IE.Leaf_stream.ls_state
 end
 
-include Export
-
-module Params_ = Isa_util_params
+include O
 
 module X = struct
   let int_to_nat x = Isa_export.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
@@ -37,7 +36,6 @@ module X = struct
       ())
 
   open IE.Params
-  open Params_
   let x_cmp cmp x y = cmp x y |> int_to_int
   let x_ps0 ps0 : 'k IE.Params.ps0 = (
     Ps0(
@@ -52,12 +50,9 @@ module X = struct
       store_ops.store_free,()))
 
   let x_ps1 ps1 : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
-      let open Params_ in
       Ps1(ps1.ps0|>x_ps0, ps1.store_ops|>x_store_ops))
   
 end
-
-open Params_
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
@@ -139,4 +134,11 @@ let ls_is_finished lss : bool = (
 
 (* r2t ---------------------------------------- *)
 
+let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
+  fun s r ->
+    s |> store_ops.store_read r 
+    |> function (s',Ok f) -> Some f | _ -> (ignore(failwith __LOC__); None))
+
 let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (X.int_to_nat 1000)
+
+let mk_r2t store_ops = mk_r2t (mk_r2f store_ops)

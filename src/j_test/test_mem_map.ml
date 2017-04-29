@@ -2,9 +2,9 @@
 
 open Prelude
 open Btree_api
-open In_mem_store
+open Mem_store
 open Page_ref_int
-open Isa_util.Export
+open Mem_store.O
 
 (* we concentrate on relatively small parameters *)
 
@@ -14,7 +14,7 @@ let compare_k = Int.compare
 type value = int
 
 type tree = (key,value)Tree.tree
-type store = (key,value)im
+type store = (key,value)mem
 type frame = (key,value)Page_ref_int.frame
 
 module T = struct 
@@ -41,18 +41,18 @@ let pr_ops = Store_to_map.{
     set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
   }
 
-let im_ops : ('k,'v,T.t) in_mem_ops = {
+let mem_ops : ('k,'v,T.t) mem_ops = {
   get_store=(fun () -> fun t -> (t,Ok t.s));
   set_store=(fun s -> fun t -> ({t with s},Ok ()));
 }
 
-let r2f = In_mem_store.mk_r2f (fun s -> s.s)
+let r2f = Mem_store.mk_r2f (fun s -> s.s)
 
 let r2t = Isa_util.mk_r2t r2f
 
 let ps0 = { compare_k; constants }
 
-let map_ops = In_mem_map.mk_checked_map_ops ps0 r2t im_ops pr_ops
+let map_ops = Mem_map.mk_checked_map_ops ps0 r2t mem_ops pr_ops
 
 (* for maintaing a set of states *)
 module TSET = Set.Make(T)
@@ -80,7 +80,7 @@ type range_t = int list[@@deriving yojson]
 
 (* TODO use exhaustive.ml *)
 
-let (init_store,init_r) = In_mem_store.(
+let (init_store,init_r) = Mem_store.(
     { 
       free=1; 
       map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 

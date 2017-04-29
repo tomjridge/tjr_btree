@@ -26,13 +26,7 @@ let rec iter ops : 't -> 't*('f,string)result = (fun s ->
             | (s',Error e) -> (s',Error(e))))
     | Some x -> (s,Ok(x)) )
 
-
-
-
-
-
 let if_some f = function Some x -> f x | _ -> ()
-let map_option f = function Some x -> Some (f x) | _ -> None
 
 
 (* find ---------------------------------------- *)
@@ -46,10 +40,10 @@ let map_option f = function Some x -> Some (f x) | _ -> None
 
 module Find = (struct 
   type ('k,'v,'r,'t) t = {
-    tr2t: (('k,'v) Tree.tree * ('k,'v,'r,'t)IU.r2t) option; 
+    tr2t: (('k,'v) tree * ('k,'v,'r,'t)r2t) option; 
     store: 't;
-    fs: ('k,'v,'r) IU.find_state;
-    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+    fs: ('k,'v,'r) find_state;
+    ps1: ('k,'v,'r,'t) ps1;
   }
 
   type ('k,'v,'r) finished = 'r * ('k * 'v) list
@@ -59,26 +53,26 @@ open Find
 
 let check_state s = (
   s.tr2t |> if_some (fun (t,r2t) -> 
-      Test.log __LOC__;
-      (* Test.log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-      Test.test (fun _ ->
-          assert (IU.wellformed_find_state s.ps1.ps0 r2t t s.store s.fs)));
+      log __LOC__;
+      (* log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+      test (fun _ -> assert (IU.wellformed_find_state s.ps1.ps0 r2t t s.store s.fs)));
   true
 )
 
 let check_trans s s' = true       (* TODO *)
   
-let dest: 't -> ('k,'v,'r) finished option = fun s -> 
-  s.fs|>IU.dest_f_finished|>(map_option (fun (_,_,r,kvs,_) -> (r,kvs)))
+let dest s : ('k,'v,'r) finished option = 
+  s.fs|>IU.dest_f_finished|>(option_map (fun (_,_,r,kvs,_) -> (r,kvs)))
 
-(* NB this does not update tree - that needs to be passed in every time *)
-let step : 't -> ('t * (unit,string)result) = (fun x ->
-    IU.find_step x.ps1 x.fs x.store
-    |> (fun (s',y) -> 
-        match y with
-        | Ok fs' -> ({ x with store=s';fs=fs'},Ok ())
-        | Error e -> ({x with store=s'},Error e)
-      ))
+(* NB this does not update tree - that needs to be passed in at the
+   start of the iter *)
+let step x : 't * unit res = (
+  IU.find_step x.ps1 x.fs x.store
+  |> (fun (s',y) -> 
+      match y with
+      | Ok fs' -> ({ x with store=s';fs=fs'},Ok ())
+      | Error e -> ({x with store=s'},Error e)
+    ))
 
 let find_ops = { check_state; check_trans; step; dest } 
 
@@ -89,7 +83,7 @@ let mk ps1 tr2t k r s = {
   ps1=ps1;
 }
 
-let find ps1 tr2t k r s : 't * ('r*('k*'v)list,string) result = (
+let find ps1 tr2t k r s : 't * ('r*('k*'v)list) res = (
   mk ps1 tr2t k r s 
   |> iter find_ops 
   |> (fun (s,r) -> (s.store,r)))
@@ -99,12 +93,12 @@ let find ps1 tr2t k r s : 't * ('r*('k*'v)list,string) result = (
 
 module Insert = (struct  
   type ('k,'v,'r,'t) t = {
-    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t) option;
+    tr2t: (('k,'v)tree * ('k,'v,'r,'t)r2t) option;
     k:'k;
     v:'v;
     store: 't;
-    is: ('k,'v,'r) IU.insert_state;
-    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+    is: ('k,'v,'r) insert_state;
+    ps1: ('k,'v,'r,'t) ps1;
   }
 
   type 'r finished = 'r
@@ -112,14 +106,16 @@ end)
 
 open Insert
 
-let check_state s = (
+
 (*
-          Test.log __LOC__;
-          Test.log ("s.t" ^ (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string));
-          Test.log ("s.k" ^ (s.k |> KV_.key_to_yojson |> Yojson.Safe.to_string));
-          Test.log ("s.v" ^ (s.v |> KV_.value_t_to_yojson |> Yojson.Safe.to_string));
-          Test.log ("s.is" ^ (s.is |> Insert.i_state_t_to_yojson |> Yojson.Safe.to_string));
+          log __LOC__;
+          log ("s.t" ^ (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string));
+          log ("s.k" ^ (s.k |> KV_.key_to_yojson |> Yojson.Safe.to_string));
+          log ("s.v" ^ (s.v |> KV_.value_t_to_yojson |> Yojson.Safe.to_string));
+          log ("s.is" ^ (s.is |> Insert.i_state_t_to_yojson |> Yojson.Safe.to_string));
 *)
+
+let check_state s = (
   s.tr2t |> if_some (fun (t,r2t) -> 
       assert (IU.wellformed_insert_state s.ps1.ps0 r2t t s.store s.k s.v s.is));
   true
@@ -127,16 +123,14 @@ let check_state s = (
 
 let check_trans x y = (true)
 
-let dest: 't -> 'r finished option = 
-  fun s -> s.is |> IU.dest_i_finished
+let dest s : 'r finished option = s.is |> IU.dest_i_finished
 
-let step : 't -> ('t* (unit,string)result) = (fun s ->
-    IU.insert_step s.ps1 s.is s.store 
-    |> (fun (s',y) -> 
-        match y with
-        | Ok is' -> ({ s with store=s';is=is'},Ok ())
-        | Error e -> ({ s with store=s'},Error e)
-      ))
+let step s : 't * unit res = (
+  IU.insert_step s.ps1 s.is s.store 
+  |> (fun (s',y) -> 
+      match y with
+      | Ok is' -> ({ s with store=s';is=is'},Ok ())
+      | Error e -> ({ s with store=s'},Error e) ))
 
 let insert_ops = { check_state; check_trans; step; dest } 
 
@@ -159,13 +153,13 @@ let insert ps1 tr2t k v r s = (
 
 module Im = (struct  
   type ('k,'v,'r,'t) t = {
-    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t) option;
+    tr2t: (('k,'v)tree * ('k,'v,'r,'t)r2t) option;
     k:'k;
     v:'v;
     kvs: ('k*'v) list;
     store: 't;
-    is: ('k,'v,'r) IU.im_state;
-    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+    is: ('k,'v,'r) im_state;
+    ps1: ('k,'v,'r,'t) ps1;
   }
 
   type 'r finished = 'r
@@ -180,13 +174,13 @@ let check_trans x y = true
 let dest: 't -> 'r finished option = 
   fun s -> s.is |> IU.dest_im_finished
 
-let step : 't -> ('t* (unit,string)result) = (fun s ->
-    IU.im_step s.ps1 s.is s.store 
-    |> (fun (s',y) -> 
-        match y with
-        | Ok is' -> ({ s with store=s';is=is'},Ok ())
-        | Error e -> ({ s with store=s'},Error e)
-      ))
+let step s : 't * unit res = (
+  IU.im_step s.ps1 s.is s.store 
+  |> (fun (s',y) -> 
+      match y with
+      | Ok is' -> ({ s with store=s';is=is'},Ok ())
+      | Error e -> ({ s with store=s'},Error e)
+    ))
 
 let im_ops = { check_state; check_trans; step; dest } 
 
@@ -209,11 +203,11 @@ let insert_many ps1 tr2t k v kvs r s = (
 
 module Delete = (struct 
   type ('k,'v,'r,'t) t = {
-    tr2t: (('k,'v)Tree.tree * ('k,'v,'r,'t)IU.r2t)option;
+    tr2t: (('k,'v)tree * ('k,'v,'r,'t)r2t)option;
     k:'k;
     store:'t;
-    ds: ('k,'v,'r) IU.delete_state;
-    ps1: ('k,'v,'r,'t) IU.Params_.ps1;
+    ds: ('k,'v,'r) delete_state;
+    ps1: ('k,'v,'r,'t) ps1;
   }
 
   type 'r finished = 'r
@@ -223,25 +217,25 @@ open Delete
 
 let check_state s = (
   s.tr2t |> if_some (fun (t,r2t) -> 
-      Test.log __LOC__;
-      (* Test.log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-      Test.test (fun _ -> 
-          assert (IU.wellformed_delete_state s.ps1.ps0 r2t t s.store s.k s.ds)));
+      log __LOC__;
+      (* log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+      test (fun _ -> assert (
+          IU.wellformed_delete_state s.ps1.ps0 r2t t s.store s.k s.ds)));
   true
 )
 
 let check_trans x y = (true)
 
-let dest: 't -> 'r finished option = fun s -> s.ds |> IU.dest_d_finished
+let dest s : 'r finished option = s.ds |> IU.dest_d_finished
 
-let step : 't -> ('t*(unit,string)result) = (fun x ->
-    IU.delete_step x.ps1 x.ds x.store
-    |> (fun (s',y) -> 
-        match y with
-        | Ok ds' -> ({ x with store=s';ds=ds'},Ok ())
-        | Error e -> ({x with store=s'},Error e)
-      ))
-  
+let step x : 't * unit res = (
+  IU.delete_step x.ps1 x.ds x.store
+  |> (fun (s',y) -> 
+      match y with
+      | Ok ds' -> ({ x with store=s';ds=ds'},Ok ())
+      | Error e -> ({x with store=s'},Error e)
+    ))
+
 let delete_ops = { check_state; check_trans; step; dest } 
 
 let mk ps1 tr2t k r s = {
@@ -252,7 +246,7 @@ let mk ps1 tr2t k r s = {
   ps1;
 }
 
-let delete ps1 tr2t k r s : ('t * ('r,string)result) = (
+let delete ps1 tr2t k r s : 't * 'r res = (
   mk ps1 tr2t k r s 
   |> iter delete_ops 
   |> (fun (s,r) -> (s.store,r)))

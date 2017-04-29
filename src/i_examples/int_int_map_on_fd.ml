@@ -4,15 +4,14 @@ open Btree_api
 
 open Example_keys_and_values
 
-module G = Generic_kv_store
+module S = struct
+  type k = int
+  type v = int
+  let pp = int_int_pp
+  let sz = 4096
+  let compare_k = Int.compare
+end
 
-(* FIXME put elsewhere? factor into mk_ps1? *)
-(* sz is page_size *)
+module M = Map_on_fd.Make(S)  
 
-let cs sz = Constants.make_constants sz 4 4 4
-
-let pp = Example_keys_and_values.int_int_pp
-
-let mk_ps1 sz = G.mk_ps1 (cs sz) Int.compare pp
-
-let mk_unchecked_map_ops sz = G.mk_unchecked_map_ops (mk_ps1 sz)  (* FIXME unchecked *)
+include M  

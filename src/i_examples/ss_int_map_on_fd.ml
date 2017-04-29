@@ -5,13 +5,14 @@ open Btree_api
 open Small_string
 open Example_keys_and_values
 
-module G = Generic_kv_store
+module S = struct
+  type k = Small_string.t
+  type v = int
+  let pp = ss_int_pp
+  let sz = 4096
+  let compare_k = Small_string.compare
+end
 
-let pp = ss_int_pp
+module M = Map_on_fd.Make(S)  
 
-let cs sz = Constants.make_constants sz 4 pp.k_len pp.v_len
-
-let mk_ps1 sz = G.mk_ps1 (cs sz) Small_string.compare ss_ss_pp
-
-let mk_unchecked_map_ops sz = G.mk_unchecked_map_ops (mk_ps1 sz)  (* FIXME unchecked *)
-
+include M  

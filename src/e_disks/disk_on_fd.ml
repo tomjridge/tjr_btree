@@ -2,6 +2,7 @@
 
 open Prelude
 open Btree_api
+open Default
 
 type fd = Unix.file_descr
 

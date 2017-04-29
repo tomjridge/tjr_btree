@@ -30,7 +30,7 @@ module type DISK_T = sig
   module Buff: BUFFER
   type store
 
-  type 'a m = ('a,store) Sem.m
+  type 'a m = ('a,store) Prelude.m
   type block
   type blk_id = int
   val block_size: int 
@@ -74,12 +74,13 @@ module Make = functor (S:S) -> struct
   
   module S = S
 
+  open Simple_monad
+
   open S
   open Buff
   open Disk
   open Btree
 
-  open Sem
   open Disk
       
   (* use this to store the length of the buffer *)

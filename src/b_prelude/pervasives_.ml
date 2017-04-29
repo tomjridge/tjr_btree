@@ -21,3 +21,10 @@ let fd_from_file ~fn ~create ~init = Unix.(
     openfile fn flgs 0o640 
     |> (fun fd -> (if init then ftruncate fd 0 else ()) |> (fun _ -> fd))
   )
+
+let read_file fn = (BatPervasives.input_file fn)
+let rec iter_step (f:'s -> 's option) (x:'s) = (
+  let s' = f x in
+  match s' with
+  | None -> x
+  | Some x' -> iter_step f x')
