@@ -81,10 +81,12 @@ type range_t = int list[@@deriving yojson]
 (* TODO use exhaustive.ml *)
 
 let (init_store,init_r) = In_mem_store.(
-    { free=1; 
-      map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
-    }, 0
-  )
+    let s = 
+      { free=1; 
+        map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
+      }
+    in
+    (s,0))
 
 let test range = TSET.(
     Printf.printf "%s: exhaustive test, %d elts: " 
