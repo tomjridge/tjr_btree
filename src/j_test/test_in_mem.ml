@@ -19,7 +19,7 @@ type frame = (key,value)Page_ref_int.frame
 
 module T = struct 
   type t = { 
-    t:tree;
+    t:tree; (* TODO this is irrelevant now since tree is computed? *)
     s:store;
     r:page_ref 
   }
@@ -81,12 +81,32 @@ type range_t = int list[@@deriving yojson]
 (* TODO use exhaustive.ml *)
 
 let (init_store,init_r) = In_mem_store.(
-    let s = 
-      { free=1; 
-        map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
-      }
-    in
-    (s,0))
+    { 
+      free=1; 
+      map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
+    }
+    |> (fun s -> (s,0)))
+
+
+let step range t = (
+  let r1 = (
+    range|>List.map (
+      fun x -> 
+        action:=Insert x; 
+        map_ops.insert x x|>(fun f -> f t)))
+  in
+  let r2 = (
+    range|>List.map (
+      fun x -> 
+        action:=Delete x; 
+        map_ops.delete x|>(fun f -> f t)))
+  in
+  r1@r2 |> List.map (
+    fun (t',res) -> 
+      match res with
+      | Ok () -> {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r }
+      | Error e -> (failwith (__LOC__^e)))
+  |> TSET.of_list)
 
 let test range = TSET.(
     Printf.printf "%s: exhaustive test, %d elts: " 
@@ -95,26 +115,6 @@ let test range = TSET.(
     let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=0 }) in
     let todo = ref (!s) in
     (* next states from a given tree *)
-    let step t = 
-      let r1 = (
-        range|>List.map (
-          fun x -> 
-            action:=Insert x; 
-            map_ops.insert x x|>(fun f -> f t)))
-      in
-      let r2 = (
-        range|>List.map (
-          fun x -> 
-            action:=Delete x; 
-            map_ops.delete x|>(fun f -> f t)))
-      in
-      r1@r2 |> List.map (
-        fun (t',res) -> 
-          match res with
-          | Ok () -> {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r }
-          | Error e -> (failwith (__LOC__^e)))
-      |> TSET.of_list
-    in
     let _ = 
       (* FIXME this may be faster if we store todo as a list and check
          for membership when computing next state of the head of todo;
@@ -122,7 +122,7 @@ let test range = TSET.(
       (* Printf.printf "test: starting while\n"; *)
       while (not(TSET.is_empty !todo)) do
         let nexts : TSET.t list = 
-          !todo|>TSET.elements|>List.map step in
+          !todo|>TSET.elements|>List.map (step range) in
         let next = List.fold_left 
             (fun a b -> TSET.union a b) 
             TSET.empty nexts 
