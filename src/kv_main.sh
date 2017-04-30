@@ -24,6 +24,8 @@ for i in `seq 4 1000`; do
     ./$MAIN kv insert $STORE k$i v$i
 done
 
+./$MAIN kv list $STORE
+
 # for 1000 inserts, with syncing after each insert
 # real	0m11.880s
 # user	0m6.004s

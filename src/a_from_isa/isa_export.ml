@@ -297,10 +297,9 @@ module Util : sig
   val iter_step : ('a -> 'a option) -> 'a -> 'a
   val dest_lista : 'a list -> 'a list * 'a
   val split_at_3 : Arith.nat -> 'a list -> 'a list * ('a * 'a list)
-  val assert_true : 'a -> bool -> bool
+  val assert_true : bool -> bool
   val impossible1 : string -> 'a
   val max_of_list : Arith.nat list -> Arith.nat
-  val assert_truea : bool -> bool
 end = struct
 
 type error = String_error of string;;
@@ -317,7 +316,7 @@ let rec from_to x y = List.upt x (Arith.suc y);;
 
 let rec is_None x = Option.is_none x;;
 
-let rec failwitha x = failwith "undefined";;
+let rec failwitha x = failwith x
 
 let rec split_at n xs = (List.take n xs, List.drop n xs);;
 
@@ -340,14 +339,12 @@ let rec split_at_3
     (List.take n xs,
       (List.nth xs n, List.drop (Arith.plus_nat n Arith.one_nat) xs));;
 
-let rec assert_true arg b = b;;
+let rec assert_true b = (if b then b else failwitha "assert_true");;
 
-let rec impossible1 x = failwitha "";;
+let rec impossible1 x = failwitha x;;
 
 let rec max_of_list
   xs = List.foldr (Orderings.max Arith.ord_nat) xs Arith.zero_nat;;
-
-let rec assert_truea b = assert_true () b;;
 
 end;; (*struct Util*)
 
@@ -413,7 +410,7 @@ let rec split_leaf
       in
     let (l, r) = Util.split_at cut_point kvs in
     let _ =
-      Util.assert_truea
+      Util.assert_true
         (Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
            (List.size_list l) &&
           Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
@@ -433,7 +430,7 @@ let rec split_node
           in
         let (ks1, (k, ks2)) = Util.split_at_3 cut_point ks in
         let _ =
-          Util.assert_truea
+          Util.assert_true
             (Arith.less_eq_nat (Util.rev_apply c Prelude.min_node_keys)
               (List.size_list ks2))
           in
@@ -543,7 +540,7 @@ let rec wf_size_1
 
 let rec wf_size
   c ms t0 =
-    Util.assert_true (ms, t0)
+    Util.assert_true
       (match ms with None -> forall_subtrees (wf_size_1 c) t0
         | Some m ->
           let min = get_min_size c (m, t0) in
@@ -569,7 +566,7 @@ let rec balanced_1
                cs
          | Leaf _ -> true);;
 
-let rec balanced t = Util.assert_true t (forall_subtrees balanced_1 t);;
+let rec balanced t = Util.assert_true (forall_subtrees balanced_1 t);;
 
 let rec wf_ks_rs_1
   t0 = (match t0
@@ -578,7 +575,7 @@ let rec wf_ks_rs_1
              (List.size_list cs)
          | Leaf _ -> true);;
 
-let rec wf_ks_rs t0 = Util.assert_true t0 (forall_subtrees wf_ks_rs_1 t0);;
+let rec wf_ks_rs t0 = Util.assert_true (forall_subtrees wf_ks_rs_1 t0);;
 
 let rec dest_Node
   = function Node (ks, rs) -> (ks, rs)
@@ -600,7 +597,7 @@ let rec keys_ordered_1
     Util.rev_apply (Util.rev_apply t0 keys_1) (Key_value.ordered_key_list cmp);;
 
 let rec keys_ordered
-  cmp t = Util.assert_true t (forall_subtrees (keys_ordered_1 cmp) t);;
+  cmp t = Util.assert_true (forall_subtrees (keys_ordered_1 cmp) t);;
 
 let rec tree_to_keys
   t = Util.rev_apply
@@ -642,11 +639,11 @@ let rec keys_consistent_1
       | Leaf _ -> true);;
 
 let rec keys_consistent
-  cmp t = Util.assert_true t (forall_subtrees (keys_consistent_1 cmp) t);;
+  cmp t = Util.assert_true (forall_subtrees (keys_consistent_1 cmp) t);;
 
 let rec wellformed_tree
   c ms cmp t0 =
-    Util.assert_true (ms, t0)
+    Util.assert_true
       (let b1 = wf_size c ms t0 in
        let b2 = wf_ks_rs t0 in
        let b3 = balanced t0 in
@@ -982,7 +979,7 @@ let rec dest_f_finished
 
 let rec wellformed_find_state
   k_ord r2t t0 s fs =
-    Util.assert_truea
+    Util.assert_true
       (let _ = Tree.height t0 in
        let check_focus = wf_store_tree r2t s in
        let check_stack =
@@ -1034,13 +1031,13 @@ type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c) |
 
 let rec wf_d
   k_ord r2f t0 s d =
-    Util.assert_truea
+    Util.assert_true
       (let (fs, _) = d in
        Find.wellformed_find_state k_ord r2f t0 s fs);;
 
 let rec wf_f
   ps0 r2t t0 s k r =
-    Util.assert_truea
+    Util.assert_true
       (let (constants, k_ord) =
          (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
          in
@@ -1054,7 +1051,7 @@ let rec wf_f
 
 let rec wf_u
   ps0 r2t t0 s k u =
-    Util.assert_truea
+    Util.assert_true
       (let (constants, k_ord) =
          (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
          in
@@ -1439,7 +1436,7 @@ let rec mk_delete_state k r = D_down (Find.mk_find_state k r, r);;
 
 let rec wellformed_delete_state
   ps0 r2t t0 s k ds =
-    Util.assert_truea
+    Util.assert_true
       (let (_, k_ord) =
          (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
          in
@@ -1476,13 +1473,13 @@ type ('a, 'b, 'c) insert_state = I_down of (('a, 'b, 'c) Find.find_state * 'b) |
 
 let rec wf_d
   k_ord r2t t0 s d =
-    Util.assert_truea
+    Util.assert_true
       (let (fs, _) = d in
        Find.wellformed_find_state k_ord r2t t0 s fs);;
 
 let rec wf_f
   ps0 r2t t0 s k v r =
-    Util.assert_truea
+    Util.assert_true
       (let (cs, k_ord) =
          (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
          in
@@ -1497,7 +1494,7 @@ let rec wf_f
 
 let rec wf_u
   r2t k_ord t0 s k v u =
-    Util.assert_truea
+    Util.assert_true
       (let _ = Find.wf_store_tree r2t s in
        let check_stack =
          (fun rstk tstk ->
@@ -1656,7 +1653,7 @@ let rec mk_insert_state k v r = I_down (Find.mk_find_state k r, v);;
 
 let rec wellformed_insert_state
   ps0 r2t t0 s k v is =
-    Util.assert_truea
+    Util.assert_true
       (let k_ord = Util.rev_apply ps0 Params.ps0_cmp_k in
        (match is with I_down a -> wf_d k_ord r2t t0 s a
          | I_up a -> wf_u r2t k_ord t0 s k v a
@@ -1871,7 +1868,7 @@ type ('a, 'b, 'c) ls_state =
   LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
 
 let rec step_up
-  fs = let _ = Util.assert_true () (not (List.null fs)) in
+  fs = let _ = Util.assert_true (not (List.null fs)) in
        (match fs with [] -> Util.failwitha "impossible: Leaf_stream.step_up"
          | f :: fsa ->
            let a = Util.rev_apply f Tree_stack.dest_ts_frame in

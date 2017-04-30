@@ -69,9 +69,12 @@ let _ = try (
     )
 ) with e -> (
     Test.print_logs ();
-    e|>Printexc.to_string|>print_endline;
-    Printexc.get_backtrace () |>print_endline;
     flush_out();
+    ignore(e|>Printexc.to_string|>print_endline);
+    flush_out();
+    ignore(Printexc.get_backtrace () |>print_endline);
+    flush_out();
+    raise e
   )
 
 

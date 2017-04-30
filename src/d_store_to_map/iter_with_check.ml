@@ -218,7 +218,7 @@ open Delete
 let check_state s = (
   s.tr2t |> if_some (fun (t,r2t) -> 
       log __LOC__;
-      (* log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
+      log (s.t |> Tree.tree_to_yojson |> Yojson.Safe.to_string);
       test (fun _ -> assert (
           IU.wellformed_delete_state s.ps1.ps0 r2t t s.store s.k s.ds)));
   true

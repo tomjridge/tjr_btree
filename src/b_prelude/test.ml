@@ -17,5 +17,10 @@ let warn s = (
 )
 
 let print_logs () = 
-  !log_messages|>Extlib.ExtList.List.take 20 |> List.rev 
-  |> List.iter print_endline
+  ignore(print_endline "Logs: ");
+  ignore (
+    !log_messages
+    |>Extlib.ExtList.List.take 20 |> List.rev 
+    |> List.iter print_endline);
+  print_string "// end Logs\n\n";
+  
