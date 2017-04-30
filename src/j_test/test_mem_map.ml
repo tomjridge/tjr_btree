@@ -46,9 +46,9 @@ let mem_ops : ('k,'v,T.t) mem_ops = {
   set_store=(fun s -> fun t -> ({t with s},Ok ()));
 }
 
-let r2f = Mem_store.mk_r2f (fun s -> s.s)
+let store_ops = Mem_store.mk_store_ops mem_ops
 
-let r2t = Isa_util.mk_r2t r2f
+let r2t = Isa_util.store_ops_to_r2t store_ops
 
 let ps0 = { compare_k; constants }
 

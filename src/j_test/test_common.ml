@@ -1,6 +1,3 @@
-open Prelude
-open Small_string
-(* TODO let default_filename = "/tmp/store" *)
 
 (* https://www.npmjs.com/package/human-readable-ids *)
 let strings = {|
@@ -104,41 +101,3 @@ tame-octopus-59
 smart-panther-36
 lazy-termite-3
 helpless-snake-32 |} |> Tjr_string.split_on_all ~sub:"\n"
-
-let sz = 4096
-
-let map_ops = SS_int_map_on_fd.mk_checked_map_ops
-
-let store = Uncached.from_file Test_config.default_filename true true
-
-(* TODO use exhaustive *)
-let test () = 
-  Printf.printf "%s: " __MODULE__;
-  flush_out();
-  let xs = ref strings in
-  let c = ref 1 in
-  let m = ref Map_string.empty in
-  let t = ref store in
-  let _ = 
-    while (!xs <> []) do
-      print_string "."; flush_out();
-      let (k,v) = (List.hd !xs, !c) in
-      Test.log __LOC__;
-      Test.log (Printf.sprintf "insert: %s %s" k (v|>string_of_int));
-      begin 
-        map_ops.insert (SS_.of_string k) v
-        |> (fun f -> f !t) |> (function (t',Ok ()) -> t:=t') 
-      end;
-      m:=(Map_string.add k v !m);
-      c:=!c+1;
-      xs:=(List.tl !xs);
-      ()
-    done
-  in
-  (* check the bindings match *)
-  !m|>Map_string.bindings|>List.iter (fun (k,v) ->
-      (map_ops.find (SS_.of_string k) |> (fun f -> f !t) |> function (_,Ok res) -> assert (res = Some v));
-      (map_ops.delete (SS_.of_string k) |>(fun f -> f !t) |> function (t',Ok ()) -> t:=t');
-      ());
-  Unix.close (!t).fd;
-  ()

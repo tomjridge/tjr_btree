@@ -141,4 +141,4 @@ let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
 
 let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (X.int_to_nat 1000)
 
-let mk_r2t store_ops = mk_r2t (mk_r2f store_ops)
+let store_ops_to_r2t store_ops = mk_r2t (mk_r2f store_ops)

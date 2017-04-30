@@ -18,7 +18,7 @@ include O
 
 open Simple_monad
 
-let make (mem_ops:('k,'v,'t)mem_ops) : ('k,'v,'r,'t) store_ops = (
+let mk_store_ops (mem_ops:('k,'v,'t)mem_ops) : ('k,'v,'r,'t) store_ops = (
   let store_free rs : (unit,'t) m = return () in (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     mem_ops.get_store () |> bind (fun s -> 

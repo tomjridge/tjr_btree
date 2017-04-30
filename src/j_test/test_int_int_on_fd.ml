@@ -5,33 +5,36 @@
 open Prelude
 open Btree_api
 open Int_int_map_on_fd
+open Default
+open Simple_monad
 
-let default_filename = "/tmp/store"  (* FIXME *)
-let sz = 4096
-
-let map_ops = mk_unchecked_map_ops sz
+let map_ops = mk_checked_map_ops default_size
 
 (* test uncached ---------------------------------------- *)
 
-let test_uncached range = 
+let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
     __MODULE__ 
     (List.length range);
   flush_out();
-  let t = G.from_file default_filename true true pp in
-  let t = ref t in
+  let s = Map_on_fd.from_file 
+      ~fn:default_filename ~create:true ~init:true ~sz:default_size ~pp:pp 
+  in
+  let s = ref s in
   let xs = ref range in
-  while (!xs <> []) do
-    print_string "."; flush_out();
-    let x = List.hd !xs in
-    (map_ops.insert x (2*x) |> (fun f -> f !t) |> function (t',Ok()) -> t:=t');
-    xs:=List.tl !xs;
-  done;
+  ignore (
+    while (!xs <> []) do
+      print_string "."; flush_out();
+      let x = List.hd !xs in
+      ignore (map_ops.insert x (2*x) 
+              |> run !s 
+              |> function (s',Ok()) -> s:=s');
+      xs:=List.tl !xs;
+    done);
   print_newline ();
   (* FIXME check result? *)
-  let t = !t in
-  Unix.close (t.fd);
-  ()
+  Unix.close ((!s).fd);
+  ())
 
 
 (* test cached ------------------------------------------------------------ *)

@@ -10,3 +10,6 @@ let bind : ('a -> ('b,'s) m) -> ('a,'s)m -> ('b,'s)m = fun f x s ->
 let return x = fun s -> (s,Ok x)
 
 let err e = fun s -> (s,Error e)
+
+
+let run s = fun m -> m s

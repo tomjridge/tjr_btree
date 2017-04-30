@@ -19,3 +19,7 @@ end = struct
 end
 
 module BLK = Default_block
+
+let default_filename = "./btree.store"
+
+let default_size = 4096 (* page/block size *)

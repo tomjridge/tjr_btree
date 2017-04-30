@@ -184,11 +184,13 @@ module Make = functor (S:S) -> struct
 
   let mk_ps1 sz = mk_ps1 sz (cs sz) compare_k pp
 
+  let mk_store_ops sz = mk_store_ops sz (cs sz) pp
+
   let mk_unchecked_map_ops sz = mk_unchecked_map_ops (mk_ps1 sz)
 
-  let r2t sz = Isa_util.mk_r2t (mk_store_ops sz (cs sz) pp)
+  let mk_r2t sz = Isa_util.store_ops_to_r2t (mk_store_ops sz)
 
-  let mk_checked_map_ops sz = mk_checked_map_ops (mk_ps1 sz)
+  let mk_checked_map_ops sz = mk_checked_map_ops (mk_ps1 sz) (mk_r2t sz)
 
   let ls_ops = mk_ls_ops (mk_ps1 sz)
 

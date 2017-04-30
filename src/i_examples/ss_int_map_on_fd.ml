@@ -13,6 +13,8 @@ module S = struct
   let compare_k = Small_string.compare
 end
 
+include S
+
 module M = Map_on_fd.Make(S)  
 
 include M  
