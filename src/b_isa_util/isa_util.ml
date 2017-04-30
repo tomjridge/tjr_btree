@@ -6,12 +6,8 @@ module O = struct
   include Store_ops
   include Isa_util_params
 
-  type ('k,'v,'r) frame = ('k,'v,'r) Frame.frame
-  type ('k,'v) tree = ('k,'v) Tree.tree
   type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
-
   type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
-  type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option) 
 
   type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
   type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
@@ -37,10 +33,10 @@ module X = struct
 
   open IE.Params
   let x_cmp cmp x y = cmp x y |> int_to_int
-  let x_ps0 ps0 : 'k IE.Params.ps0 = (
+  let x_ps0 ps : 'k IE.Params.ps0 = (
     Ps0(
-      ps0.constants|>x_constants,
-      x_cmp ps0.compare_k
+      (constants ps)|>x_constants,
+      (compare_k ps)|>x_cmp
     ))
 
   let x_store_ops store_ops : ('k,'v,'r,'t,unit) IE.Params.store_ops_ext = (
@@ -49,70 +45,69 @@ module X = struct
       store_ops.store_alloc,
       store_ops.store_free,()))
 
-  let x_ps1 ps1 : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
-      Ps1(ps1.ps0|>x_ps0, ps1.store_ops|>x_store_ops))
-  
+  let x_ps1 ps : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
+      Ps1(ps|>x_ps0, (store_ops ps)|>x_store_ops))
+
 end
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
+let check_some f x = (match x with Some x -> f x | None -> true)
+
 (* find ---------------------------------------- *)
 
-let  mk_find_state: 'k -> 'r -> ('k,'v,'r) find_state = Find.mk_find_state
+let  mk_find_state k r : ('k,'v,'r) find_state = Find.mk_find_state k r
 
-let find_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) find_state -> 't -> 
-      't * ('k,'v,'r) find_state res = 
-  (fun ps1 fs -> Find.find_step (ps1|>X.x_ps1) fs)
+let find_step ps : 'fs -> ('fs,'t) m = (fun fs -> Find.find_step (ps|>X.x_ps1) fs)
 
-let dest_f_finished: ('k,'v,'r) find_state -> 
-      ('r * 'k * 'r * ('k * 'v) list * ('k,'r) rstk) option = (
-  fun fs -> Find.dest_f_finished fs |> (function
-      | None -> None
-      | Some  x -> Some (x5 x)))
+let dest_f_finished: ('k,'v,'r) find_state -> ('r * 'k * 'r * 'kvs * ('k,'r) rstk) option = (
+  fun fs -> 
+    Find.dest_f_finished fs 
+    |> (function None -> None | Some  x -> Some (x5 x)))
+
+(* only check if we have access to the relevant r2t and spec_tree *)
+let wellformed_find_state ps: 'tree -> 't -> ('k,'v,'r) find_state -> bool = (
+  fun t s fs -> 
+    (r2t ps) 
+    |> check_some (fun r2t -> Find.wellformed_find_state (compare_k ps|>X.x_cmp) r2t t s fs))
   
-let wellformed_find_state: 
-  'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree -> 't -> ('k,'v,'r) find_state -> bool = 
-  (fun ps0 r2t t s fs -> 
-     Find.wellformed_find_state (ps0.compare_k|>X.x_cmp) r2t t s fs)
-
 
 (* delete ---------------------------------------- *)
+
 let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = Delete.mk_delete_state
 
-let delete_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) delete_state -> 't -> 
-      't * ('k,'v,'r) delete_state res = 
-  (fun ps1 ds -> Delete.delete_step (ps1|>X.x_ps1) ds)
+let delete_step ps: 'ds -> ('ds,'t) m = 
+  (fun ds -> Delete.delete_step (ps|>X.x_ps1) ds)
 
 let dest_d_finished: ('k,'v,'r) delete_state -> 'r option = Delete.dest_d_finished
 
-let wellformed_delete_state: 
-  'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree -> 't -> 'k -> 
-  ('k,'v,'r) delete_state -> bool = (
-  fun ps0 r2t t s k ds -> 
-    Delete.wellformed_delete_state (ps0|>X.x_ps0) r2t t s k ds)
-    
+let wellformed_delete_state ps: 'tree -> 't -> 'k -> ('k,'v,'r) delete_state -> bool = (
+  fun t s k ds -> 
+    (r2t ps) 
+    |> check_some (fun r2t -> Delete.wellformed_delete_state (ps|>X.x_ps0) r2t t s k ds))
+  
 
 (* insert ---------------------------------------- *)
+
 let mk_insert_state: 'k -> 'v -> 'r -> ('k,'v,'r) insert_state = Insert.mk_insert_state
 
-let insert_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) insert_state -> 't -> 
-      't * ('k,'v,'r) insert_state res = 
-  (fun ps1 is -> Insert.insert_step (ps1|>X.x_ps1) is)
+let insert_step ps: 'is -> ('is,'t) m = 
+  (fun is -> Insert.insert_step (ps|>X.x_ps1) is)
 
 let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = Insert.dest_i_finished
 
-let wellformed_insert_state: 'k ps0 -> ('k,'v,'r,'t) r2t -> ('k,'v) tree 
-  -> 't -> 'k -> 'v -> ('k,'v,'r) insert_state -> bool = 
-  (fun ps0 r2t t s k v is ->
-     Insert.wellformed_insert_state (ps0|>X.x_ps0) r2t t s k v is)
+let wellformed_insert_state ps: 'tree -> 't -> 'k -> 'v -> ('k,'v,'r) insert_state -> bool = (
+  fun t s k v is ->
+    r2t ps
+    |> check_some (fun r2t -> Insert.wellformed_insert_state (ps|>X.x_ps0) r2t t s k v is))
 
 (* insert_many ---------------------------------------- *)
+
 let mk_im_state: 'k -> 'v -> ('k*'v) list -> 'r -> ('k,'v,'r) im_state = 
   Insert_many.mk_insert_state
 
-let im_step: ('k,'v,'r,'t) ps1 -> ('k,'v,'r) im_state -> 't -> 
-      't * ('k,'v,'r) im_state res = 
-  (fun ps1 is -> Insert_many.insert_step (ps1|>X.x_ps1) is)
+let im_step ps: 'im -> ('im,'t) m = 
+  (fun is -> Insert_many.insert_step (ps|>X.x_ps1) is)
 
 let dest_im_finished: ('k,'v,'r)im_state -> ('r*('k*'v)list) option = 
   Insert_many.dest_i_finished
@@ -134,6 +129,7 @@ let ls_is_finished lss : bool = (
 
 (* r2t ---------------------------------------- *)
 
+(*
 let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
   fun s r ->
     s |> store_ops.store_read r 
@@ -142,3 +138,4 @@ let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
 let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (X.int_to_nat 1000)
 
 let store_ops_to_r2t store_ops = mk_r2t (mk_r2f store_ops)
+*)
