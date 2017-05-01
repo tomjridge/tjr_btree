@@ -82,7 +82,7 @@ let step x : _ * unit res = (
 let find_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k r s = 
-  let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
+  let spec_tree = debug ps |> option_map (fun d -> d.r2t s r |> dest_Some) in
   {
     spec_tree; 
     store=s; 
@@ -147,7 +147,7 @@ let step s : _ * unit res = (
 let insert_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k v r s = 
-  let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
+  let spec_tree = debug ps |> option_map (fun d -> d.r2t s r |> dest_Some) in
   {  
     spec_tree; 
     k; v; store=s; 
@@ -198,7 +198,7 @@ let step s : _ * unit res = (
 let im_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k v kvs r s = 
-  let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
+  let spec_tree = debug ps |> option_map (fun d -> d.r2t s r |> dest_Some) in
   {  
     spec_tree; 
     k; v; kvs;
@@ -229,12 +229,21 @@ end)
 
 open Delete
 
+(* TODO make other checks look like this *)
 let check_state s = (
-  s.spec_tree
-  |> check_some (fun t -> 
+  debug s.ps 
+  |> check_some (fun d -> 
+      (* INVARIANT debug <> None --> spec_tree <> None *)
+      let spec_tree = s.spec_tree |> dest_Some in
       log __LOC__;
-      (* log (t |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-      test (fun _ -> assert (IU.wellformed_delete_state s.ps t s.store s.k s.ds));
+      log (spec_tree
+           |> Tree.tree_to_yojson (d.k2j) (d.v2j) 
+           |> Yojson.Safe.to_string); 
+      log (s.ds
+           |> IE.Delete.delete_state_to_yojson d.k2j d.v2j d.r2j
+           |> Yojson.Safe.to_string);
+      test (fun _ -> assert (IU.wellformed_delete_state 
+                               s.ps spec_tree s.store s.k s.ds));
       true))
 
 let check_trans x y = (true)
@@ -253,7 +262,7 @@ let step x : _ * unit res = (
 let delete_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k r s = 
-  let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
+  let spec_tree = debug ps |> option_map (fun d -> d.r2t s r |> dest_Some) in
   {
     spec_tree;
     k;

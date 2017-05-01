@@ -472,7 +472,7 @@ end;; (*struct Key_value*)
 
 module Tree : sig
   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
-    Leaf of ('a * 'b) list
+    Leaf of ('a * 'b) list [@@deriving yojson]
   val height : ('a, 'b) tree -> Arith.nat
   val dest_Node : ('a, 'b) tree -> 'a list * ('a, 'b) tree list
   val tree_equal : ('a, 'b) tree -> ('a, 'b) tree -> bool
@@ -486,7 +486,7 @@ module Tree : sig
 end = struct
 
 type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
-  Leaf of ('a * 'b) list;;
+  Leaf of ('a * 'b) list  [@@deriving yojson];;
 
 let rec tree_to_subtrees
   t0 = (match t0
@@ -656,7 +656,7 @@ end;; (*struct Tree*)
 
 module Tree_stack : sig
   type ('a, 'b, 'c) ts_frame_ext =
-    Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c
+    Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c [@@deriving yojson]
   val stack_map :
     ('a -> 'b) ->
       ('c, 'a, unit) ts_frame_ext list -> ('c, 'b, unit) ts_frame_ext list
@@ -685,7 +685,7 @@ module Tree_stack : sig
 end = struct
 
 type ('a, 'b, 'c) ts_frame_ext =
-  Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c;;
+  Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c [@@deriving yojson];;
 
 let rec f_t_update
   f_ta (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
@@ -923,7 +923,7 @@ let rec return x = (fun s -> (s, Util.Ok x));;
 end;; (*struct Monad*)
 
 module Find : sig
-  type ('a, 'b, 'c) find_state
+  type ('a, 'b, 'c) find_state [@@deriving yojson]
   val find_step :
     ('a, 'b, 'c, 'd) Params.ps1 ->
       ('a, 'b, 'c) find_state -> 'd -> 'd * ('a, 'b, 'c) find_state Util.res
@@ -945,7 +945,7 @@ type ('a, 'b, 'c) find_state =
   F_down of ('c * ('a * ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list))) |
   F_finished of
     ('c * ('a * ('c * (('a * 'b) list *
-                        ('a, 'c, unit) Tree_stack.ts_frame_ext list))));;
+                        ('a, 'c, unit) Tree_stack.ts_frame_ext list)))) [@@deriving yojson];;
 
 let rec find_step
   ps1 fs =
@@ -1002,12 +1002,12 @@ end;; (*struct Find*)
 
 module Delete : sig
   type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
-    D_small_node of ('a list * 'c list) | D_updated_subtree of 'c
+    D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson]
   type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c)
     | D_up of
         (('a, 'b, 'c) del_t *
           (('a, 'c, unit) Tree_stack.ts_frame_ext list * 'c))
-    | D_finished of 'c
+    | D_finished of 'c  [@@deriving yojson]
   val delete_step :
     ('a, 'b, 'c, 'd) Params.ps1 ->
       ('a, 'b, 'c) delete_state -> 'd -> 'd * ('a, 'b, 'c) delete_state Util.res
@@ -1019,15 +1019,15 @@ module Delete : sig
         ('a, 'd) Tree.tree -> 'b -> 'a -> ('a, 'd, 'c) delete_state -> bool
 end = struct
 
-type ('a, 'b) d12_t = D1 of 'b | D2 of ('b * ('a * 'b));;
+type ('a, 'b) d12_t = D1 of 'b | D2 of ('b * ('a * 'b))  [@@deriving yojson];;
 
 type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
-  D_small_node of ('a list * 'c list) | D_updated_subtree of 'c;;
+  D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson];;
 
 type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c) |
   D_up of
     (('a, 'b, 'c) del_t * (('a, 'c, unit) Tree_stack.ts_frame_ext list * 'c))
-  | D_finished of 'c;;
+  | D_finished of 'c  [@@deriving yojson];;
 
 let rec wf_d
   k_ord r2f t0 s d =
@@ -1449,10 +1449,10 @@ let rec wellformed_delete_state
 end;; (*struct Delete*)
 
 module Insert : sig
-  type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c))
+  type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c)) [@@deriving yojson]
   type ('a, 'b, 'c) insert_state = I_down of (('a, 'b, 'c) Find.find_state * 'b)
     | I_up of (('a, 'b, 'c) i12_t * ('a, 'c, unit) Tree_stack.ts_frame_ext list)
-    | I_finished of 'c
+    | I_finished of 'c  [@@deriving yojson]
   val insert_step :
     ('a, 'b, 'c, 'd) Params.ps1 ->
       ('a, 'b, 'c) insert_state -> 'd -> 'd * ('a, 'b, 'c) insert_state Util.res
@@ -1465,11 +1465,11 @@ module Insert : sig
           'b -> 'a -> 'd -> ('a, 'd, 'c) insert_state -> bool
 end = struct
 
-type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c));;
+type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c)) [@@deriving yojson];;
 
 type ('a, 'b, 'c) insert_state = I_down of (('a, 'b, 'c) Find.find_state * 'b) |
   I_up of (('a, 'b, 'c) i12_t * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  I_finished of 'c;;
+  I_finished of 'c  [@@deriving yojson];;
 
 let rec wf_d
   k_ord r2t t0 s d =

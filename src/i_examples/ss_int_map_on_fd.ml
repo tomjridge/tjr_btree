@@ -15,7 +15,7 @@ let ps store_ops =
     method pp=pp
     method constants=Constants.make_constants default_blk_sz tag_len pp.k_len pp.v_len
     method compare_k=SS.compare
-    method r2t=None (* TODO *)
+    method debug=None (* TODO *)
     method store_ops=store_ops
   end
 

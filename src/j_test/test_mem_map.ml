@@ -8,10 +8,8 @@ open Mem_store.O
 
 (* we concentrate on relatively small parameters *)
 
-type key = int
-let compare_k = Int.compare
-
-type value = int
+type key = int  [@@deriving yojson]
+type value = int  [@@deriving yojson]
 
 type tree = (key,value)Tree.tree
 type store = (key,value)mem
@@ -54,7 +52,7 @@ let ps =
   object
     method compare_k=Int.compare
     method constants=constants
-    method r2t=Some(r2t)
+    method debug=Some{r2t;k2j=key_to_yojson;v2j=value_to_yojson;r2j=page_ref_to_yojson} (* TODO Some(r2t) *)
   end
 
 let map_ops = Mem_map.mk_map_ops ps mem_ops pr_ops

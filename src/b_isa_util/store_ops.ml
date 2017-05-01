@@ -1,7 +1,5 @@
 open Frame
-
-type 'a res = 'a Isa_export.Util.res
-type ('a,'t) m = 't -> ('t * 'a res)
+open Iu_pervasives
 
 (* just an abstraction, so no sync; use sync on underlying disk *)
 type ('k,'v,'r,'t) store_ops = {

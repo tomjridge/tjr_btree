@@ -1,6 +1,7 @@
 module IE = Isa_export
 open IE
 open Isa_util_params
+open Iu_pervasives
 
 module O = struct
   (* safe to open O in other modules *)
@@ -52,24 +53,22 @@ end
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
-let check_some f x = (match x with Some x -> f x | None -> true)
-
 (* find ---------------------------------------- *)
 
 let  mk_find_state k r : ('k,'v,'r) find_state = Find.mk_find_state k r
 
-let find_step ps : 'fs -> ('fs,'t) m = (fun fs -> Find.find_step (ps|>X.x_ps1) fs)
+let find_step ps : 'fs->('fs,'t) m = (fun fs -> Find.find_step (ps|>X.x_ps1) fs)
 
-let dest_f_finished: ('k,'v,'r) find_state -> ('r * 'k * 'r * 'kvs * ('k,'r) rstk) option = (
-  fun fs -> 
+let dest_f_finished fs: ('r * 'k * 'r * 'kvs * ('k,'r) rstk) option = (
     Find.dest_f_finished fs 
     |> (function None -> None | Some  x -> Some (x5 x)))
 
 (* only check if we have access to the relevant r2t and spec_tree *)
+(* ASSUMES r2t ps <> None *)
 let wellformed_find_state ps: 'tree -> 't -> ('k,'v,'r) find_state -> bool = (
   fun t s fs -> 
-    (r2t ps) 
-    |> check_some (fun r2t -> Find.wellformed_find_state (compare_k ps|>X.x_cmp) r2t t s fs))
+    Find.wellformed_find_state 
+      (compare_k ps|>X.x_cmp) (debug ps|>dest_Some).r2t t s fs)
   
 
 (* delete ---------------------------------------- *)
@@ -79,27 +78,27 @@ let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = Delete.mk_delete_stat
 let delete_step ps: 'ds -> ('ds,'t) m = 
   (fun ds -> Delete.delete_step (ps|>X.x_ps1) ds)
 
-let dest_d_finished: ('k,'v,'r) delete_state -> 'r option = Delete.dest_d_finished
+let dest_d_finished: ('k,'v,'r) delete_state->'r option = Delete.dest_d_finished
 
-let wellformed_delete_state ps: 'tree -> 't -> 'k -> ('k,'v,'r) delete_state -> bool = (
+let wellformed_delete_state ps: 'tree->'t->'k->('k,'v,'r) delete_state->bool = (
   fun t s k ds -> 
-    (r2t ps) 
-    |> check_some (fun r2t -> Delete.wellformed_delete_state (ps|>X.x_ps0) r2t t s k ds))
+    Delete.wellformed_delete_state 
+      (ps|>X.x_ps0) (debug ps|>dest_Some).r2t t s k ds)
   
 
 (* insert ---------------------------------------- *)
 
-let mk_insert_state: 'k -> 'v -> 'r -> ('k,'v,'r) insert_state = Insert.mk_insert_state
+let mk_insert_state: 'k->'v->'r->('k,'v,'r) insert_state = Insert.mk_insert_state
 
 let insert_step ps: 'is -> ('is,'t) m = 
   (fun is -> Insert.insert_step (ps|>X.x_ps1) is)
 
 let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = Insert.dest_i_finished
 
-let wellformed_insert_state ps: 'tree -> 't -> 'k -> 'v -> ('k,'v,'r) insert_state -> bool = (
+let wellformed_insert_state ps:'tree->'t->'k->'v->('k,'v,'r) insert_state->bool = (
   fun t s k v is ->
-    r2t ps
-    |> check_some (fun r2t -> Insert.wellformed_insert_state (ps|>X.x_ps0) r2t t s k v is))
+    Insert.wellformed_insert_state 
+      (ps|>X.x_ps0) (debug ps|>dest_Some).r2t t s k v is)
 
 (* insert_many ---------------------------------------- *)
 
