@@ -26,13 +26,13 @@ let ps store_ops =
 
 let store_ops = Map_on_fd.mk_store_ops (ps ())
 
-let map_ops = Map_on_fd.mk_map_ops (ps store_ops)
+let ps = ps store_ops
 
-let ls_ops = Map_on_fd.mk_ls_ops (ps store_ops)
+let map_ops = Map_on_fd.mk_map_ops ps
+
+let ls_ops = Map_on_fd.mk_ls_ops ps
 
 open Map_on_fd
-
-let ps = ps store_ops
 
 let main args = (
   (* turn off wf checking *)

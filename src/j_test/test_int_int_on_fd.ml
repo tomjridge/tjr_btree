@@ -8,8 +8,6 @@ open Int_int_map_on_fd
 open Default
 open Simple_monad
 
-let map_ops = mk_checked_map_ops default_size
-
 (* test uncached ---------------------------------------- *)
 
 let test_uncached range = (
@@ -17,9 +15,7 @@ let test_uncached range = (
     __MODULE__ 
     (List.length range);
   flush_out();
-  let s = Map_on_fd.from_file 
-      ~fn:default_filename ~create:true ~init:true ~sz:default_size ~pp:pp 
-  in
+  let s = Map_on_fd.from_file ~fn:default_filename ~create:true ~init:true ~ps:ps in
   let s = ref s in
   let xs = ref range in
   ignore (

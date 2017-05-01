@@ -38,6 +38,7 @@ type global_state = {
   free: page_ref;
   root: page_ref; (* pointer to root of btree *)
 }        
+type t = global_state
 
 module D = Disk_on_fd
 module D2S = Disk_to_store

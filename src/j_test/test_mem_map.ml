@@ -19,11 +19,11 @@ type frame = (key,value)Page_ref_int.frame
 
 module T = struct 
   type t = { 
-    t:tree; (* TODO this is irrelevant now since tree is computed? *)
+    t:tree;
     s:store;
     r:page_ref 
   }
-
+  type global_state = t
   (* compare: we want to ignore the store and page_ref *)
   let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
 end
@@ -48,11 +48,16 @@ let mem_ops : ('k,'v,T.t) mem_ops = {
 
 let store_ops = Mem_store.mk_store_ops mem_ops
 
-let r2t = Isa_util.store_ops_to_r2t store_ops
+let r2t = store_ops_to_r2t store_ops
 
-let ps0 = { compare_k; constants }
+let ps = 
+  object
+    method compare_k=Int.compare
+    method constants=constants
+    method r2t=Some(r2t)
+  end
 
-let map_ops = Mem_map.mk_checked_map_ops ps0 r2t mem_ops pr_ops
+let map_ops = Mem_map.mk_map_ops ps mem_ops pr_ops
 
 (* for maintaing a set of states *)
 module TSET = Set.Make(T)
@@ -88,7 +93,7 @@ let (init_store,init_r) = Mem_store.(
     |> (fun s -> (s,0)))
 
 
-let step range t = (
+let step range (t:global_state) = (
   let r1 = (
     range|>List.map (
       fun x -> 
@@ -109,13 +114,12 @@ let step range t = (
   |> TSET.of_list)
 
 let test range = TSET.(
-    Printf.printf "%s: exhaustive test, %d elts: " 
-      __MODULE__ (List.length range);
+    Printf.printf "%s: exhaustive test, %d elts: "  __MODULE__ (List.length range);
     flush_out();
     let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=0 }) in
     let todo = ref (!s) in
     (* next states from a given tree *)
-    let _ = 
+    ignore (
       (* FIXME this may be faster if we store todo as a list and check
          for membership when computing next state of the head of todo;
          use rev_append *)
@@ -132,8 +136,7 @@ let test range = TSET.(
         todo:=new_;
         print_string "."; flush_out ();
         ()
-      done
-    in
+      done);
     Printf.printf "tests passed; num states explored: %d\n" (TSET.cardinal !s))
 
 

@@ -127,15 +127,3 @@ let ls_is_finished lss : bool = (
   lss |> Leaf_stream.lss_is_finished)
 
 
-(* r2t ---------------------------------------- *)
-
-(*
-let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
-  fun s r ->
-    s |> store_ops.store_read r 
-    |> function (s',Ok f) -> Some f | _ -> (ignore(failwith __LOC__); None))
-
-let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (X.int_to_nat 1000)
-
-let store_ops_to_r2t store_ops = mk_r2t (mk_r2f store_ops)
-*)
