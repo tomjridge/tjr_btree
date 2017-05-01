@@ -390,7 +390,8 @@ let rec check_keys
     b1 && a;;
 
 let rec kvs_delete
-  ord k kvs = List.filter (fun kv -> key_eq ord (Product_Type.fst kv) k) kvs;;
+  ord k kvs =
+    List.filter (fun kv -> not (key_eq ord (Product_Type.fst kv) k)) kvs;;
 
 let rec kvs_insert
   cmp kv x2 = match cmp, kv, x2 with cmp, kv, [] -> [kv]
@@ -970,7 +971,8 @@ let rec mk_find_state k r = F_down (r, (k, (r, [])));;
 
 let rec wf_store_tree
   r2t s r t =
-    (match r2t s r with None -> false | Some a -> Tree.tree_equal t a);;
+    Util.assert_true
+      (match r2t s r with None -> false | Some a -> Tree.tree_equal t a);;
 
 let rec dest_f_finished
   fs = (match fs with F_down _ -> None
@@ -992,11 +994,13 @@ let rec wellformed_find_state
          with F_down (_, (k, (r, stk))) ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           check_focus r t_fo && check_stack stk t_stk
+           Util.assert_true (check_focus r t_fo) &&
+             Util.assert_true (check_stack stk t_stk)
          | F_finished (_, (k, (r, (_, stk)))) ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           check_focus r t_fo && check_stack stk t_stk));;
+           Util.assert_true (check_focus r t_fo) &&
+             Util.assert_true (check_stack stk t_stk)));;
 
 end;; (*struct Find*)
 
@@ -1033,7 +1037,7 @@ let rec wf_d
   k_ord r2f t0 s d =
     Util.assert_true
       (let (fs, _) = d in
-       Find.wellformed_find_state k_ord r2f t0 s fs);;
+       Util.assert_true (Find.wellformed_find_state k_ord r2f t0 s fs));;
 
 let rec wf_f
   ps0 r2t t0 s k r =
@@ -1042,12 +1046,14 @@ let rec wf_f
          (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
          in
        let t = Util.rev_apply (r2t s r) Util.dest_Some in
-       Tree.wellformed_tree constants (Some Prelude.Small_root_node_or_leaf)
-         k_ord t &&
-         Key_value.kvs_equal
-           (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
-             (Key_value.kvs_delete k_ord k))
-           (Util.rev_apply t Tree.tree_to_kvs));;
+       Util.assert_true
+         (Tree.wellformed_tree constants (Some Prelude.Small_root_node_or_leaf)
+           k_ord t) &&
+         Util.assert_true
+           (Key_value.kvs_equal
+             (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
+               (Key_value.kvs_delete k_ord k))
+             (Util.rev_apply t Tree.tree_to_kvs)));;
 
 let rec wf_u
   ps0 r2t t0 s k u =
@@ -1081,8 +1087,9 @@ let rec wf_u
              (match stk with [] -> Some Prelude.Small_root_node_or_leaf
                | _ :: _ -> Some Prelude.Small_leaf)
              in
-           check_stack stk t_stk &&
-             (check_wf ms (Tree.Leaf kvs) && check_focus t_fo kvs)
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms (Tree.Leaf kvs)) &&
+               Util.assert_true (check_focus t_fo kvs))
          | D_small_node (ks, rs) ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
@@ -1095,9 +1102,10 @@ let rec wf_u
                (ks, Util.rev_apply (Util.rev_apply rs (List.map (r2t s)))
                       (List.map Util.dest_Some))
              in
-           check_stack stk t_stk &&
-             (check_wf ms t &&
-               check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs))
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms t) &&
+               Util.assert_true
+                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))
          | D_updated_subtree r ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
@@ -1106,9 +1114,10 @@ let rec wf_u
                | _ :: _ -> None)
              in
            let t = Util.rev_apply (Util.rev_apply r (r2t s)) Util.dest_Some in
-           check_stack stk t_stk &&
-             (check_wf ms t &&
-               check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs))));;
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms t) &&
+               Util.assert_true
+                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))));;
 
 let rec frac_mult
   xs ys =
@@ -1510,16 +1519,17 @@ let rec wf_u
          with (I1 r, stk) ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           check_stack stk t_stk &&
-             (match r2t s r with None -> false
+           Util.assert_true (check_stack stk t_stk) &&
+             (match r2t s r with None -> Util.assert_true false
                | Some t ->
-                 Key_value.kvs_equal (Util.rev_apply t Tree.tree_to_kvs)
-                   (Util.rev_apply (Util.rev_apply t_fo Tree.tree_to_kvs)
-                     (Key_value.kvs_insert k_ord (k, v))))
+                 Util.assert_true
+                   (Key_value.kvs_equal (Util.rev_apply t Tree.tree_to_kvs)
+                     (Util.rev_apply (Util.rev_apply t_fo Tree.tree_to_kvs)
+                       (Key_value.kvs_insert k_ord (k, v)))))
          | (I2 (r1, (ka, r2)), stk) ->
            let (t_fo, t_stk) =
              Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           check_stack stk t_stk &&
+           Util.assert_true (check_stack stk t_stk) &&
              let (l, ua) = Tree_stack.stack_to_lu_of_child t_stk in
              (match (r2t s r1, r2t s r2) with (None, _) -> false
                | (Some _, None) -> false
@@ -1528,13 +1538,16 @@ let rec wf_u
                    (Util.rev_apply t1 Tree.tree_to_keys,
                      Util.rev_apply t2 Tree.tree_to_keys)
                    in
-                 Key_value.check_keys k_ord l ks1 (Some ka) &&
-                   (Key_value.check_keys k_ord (Some ka) ks2 ua &&
-                     Key_value.kvs_equal
-                       (Util.rev_apply (Util.rev_apply t_fo Tree.tree_to_kvs)
-                         (Key_value.kvs_insert k_ord (k, v)))
-                       (Util.rev_apply t1 Tree.tree_to_kvs @
-                         Util.rev_apply t2 Tree.tree_to_kvs)))));;
+                 Util.assert_true
+                   (Key_value.check_keys k_ord l ks1 (Some ka)) &&
+                   (Util.assert_true
+                      (Key_value.check_keys k_ord (Some ka) ks2 ua) &&
+                     Util.assert_true
+                       (Key_value.kvs_equal
+                         (Util.rev_apply (Util.rev_apply t_fo Tree.tree_to_kvs)
+                           (Key_value.kvs_insert k_ord (k, v)))
+                         (Util.rev_apply t1 Tree.tree_to_kvs @
+                           Util.rev_apply t2 Tree.tree_to_kvs))))));;
 
 let rec step_up
   ps1 u =
