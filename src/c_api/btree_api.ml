@@ -59,6 +59,12 @@ let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
 
 module Page_ref_int = struct
   type page_ref = int  [@@deriving yojson]
+(*
+  let dest_r (R i) = i
+  let dest_rs rs = List.map dest_r rs
+  let mk_r i = R i
+  let mk_rs rs = List.map (fun x -> R x) rs
+*)
   type ('k,'v) frame = ('k,'v,page_ref) Frame.frame
 end
 

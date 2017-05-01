@@ -114,7 +114,7 @@ let step range (t:global_state) = (
 let test range = TSET.(
     Printf.printf "%s: exhaustive test, %d elts: "  __MODULE__ (List.length range);
     flush_out();
-    let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=0 }) in
+    let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=init_r }) in
     let todo = ref (!s) in
     (* next states from a given tree *)
     ignore (

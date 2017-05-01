@@ -238,10 +238,10 @@ let check_state s = (
       log __LOC__;
       log (spec_tree
            |> Tree.tree_to_yojson (d.k2j) (d.v2j) 
-           |> Yojson.Safe.to_string); 
+           |> Yojson.Safe.pretty_to_string); 
       log (s.ds
            |> IE.Delete.delete_state_to_yojson d.k2j d.v2j d.r2j
-           |> Yojson.Safe.to_string);
+           |> Yojson.Safe.pretty_to_string);
       test (fun _ -> assert (IU.wellformed_delete_state 
                                s.ps spec_tree s.store s.k s.ds));
       true))
