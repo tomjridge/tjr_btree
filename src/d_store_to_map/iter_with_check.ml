@@ -4,19 +4,20 @@
    and apply the step functions repeatedly *)
 
 open Prelude
+open Simple_monad
 
 module IU = Isa_util
 
-type ('t,'f) iter_ops = {
+type 't iter_ops = {
   check_state:'t -> bool;
   check_trans: 't -> 't -> bool;
   step: (unit,'t) m;
-  dest: 't -> 'f option
+  finished: 't -> bool
 }
 
-let rec iter ops : ('f,'t) m = (fun s ->
-    match ops.dest s with
-    | None -> (
+let rec iter ops : (unit,'t) m = (fun s ->
+    match ops.finished s with
+    | false -> (
         ops.step s|> (fun x ->
             match x with
             | (s',Ok ()) -> (
@@ -24,7 +25,7 @@ let rec iter ops : ('f,'t) m = (fun s ->
                 assert(ops.check_trans s s');
                 iter ops s')
             | (s',Error e) -> (s',Error(e))))
-    | Some x -> (s,Ok(x)) )
+    | true -> (s,Ok()) )
 
 let if_some f = function Some x -> f x | _ -> ()
 
@@ -46,7 +47,6 @@ module Find = (struct
     fs: ('k,'v,'r) find_state;
     ps: 'ps;
   }
-  type ('k,'v,'r) finished = 'r * ('k * 'v) list
 end)
 
 open Find
@@ -61,20 +61,23 @@ let check_state s = (
 
 let check_trans s s' = true       (* TODO *)
   
-let dest s : ('k,'v,'r) finished option = 
-  s.fs|>IU.dest_f_finished|>(option_map (fun (_,_,r,kvs,_) -> (r,kvs)))
+let finished s = s.fs|>IU.dest_f_finished|>(fun x -> x<>None)
+
+let dest s : ('r * 'kvs) = 
+  s.fs
+  |> IU.dest_f_finished
+  |> function Some (_,_,r,kvs,_) -> (r,kvs)
 
 (* NB this does not update tree - that needs to be passed in at the
    start of the iter *)
-let step x : 't * unit res = (
+let step x : _ * unit res = (
   IU.find_step x.ps x.fs x.store
   |> (fun (s',y) -> 
       match y with
       | Ok fs' -> ({ x with store=s';fs=fs'},Ok ())
-      | Error e -> ({x with store=s'},Error e)
-    ))
+      | Error e -> ({x with store=s'},Error e) ))
 
-let find_ops = { check_state; check_trans; step; dest } 
+let find_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k r s = 
   let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
@@ -87,8 +90,10 @@ let mk ps k r s =
 
 let find ps k r s : ('t * ('r*'kvs) res) = (
   mk ps k r s 
-  |> iter find_ops 
-  |> (fun (s,r) -> (s.store,r)))
+  |> (fun s -> iter find_ops |> run s)
+  |> (function 
+      | (s,Ok ()) -> (s.store,Ok(dest s))
+      | (s,Error e) -> (s.store,Error e)))
 
 
 (* insert ---------------------------------------- *)
@@ -102,7 +107,6 @@ module Insert = (struct
     is: ('k,'v,'r) insert_state;
     ps: 'ps;
   }
-  type 'r finished = 'r
 end)
 
 open Insert
@@ -124,16 +128,21 @@ let check_state s = (
 
 let check_trans x y = (true)
 
-let dest s : 'r finished option = s.is |> IU.dest_i_finished
+let finished s = s.is |> IU.dest_i_finished |> is_Some
 
-let step s : 't * unit res = (
+let dest s : 'r = 
+  s.is 
+  |> IU.dest_i_finished 
+  |> function Some r -> r
+
+let step s : _ * unit res = (
   IU.insert_step s.ps s.is s.store 
   |> (fun (s',y) -> 
       match y with
       | Ok is' -> ({ s with store=s';is=is'},Ok ())
       | Error e -> ({ s with store=s'},Error e) ))
 
-let insert_ops = { check_state; check_trans; step; dest } 
+let insert_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k v r s = 
   let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
@@ -144,10 +153,12 @@ let mk ps k v r s =
     ps;
   }
 
-let insert ps k v r s = (
+let insert ps k v r s : 't * 'r res = (
   mk ps k v r s 
-  |> iter insert_ops
-  |> (fun (s,r) -> (s.store,r)))
+  |> (fun s -> iter insert_ops |> run s)
+  |> (function 
+      | (s,Ok ()) -> (s.store,Ok(dest s))
+      | (s,Error e) -> (s.store,Error e)))
 
 
 
@@ -163,7 +174,6 @@ module Im = (struct
     is: ('k,'v,'r) im_state;
     ps: 'ps;
   }
-  type 'r finished = 'r
 end)
 
 open Im
@@ -172,18 +182,18 @@ let check_state s = true (* TODO *)
 
 let check_trans x y = true
 
-let dest: 't -> 'r finished option = 
-  fun s -> s.is |> IU.dest_im_finished
+let finished s = s.is |> IU.dest_im_finished |> is_Some
 
-let step s : 't * unit res = (
+let dest s : 'r*'kvs = s.is |> IU.dest_im_finished |> dest_Some
+
+let step s : _ * unit res = (
   IU.im_step s.ps s.is s.store 
   |> (fun (s',y) -> 
       match y with
       | Ok is' -> ({ s with store=s';is=is'},Ok ())
-      | Error e -> ({ s with store=s'},Error e)
-    ))
+      | Error e -> ({ s with store=s'},Error e) ))
 
-let im_ops = { check_state; check_trans; step; dest } 
+let im_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k v kvs r s = 
   let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
@@ -195,11 +205,12 @@ let mk ps k v kvs r s =
     ps;
   }
 
-let insert_many ps k v kvs r s = (
+let insert_many ps k v kvs r s : 't * ('r*'kvs) res = (
   mk ps k v kvs r s 
-  |> iter im_ops
-  |> (fun (s,r) -> (s.store,r)))
-
+  |> (fun s -> iter im_ops |> run s)
+  |> (function 
+      | (s,Ok ()) -> (s.store,Ok(dest s))
+      | (s,Error e) -> (s.store,Error e)))
 
 
 (* delete ---------------------------------------- *)
@@ -212,7 +223,6 @@ module Delete = (struct
     ds: ('k,'v,'r) delete_state;
     ps: 'ps;
   }
-  type 'r finished = 'r
 end)
 
 open Delete
@@ -227,17 +237,18 @@ let check_state s = (
 
 let check_trans x y = (true)
 
-let dest s : 'r finished option = s.ds |> IU.dest_d_finished
+let finished s = s.ds |> IU.dest_d_finished |> is_Some
 
-let step x : 't * unit res = (
+let dest s : 'r = s.ds |> IU.dest_d_finished |> dest_Some
+
+let step x : _ * unit res = (
   IU.delete_step x.ps x.ds x.store
   |> (fun (s',y) -> 
       match y with
       | Ok ds' -> ({ x with store=s';ds=ds'},Ok ())
-      | Error e -> ({x with store=s'},Error e)
-    ))
+      | Error e -> ({x with store=s'},Error e)  ))
 
-let delete_ops = { check_state; check_trans; step; dest } 
+let delete_ops = { check_state; check_trans; step; finished } 
 
 let mk ps k r s = 
   let spec_tree = r2t ps |> option_map (fun r2t -> r2t s r |> dest_Some) in
@@ -249,10 +260,20 @@ let mk ps k r s =
     ps;
   }
 
-let delete ps k r s : 't * 'r res = (
+let delete ps k r s : _ * 'r res = (
   mk ps k r s 
-  |> iter delete_ops 
-  |> (fun (s,r) -> (s.store,r)))
+  |> (fun s -> iter delete_ops |> run s)
+  |> (function 
+      | (s,Ok ()) -> (s.store,Ok(dest s))
+      | (s,Error e) -> (s.store,Error e)))
 
+(* make pre_map_ops ---------------------------------------- *)
 
+open Pre_map_ops
 
+let make ps = {
+  find=(find ps);
+  insert=(insert ps);
+  insert_many=(insert_many ps);
+  delete=(delete ps);
+}

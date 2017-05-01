@@ -12,6 +12,10 @@ let impossible (x:string) = failwith ("impossible: "^x)
 
 let dest_Some = function (Some x) -> x | _ -> failwith "dest_Some"
 
+let is_None x = (x = None)
+
+let is_Some x = not(is_None x)
+
 let option_map f = function Some x -> Some(f x) | _ -> None
 
 let flush_out () = flush Pervasives.stdout
