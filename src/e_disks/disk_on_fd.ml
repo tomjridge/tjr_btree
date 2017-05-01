@@ -3,6 +3,7 @@
 open Prelude
 open Btree_api
 open Default
+open Simple_monad
 
 type fd = Unix.file_descr
 
@@ -16,8 +17,6 @@ let safely : string -> ('a,'t) m -> ('a,'t) m = (
   fun s -> 
     try m s 
     with e -> (s,Error (msg ^ (Printexc.to_string e))))
-
-open Simple_monad
 
 let make_disk block_size ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->

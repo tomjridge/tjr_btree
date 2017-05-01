@@ -1,5 +1,5 @@
 open Pickle
-type ('k,'v) t = {
+type ('k,'v) pp = {
   p_k: 'k -> P.m;
   u_k: 'k U.m;
   k_len: int;

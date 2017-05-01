@@ -23,9 +23,20 @@ end
 
 include Pervasives_
 
+include Pickle_params
+
 type 'k ord = 'k -> 'k -> int
 
 (* so we can just open Prelude *)
 include Isa_util.O
 
 include Test
+
+
+module Params = struct
+  include Isa_util_params
+      
+  let pp x : ('k,'v) pp = (x#pp)
+end
+
+include Params

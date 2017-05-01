@@ -5,19 +5,15 @@ open Btree_api
 
 open Mem_store
 
-module S2M = Store_to_map
-
-let mk_unchecked_map_ops ps0 im_ops pr_ops : ('k,'v,'t) map_ops = (
-  let store_ops = Mem_store.mk_store_ops im_ops in
-  let ps1 = { ps0; store_ops } in
-  let map_ops = S2M.make_unchecked_map_ops ps1 pr_ops in
-  map_ops
-)
-
-let mk_checked_map_ops ps0 r2t im_ops pr_ops : ('k,'v,'t) map_ops = (
-  let store_ops = Mem_store.mk_store_ops im_ops in
-  let ps1 : ('k,'v,'r,'t)ps1 = { ps0; store_ops } in
-  let map_ops = S2M.make_checked_map_ops ps1 r2t pr_ops in
-  map_ops
-)
-
+let mk_map_ops ps mem_ops pr_ops : ('k,'v,'t) map_ops = 
+  let store_ops = Mem_store.mk_store_ops mem_ops in
+  let (constants,compare_k,r2t) = (constants ps, compare_k ps,r2t ps) in
+  let ps = 
+    object
+      method constants=constants
+      method compare_k=compare_k;
+      method r2t=r2t;
+      method store_ops=store_ops;
+    end
+  in            
+  Store_to_map.make_map_ops ps pr_ops

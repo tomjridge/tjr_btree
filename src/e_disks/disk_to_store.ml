@@ -5,29 +5,25 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-
-type ('k,'v) pp = ('k,'v) Pickle_params.t
-
-let tag_len = Btree_with_pickle.tag_len
+open Simple_monad
+open Btree_with_pickle.O
 
 type 't free_ops = {
   get_free: unit -> (int,'t) m;
   set_free: int -> (unit,'t) m;
 }    
 
-module BWP = Btree_with_pickle
-
-open Pickle_params
-open Simple_monad
 
 (* convert a disk to a store using pickling and a free counter; assume
    page size and block size are the same *)
 
-let disk_to_store page_size disk_ops pp free_ops : ('k,'v,'r,'t) store_ops = (
+let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
+  let page_size = page_size ps in
+  let pp = pp ps in
   assert (disk_ops.block_size = page_size);
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
-    f|>BWP.frame_to_page page_size pp|> (fun p -> 
+    f|>frame_to_page page_size pp|> (fun p -> 
         free_ops.get_free () |> bind (fun free -> 
             disk_ops.write free p |> bind (fun () -> 
                 free_ops.set_free (free+1) |> bind (fun () ->
@@ -35,7 +31,7 @@ let disk_to_store page_size disk_ops pp free_ops : ('k,'v,'r,'t) store_ops = (
   in
   let store_read r : (('k,'v)frame,'t) m = 
     disk_ops.read r |> bind (fun blk ->
-        BWP.page_to_frame page_size pp blk |> (fun frm ->
+        page_to_frame page_size pp blk |> (fun frm ->
             return frm))
   in
   {store_free; store_read; store_alloc } 

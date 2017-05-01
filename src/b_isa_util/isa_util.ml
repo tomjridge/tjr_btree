@@ -1,10 +1,10 @@
 module IE = Isa_export
 open IE
+open Isa_util_params
 
 module O = struct
   (* safe to open O in other modules *)
   include Store_ops
-  include Isa_util_params
 
   type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
   type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 

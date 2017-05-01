@@ -1,35 +1,26 @@
 open Prelude
 open Btree_api
 
-open Digest
-open Small_string
+open Digest_.O
+open Small_string.O
 
 open Pickle
-open Pickle_params
 
-module EX_ = Pickle.Examples
-
-module Digest = struct
-  include Digest_.Digest
-  let size = sz
-  let compare = Digest.compare  
-end
+module PE = Pickle.Examples
 
 module Int = struct
   include Int
   let size = 4
-  let compare (x:int) y = Pervasives.compare x y
 end
-
 
 
 (* digest -> int ---------------------------------------------------- *)
 
-let digest_int_pp: (Digest.t,Int.t) Pickle_params.t = Pickle.(
+let digest_int_pp: (DIG.t,Int.t) pp = (
     {
-      p_k = (fun k -> k|>Digest.to_string|>EX_.p_string);
-      u_k = U.(EX_.u_string Digest.size |> map Digest.of_string);
-      k_len = Digest.size;
+      p_k = (fun k -> k|>DIG.to_string|>PE.p_string);
+      u_k = (PE.u_string DIG.size |> U.map DIG.of_string);
+      k_len = DIG.size;
       p_v = Examples.p_int;
       u_v = Examples.u_int;
       v_len = Int.size;
@@ -39,25 +30,25 @@ let digest_int_pp: (Digest.t,Int.t) Pickle_params.t = Pickle.(
 
 (* digest -> ss * int ----------------------------------------------- *)
 
-(* map from string to int using Digest.t MD5 128bit hash of string,
+(* map from string to int using DIG.t MD5 128bit hash of string,
    and storing the real string as part of the value *)
 
 (* assume string has length <= 256 *)
 
 (* equal_v is (=) *)
 
-let digest_ss_x_int_pp: (Digest.t,SS_.t*Int.t) Pickle_params.t = Pickle.(
-    let key_size = Digest.sz in
-    let value_size = (4+Small_string.max_size) + 4 in (* length+string, int *) 
+let digest_ss_x_int_pp: (DIG.t,SS.t*Int.t) pp = (
+    let key_size = DIG.size in
+    let value_size = (4+SS.max_size) + 4 in (* length+string, int *) 
     {
-      p_k = (fun k -> k|>Digest.to_string|>EX_.p_string);
-      u_k = (EX_.u_string key_size |> Pickle.U.map Digest.of_string);
+      p_k = (fun k -> k|>DIG.to_string|>PE.p_string);
+      u_k = (PE.u_string key_size |> U.map DIG.of_string);
       k_len = key_size;
       p_v = (fun (s,i) -> 
-          let s = SS_.to_string s in EX_.(p_pair (p_string_w_len s) (p_int i)));
-      u_v = EX_.(
+          let s = SS.to_string s in PE.(p_pair (p_string_w_len s) (p_int i)));
+      u_v = PE.(
           u_pair u_string_w_len (fun _ -> u_int) 
-          |> Pickle.U.map (fun (s,i) -> (SS_.of_string s,i)));
+          |> U.map (fun (s,i) -> (SS.of_string s,i)));
       v_len = value_size;
     }
   )
@@ -73,7 +64,7 @@ let int_int_kv_ops = {
 }
 *)
 
-let int_int_pp = EX_.{
+let int_int_pp = PE.{
     p_k = p_int;
     u_k = u_int;
     k_len = 4;
@@ -85,25 +76,25 @@ let int_int_pp = EX_.{
 
 (* ss -> int -------------------------------------------------------- *)
 
-let ss_int_pp: (SS_.t,int) Pickle_params.t = Pickle_params.(
-    let key_size = Small_string.max_size + 4 in (* string + 4 bytes for length *)
+let ss_int_pp: (SS.t,int) pp = Pickle_params.(
+    let key_size = SS.max_size + 4 in (* string + 4 bytes for length *)
     let value_size = 4  in (* 32 bit ints *)
     {
-      p_k = (fun k -> k|>SS_.to_string|>EX_.p_string_w_len);
-      u_k = (EX_.u_string_w_len |> Pickle.U.map SS_.of_string);
+      p_k = (fun k -> k|>SS.to_string|>PE.p_string_w_len);
+      u_k = (PE.u_string_w_len |> U.map SS.of_string);
       k_len = key_size;
-      p_v = EX_.p_int;
-      u_v = EX_.u_int;
+      p_v = PE.p_int;
+      u_v = PE.u_int;
       v_len = value_size;
     })
 
 
 (* ss -> ss --------------------------------------------------------- *)
 
-let ss_ss_pp: (SS_.t,SS_.t) Pickle_params.t = Pickle_params.(
-    let key_size = Small_string.max_size + 4 in (* length *)
-    let p_k = (fun k -> k|>SS_.to_string|>EX_.p_string_w_len) in
-    let u_k = (EX_.u_string_w_len |> Pickle.U.map SS_.of_string) in
+let ss_ss_pp: (SS.t,SS.t) pp = Pickle_params.(
+    let key_size = SS.max_size + 4 in (* length *)
+    let p_k = (fun k -> k|>SS.to_string|>PE.p_string_w_len) in
+    let u_k = (PE.u_string_w_len |> U.map SS.of_string) in
     {
       p_k = p_k;
       u_k = u_k;

@@ -27,7 +27,9 @@ let rec iter ops : (unit,'t) m = (fun s ->
             | (s',Error e) -> (s',Error(e))))
     | true -> (s,Ok()) )
 
+(*
 let if_some f = function Some x -> f x | _ -> ()
+*)
 
 let check_some f x = (match x with None -> true | Some x -> f x)
 
@@ -271,7 +273,8 @@ let delete ps k r s : _ * 'r res = (
 
 open Pre_map_ops
 
-let make ps = {
+let make_pre_map_ops ps = 
+  {
   find=(find ps);
   insert=(insert ps);
   insert_many=(insert_many ps);

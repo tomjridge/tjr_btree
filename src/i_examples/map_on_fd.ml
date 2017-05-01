@@ -13,6 +13,7 @@ open Prelude
 open Btree_api
 open Page_ref_int
 open Default
+open Frame
 
 (*
 
@@ -32,14 +33,11 @@ TODO: cached
 *)
 
 (* the global state *)
-module T = struct
-  type t = {
-    fd: Disk_on_fd.fd;
-    free: page_ref;
-    root: page_ref; (* pointer to root of btree *)
-  }        
-end
-include T
+type global_state = {
+  fd: Disk_on_fd.fd;
+  free: page_ref;
+  root: page_ref; (* pointer to root of btree *)
+}        
 
 module D = Disk_on_fd
 module D2S = Disk_to_store
@@ -63,11 +61,10 @@ let free_ops = D2S.{
     set_free=(fun free -> (fun t -> ({t with free}, Ok ())));
   }
 
-let mk_store_ops sz constants pp = 
+let mk_store_ops ps = 
   D2S.disk_to_store
-    sz
-    (mk_disk_ops sz)
-    pp
+    ps
+    (mk_disk_ops (block_size ps))
     free_ops 
 
 let page_ref_ops = S2M.{
@@ -81,27 +78,9 @@ let page_ref_ops = S2M.{
 (* FIXME these aren't doing much; also, constants can be computed *)
 open Pickle_params
 
-(* we have the disk ops and block size and can take pp and compute
-   constants etc; FIXME constants can be computed *)
-let mk_ps1 sz constants compare_k pp : ('k,'v,'r,'t) ps1 = 
-  { 
-    ps0={ compare_k; constants };
-    store_ops=(mk_store_ops sz constants pp) 
-  }
+let mk_map_ops ps = S2M.make_map_ops ps page_ref_ops
 
-let mk_unchecked_map_ops ps1 = 
-  S2M.make_unchecked_map_ops
-    ps1
-    page_ref_ops
-
-let mk_checked_map_ops ps1 r2t = 
-  S2M.make_checked_map_ops 
-    ps1
-    r2t
-    page_ref_ops
-
-
-let mk_ls_ops ps1 = S2M.make_ls_ops ps1 page_ref_ops
+let mk_ls_ops ps = S2M.make_ls_ops ps page_ref_ops
 
 
 (* root block ---------------------------------------- *)
@@ -111,7 +90,7 @@ let mk_ls_ops ps1 = S2M.make_ls_ops ps1 page_ref_ops
 
 open Pickle
 open Examples
-open Btree_with_pickle
+open Btree_with_pickle.O
 
 let dummy fd = { fd; free=(-1); root=(-1) }
 
@@ -121,7 +100,7 @@ let dummy fd = { fd; free=(-1); root=(-1) }
 let frame_to_page pp = Btree_with_pickle.frame_to_page sz pp
 let page_to_frame pp = Btree_with_pickle.page_to_frame sz pp
 *)
-let write_root_block sz t = (
+let write_root_block sz (t:global_state) = (
   let disk_ops = mk_disk_ops sz in
   let p : P.m = (p_pair (p_int t.free) (p_int t.root)) in
   let s = p |> P.run_w_exception "" in
@@ -145,14 +124,15 @@ let read_root_block sz fd = (
   (free,root)
 )
 
-let from_file ~fn ~create ~init ~sz ~pp = (
+let from_file ~fn ~create ~init ~ps = (
   let fd = fd_from_file fn create init in
+  let (sz,pp) = (block_size ps,pp ps) in
   let disk_ops = mk_disk_ops sz in
   match init with
   | true -> (
       (* now need to write the initial frame *)
       let _ = 
-        let frm = Frame.Leaf_frame [] in
+        let frm = Leaf_frame [] in
         let p = frm|>frame_to_page sz pp in
         dummy fd 
         |> disk_ops.write 1 p 
@@ -168,33 +148,6 @@ let from_file ~fn ~create ~init ~sz ~pp = (
       {fd; free; root})
 )
 
-
-module type S = sig
-  type k
-  type v
-  val pp: (k,v) Pickle_params.t 
-  val sz: int
-  val compare_k: k -> k -> int
-end
-
-module Make = functor (S:S) -> struct
-  open S
-
-  let cs sz = Constants.make_constants sz Btree_with_pickle.tag_len pp.k_len pp.v_len
-
-  let mk_ps1 sz = mk_ps1 sz (cs sz) compare_k pp
-
-  let mk_store_ops sz = mk_store_ops sz (cs sz) pp
-
-  let mk_unchecked_map_ops sz = mk_unchecked_map_ops (mk_ps1 sz)
-
-  let mk_r2t sz = Isa_util.store_ops_to_r2t (mk_store_ops sz)
-
-  let mk_checked_map_ops sz = mk_checked_map_ops (mk_ps1 sz) (mk_r2t sz)
-
-  let ls_ops = mk_ls_ops (mk_ps1 sz)
-
-end
 
 
 (* TODO a high-level cache over Insert_many -------------------------------------- *)

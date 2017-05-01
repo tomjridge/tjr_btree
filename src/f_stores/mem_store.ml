@@ -3,6 +3,8 @@
 open Prelude
 open Btree_api
 open Page_ref_int
+open Simple_monad
+
 
 (* in mem store *)
 module O = struct
@@ -15,8 +17,6 @@ module O = struct
 end
 
 include O
-
-open Simple_monad
 
 let mk_store_ops (mem_ops:('k,'v,'t)mem_ops) : ('k,'v,'r,'t) store_ops = (
   let store_free rs : (unit,'t) m = return () in (* no-op *)

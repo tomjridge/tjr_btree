@@ -22,4 +22,4 @@ module BLK = Default_block
 
 let default_filename = "./btree.store"
 
-let default_size = 4096 (* page/block size *)
+let default_blk_sz = 4096 (* page/block size *)

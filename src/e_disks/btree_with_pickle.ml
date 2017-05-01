@@ -7,11 +7,9 @@ open Prelude
 open Btree_api
 open Page_ref_int
 open Default
-
-module PE = Pickle.Examples
 open Pickle
 
-type ('k,'v) pp = ('k,'v) Pickle_params.t
+module PE = Pickle.Examples
 
 type page = BLK.t
 
@@ -65,22 +63,26 @@ let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
       let (_,r) = x |> U.run_w_exception (BLK.to_string buf) in
       r)
 
-(* FIXME can remove these once code is trusted *)
+module O = struct
+  let tag_len = tag_len
 
-(* FIXME move test config to config *)
-let frame_to_page sz pp f = 
-  let p = frame_to_page' sz pp f in
-  let _ = test (fun _ -> 
-      let f' = page_to_frame' pp p in
-      assert (f' = f)) 
-  in
-  p
+  (* FIXME can remove these once code is trusted *)
+  (* FIXME move test config to config *)
+  let frame_to_page sz pp f = 
+    let p = frame_to_page' sz pp f in
+    let _ = test (fun _ -> 
+        let f' = page_to_frame' pp p in
+        assert (f' = f)) 
+    in
+    p
 
-let page_to_frame sz pp p = 
-  (* sz only for testing *)
-  let f = page_to_frame' pp p in
-  let _ = test (fun _ -> 
-      let p' = frame_to_page' sz pp f in
-      assert (p = p'))
-  in
-  f
+  let page_to_frame sz pp p = 
+    (* sz only for testing *)
+    let f = page_to_frame' pp p in
+    let _ = test (fun _ -> 
+        let p' = frame_to_page' sz pp f in
+        assert (p = p'))
+    in
+    f
+
+end

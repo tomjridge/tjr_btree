@@ -1,19 +1,24 @@
 (* a map from int to int, backed by file ------------------------------- *)
 open Prelude
 open Btree_api
-
 open Example_keys_and_values
+open Btree_with_pickle.O
+open Small_string.O
+open Default
 
-module S = struct
-  type k = int
-  type v = int
-  let pp = int_int_pp
-  let sz = Default.default_size
-  let compare_k = Int.compare
-end
+let ps store_ops = 
+  let pp = int_int_pp in
+  object
+    method block_size=default_blk_sz
+    method pp=pp
+    method constants=Constants.make_constants default_blk_sz tag_len pp.k_len pp.v_len
+    method compare_k=Int.compare
+    method r2t=None (* TODO *)
+    method store_ops=store_ops
+  end
 
-include S
+let store_ops = Map_on_fd.mk_store_ops (ps ())
 
-module M = Map_on_fd.Make(S)  
+let map_ops = Map_on_fd.mk_map_ops (ps store_ops)
 
-include M  
+let ls_ops = Map_on_fd.mk_ls_ops (ps store_ops)

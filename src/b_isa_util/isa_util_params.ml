@@ -26,6 +26,10 @@ let store_ops x : ('k,'v,'r,'t) store_ops = (x#store_ops)
 
 let r2t x : ('k,'v,'r,'t) r2t option = (x#r2t)
 
+let block_size x : int = (x#block_size)
+
+let page_size = block_size
+
 (*let spec_tree x : ('k,'v) tree option = (x#spec_tree)*)
 
 (* let t_state x : 't = (x#t_state) *)

@@ -19,6 +19,7 @@
 open Prelude
 open Btree_api
 open Page_ref_int
+open Simple_monad 
 
 module O = struct
   (* need to cache page_ref to ('k,'v)frame *)
@@ -65,8 +66,6 @@ FIXME don't we also need to know which were allocated since last sync?
 end
 
 open O
-
-open Simple_monad 
 
 let make lower ps : ('k,'v,'r,'t) rs_ops = (
   (* cache functions *)
