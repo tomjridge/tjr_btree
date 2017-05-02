@@ -5,6 +5,7 @@ open Btree_api
 open Mem_store
 open Page_ref_int
 open Mem_store.O
+open Simple_monad
 
 (* we concentrate on relatively small parameters *)
 
@@ -111,7 +112,7 @@ let step range (t:global_state) = (
       | Error e -> (failwith (__LOC__^e)))
   |> TSET.of_list)
 
-let test range = TSET.(
+let test_exhaustive range = TSET.(
     Printf.printf "%s: exhaustive test, %d elts: "  __MODULE__ (List.length range);
     flush_out();
     let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=init_r }) in
@@ -142,33 +143,23 @@ let test range = TSET.(
 
 (* TODO do n inserts; check wf *)
 
-(*
 let test_insert range = (
   Printf.printf "%s: test_insert, %d inserts, check wf etc:" __MODULE__ (List.length range);
   flush_out();
-  let r0 = ref init_r in
-  let s0 = ref init_store in
-  try (
-    let xs = ref range in
-    while (!xs <> []) do
-      print_string "."; flush_out();
-      let x = List.hd !xs in
-      let ((s0',r0'),res) = 
-        map_ops.insert x (2*x) |> (fun f -> fSem.run (!s0,!r0) in
-      match res with
-      | Error e -> (failwith (__LOC__ ^e))
-      | Ok () -> 
-        s0:=s0';r0:=r0';xs:=List.tl !xs; ()
-    done;
-    print_newline ();
-  ) with _ -> (
-      print_endline "Failure...";
-      !s0|>ST.store_to_'|>ST.store'_to_yojson
-      |>Yojson.Safe.to_string|>print_endline; 
-      ()
-    )
+  let s0 = ref { t=Leaf[]; s=init_store; r=init_r } in
+  let xs = ref range in
+  let c = ref 0 in
+  while (!xs <> []) do
+    if (!c) mod 100 = 0 then (Printf.printf "."; flush_out ()) else ();
+    let x = List.hd !xs in
+    ignore(
+      map_ops.insert x (2*x) |> run !s0
+      |> (fun (s',Ok ()) -> s0:=s'));
+    c:=!c+1;
+    xs:=List.tl !xs;
+  done;
+  print_newline ()
 )
-*)
 
 (* TODO testing leaf_stream ---------------------------------------- *)
 

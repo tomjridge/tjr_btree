@@ -28,24 +28,27 @@ module TSI = Test_string_int_on_fd
 
 let tests = [
   (* TODO ("tb", fun ps -> Test_bytestore.(fun () -> main())); *)
-  ("tc", fun ps -> TC.main);
-  ("tim.t", fun ps -> 
+  ("test_cache", fun ps -> 
       let (l,h) = get_range ps in
-      TMM.(fun() -> test (l -- h)));
-  (* TODO ("tim.i", fun ps -> 
+      TC.test (l--h));
+  ("test_exhaustive", fun ps -> 
       let (l,h) = get_range ps in
-      Test_in_mem.(fun () -> test_insert (l -- h |> List.of_enum))); *)
+      TMM.test_exhaustive (l -- h));
+  ("test_insert", fun ps -> 
+      let (l,h) = get_range ps in
+      TMM.test_insert (l -- h));
   (* TODO ("tim.ls", fun ps -> 
       let (l,h) = get_range ps in
       Test_in_mem.(fun () -> test_leaf_stream (l -- h |> List.of_enum))); *)
-  ("tii.u", fun ps ->
+  ("tii.uncached", fun ps ->
       let (l,h) = get_range ps in
-      TII.(fun () -> test_uncached (l -- h)));
+      TII.test_uncached (l -- h));
   (* TODO ("tii.c", fun ps -> 
       let (l,h) = get_range ps in
       Test_ii.(fun () -> 
       test_cached (l -- h |> List.of_enum))); *)
-  ("tsi", fun ps -> TSI.test);
+  ("tsi", fun ps -> 
+      TSI.test ());
 ]
 
 (* FIXME also main2 *)
@@ -56,7 +59,7 @@ let run_test t = (
       Test.warn (Printf.sprintf "%s: unknown test %s\n" __MODULE__ t.name))
   | Some test -> (  
       let _ = if t.with_asserts then Test.enable() else Test.disable() in
-      test t.params ()
+      test t.params
     ))
 
 let _ = try (

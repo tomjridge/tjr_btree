@@ -114,17 +114,18 @@ module E_ = Exhaustive.Make(S)
 
 (* running exhaustive tests ---------------------------------------- *)
 
-let range = BatList.(range 1 `To 5)
+(* let range = BatList.(range 1 `To 5) *)
 
-let ops = (
-  range 
-  |> List.map (fun k -> [Find k;Insert(k,2*k); Delete k])
-  |> List.concat)
 
-let main () = (
+let test range = (
+  let ops = (
+    range 
+    |> List.map (fun k -> [Find k;Insert(k,2*k); Delete k])
+    |> List.concat)
+  in
   Printf.printf "%s: " __MODULE__;
   E_.test ops (E_.STS.singleton initial_state);
-  ()
+  print_string "\n\n";
 )
 
 

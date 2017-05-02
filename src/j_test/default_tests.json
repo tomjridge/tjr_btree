@@ -1,13 +1,17 @@
 [
-{ "name": "tb", "params": [ ], "with_asserts": true },
-{ "name": "tim.t", "params": [ [ "Range", [ 1, 10 ] ] ], "with_asserts": true },
+{ "name": "XXXtest_bytestore", "params": [ ], "with_asserts": true },
 
-{ "name": "tim.i", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
-{ "name": "tim.ls", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+{ "name": "test_cache", "params": [ [ "Range", [ 1, 5 ] ] ], "with_asserts": true },
 
-{ "name": "tii.u", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+{ "name": "test_exhaustive", "params": [ [ "Range", [ 1, 10 ] ] ], "with_asserts": true },
 
-{ "name": "tii.c", "params": [ [ "Range", [ 1, 10000 ] ] ], "with_asserts": true },
+{ "name": "test_insert", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+
+{ "name": "test_ls", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+
+{ "name": "tii.uncached", "params": [ [ "Range", [ 1, 1000 ] ] ], "with_asserts": true },
+
+{ "name": "XXXtii.cached", "params": [ [ "Range", [ 1, 10000 ] ] ], "with_asserts": true },
 { "name": "tsi", "params": [ ], "with_asserts": true }
 
 ]
