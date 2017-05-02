@@ -19,7 +19,7 @@ type 't disk_ops = {
 (* store ------------------------------------------------------------ *)
 
 (* constants and compare_k not relevant *)
-type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Isa_util.store_ops
+type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Store_ops.store_ops
 
 
 (* map ------------------------------------------------------------ *)
