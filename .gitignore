@@ -52,3 +52,13 @@ src/test_string_int_on_fd.ml
 src/tjr_string.ml
 src/todo_map_idx_blk.ml
 src/tree.ml
+/src/base_types.ml
+/src/base_types_pervasives.ml
+/src/bt_constants.ml
+/src/bt_monad.ml
+/src/bt_params.ml
+/src/bt_small_step.ml
+/src/bt_tree.ml
+/src/prelude_pervasives.ml
+/src/r2t.ml
+/src/tjr_btree_doc.ml

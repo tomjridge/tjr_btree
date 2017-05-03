@@ -113,6 +113,13 @@ function mk_codetags() {
 }
 
 
+# doc ----------------------------------------------------
+
+function mk_doc() {
+    ocamlfind ocamldoc $PKGS -html `cat _depend/*`
+}
+
+
 # ocamlfind install, remove, reinstall --------------------
 
 function install() {

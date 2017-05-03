@@ -1,4 +1,4 @@
-(* a recycling store on top of a normal store *)
+(** A store that attempts to recycle freed blocks, and thereby avoid excessive writing. *)
 
 (* TODO implement a sound version of leaf stream operations given a recycling store *)
 

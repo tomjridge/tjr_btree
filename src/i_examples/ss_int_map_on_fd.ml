@@ -1,4 +1,4 @@
-(* a map from small string to int, backed by file -------------------------- *)
+(** A map from small string to int, backed by file descriptor *)
 
 open Prelude
 open Btree_api

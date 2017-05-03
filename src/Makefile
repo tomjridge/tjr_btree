@@ -53,6 +53,10 @@ _depend:
 _codetags:
 	mk_codetags
 
+_doc:
+	echo Make sure to build first
+	mk_doc
+
 # ----------------------------------------
 
 %.native: %.ml $(libname).cmxa FORCE

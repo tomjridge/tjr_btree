@@ -1,4 +1,4 @@
-(* prelude ---------------------------------------- *)
+(** Prelude, before the main action. *)
 
 (* collect together modules, then open Prelude at top of following *)
 

@@ -1,4 +1,4 @@
-(* a type of short strings ---------------------------------------- *)
+(** Strings with <= 256 bytes, used as keys in maps *)
 
 module Small_string : sig
   type t [@@deriving yojson]

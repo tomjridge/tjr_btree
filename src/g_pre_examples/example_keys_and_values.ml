@@ -1,3 +1,5 @@
+(** Various common keys and values, including digests, small strings, and ints *)
+
 open Prelude
 open Btree_api
 

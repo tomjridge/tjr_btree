@@ -1,4 +1,4 @@
-(* Disk on a file-descriptor *)
+(** Implement disk operations backed by a file-descriptor *)
 
 open Prelude
 open Btree_api

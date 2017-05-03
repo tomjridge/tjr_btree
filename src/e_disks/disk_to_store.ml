@@ -1,6 +1,4 @@
-(* disk to store ---------------------------------------- *)
-
-(* use pickling to convert a disk-like thing to a store-like thing *)
+(** Use pickling to convert a disk-like thing to a store-like thing *)
 
 open Prelude
 open Btree_api

@@ -1,4 +1,6 @@
-(* digest ------------------------------------------------------------ *)
+(** A digest/hash of a string, for implementing maps from string,
+   where there is no need to know the actual string of a key, only the
+   hash.  *)
 
 module Digest : sig 
   type t = private string [@@deriving yojson]

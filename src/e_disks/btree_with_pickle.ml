@@ -1,4 +1,4 @@
-(* btree_with_pickle ---------------------------------------- *)
+(** Convert frames to blocks using pickling *)
 
 (* like btree, but with pickling rather than some other frame -> page
    mapping *)

@@ -1,4 +1,4 @@
-(* main entry point *)
+(** Main entry point. At the moment this is only used by [kv_main.sh] *)
 
 let args = Sys.argv |> Array.to_list |> List.tl
 

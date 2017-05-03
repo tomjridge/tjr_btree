@@ -1,4 +1,4 @@
-(* a generic kv store ------------------------------------------- *)
+(** A generic map, backed by a file descriptor *)
 
 (*
 We fix:

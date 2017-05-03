@@ -1,4 +1,4 @@
-(* simple in-mem implementation, mainly for testing ----------------- *)
+(** Simple in-memory store implementation, mainly for testing *)
 
 open Prelude
 open Btree_api

@@ -1,4 +1,4 @@
-(* exhaustive state-space exploration ------------------------------ *)
+(** Exhaustive state-space exploration for testing *)
 
 (* we factor out the common code *)
 

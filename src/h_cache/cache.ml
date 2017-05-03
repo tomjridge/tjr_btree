@@ -1,4 +1,4 @@
-(* an lru cache ---------------------------------------- *)
+(** An LRU cache on top of a map. *)
 
 (* we want to be able to take eg a map_ops and produce a cached
    version *)
