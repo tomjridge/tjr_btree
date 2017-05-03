@@ -1,5 +1,6 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
+open Base_types
 open Prelude
 open Btree_api
 open Mem_store

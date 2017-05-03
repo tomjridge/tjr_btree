@@ -8,6 +8,7 @@
 (* this includes code to construct initial states (eg init find_state)
    and apply the step functions repeatedly *)
 
+open Base_types
 open Prelude
 open Simple_monad
 

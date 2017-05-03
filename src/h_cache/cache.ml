@@ -3,6 +3,7 @@
 (* we want to be able to take eg a map_ops and produce a cached
    version *)
 
+open Base_types
 open Prelude
 open Btree_api
 

@@ -10,8 +10,9 @@
 
 open Store_ops
 open Frame
-open Tree
+open Bt_tree
 open R2t
+module Constants = Bt_constants
 
 (** The order on keys. B-trees work with ordered keys. *)
 let compare_k x : 'k -> 'k -> int = (x#compare_k)

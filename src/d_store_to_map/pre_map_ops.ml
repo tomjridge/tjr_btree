@@ -2,6 +2,7 @@
    root of the B-tree), and return (the updated state and) an updated reference.
 *)
 
+open Base_types
 open Prelude
 
 type ('k,'v,'r,'t) pre_map_ops = { 

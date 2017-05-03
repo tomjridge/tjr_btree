@@ -21,6 +21,8 @@ module type MONAD = sig
 end
 *)
 
+open Base_types
+
 include Pervasives_
 
 include Pickle_params
@@ -34,7 +36,7 @@ include Test
 
 
 module Params = struct
-  include Isa_util_params
+  include Base_types_params
       
   let pp x : ('k,'v) pp = (x#pp)
 end

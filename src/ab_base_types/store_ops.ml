@@ -1,5 +1,5 @@
 open Frame
-open Iu_pervasives
+open Bt_pervasives
 
 (* just an abstraction, so no sync; use sync on underlying disk *)
 (** Store operations: alloc, free and read. *)

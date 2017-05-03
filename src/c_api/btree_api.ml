@@ -2,6 +2,7 @@
 
 (* this module safe to open *)
 
+open Base_types
 open Prelude
 open Default
 

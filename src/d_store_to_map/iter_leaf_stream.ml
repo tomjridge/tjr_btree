@@ -4,6 +4,7 @@
    a leaf and dest_LS_leaf <> None; INVARIANT every ls_state
    constructed or exposed here has dest_LS_leaf <> None *)
 
+open Base_types
 open Prelude
 open Btree_api
 open Isa_util

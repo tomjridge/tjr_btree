@@ -6,6 +6,7 @@
 (* instead of btree_make, use records; we want to get versions which
    use records rather than functors *)
 
+open Base_types
 open Prelude
 open Btree_api
 open Page_ref_int  (* TODO generalize? *)

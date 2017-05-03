@@ -3,20 +3,20 @@
    [wellformed_find_state] and similar functions for insert, insert
    many, delete and the leaf stream operations. *)
 
-open Isa_util_params
+open Base_types
+open Base_types_params
 
 (** Sub-modules called O are safe to open in other modules. This
-   module contains types (such as tree) and definitions which are
-   pervasive in the rest of the code. *)
+   module contains types which are often used in the rest of the
+   code. *)
 module O = struct
+  (*
   include Store_ops
   include Frame
   include Tree
   include R2t
-  include Iu_pervasives
-
+*)
   type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
-
   open Isa_export
   type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
   type ('k,'v,'r) find_state = ('k,'v,'r) Find.find_state
@@ -28,6 +28,7 @@ end
 
 include O
 open Isa_export
+open Store_ops
 
 (** Translations between Isabelle types and OCaml native types. *)
 module X = struct
@@ -95,7 +96,8 @@ let wellformed_find_state ps: 'tree -> 't -> ('k,'v,'r) find_state -> bool = (
 (* delete ---------------------------------------- *)
 
 (** Similar functionality to [mk_find_state] *)
-let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = Delete.mk_delete_state
+let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = 
+  Delete.mk_delete_state
 
 let delete_step ps: 'ds -> ('ds,'t) m = 
   (fun ds -> Delete.delete_step (ps|>X.x_ps1) ds)
@@ -111,13 +113,15 @@ let wellformed_delete_state ps: 'tree->'t->'k->('k,'v,'r) delete_state->bool = (
 
 (* insert ---------------------------------------- *)
 
-let mk_insert_state: 'k->'v->'r->('k,'v,'r) insert_state = Insert.mk_insert_state
+let mk_insert_state: 'k->'v->'r->('k,'v,'r) insert_state = 
+  Insert.mk_insert_state
 
 let insert_step ps: 'is -> ('is,'t) m = 
   (fun is -> Insert.insert_step (ps|>X.x_ps1) is)
 
 (** Result is a reference to the updated B-tree *)
-let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = Insert.dest_i_finished
+let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = 
+  Insert.dest_i_finished
 
 let wellformed_insert_state ps:'tree->'t->'k->'v->('k,'v,'r) insert_state->bool = (
   fun t s k v is ->
