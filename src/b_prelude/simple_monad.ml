@@ -1,6 +1,8 @@
-(* simple state-passing monad ---------------------------------------- *)
+(** Simple state-passing monad *)
 
 module O = struct
+  (** The monad takes a state and returns an updated state, and a
+     result of type ['a] (or an error). *)
   type ('a,'s) m = 's -> 's * ('a,string) result
 end
 
@@ -14,6 +16,5 @@ let bind : ('a -> ('b,'s) m) -> ('a,'s)m -> ('b,'s)m = fun f x s ->
 let return x = fun s -> (s,Ok x)
 
 let err e = fun s -> (s,Error e)
-
 
 let run s = fun m -> m s

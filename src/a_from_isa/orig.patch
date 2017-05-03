@@ -1,6 +1,14 @@
---- orig.ml	2017-05-01 20:31:22.385375104 +0100
-+++ patched.ml	2017-05-01 20:31:32.265505741 +0100
-@@ -278,9 +278,14 @@ let rec is_none = function Some x -> fal
+--- orig.ml	2017-05-02 20:04:34.626012000 +0100
++++ patched.ml	2017-05-03 07:39:54.329021999 +0100
+@@ -1,3 +1,7 @@
++(** This file is exported from Isabelle, and lightly patched (eg to
++   include this comment!). The OCaml interfaces wrap this basic
++   functionality. *)
++
+ module Fun : sig
+   val id : 'a -> 'a
+   val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
+@@ -278,9 +282,14 @@ let rec is_none = function Some x -> fal
  
  end;; (*struct Option*)
  
@@ -16,7 +24,7 @@
    val rev_apply : 'a -> ('a -> 'b) -> 'b
    val unzip : ('a * 'b) list -> 'a list * 'b list
    val from_to : Arith.nat -> Arith.nat -> Arith.nat list
-@@ -299,7 +304,7 @@ end = struct
+@@ -299,7 +308,7 @@ end = struct
  
  type error = String_error of string;;
  
@@ -25,7 +33,7 @@
  
  let rec rev_apply x f = f x;;
  
-@@ -311,7 +316,7 @@ let rec from_to x y = List.upt x (Arith.
+@@ -311,7 +320,7 @@ let rec from_to x y = List.upt x (Arith.
  
  let rec is_None x = Option.is_none x;;
  
@@ -34,7 +42,7 @@
  
  let rec split_at n xs = (List.take n xs, List.drop n xs);;
  
-@@ -372,7 +377,7 @@ let rec key_le ord k1 k2 = Arith.less_eq
+@@ -372,7 +381,7 @@ let rec key_le ord k1 k2 = Arith.less_eq
  
  let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
  
@@ -43,7 +51,7 @@
  
  let rec check_keys
    cmp kl ks kr =
-@@ -468,7 +473,7 @@ end;; (*struct Key_value*)
+@@ -468,7 +477,7 @@ end;; (*struct Key_value*)
  
  module Tree : sig
    type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
@@ -52,7 +60,7 @@
    val height : ('a, 'b) tree -> Arith.nat
    val dest_Node : ('a, 'b) tree -> 'a list * ('a, 'b) tree list
    val tree_equal : ('a, 'b) tree -> ('a, 'b) tree -> bool
-@@ -482,7 +487,7 @@ module Tree : sig
+@@ -482,7 +491,7 @@ module Tree : sig
  end = struct
  
  type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
@@ -61,7 +69,7 @@
  
  let rec tree_to_subtrees
    t0 = (match t0
-@@ -577,7 +582,7 @@ let rec dest_Node
+@@ -577,7 +586,7 @@ let rec dest_Node
    = function Node (ks, rs) -> (ks, rs)
      | Leaf uu -> Util.failwitha "dest_Node";;
  
@@ -70,7 +78,7 @@
  
  let rec tree_to_leaves
    t0 = (match t0
-@@ -652,7 +657,7 @@ end;; (*struct Tree*)
+@@ -652,7 +661,7 @@ end;; (*struct Tree*)
  
  module Tree_stack : sig
    type ('a, 'b, 'c) ts_frame_ext =
@@ -79,7 +87,7 @@
    val stack_map :
      ('a -> 'b) ->
        ('c, 'a, unit) ts_frame_ext list -> ('c, 'b, unit) ts_frame_ext list
-@@ -681,7 +686,7 @@ module Tree_stack : sig
+@@ -681,7 +690,7 @@ module Tree_stack : sig
  end = struct
  
  type ('a, 'b, 'c) ts_frame_ext =
@@ -88,7 +96,7 @@
  
  let rec f_t_update
    f_ta (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
-@@ -714,7 +719,7 @@ let rec no_focus
+@@ -714,7 +723,7 @@ let rec no_focus
  
  let rec r_stk_to_rs xs = Util.rev_apply xs (List.map f_t);;
  
@@ -97,7 +105,7 @@
  
  let rec dest_ts_frame
    f = ((Util.rev_apply f f_ks1, Util.rev_apply f f_ts1),
-@@ -919,7 +924,7 @@ let rec return x = (fun s -> (s, Util.Ok
+@@ -919,7 +928,7 @@ let rec return x = (fun s -> (s, Util.Ok
  end;; (*struct Monad*)
  
  module Find : sig
@@ -106,7 +114,7 @@
    val find_step :
      ('a, 'b, 'c, 'd) Params.ps1 ->
        ('a, 'b, 'c) find_state -> 'd -> 'd * ('a, 'b, 'c) find_state Util.res
-@@ -941,7 +946,7 @@ type ('a, 'b, 'c) find_state =
+@@ -941,7 +950,7 @@ type ('a, 'b, 'c) find_state =
    F_down of ('c * ('a * ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list))) |
    F_finished of
      ('c * ('a * ('c * (('a * 'b) list *
@@ -115,7 +123,7 @@
  
  let rec find_step
    ps1 fs =
-@@ -1001,12 +1006,12 @@ end;; (*struct Find*)
+@@ -1001,12 +1010,12 @@ end;; (*struct Find*)
  
  module Delete : sig
    type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
@@ -130,7 +138,7 @@
    val delete_step :
      ('a, 'b, 'c, 'd) Params.ps1 ->
        ('a, 'b, 'c) delete_state -> 'd -> 'd * ('a, 'b, 'c) delete_state Util.res
-@@ -1018,15 +1023,15 @@ module Delete : sig
+@@ -1018,15 +1027,15 @@ module Delete : sig
          ('a, 'd) Tree.tree -> 'b -> 'a -> ('a, 'd, 'c) delete_state -> bool
  end = struct
  
@@ -149,7 +157,7 @@
  
  let rec wf_d
    k_ord r2f t0 s d =
-@@ -1453,10 +1458,10 @@ let rec wellformed_delete_state
+@@ -1453,10 +1462,10 @@ let rec wellformed_delete_state
  end;; (*struct Delete*)
  
  module Insert : sig
@@ -162,7 +170,7 @@
    val insert_step :
      ('a, 'b, 'c, 'd) Params.ps1 ->
        ('a, 'b, 'c) insert_state -> 'd -> 'd * ('a, 'b, 'c) insert_state Util.res
-@@ -1469,11 +1474,11 @@ module Insert : sig
+@@ -1469,11 +1478,11 @@ module Insert : sig
            'b -> 'a -> 'd -> ('a, 'd, 'c) insert_state -> bool
  end = struct
  

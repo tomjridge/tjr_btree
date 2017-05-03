@@ -1,3 +1,8 @@
+(** Iterate small-step map operations to provide big-step map
+   operations. The important functions in this module are [find],
+   [insert], [insert_many] and [delete] (together with the leaf stream
+   big-step operations). *)
+
 (* iterate operations till finished ---------------------------------------- *)
 
 (* this includes code to construct initial states (eg init find_state)
@@ -90,6 +95,10 @@ let mk ps k r s =
     ps=ps;
   }
 
+(** Find. Take a key, a pointer to the root of a B-tree, and the
+   global state. Return the updated state, a reference to the leaf of
+   the B-tree that possibly contains the key (or alternatively return
+   an error). *)
 let find ps k r s : ('t * ('r*'kvs) res) = (
   mk ps k r s 
   |> (fun s -> iter find_ops |> run s)
@@ -155,6 +164,9 @@ let mk ps k v r s =
     ps;
   }
 
+(** Insert. Take a key, a value, a reference (to the B-tree root) and
+   a state and return an updated state, with a new reference to the
+   root of the updated B-tree. *)
 let insert ps k v r s : 't * 'r res = (
   mk ps k v r s 
   |> (fun s -> iter insert_ops |> run s)
@@ -207,6 +219,13 @@ let mk ps k v kvs r s =
     ps;
   }
 
+(** Insert many. Take a key, value, and list of further key/values, a
+   pointer to the B-tree root and a global state. Return the updated
+   state, a new pointer to a B-tree root, and a list of key/values
+   which could not be inserted into the same leaf as the first
+   key/value. Typically this function is called in a loop till all kvs
+   have been inserted. It is assumed faster than multiple inserts,
+   although caching may invalidate this assumption. *)
 let insert_many ps k v kvs r s : 't * ('r*'kvs) res = (
   mk ps k v kvs r s 
   |> (fun s -> iter im_ops |> run s)
@@ -240,7 +259,7 @@ let check_state s = (
            |> Tree.tree_to_yojson (d.k2j) (d.v2j) 
            |> Yojson.Safe.pretty_to_string); 
       log (s.ds
-           |> IE.Delete.delete_state_to_yojson d.k2j d.v2j d.r2j
+           |> Isa_export.Delete.delete_state_to_yojson d.k2j d.v2j d.r2j
            |> Yojson.Safe.pretty_to_string);
       test (fun _ -> assert (IU.wellformed_delete_state 
                                s.ps spec_tree s.store s.k s.ds));
@@ -271,6 +290,8 @@ let mk ps k r s =
     ps;
   }
 
+(** Delete. Take a key and a reference to a B-tree root, and a global
+   state. Return the updated state and a reference to the new root. *)
 let delete ps k r s : _ * 'r res = (
   mk ps k r s 
   |> (fun s -> iter delete_ops |> run s)
@@ -282,6 +303,7 @@ let delete ps k r s : _ * 'r res = (
 
 open Pre_map_ops
 
+(** Construct [pre_map_ops] using functions above. Takes a "parameters" object ps. *)
 let make_pre_map_ops ps = 
   {
   find=(find ps);

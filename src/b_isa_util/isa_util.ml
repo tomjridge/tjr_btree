@@ -1,25 +1,37 @@
-module IE = Isa_export
-open IE
+(** Wrapper functions round functions exported from Isabelle. The main
+   functions are [mk_find_state], [find_step], [dest_f_finished],
+   [wellformed_find_state] and similar functions for insert, insert
+   many, delete and the leaf stream operations. *)
+
 open Isa_util_params
-open Iu_pervasives
 
+(** Sub-modules called O are safe to open in other modules. This
+   module contains types (such as tree) and definitions which are
+   pervasive in the rest of the code. *)
 module O = struct
-  (* safe to open O in other modules *)
   include Store_ops
+  include Frame
+  include Tree
+  include R2t
+  include Iu_pervasives
 
-  type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
   type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
 
-  type ('k,'v,'r) find_state = ('k,'v,'r) IE.Find.find_state
-  type ('k,'v,'r) insert_state = ('k,'v,'r) IE.Insert.insert_state
-  type ('k,'v,'r) im_state = ('k,'v,'r) IE.Insert_many.ist
-  type ('k,'v,'r) delete_state = ('k,'v,'r) IE.Delete.delete_state
-  type ('k,'v,'r) ls_state = ('k,'v,'r) IE.Leaf_stream.ls_state
+  open Isa_export
+  type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
+  type ('k,'v,'r) find_state = ('k,'v,'r) Find.find_state
+  type ('k,'v,'r) insert_state = ('k,'v,'r) Insert.insert_state
+  type ('k,'v,'r) im_state = ('k,'v,'r) Insert_many.ist
+  type ('k,'v,'r) delete_state = ('k,'v,'r) Delete.delete_state
+  type ('k,'v,'r) ls_state = ('k,'v,'r) Leaf_stream.ls_state
 end
 
 include O
+open Isa_export
 
+(** Translations between Isabelle types and OCaml native types. *)
 module X = struct
+  module IE = Isa_export
   let int_to_nat x = Isa_export.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
   let int_to_int x = Isa_export.(
       x |>Big_int.big_int_of_int|>(fun x -> Arith.Int_of_integer x))
@@ -48,23 +60,32 @@ module X = struct
 
   let x_ps1 ps : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
       Ps1(ps|>x_ps0, (store_ops ps)|>x_store_ops))
-
 end
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
 (* find ---------------------------------------- *)
 
+(** Construct an initial "find state" given a key and a reference to a B-tree root. *)
 let  mk_find_state k r : ('k,'v,'r) find_state = Find.mk_find_state k r
 
+(** Small step the find state: take a find state and return an updated
+   find state (in the monad). *)
 let find_step ps : 'fs->('fs,'t) m = (fun fs -> Find.find_step (ps|>X.x_ps1) fs)
 
+(** Check whether we have reached a leaf. Returns the reference to the
+   B-tree root (when [mk_find_state] was called), the key we are
+   looking for (ditto), a reference to a leaf (that may contain the
+   key... if any leaf contains the key, this leaf does) and a the list
+   of (key,values) in that leaf. *)
 let dest_f_finished fs: ('r * 'k * 'r * 'kvs * ('k,'r) rstk) option = (
     Find.dest_f_finished fs 
     |> (function None -> None | Some  x -> Some (x5 x)))
 
 (* only check if we have access to the relevant r2t and spec_tree *)
 (* ASSUMES r2t ps <> None *)
+(** Wellformedness check. Assumes access to the "spec tree", the
+   global state and the find state.  *)
 let wellformed_find_state ps: 'tree -> 't -> ('k,'v,'r) find_state -> bool = (
   fun t s fs -> 
     Find.wellformed_find_state 
@@ -73,11 +94,13 @@ let wellformed_find_state ps: 'tree -> 't -> ('k,'v,'r) find_state -> bool = (
 
 (* delete ---------------------------------------- *)
 
+(** Similar functionality to [mk_find_state] *)
 let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = Delete.mk_delete_state
 
 let delete_step ps: 'ds -> ('ds,'t) m = 
   (fun ds -> Delete.delete_step (ps|>X.x_ps1) ds)
 
+(** The result is a reference to the updated B-tree *)
 let dest_d_finished: ('k,'v,'r) delete_state->'r option = Delete.dest_d_finished
 
 let wellformed_delete_state ps: 'tree->'t->'k->('k,'v,'r) delete_state->bool = (
@@ -93,6 +116,7 @@ let mk_insert_state: 'k->'v->'r->('k,'v,'r) insert_state = Insert.mk_insert_stat
 let insert_step ps: 'is -> ('is,'t) m = 
   (fun is -> Insert.insert_step (ps|>X.x_ps1) is)
 
+(** Result is a reference to the updated B-tree *)
 let dest_i_finished: ('k,'v,'r)insert_state -> 'r option = Insert.dest_i_finished
 
 let wellformed_insert_state ps:'tree->'t->'k->'v->('k,'v,'r) insert_state->bool = (
@@ -115,14 +139,19 @@ let dest_im_finished: ('k,'v,'r)im_state -> ('r*('k*'v)list) option =
 
 (* leaf stream ---------------------------------------- *)
 
+(** Given a reference to a B-tree root, construct a stream of leaves *)
 let mk_ls_state : 'r -> ('k,'v,'r) ls_state = Leaf_stream.mk_ls_state
 
+(** Step the leaf stream to the next leaf. If the leaf stream is
+   finished (no more leaves), stepping will just return the leaf
+   stream unchanged. So in the loop you need to check whether you have
+   finished using [ls_is_finished]. *)
 let ls_step ps1 ls: 't -> 't * ('k,'v,'r) ls_state res = 
   Leaf_stream.lss_step (ps1|>X.x_ps1) ls
 
+(** Return the (key,value) list at the current leaf in the stream. *)
 let ls_dest_leaf ls = Leaf_stream.dest_LS_leaf ls
 
-let ls_is_finished lss : bool = (
-  lss |> Leaf_stream.lss_is_finished)
+let ls_is_finished lss : bool = (lss |> Leaf_stream.lss_is_finished)
 
 

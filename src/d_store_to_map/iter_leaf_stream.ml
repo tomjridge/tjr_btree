@@ -1,4 +1,4 @@
-(* leaf stream ---------------------------------------- *)
+(** Wrap the small-step leaf-stream operations. *)
 
 (* we need to repeatedly step the leaf state to the point that we hit
    a leaf and dest_LS_leaf <> None; INVARIANT every ls_state

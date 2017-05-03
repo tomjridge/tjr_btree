@@ -1,20 +1,31 @@
-open Iu_pervasives
+(** Various common parameters to functions. *)
+
+(** The code is heavily parameterized. We don't want function
+   arguments to be too numerous. So we typically have a single
+   "parameters" object ps which is more-or-less untyped. To ensure a
+   parameter is always accessed using a particular name, and to
+   enforce that the value of the parameter has a given type, we define
+   "parameter accessor" functions below.
+*) 
+
 open Store_ops
+open Frame
+open Tree
+open R2t
 
-type ('k,'v,'r) frame = ('k,'v,'r) Frame.frame
-type ('k,'v) tree = ('k,'v) Tree.tree
-type ('k,'v,'r,'t) r2t = ('t -> 'r -> ('k,'v) tree option)   (* NOTE on type 't *)
-
+(** The order on keys. B-trees work with ordered keys. *)
 let compare_k x : 'k -> 'k -> int = (x#compare_k)
 
+(** Constants. See {!Constants} *)
 let constants x : Constants.t = (x#constants)
 
+(** Store operations. See {!Store_ops} *)
 let store_ops x : ('k,'v,'r,'t) store_ops = (x#store_ops)
-
-(* type ('k,'v,'r,'t) debug_ops = < r2t:('k,'v,'r,'t) r2t > *)
 
 open Yojson.Safe
 
+(** Debugging parameters. Includes r2t (see {!R2t}) and various
+   conversions to json for keys, values and references. *)
 type ('k,'v,'r,'t,'k2j,'v2j) debug = {
   r2t: ('k,'v,'r,'t) r2t;
   k2j: 'k -> json;
@@ -22,10 +33,14 @@ type ('k,'v,'r,'t,'k2j,'v2j) debug = {
   r2j: 'r -> json
 }
 
+(** Debugging parameters are usually optional. *)
 let debug x : ('k,'v,'r,'t,'k2j,'v2j) debug option = (x#debug)
 
+(** Block size, i.e., the number of bytes that can be stored
+   atomically on-disk in a single block. *)
 let block_size x : int = (x#block_size)
 
+(** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
 let page_size = block_size
 
 

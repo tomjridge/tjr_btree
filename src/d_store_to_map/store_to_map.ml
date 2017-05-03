@@ -1,13 +1,21 @@
+(** The essential B-tree functionality: implement a map on top of a store. *)
+
+
 (* convert store to map ---------------------------------------- *)
 
 (* instead of btree_make, use records; we want to get versions which
    use records rather than functors *)
 
-
 open Prelude
 open Btree_api
 open Page_ref_int  (* TODO generalize? *)
 
+(** The B-tree code exports a [pre_map_ops] version of a map, with
+   explicit passing of the reference to the root of the B-tree. In
+   order to implement the [map_ops] interface, we need to store the
+   "current" reference to the B-tree root in the global state
+   somehow. A value of type ['t page_ref_ops] reveals how to read and
+   write this reference in the global state. *)
 type 't page_ref_ops = {
   get_page_ref: unit -> (page_ref,'t) m;
   set_page_ref: page_ref -> (unit,'t) m;
@@ -36,12 +44,15 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
   in
   Btree_api.{find; insert; delete })
 
+(** Make [map_ops], given a [page_ref_ops]. TODO make store_ops
+   explicit in arguments to this function *)
 let make_map_ops ps page_ref_ops = 
   Iter_with_check.make_pre_map_ops ps
   |> fun x -> make_map_ops' x page_ref_ops
 
 module N = Iter_leaf_stream
 
+(** Make [ls_ops], given a [page_ref_ops]. TODO ditto *)
 let make_ls_ops ps page_ref_ops : ('k,'v,'r,'t) ls_ops = (
   let mk_leaf_stream = (fun () ->
       page_ref_ops.get_page_ref () |> bind (fun r -> 

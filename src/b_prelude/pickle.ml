@@ -1,8 +1,7 @@
-(* marshalling (low-level), followed by pickling *)
+(** Marshalling and pickling. Marshalling is very low-level. Pickling
+   has combinators etc. *)
 
-(* various marshalling stuff ---------------------------------------- *)
-
-
+(** Basic conversions from int to bytes etc *)
 module Basic_marshalling = struct
 
   (* convert int to bytes *)
@@ -38,9 +37,6 @@ module Basic_marshalling = struct
       in
       List.iter f [Int32.of_int 0;Int32.of_int 1;Int32.of_int (-1);Int32.max_int;Int32.min_int])
 
-
-
-
 end
 
 
@@ -57,12 +53,9 @@ pickled
 
 *)
 
+(** The target pickle type. Really should be byte array? *)
 type pickle_target_t = string
 type ptt = pickle_target_t
-
-type pickle_error = string
-
-exception Pickle_exception of string
 
   (* FIXME change this to buffer? yes; or even rev byte list? or
      bytes? what are we going to convert to eventually? probably bytes
@@ -70,7 +63,15 @@ exception Pickle_exception of string
      limited size; so use buffer; buffer append char is reasonably
      efficient; perhaps create with suitable 4096 byte size *)
 
-(* pickle *)
+
+(** Pickling may produce errors. *)
+type pickle_error = string
+
+(** We usually return errors in a monad; alternatively we may throw exceptions. *)
+exception Pickle_exception of string
+
+
+(** Basic pickling *)
 module P : sig
   type m  (* = ptt -> ptt * pickle_error option *)
   val ret: unit -> m
@@ -96,6 +97,7 @@ end = struct
   let write_bytes bs = (fun s -> (s^(BatString.implode bs),None))
 end
 
+(** Basic unpickling *)
 module U : sig
   type 'a m = ptt -> ptt * ('a,pickle_error) result
   val bind: ('a -> 'b m) -> ('a m) -> ('b m)
@@ -131,6 +133,7 @@ end = struct
 
 end
 
+(** Example picklers and unpicklers *)
 module Examples = struct
 
   (* open Btree_util *)
@@ -257,44 +260,4 @@ module PU_examples = struct
 
 end
 *)
-
-(* example for btree.simple ---------------------------------------- *)
-
-(* FIXME move elsewhere *)
-
-module String_int = struct
-
-
-  module KV = struct
-
-    (* the key is actually a 16 byte hash of the full string *)
-    type k = string [@@deriving yojson]
-    type v = int [@@deriving yojson]
-
-    let key_ord: k -> k -> int = Pervasives.compare
-    let equal_value : v -> v -> bool = (=)
-
-  end
-
-  (* let _ = (module KV: Btree_api.KV) *)
-
-
-  open KV
-  open Examples
-
-  (* we know the string has length 16 *)
-  let key_size = 16
-
-  let p_key : string -> P.m = (fun s -> 
-      assert (String.length s = key_size);
-      p_string s)
-
-
-  let u_k : k U.m = (u_string key_size)
-
-  let p_ks : k list -> P.m = p_list p_key
-
-  let u_ks : k list U.m = u_list u_k
-
-end
 

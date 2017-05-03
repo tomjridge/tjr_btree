@@ -1,5 +1,8 @@
 open Prelude
 
+(** Basic implementation of a block. Blocks are represented by
+   strings. Blocks have a particular length, although we do not
+   capture this in the type. *)
 module Default_block : sig
   type t
   type r = int
@@ -20,6 +23,9 @@ end
 
 module BLK = Default_block
 
+(** Default filename for testing. *)
 let default_filename = "./btree.store"
 
+(** Default block size. Clearly this should match the block size of
+   the underlying storage. *)
 let default_blk_sz = 4096 (* page/block size *)

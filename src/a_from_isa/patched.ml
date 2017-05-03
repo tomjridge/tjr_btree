@@ -1,3 +1,7 @@
+(** This file is exported from Isabelle, and lightly patched (eg to
+   include this comment!). The OCaml interfaces wrap this basic
+   functionality. *)
+
 module Fun : sig
   val id : 'a -> 'a
   val comp : ('a -> 'b) -> ('c -> 'a) -> 'c -> 'b
