@@ -1,12 +1,12 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
 open Base_types
+open Monad
 open Prelude
 open Btree_api
 open Mem_store
 open Page_ref_int
 open Mem_store.O
-open Simple_monad
 
 (* we concentrate on relatively small parameters *)
 

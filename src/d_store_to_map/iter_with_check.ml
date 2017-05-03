@@ -10,9 +10,9 @@
 
 open Base_types
 open Prelude
-open Simple_monad
+open Monad
 
-module IU = Isa_util
+module X = Small_step
 
 type 't iter_ops = {
   check_state:'t -> bool;
@@ -64,22 +64,22 @@ let check_state s = (
   |> check_some (fun t ->
       log __LOC__;
       (* log (s.tree |> Tree.tree_to_yojson |> Yojson.Safe.to_string); *)
-      test (fun _ -> assert (IU.wellformed_find_state s.ps t s.store s.fs));
+      test (fun _ -> assert (X.wellformed_find_state s.ps t s.store s.fs));
       true))
 
 let check_trans s s' = true       (* TODO *)
   
-let finished s = s.fs|>IU.dest_f_finished|>(fun x -> x<>None)
+let finished s = s.fs|>X.dest_f_finished|>(fun x -> x<>None)
 
 let dest s : ('r * 'kvs) = 
   s.fs
-  |> IU.dest_f_finished
+  |> X.dest_f_finished
   |> function Some (_,_,r,kvs,_) -> (r,kvs)
 
 (* NB this does not update tree - that needs to be passed in at the
    start of the iter *)
 let step x : _ * unit res = (
-  IU.find_step x.ps x.fs x.store
+  X.find_step x.ps x.fs x.store
   |> (fun (s',y) -> 
       match y with
       | Ok fs' -> ({ x with store=s';fs=fs'},Ok ())
@@ -92,7 +92,7 @@ let mk ps k r s =
   {
     spec_tree; 
     store=s; 
-    fs=IU.mk_find_state k r;
+    fs=X.mk_find_state k r;
     ps=ps;
   }
 
@@ -135,20 +135,20 @@ let check_state s = (
   s.spec_tree
   |> check_some (fun t -> 
       log __LOC__;
-      test (fun _ -> assert (IU.wellformed_insert_state s.ps t s.store s.k s.v s.is));
+      test (fun _ -> assert (X.wellformed_insert_state s.ps t s.store s.k s.v s.is));
       true))
 
 let check_trans x y = (true)
 
-let finished s = s.is |> IU.dest_i_finished |> is_Some
+let finished s = s.is |> X.dest_i_finished |> is_Some
 
 let dest s : 'r = 
   s.is 
-  |> IU.dest_i_finished 
+  |> X.dest_i_finished 
   |> function Some r -> r
 
 let step s : _ * unit res = (
-  IU.insert_step s.ps s.is s.store 
+  X.insert_step s.ps s.is s.store 
   |> (fun (s',y) -> 
       match y with
       | Ok is' -> ({ s with store=s';is=is'},Ok ())
@@ -161,7 +161,7 @@ let mk ps k v r s =
   {  
     spec_tree; 
     k; v; store=s; 
-    is=(IU.mk_insert_state k v r);
+    is=(X.mk_insert_state k v r);
     ps;
   }
 
@@ -197,12 +197,12 @@ let check_state s = true (* TODO *)
 
 let check_trans x y = true
 
-let finished s = s.is |> IU.dest_im_finished |> is_Some
+let finished s = s.is |> X.dest_im_finished |> is_Some
 
-let dest s : 'r*'kvs = s.is |> IU.dest_im_finished |> dest_Some
+let dest s : 'r*'kvs = s.is |> X.dest_im_finished |> dest_Some
 
 let step s : _ * unit res = (
-  IU.im_step s.ps s.is s.store 
+  X.im_step s.ps s.is s.store 
   |> (fun (s',y) -> 
       match y with
       | Ok is' -> ({ s with store=s';is=is'},Ok ())
@@ -216,7 +216,7 @@ let mk ps k v kvs r s =
     spec_tree; 
     k; v; kvs;
     store=s; 
-    is=(IU.mk_im_state k v kvs r);
+    is=(X.mk_im_state k v kvs r);
     ps;
   }
 
@@ -262,18 +262,18 @@ let check_state s = (
       log (s.ds
            |> Isa_export.Delete.delete_state_to_yojson d.k2j d.v2j d.r2j
            |> Yojson.Safe.pretty_to_string);
-      test (fun _ -> assert (IU.wellformed_delete_state 
+      test (fun _ -> assert (X.wellformed_delete_state 
                                s.ps spec_tree s.store s.k s.ds));
       true))
 
 let check_trans x y = (true)
 
-let finished s = s.ds |> IU.dest_d_finished |> is_Some
+let finished s = s.ds |> X.dest_d_finished |> is_Some
 
-let dest s : 'r = s.ds |> IU.dest_d_finished |> dest_Some
+let dest s : 'r = s.ds |> X.dest_d_finished |> dest_Some
 
 let step x : _ * unit res = (
-  IU.delete_step x.ps x.ds x.store
+  X.delete_step x.ps x.ds x.store
   |> (fun (s',y) -> 
       match y with
       | Ok ds' -> ({ x with store=s';ds=ds'},Ok ())
@@ -287,7 +287,7 @@ let mk ps k r s =
     spec_tree;
     k;
     store=s; 
-    ds=IU.mk_delete_state k r;
+    ds=X.mk_delete_state k r;
     ps;
   }
 

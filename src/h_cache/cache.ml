@@ -59,7 +59,7 @@ module O = struct
 end
 
 open O
-open Simple_monad 
+open Monad 
 
 
 (* for testing, we typically need to normalize wrt. time *)
@@ -132,7 +132,7 @@ exception E_
 
 (* FIXME correctness of following not clear *)
 
-open Simple_monad
+open Monad
 
 let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 

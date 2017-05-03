@@ -23,14 +23,16 @@ end
 
 open Base_types
 
-include Pervasives_
+module Small_step = Bt_small_step
+
+include Prelude_pervasives
 
 include Pickle_params
 
 type 'k ord = 'k -> 'k -> int
 
 (* so we can just open Prelude *)
-include Isa_util.O
+include Small_step.O
 
 include Test
 
@@ -53,6 +55,6 @@ let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
     s |> store_ops.store_read r 
     |> function (s',Ok f) -> Some f | _ -> (ignore(failwith __LOC__); None))
 
-let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (Isa_util.X.int_to_nat 1000)
+let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (Small_step.X.int_to_nat 1000)
 
 let store_ops_to_r2t store_ops = mk_r2t (mk_r2f store_ops)

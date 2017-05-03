@@ -3,7 +3,7 @@
 open Prelude
 open Btree_api
 open Default
-open Simple_monad
+open Base_types.Monad
 
 type fd = Unix.file_descr
 

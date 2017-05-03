@@ -7,8 +7,8 @@
 open Base_types
 open Prelude
 open Btree_api
-open Isa_util
-open Simple_monad
+open Small_step
+open Monad
 
 let rec next_leaf ps1 lss : (('k,'v,'r) lss option,'t) m = (
   match (ls_is_finished lss.ls) with

@@ -5,7 +5,7 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Simple_monad
+open Base_types.Monad
 open Btree_with_pickle.O
 
 type 't free_ops = {

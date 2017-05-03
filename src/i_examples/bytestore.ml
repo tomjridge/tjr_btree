@@ -75,7 +75,7 @@ module Make = functor (S:S) -> struct
   
   module S = S
 
-  open Simple_monad
+  open Monad
 
   open S
   open Buff

@@ -42,7 +42,7 @@ type ('k,'v,'t) map_ops = {
 
 (** Leaf stream representation. This type is for debugging - you
    shouldn't need to access components. *)
-type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)Isa_util.ls_state }
+type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)Small_step.ls_state }
 
 (** Leaf stream operations. Make a leaf stream; get the list of
    (key,value) pairs associated to the state of the leaf stream; step
@@ -57,7 +57,7 @@ type ('k,'v,'r,'t) ls_ops = {
 (* for debugging *)
 
 (** Get all (key,value) pairs from a leaf stream. Debugging only. *)
-let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Simple_monad.(
+let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Monad.(
     fun ops ->
       let rec loop kvs s = (
         let kvs' = ops.ls_kvs s in

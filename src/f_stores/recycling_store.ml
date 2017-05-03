@@ -19,7 +19,7 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Simple_monad 
+open Base_types.Monad
 
 module O = struct
   (* need to cache page_ref to ('k,'v)frame *)

@@ -3,7 +3,7 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Simple_monad
+open Base_types.Monad
 
 
 (* in mem store *)

@@ -6,8 +6,9 @@ module Frame = Frame
 module R2t = R2t
 module Store_ops = Store_ops
 module Base_types_params = Bt_params
+module Monad = Bt_monad
 
-include Bt_pervasives
+include Base_types_pervasives
 include Tree
 include Frame
 include Store_ops

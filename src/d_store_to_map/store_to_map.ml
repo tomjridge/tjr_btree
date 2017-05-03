@@ -22,7 +22,7 @@ type 't page_ref_ops = {
   set_page_ref: page_ref -> (unit,'t) m;
 }
 
-open Simple_monad
+open Monad
 open Pre_map_ops
 
 (* produce a map, with page_ref state set/get via monad_ops *)
