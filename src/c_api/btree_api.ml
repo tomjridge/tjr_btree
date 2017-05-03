@@ -5,7 +5,7 @@
 To understand the interfaces, we need to introduce the following:
 
 - Keys, represented by type variable ['k]
-- Values, by type var ['v
+- Values, by type var ['v]
 - Page/block references, ['r]
 - Global state, ['t]
 
