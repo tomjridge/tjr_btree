@@ -19,20 +19,30 @@ This document gives an overview of the (sub)packages. Detailed
 
 {1 Guide to the code}
 
+{2 Naming conventions}
+
+To understand the interfaces, we need to introduce the following:
+
+- Keys, represented by type variable ['k]
+- Values, by type var ['v]
+- Page/block references, ['r]
+- Global state, ['t]
+
 
 {2 Exported code from Isabelle}
 
-Exported code is in the [from_isa]. There is some patching of the
-   Isabelle-exported code before it is copied to [base_types] in
-   module {!Isa_export}. Hopefully this code is relatively stable.
+Exported code is in the [from_isa] package. There is some patching of
+   the Isabelle-exported code before it is copied to [base_types] in
+   module {!Isa_export}. Hopefully this code is relatively stable. It
+   certainly isn't readable.
 
 
 {2 Pickle}
 
 The marshalling and pickling routines are in the [pickle] package. See
-   {!Pickle}. We also include a utility library for strings
-   {!Tjr_string} and a few functions to deal with logging and testing
-   {!Test}.
+   module {!Pickle}. We also include a utility library for strings
+   {!Tjr_string}, and a few functions to deal with logging and testing
+   in {!Test}.
 
 
 {2 Base types}
@@ -44,14 +54,14 @@ This package contains basic B-tree related types. They are collected
    describes a disk-like interface on top of which we implement the
    B-tree. The {!Base_types.Tree} module describes a B-tree as an
    algebraic datatype. The on-disk B-tree uses references between
-   blocks; the datatype is not used directly, but is used for testing
-   purposes.
+   blocks i.e. a graph-like structure with pointers rather than a
+   datatype. Indeed, the tree datatype is used only for testing purposes.
 
 
 
 {2 Prelude}
 
-Miscellaneous definitions. {!Bt_small_step} wraps the Isabelle
+Miscellaneous definitions. {!Prelude.Small_step} wraps the Isabelle
    small-step definitions.
 
 
@@ -98,16 +108,17 @@ This package contains various modules needed by the examples, such as
 
 {2 Cache}
 
-A generic LRU cache on top of a map.
+A generic LRU {!Cache} on top of a map.
 
 
 {2 Examples}
 
 Various examples. {!Ss_ss_map_on_fd} implements an on-disk map from
    (small) string to string. {!Int_int_map_on_fd} and
-   {!Ss_int_map_on_fd} are similar. {!Map_on_fd} is the generic version
-   and {!Mem_map} is a map on top of the {!Mem_store}. {!Bytestore} is
-   TODO and should implement arbitrary long values.
+   {!Ss_int_map_on_fd} are similar. {!Map_on_fd} is the generic
+   version and {!Mem_map} is a map on top of the
+   {!Mem_store}. {!Bytestore} is TODO and should implement arbitrary
+   long values.
 
 
 {2 Testing}

@@ -9,7 +9,7 @@ To understand the interfaces, we need to introduce the following:
 - Page/block references, ['r]
 - Global state, ['t]
 
-The operations typically execute in the {Monad}.
+The operations typically execute in the {!Base_types.Monad}.
 
 
 *)
