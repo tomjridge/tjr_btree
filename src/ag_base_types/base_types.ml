@@ -13,3 +13,4 @@ include Tree
 include Frame
 include Store_ops
 include R2t
+include Pickle_params

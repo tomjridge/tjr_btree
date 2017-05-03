@@ -42,8 +42,8 @@ natives="main.native test_main.native"
 
 bytes="test_main.byte"
 
-bcd=`echo {ab,ac,b,c,d,e,f,g,h,i,j,m}_*`
-bcd_mls=`ls {ab,ac,b,c,d,e,f,g,h,i,j,m}_*/*.ml`
+bcd=`echo {ad,ag,b,c,d,e,f,g,h,i,j,m,n}_*`
+bcd_mls=`ls {ad,ag,b,c,d,e,f,g,h,i,j,m,n}_*/*.ml`
 
 # depend ----------------------------------------
 

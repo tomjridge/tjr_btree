@@ -2,24 +2,7 @@
 
 (* collect together modules, then open Prelude at top of following *)
 
-(* module Btree_util = Btree_util *)
-(* module Functional_store = Functional_store *)
-(* module World = World_monad.World *)
-
-(* some renaming *)
-(*
-module Mut = State_error_monad.Mut
-module Sem = State_error_monad.Sem
-module State_error_monad = State_error_monad.State_error_monad
-*)
-
-(*
-module type MONAD = sig
-  type 'a m
-  val bind: ('a -> 'b m) -> 'a m -> 'b m
-  val return: 'a -> 'a m
-end
-*)
+(* FIXME not sure about the Prelude and Base_types and opening and including *)
 
 open Base_types
 
@@ -29,6 +12,7 @@ include Prelude_pervasives
 
 include Pickle_params
 
+(* FIXME in base types? *)
 type 'k ord = 'k -> 'k -> int
 
 (* so we can just open Prelude *)
@@ -36,7 +20,7 @@ include Small_step.O
 
 include Test
 
-
+(* FIXME move pickle and pickle params to a separate package? *)
 module Params = struct
   include Base_types_params
       

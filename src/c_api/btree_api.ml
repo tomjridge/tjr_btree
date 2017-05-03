@@ -1,3 +1,19 @@
+(** B-tree api types *)
+
+(** This module describes the main interfaces. The interfaces are heavily parameterized. 
+
+To understand the interfaces, we need to introduce the following:
+
+- Keys, represented by type variable ['k]
+- Values, by type var ['v
+- Page/block references, ['r]
+- Global state, ['t]
+
+The operations typically execute in the {Monad}.
+
+
+*)
+
 (* various interfaces ---------------------------------------- *)
 
 (* this module safe to open *)
@@ -19,7 +35,8 @@ type 't disk_ops = {
 
 (* store ------------------------------------------------------------ *)
 
-(** Store operations: alloc, free and read *)
+(** Store operations: alloc, free and read. The store is a level above
+   the raw disk, on which we build the B-tree. *)
 type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Store_ops.store_ops = {
   store_free: 'r list -> (unit,'t) m;
   store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
@@ -44,9 +61,11 @@ type ('k,'v,'t) map_ops = {
    shouldn't need to access components. *)
 type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)Small_step.ls_state }
 
-(** Leaf stream operations. Make a leaf stream; get the list of
-   (key,value) pairs associated to the state of the leaf stream; step
-   to the next leaf. *)
+(** A leaf stream is a linear sequence of the leaves in a B-tree, used
+   for iterating over all the bindings in the tree. Leaf stream
+   operations: make a leaf stream; get the list of (key,value) pairs
+   associated to the state of the leaf stream; step to the next
+   leaf. *)
 type ('k,'v,'r,'t) ls_ops = {
   mk_leaf_stream: unit -> (('k,'v,'r) lss,'t) m;
   ls_step: ('k,'v,'r) lss -> (('k,'v,'r) lss option,'t) m;
