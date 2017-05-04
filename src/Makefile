@@ -67,7 +67,7 @@ _doc:
 	$$ocamlc -g -linkpkg -o $*.byte $${libname}.cma $<
 
 clean:
-	rm -f *.{cmi,cmo,cmx,o} a.out *.cma *.cmxa *.a *.byte *.native 
+	rm -f *.{cmi,cmo,cmx,o} a.out *.cma *.cmxa *.a *.byte *.native *.html
 
 real_clean: clean
 	rm_links

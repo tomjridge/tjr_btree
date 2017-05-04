@@ -61,8 +61,6 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Test_main" rel="Chapter" href="Test_main.html">
-<link title="Main" rel="Chapter" href="Main.html">
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_on_fd.S2M</title>
 </head>
 <body>
@@ -106,6 +104,7 @@ Make <code class="code">map_ops</code>, given a <code class="code">page_ref_ops<
    explicit in arguments to this function<br>
 </div>
 
+<pre><span id="VALmap_ops_to_imperative_map_ops"><span class="keyword">val</span> map_ops_to_imperative_map_ops</span> : <code class="type">('k, 'v, 't) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a> -><br>       't Pervasives.ref -> ('k, 'v) <a href="Btree_api.Imperative_map_ops.html#TYPEmap_ops">Btree_api.Imperative_map_ops.map_ops</a></code></pre>
 <pre><span class="keyword">module</span> <a href="Store_to_map.N.html">N</a>: <code class="type"><a href="Iter_leaf_stream.html">Iter_leaf_stream</a></code></pre>
 <pre><span id="VALmake_ls_ops"><span class="keyword">val</span> make_ls_ops</span> : <code class="type">< compare_k : 'k -> 'k -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         store_ops : ('k, 'v, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>;<br>         .. > -><br>       't <a href="Store_to_map.html#TYPEpage_ref_ops">page_ref_ops</a> -><br>       ('k, 'v, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't) <a href="Btree_api.html#TYPEls_ops">Btree_api.ls_ops</a></code></pre><div class="info ">
 Make <code class="code">ls_ops</code>, given a <code class="code">page_ref_ops</code>. TODO ditto<br>

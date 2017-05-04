@@ -23,10 +23,8 @@ This document gives an overview of the (sub)packages. Detailed
 
 To understand the interfaces, we need to introduce the following:
 
-- Keys, represented by type variable ['k]
-- Values, by type var ['v]
-- Page/block references, ['r]
-- Global state, ['t]
+- Keys, represented by type variable ['k] - Values, by type var ['v] -
+   Page/block references, ['r] - Global state, ['t]
 
 
 {2 Exported code from Isabelle}
@@ -55,7 +53,8 @@ This package contains basic B-tree related types. They are collected
    B-tree. The {!Base_types.Tree} module describes a B-tree as an
    algebraic datatype. The on-disk B-tree uses references between
    blocks i.e. a graph-like structure with pointers rather than a
-   datatype. Indeed, the tree datatype is used only for testing purposes.
+   datatype. Indeed, the tree datatype is used only for testing
+   purposes.
 
 
 
@@ -128,8 +127,10 @@ Various tests.
 
 {2 Main}
 
-A single entry point in {!Main}. At the moment this is used by the
-   [kv_main.sh] example.
+These [xxx.ml] files get turned into executables
+   [xxx.native]. [main.native] is used by the [kv_main.sh] example;
+   [test_main.native] is used for testing; [simple_example.native] is
+   the simple example.
 
 *)
 let dummy = 1

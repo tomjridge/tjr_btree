@@ -5,7 +5,7 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Main.html">
+<link rel="previous" href="Test_string_int_on_fd.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -61,12 +61,10 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Test_main" rel="Chapter" href="Test_main.html">
-<link title="Main" rel="Chapter" href="Main.html">
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Tjr_btree_doc</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Main.html" title="Main">Previous</a>
+<div class="navbar"><a class="pre" href="Test_string_int_on_fd.html" title="Test_string_int_on_fd">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;</div>
 <h1>Module <a href="type_Tjr_btree_doc.html">Tjr_btree_doc</a></h1>
@@ -106,10 +104,8 @@ This document gives an overview of the (sub)packages. Detailed
 To understand the interfaces, we need to introduce the following:
 <p>
 <ul>
-<li>Keys, represented by type variable <code class="code">'k</code></li>
-<li>Values, by type var <code class="code">'v</code></li>
-<li>Page/block references, <code class="code">'r</code></li>
-<li>Global state, <code class="code">'t</code></li>
+<li>Keys, represented by type variable <code class="code">'k</code> - Values, by type var <code class="code">'v</code> -
+   Page/block references, <code class="code">'r</code> - Global state, <code class="code">'t</code></li>
 </ul>
 
 <h2 id="2_ExportedcodefromIsabelle">Exported code from Isabelle</h2>
@@ -141,7 +137,8 @@ This package contains basic B-tree related types. They are collected
    B-tree. The <a href="Base_types.Tree.html"><code class="code">Base_types.Tree</code></a> module describes a B-tree as an
    algebraic datatype. The on-disk B-tree uses references between
    blocks i.e. a graph-like structure with pointers rather than a
-   datatype. Indeed, the tree datatype is used only for testing purposes.
+   datatype. Indeed, the tree datatype is used only for testing
+   purposes.
 <p>
 
 <h2 id="2_Prelude">Prelude</h2>
@@ -223,7 +220,9 @@ Various tests.
 <h2 id="2_Main">Main</h2>
 <p>
 
-A single entry point in <a href="Main.html"><code class="code">Main</code></a>. At the moment this is used by the
-   <code class="code">kv_main.sh</code> example.<br>
+These <code class="code">xxx.ml</code> files get turned into executables
+   <code class="code">xxx.native</code>. <code class="code">main.native</code> is used by the <code class="code">kv_main.sh</code> example;
+   <code class="code">test_main.native</code> is used for testing; <code class="code">simple_example.native</code> is
+   the simple example.<br>
 </div>
 </body></html>

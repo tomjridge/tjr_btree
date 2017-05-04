@@ -5,9 +5,8 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Isa_export.Fun.html">
-<link rel="next" href="Isa_export.Arith.html">
-<link rel="Up" href="Isa_export.html">
+<link rel="next" href="Btree_api.Page_ref_int.html">
+<link rel="Up" href="Btree_api.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
@@ -62,36 +61,45 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Isa_export.Orderings</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Btree_api.Imperative_map_ops</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Isa_export.Fun.html" title="Isa_export.Fun">Previous</a>
-&nbsp;<a class="up" href="Isa_export.html" title="Isa_export">Up</a>
-&nbsp;<a class="post" href="Isa_export.Arith.html" title="Isa_export.Arith">Next</a>
+<div class="navbar">&nbsp;<a class="up" href="Btree_api.html" title="Btree_api">Up</a>
+&nbsp;<a class="post" href="Btree_api.Page_ref_int.html" title="Btree_api.Page_ref_int">Next</a>
 </div>
-<h1>Module <a href="type_Isa_export.Orderings.html">Isa_export.Orderings</a></h1>
+<h1>Module <a href="type_Btree_api.Imperative_map_ops.html">Btree_api.Imperative_map_ops</a></h1>
 
-<pre><span class="keyword">module</span> Orderings: <code class="code">sig</code> <a href="Isa_export.Orderings.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span class="keyword">module</span> Imperative_map_ops: <code class="code">sig</code> <a href="Btree_api.Imperative_map_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Dummy module containing imperative version of the map interface.<br>
+</div>
+<hr width="100%">
 
-<pre><code><span id="TYPEord"><span class="keyword">type</span> <code class="type">'a</code> ord</span> = {</code></pre><table class="typetable">
+<pre><code><span id="TYPEmap_ops"><span class="keyword">type</span> <code class="type">('k, 'v)</code> map_ops</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTord.less_eq">less_eq</span>&nbsp;: <code class="type">'a -> 'a -> bool</code>;</code></td>
+<code><span id="TYPEELTmap_ops.find">find</span>&nbsp;: <code class="type">'k -> 'v option</code>;</code></td>
 
 </tr>
 <tr>
 <td align="left" valign="top" >
 <code>&nbsp;&nbsp;</code></td>
 <td align="left" valign="top" >
-<code><span id="TYPEELTord.less">less</span>&nbsp;: <code class="type">'a -> 'a -> bool</code>;</code></td>
+<code><span id="TYPEELTmap_ops.insert">insert</span>&nbsp;: <code class="type">'k -> 'v -> unit</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTmap_ops.delete">delete</span>&nbsp;: <code class="type">'k -> unit</code>;</code></td>
 
 </tr></table>
 }
 
+<div class="info ">
+Imperative version of the map interface; throws exceptions. WARNING likely to change.<br>
+</div>
 
-
-<pre><span id="VALless_eq"><span class="keyword">val</span> less_eq</span> : <code class="type">'a <a href="Isa_export.Orderings.html#TYPEord">ord</a> -> 'a -> 'a -> bool</code></pre>
-<pre><span id="VALless"><span class="keyword">val</span> less</span> : <code class="type">'a <a href="Isa_export.Orderings.html#TYPEord">ord</a> -> 'a -> 'a -> bool</code></pre>
-<pre><span id="VALmax"><span class="keyword">val</span> max</span> : <code class="type">'a <a href="Isa_export.Orderings.html#TYPEord">ord</a> -> 'a -> 'a -> 'a</code></pre></body></html>
+</body></html>
