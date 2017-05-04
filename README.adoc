@@ -3,49 +3,10 @@
 :icons: font
 :nofooter:
 
+== Description
 
-
-== Introduction
-
-`tjr_btree` is a B-tree library. The core is written in Isabelle/HOL
-and exported to OCaml (although it could easily be implemented in any
-language because the routines are very "concrete"). Further routines
-are written in OCaml.
-
-The B-tree is a simple COW B-tree supporting a sync operation. All
-sync-ed states are persistent on disk (imagine that blocks are written
-once and then never mutated), so operations such as "snapshot" are
-almost trivial.
-
-The B-tree supports the usual operations: `find`, `insert`, `delete`.
-In addition, there is an `insert_many` operation for inserting
-multiple key-value pairs at once. This operation is more efficient
-than repeatedly inserting. It is typically used when higher-level
-operations are cached and then flushed all at once.
-
-The routines are fully parameterized (e.g., by key and value type, key
-order, store type etc). It is easy to have many B-trees using the same
-store, even operating concurrently (although individual B-trees must
-be updated sequentially at the moment).
-
-The core is implemented in small-step operational style, with each
-disk access corresponding to a separate step. Thus, it should be
-feasible to introduce very fine-grained concurrency by interleaving
-individual steps of each operation (where multiple operations execute
-on different B-trees).
-
-== Relation to ImpFS
-
-ImpFS is a project to build an advanced high-performance filesystem.
-`tjr_btree` is the core library used by ImpFS.
-
-== Installation
-
-Type `make && make install` to make the library and install it using
-`ocamlfind`. You need various libraries from opam (see `bash_env.sh`
-for details).
-
-To build with nix, type `cd .nix/tjr_btree; nix-build`. The result is in `./result`.
+`tjr_btree` is a B-tree library written in OCaml. The examples include
+a simple on-disk key-value store.
 
 == Example
 
@@ -110,6 +71,47 @@ let _ = (
   do_check()
 )
 ----
+
+
+== Introduction
+
+The core code is written in Isabelle/HOL and exported to OCaml
+(although it could easily be implemented in any language because the
+routines are very "concrete"). Further routines are written in OCaml.
+
+The B-tree is a simple COW B-tree. All sync-ed states are persistent
+on disk (imagine that blocks are written once and then never mutated),
+so operations such as "snapshot" are almost trivial.
+
+The B-tree supports the usual operations: `find`, `insert`, `delete`.
+In addition, there is an `insert_many` operation for inserting
+multiple key-value pairs at once. This operation is more efficient
+than repeatedly inserting. It is typically used when higher-level
+operations are cached and then flushed all at once.
+
+The routines are fully parameterized (e.g., by key and value type, key
+order, store type etc). It is easy to have many B-trees using the same
+store, even operating concurrently (although individual B-trees must
+be updated sequentially at the moment).
+
+The core is implemented in small-step operational style, with each
+disk access corresponding to a separate step. Thus, it should be
+feasible to introduce very fine-grained concurrency by interleaving
+individual steps of each operation (where multiple operations execute
+on different B-trees).
+
+== Relation to ImpFS
+
+ImpFS is a project to build an advanced high-performance filesystem.
+`tjr_btree` is the core library used by ImpFS.
+
+== Installation
+
+Type `make && make install` to make the library and install it using
+`ocamlfind`. You need various libraries from opam (see `bash_env.sh`
+for details).
+
+To build with nix, type `cd .nix/tjr_btree; nix-build`. The result is in `./result`.
 
 
 == Documentation
