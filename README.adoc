@@ -49,7 +49,7 @@ To build with nix, type `cd .nix/tjr_btree; nix-build`. The result is in `./resu
 
 == Example
 
-This is taken from link:src/m_main/simple-example.ml[]. 
+This is taken from link:src/m_main/simple_example.ml[]. 
 
 ----
 (** A simple example of a kv store. *)
