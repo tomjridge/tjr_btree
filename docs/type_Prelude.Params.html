@@ -1,7 +1,6 @@
 <html><head>
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -60,24 +59,24 @@
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Prelude.Params</title>
 </head>
 <body>
-<code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Constants</span>&nbsp;=&nbsp;<span class="constructor">Bt_constants</span><br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;compare_k&nbsp;:&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;constants&nbsp;:&nbsp;&lt;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Constants</span>.t;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Constants</span>.t<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;store_ops&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;=<br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;<span class="constructor">Bt_params</span>.debug&nbsp;=&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;r2t&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">R2t</span>.r2t;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;k2j&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;v2j&nbsp;:&nbsp;<span class="keywordsign">'</span>v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;r2j&nbsp;:&nbsp;<span class="keywordsign">'</span>r&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;<br>
-&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;debug&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;debug&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;option;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;option<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;block_size&nbsp;:&nbsp;&lt;&nbsp;block_size&nbsp;:&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;page_size&nbsp;:&nbsp;&lt;&nbsp;block_size&nbsp;:&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;pp&nbsp;:&nbsp;&lt;&nbsp;pp&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;pp;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;pp<br>
+<code class="code"><span class="keyword">sig</span>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Constants</span>&nbsp;=&nbsp;<span class="constructor">Bt_params</span>.<span class="constructor">Constants</span>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;compare_k&nbsp;:&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;constants&nbsp;:&nbsp;&lt;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Constants</span>.t;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Constants</span>.t
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;store_ops&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;=
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;<span class="constructor">Bt_params</span>.debug&nbsp;=&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;r2t&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">R2t</span>.r2t;
+&nbsp;&nbsp;&nbsp;&nbsp;k2j&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;
+&nbsp;&nbsp;&nbsp;&nbsp;v2j&nbsp;:&nbsp;<span class="keywordsign">'</span>v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;
+&nbsp;&nbsp;&nbsp;&nbsp;r2j&nbsp;:&nbsp;<span class="keywordsign">'</span>r&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;debug&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;debug&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;option;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;<span class="keywordsign">'</span>k2j,&nbsp;<span class="keywordsign">'</span>v2j)&nbsp;debug&nbsp;option
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;block_size&nbsp;:&nbsp;&lt;&nbsp;block_size&nbsp;:&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;page_size&nbsp;:&nbsp;&lt;&nbsp;block_size&nbsp;:&nbsp;int;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;pp&nbsp;:&nbsp;&lt;&nbsp;pp&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;pp;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;pp
 <span class="keyword">end</span></code></body></html>

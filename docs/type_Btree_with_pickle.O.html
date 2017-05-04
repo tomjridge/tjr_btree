@@ -1,7 +1,6 @@
 <html><head>
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -60,14 +59,14 @@
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Btree_with_pickle.O</title>
 </head>
 <body>
-<code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;tag_len&nbsp;:&nbsp;int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;frame_to_page&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Default</span>.<span class="constructor">BLK</span>.sz&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Prelude</span>.pp&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Btree_with_pickle</span>.page<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;page_to_frame&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Default</span>.<span class="constructor">BLK</span>.sz&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Prelude</span>.pp&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Btree_with_pickle</span>.page&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame<br>
+<code class="code"><span class="keyword">sig</span>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;tag_len&nbsp;:&nbsp;int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;frame_to_page&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Default</span>.<span class="constructor">BLK</span>.sz&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Prelude</span>.pp&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Btree_with_pickle</span>.page
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;page_to_frame&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Default</span>.<span class="constructor">BLK</span>.sz&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Prelude</span>.pp&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Btree_with_pickle</span>.page&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame
 <span class="keyword">end</span></code></body></html>

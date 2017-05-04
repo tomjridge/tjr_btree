@@ -23,8 +23,10 @@ This document gives an overview of the (sub)packages. Detailed
 
 To understand the interfaces, we need to introduce the following:
 
-- Keys, represented by type variable ['k] - Values, by type var ['v] -
-   Page/block references, ['r] - Global state, ['t]
+- Keys, represented by type variable ['k] 
+- Values, by type var ['v] 
+- Page/block references, ['r] 
+- Global state, ['t]
 
 
 {2 Exported code from Isabelle}

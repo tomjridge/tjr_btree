@@ -1,7 +1,6 @@
 <html><head>
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -60,33 +59,33 @@
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Recycling_store.O</title>
 </head>
 <body>
-<code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Map_page_ref</span>&nbsp;=&nbsp;<span class="constructor">Prelude</span>.<span class="constructor">Map_int</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Cache</span>&nbsp;=&nbsp;<span class="constructor">Map_page_ref</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FNS</span>&nbsp;=&nbsp;<span class="constructor">Prelude</span>.<span class="constructor">Set_int</span><br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;cache&nbsp;=&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="constructor">Cache</span>.t<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;fns&nbsp;=&nbsp;<span class="constructor">FNS</span>.t<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;recycling_state&nbsp;=&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;cache&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.cache;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;fns&nbsp;:&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.fns;<br>
-&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;lower_ops&nbsp;=&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Btree_api</span>.store_ops;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;store_alloc_page_ref&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;store_write_frame&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>r&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;<br>
-&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;rs_ops&nbsp;=&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Btree_api</span>.store_ops;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;store_sync&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;<br>
-&nbsp;&nbsp;}<br>
-&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>t)&nbsp;rs_params&nbsp;=&nbsp;{<br>
-&nbsp;&nbsp;&nbsp;&nbsp;get_rs&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.recycling_state,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;set_rs&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.recycling_state&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;<br>
-&nbsp;&nbsp;}<br>
+<code class="code"><span class="keyword">sig</span>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Map_page_ref</span>&nbsp;=&nbsp;<span class="constructor">Prelude</span>.<span class="constructor">Map_int</span>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">Cache</span>&nbsp;=&nbsp;<span class="constructor">Map_page_ref</span>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">FNS</span>&nbsp;=&nbsp;<span class="constructor">Prelude</span>.<span class="constructor">Set_int</span>
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;cache&nbsp;=&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="constructor">Cache</span>.t
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;fns&nbsp;=&nbsp;<span class="constructor">FNS</span>.t
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;recycling_state&nbsp;=&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;cache&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.cache;
+&nbsp;&nbsp;&nbsp;&nbsp;fns&nbsp;:&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.fns;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;lower_ops&nbsp;=&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Btree_api</span>.store_ops;
+&nbsp;&nbsp;&nbsp;&nbsp;store_alloc_page_ref&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;
+&nbsp;&nbsp;&nbsp;&nbsp;store_write_frame&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>r&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Btree_api</span>.<span class="constructor">Page_ref_int</span>.frame&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;rs_ops&nbsp;=&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Btree_api</span>.store_ops;
+&nbsp;&nbsp;&nbsp;&nbsp;store_sync&nbsp;:&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;
+&nbsp;&nbsp;}
+&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>t)&nbsp;rs_params&nbsp;=&nbsp;{
+&nbsp;&nbsp;&nbsp;&nbsp;get_rs&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;unit&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;((<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.recycling_state,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;
+&nbsp;&nbsp;&nbsp;&nbsp;set_rs&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v)&nbsp;<span class="constructor">Recycling_store</span>.<span class="constructor">O</span>.recycling_state&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Monad</span>.m;
+&nbsp;&nbsp;}
 <span class="keyword">end</span></code></body></html>

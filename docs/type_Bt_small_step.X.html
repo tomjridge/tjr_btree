@@ -1,7 +1,6 @@
 <html><head>
 <link rel="stylesheet" href="style.css" type="text/css">
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
-<meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
@@ -60,23 +59,23 @@
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Bt_small_step.X</title>
 </head>
 <body>
-<code class="code"><span class="keyword">sig</span><br>
-&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">IE</span>&nbsp;=&nbsp;<span class="constructor">Isa_export</span><br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;int_to_nat&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.nat<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;int_to_int&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_constants&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="constructor">IE</span>.<span class="constructor">Prelude</span>.constants_ext<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_cmp&nbsp;:&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.int<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_ps0&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.ps0<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_store_ops&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Store_ops</span>.store_ops&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;unit)&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.store_ops_ext<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_ps1&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t;<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.ps1<br>
+<code class="code"><span class="keyword">sig</span>
+&nbsp;&nbsp;<span class="keyword">module</span>&nbsp;<span class="constructor">IE</span>&nbsp;=&nbsp;<span class="constructor">Isa_export</span>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;int_to_nat&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.nat
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;int_to_int&nbsp;:&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_constants&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;unit&nbsp;<span class="constructor">IE</span>.<span class="constructor">Prelude</span>.constants_ext
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_cmp&nbsp;:&nbsp;(<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>b&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Isa_export</span>.<span class="constructor">Arith</span>.int
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_ps0&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.ps0
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_store_ops&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Store_ops</span>.store_ops&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t,&nbsp;unit)&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.store_ops_ext
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;x_ps1&nbsp;:
+&nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;compare_k&nbsp;:&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;int;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Base_types</span>.<span class="constructor">Base_types_params</span>.<span class="constructor">Constants</span>.t;
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;store_ops&nbsp;:&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span>
+&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>r,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">IE</span>.<span class="constructor">Params</span>.ps1
 <span class="keyword">end</span></code></body></html>
