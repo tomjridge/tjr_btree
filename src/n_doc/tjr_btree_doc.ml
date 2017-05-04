@@ -87,7 +87,7 @@ This package, particularly the {!Store_to_map} module, wraps the
 
 {2 Disks}
 
-{Disk_on_fd} is a persistent disk on top of a file. {!Disk_to_store}
+{!Disk_on_fd} is a persistent disk on top of a file. {!Disk_to_store}
    includes a function that naively transforms a disk to a store. This
    involves converting a {!Frame} to a block, using
    {!Btree_with_pickle} TODO rename.

@@ -1,0 +1,124 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Bytestore.html">
+<link rel="next" href="Mem_map.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
+<link title="Pickle" rel="Chapter" href="Pickle.html">
+<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
+<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
+<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
+<link title="Config" rel="Chapter" href="Config.html">
+<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="Prelude" rel="Chapter" href="Prelude.html">
+<link title="Default" rel="Chapter" href="Default.html">
+<link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
+<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
+<link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
+<link title="Btree_with_pickle" rel="Chapter" href="Btree_with_pickle.html">
+<link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
+<link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
+<link title="Mem_store" rel="Chapter" href="Mem_store.html">
+<link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
+<link title="Digest_" rel="Chapter" href="Digest_.html">
+<link title="Small_string" rel="Chapter" href="Small_string.html">
+<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
+<link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
+<link title="Cache" rel="Chapter" href="Cache.html">
+<link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
+<link title="Mem_map" rel="Chapter" href="Mem_map.html">
+<link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
+<link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
+<link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
+<link title="Test_cache" rel="Chapter" href="Test_cache.html">
+<link title="Test_common" rel="Chapter" href="Test_common.html">
+<link title="Test_config" rel="Chapter" href="Test_config.html">
+<link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
+<link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
+<link title="Test_sh" rel="Chapter" href="Test_sh.html">
+<link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
+<link title="Test_main" rel="Chapter" href="Test_main.html">
+<link title="Main" rel="Chapter" href="Main.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_on_fd</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Bytestore.html" title="Bytestore">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Mem_map.html" title="Mem_map">Next</a>
+</div>
+<h1>Module <a href="type_Map_on_fd.html">Map_on_fd</a></h1>
+
+<pre><span class="keyword">module</span> Map_on_fd: <code class="code">sig</code> <a href="Map_on_fd.html">..</a> <code class="code">end</code></pre><div class="info module top">
+A generic map, backed by a file descriptor<br>
+</div>
+<hr width="100%">
+
+<pre><code><span id="TYPEglobal_state"><span class="keyword">type</span> <code class="type"></code>global_state</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTglobal_state.fd">fd</span>&nbsp;: <code class="type"><a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a></code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTglobal_state.free">free</span>&nbsp;: <code class="type"><a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a></code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTglobal_state.root">root</span>&nbsp;: <code class="type"><a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a></code>;</code></td>
+
+</tr></table>
+}
+
+
+
+<pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Map_on_fd.html#TYPEglobal_state">global_state</a></code> </pre>
+
+
+<pre><span class="keyword">module</span> <a href="Map_on_fd.D.html">D</a>: <code class="type"><a href="Disk_on_fd.html">Disk_on_fd</a></code></pre>
+<pre><span class="keyword">module</span> <a href="Map_on_fd.D2S.html">D2S</a>: <code class="type"><a href="Disk_to_store.html">Disk_to_store</a></code></pre>
+<pre><span class="keyword">module</span> <a href="Map_on_fd.RS.html">RS</a>: <code class="type"><a href="Recycling_store.html">Recycling_store</a></code></pre>
+<pre><span class="keyword">module</span> <a href="Map_on_fd.S2M.html">S2M</a>: <code class="type"><a href="Store_to_map.html">Store_to_map</a></code></pre>
+<pre><span id="VALfd_ops"><span class="keyword">val</span> fd_ops</span> : <code class="type"><a href="Map_on_fd.html#TYPEglobal_state">global_state</a> D.fd_ops</code></pre>
+<pre><span id="VALmk_disk_ops"><span class="keyword">val</span> mk_disk_ops</span> : <code class="type">Default.BLK.sz -> <a href="Map_on_fd.html#TYPEglobal_state">global_state</a> <a href="Btree_api.html#TYPEdisk_ops">Btree_api.disk_ops</a></code></pre>
+<pre><span id="VALfree_ops"><span class="keyword">val</span> free_ops</span> : <code class="type"><a href="Map_on_fd.html#TYPEglobal_state">global_state</a> D2S.free_ops</code></pre>
+<pre><span id="VALmk_store_ops"><span class="keyword">val</span> mk_store_ops</span> : <code class="type">< block_size : int; pp : ('a, 'b) Prelude.pp; .. > -><br>       ('a, 'b, Default.BLK.r, <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>) <a href="Btree_api.html#TYPEstore_ops">Btree_api.store_ops</a></code></pre>
+<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type"><a href="Map_on_fd.html#TYPEglobal_state">global_state</a> S2M.page_ref_ops</code></pre>
+<pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>,<br>                  'c, 'd)<br>                 Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>,<br>                      <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>;<br>         .. > -><br>       ('a, 'b, <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a></code></pre>
+<pre><span id="VALmk_ls_ops"><span class="keyword">val</span> mk_ls_ops</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         store_ops : ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>,<br>                      <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>;<br>         .. > -><br>       ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, <a href="Map_on_fd.html#TYPEglobal_state">global_state</a>)<br>       <a href="Btree_api.html#TYPEls_ops">Btree_api.ls_ops</a></code></pre>
+<pre><span id="VALdummy"><span class="keyword">val</span> dummy</span> : <code class="type"><a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a> -> <a href="Map_on_fd.html#TYPEglobal_state">global_state</a></code></pre>
+<pre><span id="VALwrite_root_block"><span class="keyword">val</span> write_root_block</span> : <code class="type">Default.BLK.sz -> <a href="Map_on_fd.html#TYPEglobal_state">global_state</a> -> unit</code></pre>
+<pre><span id="VALread_root_block"><span class="keyword">val</span> read_root_block</span> : <code class="type">Default.BLK.sz -> <a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a> -> int * int</code></pre>
+<pre><span id="VALfrom_file"><span class="keyword">val</span> from_file</span> : <code class="type">fn:string -><br>       create:bool -><br>       init:bool -><br>       ps:< block_size : int; pp : ('a, 'b) Prelude.pp; .. > -><br>       <a href="Map_on_fd.html#TYPEglobal_state">global_state</a></code></pre></body></html>

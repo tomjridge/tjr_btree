@@ -1,0 +1,183 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Pre_map_ops.html">
+<link rel="next" href="Store_to_map.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
+<link title="Pickle" rel="Chapter" href="Pickle.html">
+<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
+<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
+<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
+<link title="Config" rel="Chapter" href="Config.html">
+<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="Prelude" rel="Chapter" href="Prelude.html">
+<link title="Default" rel="Chapter" href="Default.html">
+<link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
+<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
+<link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
+<link title="Btree_with_pickle" rel="Chapter" href="Btree_with_pickle.html">
+<link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
+<link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
+<link title="Mem_store" rel="Chapter" href="Mem_store.html">
+<link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
+<link title="Digest_" rel="Chapter" href="Digest_.html">
+<link title="Small_string" rel="Chapter" href="Small_string.html">
+<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
+<link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
+<link title="Cache" rel="Chapter" href="Cache.html">
+<link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
+<link title="Mem_map" rel="Chapter" href="Mem_map.html">
+<link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
+<link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
+<link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
+<link title="Test_cache" rel="Chapter" href="Test_cache.html">
+<link title="Test_common" rel="Chapter" href="Test_common.html">
+<link title="Test_config" rel="Chapter" href="Test_config.html">
+<link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
+<link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
+<link title="Test_sh" rel="Chapter" href="Test_sh.html">
+<link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
+<link title="Test_main" rel="Chapter" href="Test_main.html">
+<link title="Main" rel="Chapter" href="Main.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Iter_with_check</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Pre_map_ops.html" title="Pre_map_ops">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Store_to_map.html" title="Store_to_map">Next</a>
+</div>
+<h1>Module <a href="type_Iter_with_check.html">Iter_with_check</a></h1>
+
+<pre><span class="keyword">module</span> Iter_with_check: <code class="code">sig</code> <a href="Iter_with_check.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Iterate small-step map operations to provide big-step map
+   operations. The important functions in this module are <code class="code">find</code>,
+   <code class="code">insert</code>, <code class="code">insert_many</code> and <code class="code">delete</code> (together with the leaf stream
+   big-step operations).<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Iter_with_check.X.html">X</a>: <code class="type"><a href="Prelude.Small_step.html">Prelude.Small_step</a></code></pre>
+<pre><code><span id="TYPEiter_ops"><span class="keyword">type</span> <code class="type">'t</code> iter_ops</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTiter_ops.check_state">check_state</span>&nbsp;: <code class="type">'t -> bool</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTiter_ops.check_trans">check_trans</span>&nbsp;: <code class="type">'t -> 't -> bool</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTiter_ops.step">step</span>&nbsp;: <code class="type">(unit, 't) Base_types.Monad.m</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTiter_ops.finished">finished</span>&nbsp;: <code class="type">'t -> bool</code>;</code></td>
+
+</tr></table>
+}
+
+
+
+<pre><span id="VALiter"><span class="keyword">val</span> iter</span> : <code class="type">'t <a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a> -> (unit, 't) Base_types.Monad.m</code></pre>
+<pre><span id="VALcheck_some"><span class="keyword">val</span> check_some</span> : <code class="type">('a -> bool) -> 'a option -> bool</code></pre>
+<pre><span class="keyword">module</span> <a href="Iter_with_check.Find.html">Find</a>: <code class="code">sig</code> <a href="Iter_with_check.Find.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALcheck_state"><span class="keyword">val</span> check_state</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          .. >)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALcheck_trans"><span class="keyword">val</span> check_trans</span> : <code class="type">'a -> 'b -> bool</code></pre>
+<pre><span id="VALfinished"><span class="keyword">val</span> finished</span> : <code class="type">('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALdest"><span class="keyword">val</span> dest</span> : <code class="type">('a, 'b, 'r, 'c, 'd) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> 'r</code></pre>
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. ><br>        as 'e)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -><br>       ('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> * unit Base_types.res</code></pre>
+<pre><span id="VALfind_ops"><span class="keyword">val</span> find_ops</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. >)<br>       <a href="Iter_with_check.Find.html#TYPEt">Find.t</a> <a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a></code></pre>
+<pre><span id="VALmk"><span class="keyword">val</span> mk</span> : <code class="type">(< debug : ('b, 'c, 'd, 'e, 'f, 'g) Prelude.debug option; .. > as 'a) -><br>       'b -> 'd -> 'e -> ('b, 'c, 'd, 'e, 'a) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a></code></pre>
+<pre><span id="VALfind"><span class="keyword">val</span> find</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, 'r, 't, 'c, 'd) Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. > -><br>       'a -> 'r -> 't -> 't * ('r * ('a * 'b) list) Base_types.res</code></pre><div class="info ">
+Find. Take a key, a pointer to the root of a B-tree, and the
+   global state. Return the updated state, a reference to the leaf of
+   the B-tree that possibly contains the key (or alternatively return
+   an error).<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Iter_with_check.Insert.html">Insert</a>: <code class="code">sig</code> <a href="Iter_with_check.Insert.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALcheck_state"><span class="keyword">val</span> check_state</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          .. >)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALcheck_trans"><span class="keyword">val</span> check_trans</span> : <code class="type">'a -> 'b -> bool</code></pre>
+<pre><span id="VALfinished"><span class="keyword">val</span> finished</span> : <code class="type">('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALdest"><span class="keyword">val</span> dest</span> : <code class="type">('a, 'b, 'r, 'c, 'd) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> 'r</code></pre>
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. ><br>        as 'e)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -><br>       ('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> * unit Base_types.res</code></pre>
+<pre><span id="VALinsert_ops"><span class="keyword">val</span> insert_ops</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. >)<br>       <a href="Iter_with_check.Insert.html#TYPEt">Insert.t</a> <a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a></code></pre>
+<pre><span id="VALmk"><span class="keyword">val</span> mk</span> : <code class="type">(< debug : ('b, 'c, 'd, 'e, 'f, 'g) Prelude.debug option; .. > as 'a) -><br>       'b -> 'd -> 'e -> ('b, 'c, 'd, 'e, 'a) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a></code></pre>
+<pre><span id="VALinsert"><span class="keyword">val</span> insert</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, 'r, 't, 'c, 'd) Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. > -><br>       'a -> 'b -> 'r -> 't -> 't * 'r Base_types.res</code></pre><div class="info ">
+Insert. Take a key, a value, a reference (to the B-tree root) and
+   a state and return an updated state, with a new reference to the
+   root of the updated B-tree.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Iter_with_check.Im.html">Im</a>: <code class="code">sig</code> <a href="Iter_with_check.Im.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALcheck_state"><span class="keyword">val</span> check_state</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          .. >)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALcheck_trans"><span class="keyword">val</span> check_trans</span> : <code class="type">'a -> 'b -> bool</code></pre>
+<pre><span id="VALfinished"><span class="keyword">val</span> finished</span> : <code class="type">('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALdest"><span class="keyword">val</span> dest</span> : <code class="type">('a, 'b, 'r, 'c, 'd) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> 'r</code></pre>
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. ><br>        as 'e)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -><br>       ('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> * unit Base_types.res</code></pre>
+<pre><span id="VALim_ops"><span class="keyword">val</span> im_ops</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. >)<br>       <a href="Iter_with_check.Im.html#TYPEt">Im.t</a> <a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a></code></pre>
+<pre><span id="VALmk"><span class="keyword">val</span> mk</span> : <code class="type">(< debug : ('b, 'c, 'd, 'e, 'f, 'g) Prelude.debug option; .. > as 'a) -><br>       'b -> 'd -> 'e -> ('b, 'c, 'd, 'e, 'a) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a></code></pre>
+<pre><span id="VALinsert_many"><span class="keyword">val</span> insert_many</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, 'r, 't, 'c, 'd) Prelude.debug option;<br>         store_ops : ('a, 'b, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. > -><br>       'a -><br>       'b -> ('a * 'b) list -> 'r -> 't -> 't * ('r * ('a * 'b) list) Base_types.res</code></pre><div class="info ">
+Insert many. Take a key, value, and list of further key/values, a
+   pointer to the B-tree root and a global state. Return the updated
+   state, a new pointer to a B-tree root, and a list of key/values
+   which could not be inserted into the same leaf as the first
+   key/value. Typically this function is called in a loop till all kvs
+   have been inserted. It is assumed faster than multiple inserts,
+   although caching may invalidate this assumption.<br>
+</div>
+
+<pre><span class="keyword">module</span> <a href="Iter_with_check.Delete.html">Delete</a>: <code class="code">sig</code> <a href="Iter_with_check.Delete.html">..</a> <code class="code">end</code></pre>
+<pre><span id="VALcheck_state"><span class="keyword">val</span> check_state</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          .. >)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALcheck_trans"><span class="keyword">val</span> check_trans</span> : <code class="type">'a -> 'b -> bool</code></pre>
+<pre><span id="VALfinished"><span class="keyword">val</span> finished</span> : <code class="type">('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> bool</code></pre>
+<pre><span id="VALdest"><span class="keyword">val</span> dest</span> : <code class="type">('a, 'b, 'r, 'c, 'd) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -> 'r</code></pre>
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. ><br>        as 'e)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> -><br>       ('a, 'b, 'c, 'd, 'e) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> * unit Base_types.res</code></pre>
+<pre><span id="VALdelete_ops"><span class="keyword">val</span> delete_ops</span> : <code class="type">('a, 'b, 'c, 'd,<br>        < compare_k : 'a -> 'a -> int;<br>          constants : Base_types.Base_types_params.Constants.t;<br>          debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>          store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. >)<br>       <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a> <a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a></code></pre>
+<pre><span id="VALmk"><span class="keyword">val</span> mk</span> : <code class="type">(< debug : ('b, 'c, 'd, 'e, 'f, 'g) Prelude.debug option; .. > as 'a) -><br>       'b -> 'd -> 'e -> ('b, 'c, 'd, 'e, 'a) <a href="Iter_with_check.Delete.html#TYPEt">Delete.t</a></code></pre>
+<pre><span id="VALdelete"><span class="keyword">val</span> delete</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, 'r, 'c, 'd, 'e) Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, 'r, 'c) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. > -><br>       'a -> 'r -> 'c -> 'c * 'r Base_types.res</code></pre><div class="info ">
+Delete. Take a key and a reference to a B-tree root, and a global
+   state. Return the updated state and a reference to the new root.<br>
+</div>
+
+<pre><span id="VALmake_pre_map_ops"><span class="keyword">val</span> make_pre_map_ops</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, 'c, 'd, 'e, 'f) Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>; .. > -><br>       ('a, 'b, 'c, 'd) <a href="Pre_map_ops.html#TYPEpre_map_ops">Pre_map_ops.pre_map_ops</a></code></pre><div class="info ">
+Construct <code class="code">pre_map_ops</code> using functions above. Takes a "parameters" object ps.<br>
+</div>
+</body></html>

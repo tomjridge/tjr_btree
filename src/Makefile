@@ -56,6 +56,7 @@ _codetags:
 _doc:
 	echo Make sure to build first
 	mk_doc
+	cp *.html *.css ../docs
 
 # ----------------------------------------
 
