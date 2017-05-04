@@ -44,8 +44,8 @@ let do_check () = (
   print_endline "Checking...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
-  assert(map_ops.find (SS.of_string("k100")) = None);
-  assert(map_ops.find (SS.of_string("k1000")) = Some(SS.of_string("v1000")));
+  assert(map_ops.find (k 100) = None);
+  assert(map_ops.find (k 1000) = Some(v 1000));
   close !s
 )
 
@@ -55,3 +55,19 @@ let _ = (
   do_delete();
   do_check()
 )
+
+
+let do_full_check () = (
+  print_endline "Full check...";
+  let s = ref (from_file ~fn ~create:false ~init:false) in
+  let map_ops = imperative_map_ops s in
+  for x = 1 to 1000 do
+    if (100 <= x && x <= 200) then
+      assert(map_ops.find (k x) = None)
+    else
+      assert(map_ops.find (k x) = Some(v x))
+  done;
+  close !s
+)
+
+let _ = do_full_check ()
