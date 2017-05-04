@@ -30,8 +30,8 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
   let find = (fun k ->
       page_ref_ops.get_page_ref () |> bind (fun r ->
           pre_map_ops.find k r |> bind (fun (r',kvs) -> 
-              page_ref_ops.set_page_ref r' |> bind (fun () ->
-                  return (try Some(List.assoc k kvs) with _ -> None)))))
+              (* page_ref_ops.set_page_ref r' |> bind (fun () -> NO! the r is the pointer to the leaf *)
+                  return (try Some(List.assoc k kvs) with _ -> None))))
   in
   let insert = (fun k v ->
       page_ref_ops.get_page_ref () |> bind (fun r ->
