@@ -83,6 +83,7 @@ let mk_map_ops ps = S2M.make_map_ops ps page_ref_ops
 
 let mk_ls_ops ps = S2M.make_ls_ops ps page_ref_ops
 
+let mk_imperative_map_ops ps = mk_map_ops ps |> Store_to_map.map_ops_to_imperative_map_ops
 
 (* root block ---------------------------------------- *)
 
@@ -148,6 +149,13 @@ let from_file ~fn ~create ~init ~ps = (
       let (free,root) = read_root_block sz fd in 
       {fd; free; root})
 )
+
+
+let close ps = (
+  fun s -> 
+    write_root_block (block_size ps) s;
+    Unix.close s.fd)
+
 
 
 

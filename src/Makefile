@@ -60,11 +60,11 @@ _doc:
 
 # ----------------------------------------
 
-%.native: %.ml $(libname).cmxa FORCE
-	$$ocamlopt -g -linkpkg -o $*.native $${libname}.cmxa $*.ml
+%.native: m_main/%.ml $(libname).cmxa FORCE
+	$$ocamlopt -g -linkpkg -o $*.native $${libname}.cmxa $<
 
-%.byte: %.ml $(libname).cma FORCE
-	$$ocamlc -g -linkpkg -o $*.byte $${libname}.cma $*.ml
+%.byte: m_main/%.ml $(libname).cma FORCE
+	$$ocamlc -g -linkpkg -o $*.byte $${libname}.cma $<
 
 clean:
 	rm -f *.{cmi,cmo,cmx,o} a.out *.cma *.cmxa *.a *.byte *.native 

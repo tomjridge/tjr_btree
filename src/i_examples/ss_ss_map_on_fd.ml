@@ -24,38 +24,47 @@ let ps store_ops =
     method store_ops=store_ops
   end
 
-let store_ops = Map_on_fd.mk_store_ops (ps ())
+open Map_on_fd
+
+let store_ops = mk_store_ops (ps ())
 
 let ps = ps store_ops
 
-let map_ops = Map_on_fd.mk_map_ops ps
+let map_ops = mk_map_ops ps
 
-let ls_ops = Map_on_fd.mk_ls_ops ps
+let imperative_map_ops = mk_imperative_map_ops ps
 
-open Map_on_fd
+let ls_ops = mk_ls_ops ps
+
+let close = close ps
+
+let from_file ~fn ~create ~init = Map_on_fd.from_file ~fn ~create ~init ~ps
 
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
   match args with
   | ["init"; fn] -> (
-      from_file ~fn ~create:true ~init:true ~ps
+      from_file ~fn ~create:true ~init:true
       |> (fun _ -> print_endline "init ok"))
   | ["insert";fn;k;v] -> (
-      from_file ~fn ~create:false ~init:false ~ps
+      from_file ~fn ~create:false ~init:false
       |> map_ops.insert (SS.of_string k) (SS.of_string v) 
-      |> function (t,Ok _) -> (write_root_block (block_size ps) t))
+      |> function (t,Ok _) -> (close t))
   | ["delete";fn;k] -> (
-      from_file ~fn ~create:false ~init:false ~ps
+      from_file ~fn ~create:false ~init:false
       |> map_ops.delete (SS.of_string k) 
-      |> function (t,Ok _) -> (write_root_block (block_size ps) t))
+      |> function (t,Ok _) -> (close t))
   | ["list";fn] -> (
-      from_file ~fn  ~create:false ~init:false ~ps
-      |> all_kvs ls_ops 
-      |> function (_,Ok kvs) -> (
-          List.iter (fun (k,v) -> 
-              Printf.printf "%s -> %s\n" (SS.to_string k) (SS.to_string v)) kvs);
-        print_endline "list ok")
+      from_file ~fn  ~create:false ~init:false
+      |> (fun s -> 
+          s 
+          |> all_kvs ls_ops 
+          |> (function (_,Ok kvs) -> 
+              List.iter (fun (k,v) -> 
+                  Printf.printf "%s -> %s\n" (SS.to_string k) (SS.to_string v)) kvs);
+          close s;
+          print_endline "list ok"))
   | _ -> (
       failwith ("Unrecognized args: "^(Tjr_string.concat_strings " " args)^ __LOC__))
 )

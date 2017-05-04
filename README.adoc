@@ -47,50 +47,75 @@ for details).
 
 To build with nix, type `cd .nix/tjr_btree; nix-build`. The result is in `./result`.
 
-== Quickstart
+== Example
 
-Look at link:./src/c_pre/btree_api.ml[] and link:./src/d_core/btree_simple.ml[]
-
-Then look at how a simple uncached `int -> int` map, backed by a file,
-works: link:./src/f_examples/int_int_filestore.ml[]
-
-A more extended example is in
-link:./src/f_examples/kv_store_small.ml[] . You can run some simple
-use cases by executing link:./src/kv_main.sh[]
-
-
-
-== Main interfaces
-
-The file `btree_api.ml` contains the main interfaces. Most of these
-should be fairly easy to understand. We make liberal use of store
-passing via a monad. This simply means that operations are slightly different to what one might expect:
+This is taken from link:src/m_main/simple-example.ml[]. 
 
 ----
-  val read: r -> blk m
+(** A simple example of a kv store. *)
+
+open Small_string.O
+(* SS is now an alias for Small_string *)
+
+open Ss_ss_map_on_fd
+
+(* filename *)
+let fn = Default.default_filename
+
+(* construct keys and values from an int *)
+let k x = "k"^(string_of_int x) |> SS.of_string
+let v x = "v"^(string_of_int x) |> SS.of_string
+
+(* create and init store, write some values, and close *)
+let do_write () = (
+  print_endline "Writing...";
+  (* create and initialize *)
+  let s = ref (from_file ~fn ~create:true ~init:true) in
+  (* get map operations *)
+  let map_ops = imperative_map_ops s in
+  (* write values *)
+  for x=1 to 1000 do
+    (* TODO this would be much faster if we used insert_many *)
+    map_ops.insert (k x) (v x);
+  done;
+  (* close *)
+  close !s
+)
+
+(* open store, delete some values, and close *)
+let do_delete () = (
+  print_endline "Deleting...";
+  let s = ref (from_file ~fn ~create:false ~init:false) in
+  let map_ops = imperative_map_ops s in
+  for x=100 to 200 do
+    map_ops.delete (k x);
+  done;
+  close !s
+)
+
+(* open store and check whether various keys and values are correct *)
+let do_check () = (
+  print_endline "Checking...";
+  let s = ref (from_file ~fn ~create:false ~init:false) in
+  let map_ops = imperative_map_ops s in
+  assert(map_ops.find (SS.of_string("k100")) = None);
+  assert(map_ops.find (SS.of_string("k1000")) = Some(SS.of_string("v1000")));
+  close !s
+)
+
+(* actually execute the above *)
+let _ = (
+  do_write();
+  do_delete();
+  do_check()
+)
 ----
 
-This is the "read" operation for a block device, which takes `r` (a
-block id or reference) and returns a block `blk`. The type `blk m` is
-a computation that returns a `blk` (whereas one might expect `read` to
-have result type `blk` rather than `blk m` if one were using the
-imperative style of programming). The use of the monad `m` helps to
-structure the various effects that occur. To actually execute such an
-operation one might write:
 
-----
-  read r |> run s
-----
+== Documentation
 
-Here, `s` is the state in which to run the read request. The result is
-typically a pair of an updated state and the block that was read. In
-addition, the monad takes care of errors that arise (so the code is
-not littered with exception handling). So the result is actually a
-pair of an updated state, and either the block that was read, or an
-error.
+Please read the
+https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html[overview]
+and the 
+https://tomjridge.github.io/tjr_btree/[ocamldoc]
 
-
-== Git branches
-
-- dev: where development takes place
-- master: releases

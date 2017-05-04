@@ -51,6 +51,14 @@ let make_map_ops ps page_ref_ops =
   Iter_with_check.make_pre_map_ops ps
   |> fun x -> make_map_ops' x page_ref_ops
 
+
+let map_ops_to_imperative_map_ops (map_ops:('k,'v,'t)Btree_api.map_ops) (s_ref:'t ref) = (
+  let find k = map_ops.find k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+  let insert k v = map_ops.insert k v |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+  let delete k = map_ops.delete k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+  Imperative_map_ops.{find;insert;delete}
+)
+
 module N = Iter_leaf_stream
 
 (** Make [ls_ops], given a [page_ref_ops]. TODO ditto *)

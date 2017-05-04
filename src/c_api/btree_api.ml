@@ -54,6 +54,15 @@ type ('k,'v,'t) map_ops = {
   delete: 'k -> (unit,'t) m;
 }
 
+(** Dummy module containing imperative version of the map interface. *)
+module Imperative_map_ops = struct
+  (** Imperative version of the map interface; throws exceptions. WARNING likely to change. *)
+  type ('k,'v) map_ops = {
+    find: 'k -> 'v option;
+    insert: 'k -> 'v -> unit;
+    delete: 'k -> unit;
+  }
+end
 
 (* we only reveal lss when it points to a leaf *)
 
