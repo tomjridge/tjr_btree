@@ -7,10 +7,8 @@ open Base_types.Monad
 
 type fd = Unix.file_descr
 
-type 't fd_ops = {
-  get_fd: unit -> (fd,'t) m;
-  set_fd: fd -> (unit,'t) m;
-}
+open Mref
+type 't fd_ops = (fd,'t) Mref.mref
 
 let safely : string -> ('a,'t) m -> ('a,'t) m = (
   fun msg m ->
@@ -21,7 +19,7 @@ let safely : string -> ('a,'t) m -> ('a,'t) m = (
 let make_disk block_size ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->
       safely __LOC__ (
-        ops.get_fd ()
+        ops.get ()
         |> bind Unix.(fun fd ->
             ignore (lseek fd (r * block_size) SEEK_SET);
             let buf = Bytes.make block_size (Char.chr 0) in 
@@ -33,7 +31,7 @@ let make_disk block_size ops = (
   in
   let write: BLK.r -> BLK.t -> (unit,'t) m = (fun r buf -> 
       safely __LOC__ (
-        ops.get_fd ()
+        ops.get ()
         |> bind Unix.(fun fd ->
             ignore (lseek fd (r * block_size) SEEK_SET);
             let buf = BLK.to_string buf in
@@ -43,7 +41,7 @@ let make_disk block_size ops = (
   in
   let disk_sync: unit -> (unit,'t) m = (fun () -> 
       safely __LOC__ (
-        ops.get_fd () 
+        ops.get () 
         |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
   in
   {block_size;read;write;disk_sync}

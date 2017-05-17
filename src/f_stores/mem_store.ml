@@ -10,10 +10,7 @@ open Base_types.Monad
 module O = struct
   type ('k,'v) mem = {free:int; map:('k,'v)frame Map_int.t}  
 
-  type ('k,'v,'t) mem_ops = {
-    get_store: unit -> (('k,'v) mem,'t) m;
-    set_store: ('k,'v) mem -> (unit,'t) m;     
-  }
+  type ('k,'v,'t) mem_ops = (('k,'v) mem,'t) Mref.mref
 end
 
 include O
@@ -21,13 +18,13 @@ include O
 let mk_store_ops (mem_ops:('k,'v,'t)mem_ops) : ('k,'v,'r,'t) store_ops = (
   let store_free rs : (unit,'t) m = return () in (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
-    mem_ops.get_store () |> bind (fun s -> 
+    mem_ops.get () |> bind (fun s -> 
         let s' = {free=s.free+1; map=Map_int.add s.free f s.map} in
-        mem_ops.set_store s' |> bind (fun () -> 
+        mem_ops.set s' |> bind (fun () -> 
             return s.free))
   in
   let store_read r : (('k,'v) frame,'t) m =
-    mem_ops.get_store () |> bind (fun s ->
+    mem_ops.get () |> bind (fun s ->
         return (Map_int.find r s.map)) (* ASSUMES present *)
   in
   { store_free; store_read; store_alloc }

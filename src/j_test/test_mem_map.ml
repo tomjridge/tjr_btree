@@ -36,14 +36,14 @@ let constants = Constants.{
     min_node_keys = 2;
   }
 
-let pr_ops = Store_to_map.{
-    get_page_ref=(fun () -> fun t -> (t,Ok t.r));
-    set_page_ref=(fun r -> fun t -> ({t with r},Ok ()))
+let pr_ops = Monad.Mref.{
+    get=(fun () -> fun t -> (t,Ok t.r));
+    set=(fun r -> fun t -> ({t with r},Ok ()))
   }
 
 let mem_ops : ('k,'v,T.t) mem_ops = {
-  get_store=(fun () -> fun t -> (t,Ok t.s));
-  set_store=(fun s -> fun t -> ({t with s},Ok ()));
+  get=(fun () -> fun t -> (t,Ok t.s));
+  set=(fun s -> fun t -> ({t with s},Ok ()));
 }
 
 let store_ops = Mem_store.mk_store_ops mem_ops

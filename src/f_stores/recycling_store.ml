@@ -1,4 +1,5 @@
-(** A store that attempts to recycle freed blocks, and thereby avoid excessive writing. *)
+(** A store that attempts to recycle freed blocks, and thereby avoid
+   excessive writing. *)
 
 (* TODO implement a sound version of leaf stream operations given a recycling store *)
 
@@ -59,21 +60,19 @@ FIXME don't we also need to know which were allocated since last sync?
     store_sync: unit -> (unit,'t) m;
   }
 
-  type ('k,'v,'t) rs_params = {
-    get_rs: unit -> (('k,'v) recycling_state,'t) m;
-    set_rs: ('k,'v) recycling_state -> (unit,'t) m
-  }
+  type ('k,'v,'t) rs_params = ( ('k,'v)recycling_state, 't) Mref.mref
 end
 
 open O
+open Mref
 
 let make lower ps : ('k,'v,'r,'t) rs_ops = (
   (* cache functions *)
   let get_cache () : (('k,'v) cache,'t) m = 
-      ps.get_rs() |> bind (fun s -> return s.cache)
+      ps.get() |> bind (fun s -> return s.cache)
   in
   let set_cache c : (unit,'t) m = 
-      ps.get_rs() |> bind (fun s -> ps.set_rs {s with cache=c})
+      ps.get() |> bind (fun s -> ps.set {s with cache=c})
   in
   let clear_cache: unit -> (unit,'t) m = (fun () -> set_cache Cache.empty) in
   let cache_add: 'r -> ('k,'v,'r)Frame.frame -> (unit,'t) m = (fun r p ->
@@ -82,10 +81,10 @@ let make lower ps : ('k,'v,'r,'t) rs_ops = (
   in
   (* fns functions *)
   let get_fns: unit -> (fns,'t) m = (fun () ->
-      ps.get_rs() |> bind (fun s -> return s.fns))
+      ps.get() |> bind (fun s -> return s.fns))
   in
   let set_fns: fns -> (unit,'t) m = (fun fns ->
-      ps.get_rs() |> bind (fun s -> ps.set_rs {s with fns=fns}))
+      ps.get() |> bind (fun s -> ps.set {s with fns=fns}))
   in
   let get_1_fns: unit -> ('r option,'t) m = (fun () -> 
       get_fns () |> bind (fun fns -> 

@@ -9,6 +9,7 @@ We fix:
 
 *)
 
+open Base_types
 open Prelude
 open Btree_api
 open Page_ref_int
@@ -49,17 +50,18 @@ module S2M = Store_to_map
 (* layers ----------------------------------------------------------- *)
 
 (* make various layer operations eg disk_ops, store_ops, map_ops *)
+open Monad.Mref
 
 let fd_ops = D.{
-    get_fd=(fun () -> (fun t -> (t,Ok t.fd)));
-    set_fd=(fun fd -> (fun t -> ({t with fd},Ok ())));
+    get=(fun () -> (fun t -> (t,Ok t.fd)));
+    set=(fun fd -> (fun t -> ({t with fd},Ok ())));
   }
 
 let mk_disk_ops sz = D.make_disk sz fd_ops
 
 let free_ops = D2S.{
-    get_free=(fun () -> (fun t -> (t,Ok t.free)));
-    set_free=(fun free -> (fun t -> ({t with free}, Ok ())));
+    get=(fun () -> (fun t -> (t,Ok t.free)));
+    set=(fun free -> (fun t -> ({t with free}, Ok ())));
   }
 
 let mk_store_ops ps = 
@@ -68,9 +70,9 @@ let mk_store_ops ps =
     (mk_disk_ops (block_size ps))
     free_ops 
 
-let page_ref_ops = S2M.{
-    get_page_ref=(fun () -> (fun t -> (t,Ok t.root)));
-    set_page_ref=(fun root -> (fun t -> ({t with root},Ok ())));
+let page_ref_ops = Monad.Mref.{
+    get=(fun () -> (fun t -> (t,Ok t.root)));
+    set=(fun root -> (fun t -> ({t with root},Ok ())));
   }
 
 

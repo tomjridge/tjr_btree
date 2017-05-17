@@ -18,3 +18,14 @@ let return x = fun s -> (s,Ok x)
 let err e = fun s -> (s,Error e)
 
 let run s = fun m -> m s
+
+
+module Mref = struct
+  
+  (** Monadic reference operations *)
+  type ('a,'s) mref = {
+    get: unit -> ('a,'s) m;
+    set: 'a -> (unit,'s) m
+  }
+
+end

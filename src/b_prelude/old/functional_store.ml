@@ -1,5 +1,7 @@
 (* a generic functional store ---------------------------------------- *)
 
+(* FIXME needed? *)
+
 module Int = struct
   type t = int 
   let compare: t -> t -> int = Pervasives.compare 

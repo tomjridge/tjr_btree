@@ -50,12 +50,8 @@ module O = struct
      dirty=false), or has been deleted (if dirty=true); Some v with
      dirty=true indicates that this needs to be flushed to lower *)
 
-
-  type ('k,'v,'t) cache_ops = {
-    get_cache: unit -> (('k,'v) cache_state,'t) m;
-    set_cache: ('k,'v) cache_state -> (unit,'t) m
-  }
-
+  open Monad.Mref
+  type ('k,'v,'t) cache_ops = ( ('k,'v)cache_state,'t) mref
 end
 
 open O
@@ -133,13 +129,14 @@ exception E_
 (* FIXME correctness of following not clear *)
 
 open Monad
+open Mref
 
 let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 
   (* update time on each put *)
   let put_cache c = 
     let c = {c with current=c.current+1} in 
-    cache_ops.set_cache c 
+    cache_ops.set c 
   in
 
   let evict c = (
@@ -194,7 +191,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
   in
 
   let find k = (
-    cache_ops.get_cache () 
+    cache_ops.get () 
     |> bind (
       fun c ->
         (* try to find in cache *)
@@ -224,7 +221,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
   in
 
   let insert k v = (
-    cache_ops.get_cache () 
+    cache_ops.get () 
     |> bind (
       fun c -> 
         try (
@@ -250,7 +247,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
   in
 
   let delete k = (
-    cache_ops.get_cache () 
+    cache_ops.get () 
     |> bind (
       fun c -> 
         try (

@@ -6,11 +6,8 @@ open Page_ref_int
 open Base_types.Monad
 open Btree_with_pickle.O
 
-type 't free_ops = {
-  get_free: unit -> (int,'t) m;
-  set_free: int -> (unit,'t) m;
-}    
-
+type 't free_ops = (int,'t) Mref.mref
+open Mref
 
 (* convert a disk to a store using pickling and a free counter; assume
    page size and block size are the same *)
@@ -22,9 +19,9 @@ let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f|>frame_to_page page_size pp|> (fun p -> 
-        free_ops.get_free () |> bind (fun free -> 
+        free_ops.get () |> bind (fun free -> 
             disk_ops.write free p |> bind (fun () -> 
-                free_ops.set_free (free+1) |> bind (fun () ->
+                free_ops.set (free+1) |> bind (fun () ->
                     return free))))
   in
   let store_read r : (('k,'v)frame,'t) m = 

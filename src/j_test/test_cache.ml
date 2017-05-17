@@ -1,5 +1,6 @@
 (* testing cache ---------------------------------------- *)
 
+open Base_types
 open Prelude
 open Btree_api
 open Cache.O
@@ -59,9 +60,9 @@ let base_map_ops: (key,value,ts) map_ops = {
 
 (* cached map ------------------------------------------------------- *)
 
-let cache_ops = {
-  get_cache=(fun () t -> (t,Ok t.cache));
-  set_cache=(fun cache t -> ({t with cache},Ok()))
+let cache_ops = Monad.Mref.{
+  get=(fun () t -> (t,Ok t.cache));
+  set=(fun cache t -> ({t with cache},Ok()))
 }
 
 let cached_map_ops = Cache.make_cached_map base_map_ops cache_ops
