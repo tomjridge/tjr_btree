@@ -8,6 +8,7 @@ root=$(realpath $(dirname $BASH_SOURCE))/../..
  # if using nix, this may not be present
 test -f $root/config.sh && source $root/config.sh
 
+PKGS1="num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 PKGS="-package num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 
 SYNTAX="" # "-syntax camlp4o" # simplify: use for every file
@@ -94,7 +95,7 @@ cat >META <<EOF
 name="$libname"
 description="Pure functional B-tree implementation"
 version="$d $gv"
-depends=""
+requires="$PKGS1"
 archive(byte)="$libname.cma"
 archive(native)="$libname.cmxa"
 EOF

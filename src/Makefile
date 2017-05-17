@@ -34,6 +34,7 @@ _mlis:
 
 install:
 	mk_meta
+	-remove
 	install
 
 _remove: 

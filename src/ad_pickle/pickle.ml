@@ -37,6 +37,31 @@ module Basic_marshalling = struct
       in
       List.iter f [Int32.of_int 0;Int32.of_int 1;Int32.of_int (-1);Int32.max_int;Int32.min_int])
 
+
+
+  let int64_to_bytes = Int64.(
+      fun i0 -> 
+        let arr = Array.make 8 (Char.chr 0) in
+        for j = 0 to 7 do 
+          let off = j in
+          let c = (shift_right i0 (8*off)) |> logand (of_int 255) in
+          arr.(off) <- (c|>to_int|>Char.chr)
+        done;
+        [arr.(0);arr.(1);arr.(2);arr.(3);arr.(4);arr.(5);arr.(6);arr.(7)])
+
+  (* assumes bs length 8 *)
+  let bytes_to_int64 = Int64.(fun bs -> 
+      assert (List.length bs = 8);
+      let arr = Array.of_list bs in
+      let i = ref (Int64.of_int 0) in
+      for j = 0 to 7 do
+        let off = j in
+        let c = shift_left (arr.(off)|>Char.code|>Int64.of_int) (8*off) in
+        i:=(logor !i c)
+      done;
+      !i)
+
+
 end
 
 
@@ -158,6 +183,18 @@ module Examples = struct
   let p_int i = i |>Int32.of_int|>p_int32
 
   let u_int = U.(u_int32 |> map Int32.to_int)
+
+
+  let p_int64 : int64 -> P.m = P.(
+      fun i -> Basic_marshalling.int64_to_bytes i |> write_bytes
+    )
+
+  let u_int64 : int64 U.m = U.(
+      read_bytes 8 |> bind (function s -> 
+          let [a;b;c;d] = s in
+          ret (Basic_marshalling.bytes_to_int64 [a;b;c;d]))
+    )
+
 
   (* assume we know the length somehow *)
   let p_string : string -> P.m = P.(

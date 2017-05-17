@@ -1,6 +1,6 @@
 name="tjr_btree"
 description="Pure functional B-tree implementation"
-version="Thu  4 May 08:58:46 BST 2017 a776423d278f87dadef69721055be1ff45c3a2d3"
-depends=""
+version="Wed 17 May 15:23:58 BST 2017 1cdf1254fb4ea51e14f8856cf9478c539a29f6c5"
+requires="num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 archive(byte)="tjr_btree.cma"
 archive(native)="tjr_btree.cmxa"

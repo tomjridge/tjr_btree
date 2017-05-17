@@ -76,6 +76,18 @@ let int_int_pp = PE.{
   }
 
 
+let int64_int64_pp = PE.{
+    p_k = p_int64;
+    u_k = u_int64;
+    k_len = 8;
+    p_v = p_int64;
+    u_v = u_int64;
+    v_len = 8;
+  }
+
+
+
+
 (* ss -> int -------------------------------------------------------- *)
 
 let ss_int_pp: (SS.t,int) pp = Pickle_params.(
