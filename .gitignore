@@ -69,3 +69,4 @@ src/tree.ml
 
 *.cmt
 /src/bt_file.ml
+/src/bt_string.ml

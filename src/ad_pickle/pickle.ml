@@ -149,7 +149,7 @@ end = struct
 
   let read_bytes : int -> char list m = (fun n s -> 
       assert (String.length s >= n);
-      Tjr_string.split_at s n |> 
+      Bt_string.split_at s n |> 
       (fun (bs,s') -> (s',Ok (bs|>BatString.explode))))
 
   let map f m s = (match m s with

@@ -10,7 +10,8 @@ type fd = Unix.file_descr
 open Mref
 type 't fd_ops = (fd,'t) Mref.mref
 
-let safely : string -> ('a,'t) m -> ('a,'t) m = (
+(* don't want to clobber any other "safely" *)
+let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
   fun msg m ->
   fun s -> 
     try m s 
@@ -18,7 +19,7 @@ let safely : string -> ('a,'t) m -> ('a,'t) m = (
 
 let make_disk block_size ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->
-      safely __LOC__ (
+      safely_ __LOC__ (
         ops.get ()
         |> bind Unix.(fun fd ->
             ignore (lseek fd (r * block_size) SEEK_SET);
@@ -30,7 +31,7 @@ let make_disk block_size ops = (
             return (BLK.of_string block_size buf))))
   in
   let write: BLK.r -> BLK.t -> (unit,'t) m = (fun r buf -> 
-      safely __LOC__ (
+      safely_ __LOC__ (
         ops.get ()
         |> bind Unix.(fun fd ->
             ignore (lseek fd (r * block_size) SEEK_SET);
@@ -41,7 +42,7 @@ let make_disk block_size ops = (
   in
   (*
   let disk_sync: unit -> (unit,'t) m = (fun () -> 
-      safely __LOC__ (
+      safely_ __LOC__ (
         ops.get () 
         |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
   in
