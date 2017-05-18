@@ -23,7 +23,7 @@ WARN="-w @f@p@u@s@40-8-11-26-40"
     # these include syntax, so should work on all files; may be
     # overridden in ocamlc.sh
   ocamlc="$DISABLE_BYTE ocamlfind ocamlc   $FLGS $WARN $PKGS $SYNTAX"
-ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt $FLGS $WARN $PKGS $SYNTAX"
+ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $FLGS $WARN $PKGS $SYNTAX"
 ocamldep="ocamlfind ocamldep $PKGS"
 
 mk_cma="$DISABLE_BYTE ocamlfind ocamlc $FLGS "

@@ -66,3 +66,6 @@ src/tree.ml
 /src/map_blkid_blk.ml
 /src/src.tmp
 /src/META
+
+*.cmt
+/src/bt_file.ml
