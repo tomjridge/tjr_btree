@@ -63,3 +63,5 @@ src/tree.ml
 /src/r2t.ml
 /src/tjr_btree_doc.ml
 /src/int64_map_on_fd.ml
+/src/map_blkid_blk.ml
+/src/src.tmp

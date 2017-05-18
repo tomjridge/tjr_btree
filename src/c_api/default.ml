@@ -9,6 +9,7 @@ module Default_block : sig
   type sz = int  (* of a block, in bytes *)
   val of_string: sz -> string -> t
   val to_string: t -> string
+  val compare_r: r -> r -> int 
 end = struct
   type t = string
   type r = int
@@ -19,6 +20,7 @@ end = struct
       s ^ (String.make (sz - String.length s) (Char.chr 0))
   )
   let to_string: t -> string = fun x -> x
+  let compare_r = Int.compare 
 end
 
 module BLK = Default_block

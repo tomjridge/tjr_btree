@@ -51,9 +51,23 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
 
 (** Make [map_ops], given a [page_ref_ops]. TODO make store_ops
    explicit in arguments to this function *)
+(* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
 let make_map_ops ps page_ref_ops = 
   Iter_with_check.make_pre_map_ops ps
   |> fun x -> make_map_ops' x page_ref_ops
+
+let store_ops_to_map_ops ps page_ref_ops store_ops0 = (
+  let ps = 
+    object 
+      method store_ops=store_ops0 
+      method compare_k=(compare_k ps)
+      method constants=(constants ps)
+      method debug=(debug ps)
+    end 
+  in
+  make_map_ops ps page_ref_ops
+)
+
 
 
 let map_ops_to_imperative_map_ops (map_ops:('k,'v,'t)Btree_api.map_ops) (s_ref:'t ref) = (

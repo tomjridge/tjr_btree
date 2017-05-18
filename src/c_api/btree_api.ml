@@ -29,7 +29,7 @@ type 't disk_ops = {
   block_size: BLK.sz;
   read: BLK.r -> (BLK.t,'t) m;
   write: BLK.r -> BLK.t -> (unit,'t) m;
-  disk_sync: unit -> (unit,'t) m;
+(*   disk_sync: unit -> (unit,'t) m; *)
 }
 
 

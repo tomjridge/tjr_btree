@@ -39,10 +39,12 @@ let make_disk block_size ops = (
             assert (n=block_size);
             return ())))
   in
+  (*
   let disk_sync: unit -> (unit,'t) m = (fun () -> 
       safely __LOC__ (
         ops.get () 
         |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
   in
-  {block_size;read;write;disk_sync}
+*)
+  {block_size;read;write (*;disk_sync *)}
 )
