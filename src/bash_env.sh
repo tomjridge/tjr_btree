@@ -2,6 +2,7 @@ set -a # export all vars
 # set -x # debug
 
 libname=tjr_btree
+Libname=Tjr_btree
 
 root=$(realpath $(dirname $BASH_SOURCE))/../..
 
@@ -13,6 +14,7 @@ PKGS="-package num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 
 SYNTAX="" # "-syntax camlp4o" # simplify: use for every file
 FLGS="-g -thread"
+FOR_PACK="-for-pack $Libname"
 
     # 8~"pattern-matching is not exhaustive"; 
     # 11~"this match case is unused";
@@ -22,14 +24,9 @@ WARN="-w @f@p@u@s@40-8-11-26-40"
 
     # these include syntax, so should work on all files; may be
     # overridden in ocamlc.sh
-  ocamlc="$DISABLE_BYTE ocamlfind ocamlc   $FLGS $WARN $PKGS $SYNTAX"
-ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $FLGS $WARN $PKGS $SYNTAX"
+  ocamlc="$DISABLE_BYTE ocamlfind ocamlc              $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
+ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
 ocamldep="ocamlfind ocamldep $PKGS"
-
-mk_cma="$DISABLE_BYTE ocamlfind ocamlc $FLGS "
-mk_cmxa="$DISABLE_NTVE ocamlfind ocamlopt $FLGS"
-
-# gen_isa.ml 
 
 # mls ----------------------------------------
 
@@ -44,6 +41,20 @@ bytes="test_main.byte"
 
 bcd=`echo {ad,ag,b,c,d,e,f,g,h,i,j,n}_*`
 bcd_mls=`ls {ad,ag,b,c,d,e,f,g,h,i,j,n}_*/*.ml`
+
+
+# cma,cmxa -------------------------------------------------------------
+
+function mk_cma() {
+	$DISABLE_BYTE ocamlfind ocamlc -pack -o $libname.cmo $cmos
+  $DISABLE_BYTE ocamlfind ocamlc -g -a -o $libname.cma $libname.cmo
+}
+
+function mk_cmxa() {
+	$DISABLE_NTVE ocamlfind ocamlopt -pack -o $libname.cmx $cmxs
+  $DISABLE_NTVE ocamlfind ocamlopt -g -a -o $libname.cmxa $libname.cmx
+}
+
 
 # depend ----------------------------------------
 

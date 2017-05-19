@@ -6,7 +6,6 @@ export BASH_ENV
 
 # shouldn't shell builtin source bash_env anyway?
 libname:=$(shell source bash_env.sh && echo $${libname})#
-
 # $(info libname is $(libname)!)
 
 # ----------------------------------------
@@ -14,8 +13,8 @@ libname:=$(shell source bash_env.sh && echo $${libname})#
 all: _links _depend
 	$$ocamlc -c $$mls
 	$$ocamlopt -c $$mls
-	$$mk_cma -g -a -o $(libname).cma $$cmos
-	$$mk_cmxa -g -a -o $(libname).cmxa $$cmxs
+	mk_cma
+	mk_cmxa
 	$(MAKE) $$natives $$bytes
 
 
@@ -62,13 +61,13 @@ _doc:
 # ----------------------------------------
 
 %.native: m_main/%.ml $(libname).cmxa FORCE
-	$$ocamlopt -g -linkpkg -o $*.native $${libname}.cmxa $<
+	$$ocamlopt -g -linkpkg -open $$Libname -o $*.native $$libname.cmxa $<
 
 %.byte: m_main/%.ml $(libname).cma FORCE
-	$$ocamlc -g -linkpkg -o $*.byte $${libname}.cma $<
+	$$ocamlc -g -linkpkg -open $$Libname -o $*.byte $$libname.cma $<
 
 clean:
-	rm -f *.{cmi,cmo,cmx,o} a.out *.cma *.cmxa *.a *.byte *.native *.html
+	rm -f *.{cmi,cmo,cmx,o,cmt} a.out *.cma *.cmxa *.a *.byte *.native *.html
 
 real_clean: clean
 	rm_links
