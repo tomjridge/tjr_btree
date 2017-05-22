@@ -47,12 +47,23 @@ type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Store_ops.store_ops = {
 
 (* TODO insert_many *)
 
-(** Map operations: find, insert, delete *)
+(** Map operations: find, insert, [insert_many] and
+   delete. [insert_many] attempts to insert as many as possible in a
+   single operation, and returns the remainder, and so is typically
+   called in a loop. *)
 type ('k,'v,'t) map_ops = {
   find: 'k -> ('v option,'t) m;
   insert: 'k -> 'v -> (unit,'t) m;
+  insert_many: 'k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m;
   delete: 'k -> (unit,'t) m;
 }
+
+(** Call [insert_many] in a loop. *)
+let rec insert_all im k v kvs = Monad.(
+  im k v kvs |> bind (fun kvs' -> 
+      match kvs' with
+      | [] -> return ()
+      | (k,v)::kvs -> insert_all im k v kvs))
 
 (** Dummy module containing imperative version of the map interface. *)
 module Imperative_map_ops = struct

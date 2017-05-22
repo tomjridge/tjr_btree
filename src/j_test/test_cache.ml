@@ -55,6 +55,7 @@ let base_map_ops: (key,value,ts) map_ops = {
     find=(fun k -> (fun t -> 
       (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None))));
     insert=(fun k v -> (fun t -> failwith ""));
+    insert_many=(fun k v kvs -> fun t -> failwith __LOC__);
     delete=(fun k -> failwith "");
   }
 

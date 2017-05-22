@@ -42,12 +42,18 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
           pre_map_ops.insert k v r |> bind (fun r' -> 
               page_ref_ops.set r')))
   in
+  let insert_many = (fun k v kvs -> 
+      page_ref_ops.get () |> bind (fun r ->
+          pre_map_ops.insert_many k v kvs r |> bind (fun (r',kvs') ->
+              page_ref_ops.set r' |> bind (fun () ->
+                  return kvs'))))
+  in
   let delete = (fun k ->
       page_ref_ops.get () |> bind (fun r -> 
           pre_map_ops.delete k r |> bind (fun r' ->
               page_ref_ops.set r')))
   in
-  Btree_api.{find; insert; delete })
+  Btree_api.{find; insert; insert_many; delete })
 
 (** Make [map_ops], given a [page_ref_ops]. TODO make store_ops
    explicit in arguments to this function *)

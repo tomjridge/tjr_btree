@@ -245,7 +245,10 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
             let c = {c with queue=(Queue.add time k c.queue) } in
             evict c)))
   in
-
+  (* TODO make insert_many more efficient *)
+  let insert_many k v kvs = (  
+    insert k v |> bind (fun () -> return kvs))
+  in
   let delete k = (
     cache_ops.get () 
     |> bind (
@@ -271,5 +274,5 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
             evict c)))
   in
   let get_leaf_stream () = failwith "FIXME" in
-  {find; insert; delete}
+  {find; insert; insert_many; delete}
 )
