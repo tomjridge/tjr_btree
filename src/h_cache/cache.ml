@@ -133,6 +133,46 @@ exception E_
 open Monad
 open Mref
 
+
+(* flush evictees, assuming already removed from c; map_ops is the ops
+   of the underlying layer; exposed so can call when we want to flush
+   the entire cache *)
+let sync_evictees map_ops evictees = (
+  let rec loop es = (
+    match es with
+    | [] -> return ()
+    | e::es -> (
+        let (k,(vopt,time,dirty)) = e in
+        match vopt with 
+        | None -> (
+            match dirty with
+            | false -> loop es
+            | true -> (
+                (* need to delete *)
+                map_ops.delete k |> bind (fun () -> loop es) ))
+        | Some v -> (
+            match dirty with
+            | false -> loop es
+            | true -> (
+                (* write out and continue *)
+                map_ops.insert k v |> bind (fun () -> loop es) ))))
+  in
+  loop evictees)
+
+(* if we flush all entries, we can mark cache as clean *)
+let mark_all_clean cache_ops = 
+  cache_ops.get () |> bind (fun c ->
+      let dirty = false in
+      let c' = Pmap.map (fun (v,t,d) -> (v,t,dirty)) c in
+      cache_ops.set c' )
+
+
+let sync map_ops cache_ops = (
+  cache_ops.get () |> bind (fun c ->
+      sync_evictees map_ops (Pmap.bindings c) |> bind (fun () ->
+          mark_all_clean cache_ops)))
+
+
 let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
 
   (* update time on each put *)
@@ -141,7 +181,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
     cache_ops.set c 
   in
 
-  let evict c = (
+  let maybe_flush_evictees c = (
     let card = Pmap.cardinal c.map in
     match (card > c.max_size) with (* FIXME inefficient *)
     | false -> put_cache c
@@ -167,26 +207,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
           ) with E_ -> ())
         in
         (* now we have evictees, new queue, and new map *)
-        let rec loop es = (
-          match es with
-          | [] -> return ()
-          | e::es -> (
-              let (k,(vopt,time,dirty)) = e in
-              match vopt with 
-              | None -> (
-                  match dirty with
-                  | false -> loop es
-                  | true -> (
-                      (* need to delete *)
-                      map_ops.delete k |> bind (fun () -> loop es) ))
-              | Some v -> (
-                  match dirty with
-                  | false -> loop es
-                  | true -> (
-                      (* write out and continue *)
-                      map_ops.insert k v |> bind (fun () -> loop es) ))))
-        in
-        (loop !evictees) 
+        (sync_evictees map_ops !evictees) 
         |> bind (fun () ->
             let c' = {c with map=(!map); queue=(!queue)} in
             put_cache c' )))
@@ -219,7 +240,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
                 let c = {c with map=(Pmap.add k (v,time,dirty) c.map) } in
                 (* update queue *)
                 let c = {c with queue=(Queue.add time k c.queue) } in
-                evict c |> bind (fun () -> return v)))))
+                maybe_flush_evictees c |> bind (fun () -> return v)))))
   in
 
   let insert k v = (
@@ -245,7 +266,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
             let c = {c with map=(Pmap.add k (Some v,time,dirty) c.map) } in
             (* update queue *)
             let c = {c with queue=(Queue.add time k c.queue) } in
-            evict c)))
+            maybe_flush_evictees c)))
   in
   (* TODO make insert_many more efficient *)
   let insert_many k v kvs = (  
@@ -265,7 +286,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
           let c = {c with queue=(Queue.remove time c.queue) } in
           (* add new entry *)
           let c = {c with queue=(Queue.add time' k c.queue) } in
-          evict c)
+          maybe_flush_evictees c)
         with Not_found -> (
             let time = c.current in
             let dirty = true in
@@ -273,7 +294,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
             (* add new entry to queue *)
             let c = {c with queue=(Queue.add time k c.queue) } in
             (* update cache *)            
-            evict c)))
+            maybe_flush_evictees c)))
   in
   let get_leaf_stream () = failwith "FIXME" in
   {find; insert; insert_many; delete}
