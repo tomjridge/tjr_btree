@@ -65,8 +65,8 @@ let mk_blkid_blk_map
       loop ([],(k,v)::kvs) |> bind (fun xs -> 
           match xs with
           | [] -> impossible __LOC__
-          | (i,i')::xs -> insert_all map_ops.insert_many i i' xs |> bind (fun () ->
-            return [])))
+          | (i,i')::xs -> insert_all map_ops.insert_many i i' xs |> bind (
+              fun () -> return [])))
   in
   let delete : 'k -> (unit,'t) m = (fun i -> 
       (* no-op: we never "delete" a particular block *)
