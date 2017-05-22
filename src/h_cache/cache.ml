@@ -42,6 +42,7 @@ module O = struct
 
   type ('k,'v) cache_state = {  
     max_size: int;
+    evict_count: int; (* number to evict when cache full *)
     current: time;
     map: ('k,'v option*time*dirty) Pmap.t;  
     queue: 'k Queue.t; (* map from time to key that was accessed at that time *)
@@ -96,6 +97,7 @@ let compare c1 c2 = (
 
 let mk_initial_cache compare_k = ({
     max_size=8;
+    evict_count=4;
     current=0;
     map=((Pmap.empty compare_k):('k,'v)Pmap.t);
     queue=Queue.empty
@@ -145,7 +147,7 @@ let make_cached_map map_ops cache_ops : ('k,'v,'t) map_ops = (
     | false -> put_cache c
     | true -> (
         (* how many to evict? *)
-        let n = card - (3 * c.max_size / 4) in
+        let n = c.evict_count in
         (* for non-dirty, we just remove from map; for dirty we
            must flush to lower *)
         let count = ref 0 in
