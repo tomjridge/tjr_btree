@@ -1,6 +1,4 @@
 SHELL:=/bin/bash
-
-# bash will read this config file first
 BASH_ENV=bash_env.sh
 export BASH_ENV
 

@@ -1,9 +1,17 @@
 
 # set these env vars before including the file
 function check_env_vars () {
-[[ -z "$libname" || -z "$Libname" || -z "$src_subdirs" || -z "mls_in_subdirs"  || -z "$meta_description" ]] && echo "Some environment variable empty" && exit 1
+    # http://stackoverflow.com/questions/31164284/shell-script-exiting-script-if-variable-is-null-or-empty
+    : ${libname?Need a value}
+    : ${Libname?Need a value}
+    : ${src_subdirs?Need a value}
+    : ${mls_in_subdirs?Need a value}
+    : ${meta_description?Need a value}
+    : ${required_packages?Need a value}
 }
 check_env_vars
+
+PKGS="-package $required_packages"
 
 
 # root=$(realpath $(dirname $BASH_SOURCE))/../..
@@ -31,7 +39,7 @@ ocamldep="ocamlfind ocamldep $PKGS"
 
 # mls ----------------------------------------
 
-mls=`test -e _depend/n_doc && cat _depend/*`
+mls=`test -e _depend/xxx && cat _depend/*`
 
 cmos="${mls//.ml/.cmo}"
 cmxs="${mls//.ml/.cmx}"
@@ -55,9 +63,9 @@ function mk_cmxa() {
 function mk_depend() {
     mkdir -p _depend
     for f in ${src_subdirs}; do
-    # for f in {b,c}_* d_core; do
         (cd $f && ocamldep -one-line -sort *.ml > ../_depend/$f)
     done
+    touch _depend/xxx
 }
 
 
@@ -100,7 +108,7 @@ cat >META <<EOF
 name="$libname"
 description="$meta_description"
 version="$d $gv"
-requires="$PKGS1"
+requires="$required_packages"
 archive(byte)="$libname.cma"
 archive(native)="$libname.cmxa"
 EOF
