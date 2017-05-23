@@ -32,6 +32,28 @@ type 't disk_ops = {
 (*   disk_sync: unit -> (unit,'t) m; *)
 }
 
+module Imperative_disk_ops = struct
+  type idisk_ops = {
+    block_size: BLK.sz;
+    read: BLK.r -> BLK.t;
+    write: BLK.r -> BLK.t -> unit;
+  }
+
+  let of_disk_ops (ops:'t disk_ops) (_ref:'t ref) = (
+    let read r = 
+      ops.read r |> Monad.run !_ref |> fun (t',Ok blk) -> 
+      _ref:=t';
+      blk
+    in
+    let write r blk =
+      ops.write r blk |> Monad.run !_ref |> fun (t',Ok ()) ->
+      _ref:=t';
+      ()
+    in
+    { block_size=ops.block_size; read; write}
+  )
+end
+
 
 (* store ------------------------------------------------------------ *)
 
@@ -68,6 +90,7 @@ let rec insert_all im k v kvs = Monad.(
 
 (** Dummy module containing imperative version of the map interface. *)
 module Imperative_map_ops = struct
+
   (** Imperative version of the map interface; throws exceptions. WARNING likely to change. *)
   type ('k,'v) imap_ops = {
     find: 'k -> 'v option;
@@ -76,12 +99,23 @@ module Imperative_map_ops = struct
   }
 
   open Base_types.Monad
-  let map_ops_to_imperative_map_ops (map_ops:('k,'v,'t)map_ops) (s_ref:'t ref) = (
-    let find k = map_ops.find k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
-    let insert k v = map_ops.insert k v |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
-    let delete k = map_ops.delete k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
-    {find;insert;delete}
-  )
+  let of_map_ops (map_ops:('k,'v,'t)map_ops) (s_ref:'t ref) = (
+    let find k = 
+      map_ops.find k |> run (!s_ref) 
+      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+    in
+    let insert k v = 
+      map_ops.insert k v |> run (!s_ref) 
+      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+    in
+    let delete k = 
+      map_ops.delete k |> run (!s_ref) 
+      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+    in
+    {find;insert;delete})
+
+  (* FIXME make sure other places where we expect OK actually do
+     something with the error *)
 
 end
 

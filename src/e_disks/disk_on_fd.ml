@@ -17,35 +17,40 @@ let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
     try m s 
     with e -> (s,Error (msg ^ (Printexc.to_string e))))
 
+(* raw operations --------------------------------------------------- *)
+
+let read fd block_size r = Unix.(
+  ignore (lseek fd (r * block_size) SEEK_SET);
+  let buf = Bytes.make block_size (Char.chr 0) in 
+  let n = read fd buf 0 block_size in
+  (* assert (n=block_size); we allow the file to expand
+               automatically, so no reason to read any bytes *)
+  assert(n=0 || n=block_size);
+  BLK.of_string block_size buf)
+
+
+let write fd block_size r blk = Unix.(
+    ignore (lseek fd (r * block_size) SEEK_SET);
+    let buf = BLK.to_string blk in
+    let n = single_write fd buf 0 block_size in
+    assert (n=block_size);
+    ())
+
+
+(* in the monad ----------------------------------------------------- *)
+
 let make_disk block_size ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->
       safely_ __LOC__ (
         ops.get ()
-        |> bind Unix.(fun fd ->
-            ignore (lseek fd (r * block_size) SEEK_SET);
-            let buf = Bytes.make block_size (Char.chr 0) in 
-            let n = read fd buf 0 block_size in
-            (* assert (n=block_size); we allow the file to expand
-               automatically, so no reason to read any bytes *)
-            assert(n=0 || n=block_size);
-            return (BLK.of_string block_size buf))))
+        |> bind (fun fd ->
+            return (read fd block_size r))))
   in
   let write: BLK.r -> BLK.t -> (unit,'t) m = (fun r buf -> 
       safely_ __LOC__ (
         ops.get ()
-        |> bind Unix.(fun fd ->
-            ignore (lseek fd (r * block_size) SEEK_SET);
-            let buf = BLK.to_string buf in
-            let n = single_write fd buf 0 block_size in
-            assert (n=block_size);
-            return ())))
+        |> bind (fun fd ->           
+            return (write fd block_size r buf))))
   in
-  (*
-  let disk_sync: unit -> (unit,'t) m = (fun () -> 
-      safely_ __LOC__ (
-        ops.get () 
-        |> bind (fun fd -> ExtUnixSpecific.fsync fd; return ())))
-  in
-*)
-  {block_size;read;write (*;disk_sync *)}
-)
+  {block_size;read;write})
+

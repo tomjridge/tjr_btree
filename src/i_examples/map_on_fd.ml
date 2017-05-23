@@ -87,7 +87,7 @@ let mk_ls_ops ps = S2M.make_ls_ops ps page_ref_ops
 
 let mk_imperative_map_ops ps = 
   mk_map_ops ps 
-  |> Btree_api.Imperative_map_ops.map_ops_to_imperative_map_ops
+  |> Btree_api.Imperative_map_ops.of_map_ops
 
 (* root block ---------------------------------------- *)
 

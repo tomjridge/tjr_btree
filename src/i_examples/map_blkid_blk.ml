@@ -40,7 +40,7 @@ let mk_blkid_blk_map
       map_ops.find i |> bind (
         fun blkid -> 
           match blkid with
-          | None -> err __LOC__  (* TODO? *)
+          | None -> return None  (* FIXME or empty block? *)
           | Some blkid -> read_blk blkid))
   in
   let insert : 'k -> 'v -> (unit,'t) m = (fun i blk ->
