@@ -137,7 +137,7 @@ function mk_doc() {
 
 function install() {
     # assumes packing
-	  ocamlfind install $libname META $libname.{cmi,cma,cmxa,a}
+	  ocamlfind install $libname META $libname.{cmi,cmo,cma,cmx,cmxa,a}
 }
 
 function remove() {

@@ -65,14 +65,24 @@ let rec insert_all im k v kvs = Monad.(
       | [] -> return ()
       | (k,v)::kvs -> insert_all im k v kvs))
 
+
 (** Dummy module containing imperative version of the map interface. *)
 module Imperative_map_ops = struct
   (** Imperative version of the map interface; throws exceptions. WARNING likely to change. *)
-  type ('k,'v) map_ops = {
+  type ('k,'v) imap_ops = {
     find: 'k -> 'v option;
     insert: 'k -> 'v -> unit;
     delete: 'k -> unit;
   }
+
+  open Base_types.Monad
+  let map_ops_to_imperative_map_ops (map_ops:('k,'v,'t)map_ops) (s_ref:'t ref) = (
+    let find k = map_ops.find k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+    let insert k v = map_ops.insert k v |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+    let delete k = map_ops.delete k |> run (!s_ref) |> fun (s',Ok res) -> (s_ref:=s'; res) in
+    {find;insert;delete}
+  )
+
 end
 
 (* we only reveal lss when it points to a leaf *)
