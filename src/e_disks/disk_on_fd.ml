@@ -29,8 +29,8 @@ let read fd block_size r = Unix.(
   BLK.of_string block_size buf)
 
 
-let write fd block_size r blk = Unix.(
-    ignore (lseek fd (r * block_size) SEEK_SET);
+let write ~fd ~block_size ~blk_id ~blk = Unix.(
+    ignore (lseek fd (blk_id * block_size) SEEK_SET);
     let buf = BLK.to_string blk in
     let n = single_write fd buf 0 block_size in
     assert (n=block_size);

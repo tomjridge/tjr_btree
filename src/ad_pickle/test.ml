@@ -16,12 +16,14 @@ let disable () = run_test := fun f -> ()
 
 (* logging *)
 
-let log_messages: string list ref = ref ["initial log"]
+let log_messages: string list ref = ref ["initial log message"]
 
 let log s = (log_messages:=s::!log_messages)
 
 let warn s = (
   print_endline ("WARNING: "^s);
+  flush_all();
+  log s
 )
 
 (** Print most recent (upto 20) log messages. Typically we only print
