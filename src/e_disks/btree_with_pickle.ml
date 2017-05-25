@@ -61,6 +61,10 @@ let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
         )
       in
       let (_,r) = x |> U.run_w_exception (BLK.to_string buf) in
+      (* basic size checks *)
+      (match r with
+      | Leaf_frame ks -> (* could be root *) ()
+      | Node_frame (ks,rs) -> assert(List.length ks +1 = List.length rs));
       r)
 
 module O = struct

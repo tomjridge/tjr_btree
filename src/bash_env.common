@@ -21,7 +21,8 @@ PKGS="-package $required_packages"
 
 
 SYNTAX="" # "-syntax camlp4o" # simplify: use for every file
-FLGS="-g -thread"
+FLGS="-g -thread" 
+INLINE="-inline 0" # inline 0 for debugging native
 FOR_PACK="-for-pack $Libname"
 
     # 8~"pattern-matching is not exhaustive"; 
@@ -33,7 +34,7 @@ WARN="-w @f@p@u@s@40-8-11-26-40"
     # these include syntax, so should work on all files; may be
     # overridden in ocamlc.sh
   ocamlc="$DISABLE_BYTE ocamlfind ocamlc              $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
-ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
+ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $INLINE $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
 ocamldep="ocamlfind ocamldep $PKGS"
 
 

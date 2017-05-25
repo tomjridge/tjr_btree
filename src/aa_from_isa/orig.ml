@@ -286,13 +286,13 @@ module Util : sig
   val from_to : Arith.nat -> Arith.nat -> Arith.nat list
   val is_None : 'a option -> bool
   val failwitha : string -> 'a
+  val assert_true : bool -> bool
   val split_at : Arith.nat -> 'a list -> 'a list * 'a list
   val dest_Some : 'a option -> 'a
   val dest_list : 'a list -> 'a * 'a list
   val iter_step : ('a -> 'a option) -> 'a -> 'a
   val dest_lista : 'a list -> 'a list * 'a
   val split_at_3 : Arith.nat -> 'a list -> 'a list * ('a * 'a list)
-  val assert_true : bool -> bool
   val impossible1 : string -> 'a
   val max_of_list : Arith.nat list -> Arith.nat
 end = struct
@@ -313,7 +313,13 @@ let rec is_None x = Option.is_none x;;
 
 let rec failwitha x = rev_apply "FIXME patch" (fun _ -> failwith "undefined");;
 
-let rec split_at n xs = (List.take n xs, List.drop n xs);;
+let rec assert_true b = (if b then b else failwitha "assert_true");;
+
+let rec split_at
+  n xs =
+    (let _ = assert_true (Arith.less_eq_nat n (List.size_list xs)) in
+     List.take n xs,
+      List.drop n xs);;
 
 let rec dest_Some = function Some x -> x
                     | None -> failwith "undefined";;
@@ -331,10 +337,13 @@ let rec dest_lista
 
 let rec split_at_3
   n xs =
+    let _ =
+      assert_true
+        (Arith.less_eq_nat n
+          (Arith.minus_nat (List.size_list xs) Arith.one_nat))
+      in
     (List.take n xs,
       (List.nth xs n, List.drop (Arith.plus_nat n Arith.one_nat) xs));;
-
-let rec assert_true b = (if b then b else failwitha "assert_true");;
 
 let rec impossible1 x = failwitha x;;
 
@@ -399,10 +408,19 @@ let rec kvs_insert
 
 let rec split_leaf
   c kvs =
+    let _ =
+      Util.assert_true
+        (Arith.less_eq_nat
+          (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size)
+            Arith.one_nat)
+          (List.size_list kvs))
+      in
     let cut_point =
       Arith.minus_nat
         (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size) Arith.one_nat)
         (Util.rev_apply c Prelude.min_leaf_size)
+      in
+    let _ = Util.assert_true (Arith.less_eq_nat cut_point (List.size_list kvs))
       in
     let (l, r) = Util.split_at cut_point kvs in
     let _ =
@@ -447,8 +465,19 @@ let rec search_key_to_index
 let rec split_ks_rs
   cmp k ks_rs =
     let (ks, rs) = ks_rs in
+    let _ =
+      Util.assert_true
+        (Arith.equal_nat (List.size_list rs)
+          (Arith.plus_nat (List.size_list ks) Arith.one_nat))
+      in
     let i = search_key_to_index cmp ks k in
+    let _ = Util.assert_true (Arith.less_eq_nat i (List.size_list ks)) in
     let (ks1, ks2) = Util.split_at i ks in
+    let _ =
+      Util.assert_true
+        (Arith.less_eq_nat i
+          (Arith.minus_nat (List.size_list rs) Arith.one_nat))
+      in
     let (rs1, (r, rs2)) = Util.split_at_3 i rs in
     ((ks1, rs1), (r, (ks2, rs2)));;
 
@@ -671,13 +700,13 @@ module Tree_stack : sig
               Arith.nat ->
                 ('a, 'b) Tree.tree *
                   ('a, ('a, 'b) Tree.tree, unit) ts_frame_ext list
-  val stack_to_lu_of_child :
-    ('a, 'b, unit) ts_frame_ext list -> 'a option * 'a option
   val add_new_stack_frame :
     ('a -> 'a -> Arith.int) ->
       'a -> 'a list * 'b list ->
               ('a, 'b, unit) ts_frame_ext list ->
                 ('a, 'b, unit) ts_frame_ext list * 'b
+  val stack_to_lu_of_child :
+    ('a, 'b, unit) ts_frame_ext list -> 'a option * 'a option
 end = struct
 
 type ('a, 'b, 'c) ts_frame_ext =
@@ -735,6 +764,17 @@ let rec tree_to_stack
                  b
              | (Tree.Leaf _, _) -> Util.failwitha "tree_to_stack"));;
 
+let rec add_new_stack_frame
+  cmp k ks_rs stk =
+    let (ks, rs) = ks_rs in
+    let a = Key_value.split_ks_rs cmp k (ks, rs) in
+    let (aa, b) = a in
+    let (ks1, rs1) = aa in
+    (fun (r, (ks2, rs2)) ->
+      let frm = Ts_frame_ext (ks1, rs1, r, ks2, rs2, ()) in
+      (frm :: stk, r))
+      b;;
+
 let rec stack_to_lu_of_child
   = function [] -> (None, None)
     | x :: stk ->
@@ -748,18 +788,6 @@ let rec stack_to_lu_of_child
           (if not (List.null ks2) then Some (Util.rev_apply ks2 List.hd) else u)
           in
         (la, a);;
-
-let rec add_new_stack_frame
-  cmp k ks_rs stk =
-    let (ks, rs) = ks_rs in
-    let a = Key_value.split_ks_rs cmp k (ks, rs) in
-    let (aa, b) = a in
-    let (ks1, rs1) = aa in
-    (fun (r, (ks2, rs2)) ->
-      let (_, _) = stack_to_lu_of_child stk in
-      let frm = Ts_frame_ext (ks1, rs1, r, ks2, rs2, ()) in
-      (frm :: stk, r))
-      b;;
 
 end;; (*struct Tree_stack*)
 
