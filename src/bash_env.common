@@ -32,8 +32,8 @@ FOR_PACK="-for-pack $Libname"
 WARN="-w @f@p@u@s@40-8-11-26-40"
 
     # these include syntax, so should work on all files; may be
-    # overridden in ocamlc.sh
-  ocamlc="$DISABLE_BYTE ocamlfind ocamlc              $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
+    # overridden in ocamlc.sh; FIXME don't need -bin-annot twice
+  ocamlc="$DISABLE_BYTE ocamlfind ocamlc   -bin-annot         $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
 ocamlopt="$DISABLE_NTVE ocamlfind ocamlopt -bin-annot $INLINE $FLGS $FOR_PACK $WARN $PKGS $SYNTAX"
 ocamldep="ocamlfind ocamldep $PKGS"
 
@@ -139,7 +139,7 @@ function mk_doc() {
 
 function install() {
     # assumes packing
-	  ocamlfind install $libname META $libname.{cmi,cmo,cma,cmx,cmxa,a,cmt}
+	  ocamlfind install $libname META $libname.{cmi,cmo,cma,cmx,cmxa,a,cmt} *.cmt *.ml
     # FIXME how to install cmt file for tjr_btree?
 }
 
