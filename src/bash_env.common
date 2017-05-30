@@ -49,7 +49,8 @@ cmxs="${mls//.ml/.cmx}"
 # cma,cmxa -------------------------------------------------------------
 
 function mk_cma() {
-	$DISABLE_BYTE ocamlfind ocamlc -pack -o $libname.cmo $cmos
+         # NOTE -bin-annot
+	$DISABLE_BYTE ocamlfind ocamlc -bin-annot -pack -o $libname.cmo $cmos
   $DISABLE_BYTE ocamlfind ocamlc -g -a -o $libname.cma $libname.cmo
 }
 
@@ -138,7 +139,7 @@ function mk_doc() {
 
 function install() {
     # assumes packing
-	  ocamlfind install $libname META $libname.{cmi,cmo,cma,cmx,cmxa,a}
+	  ocamlfind install $libname META $libname.{cmi,cmo,cma,cmx,cmxa,a,cmt}
     # FIXME how to install cmt file for tjr_btree?
 }
 
