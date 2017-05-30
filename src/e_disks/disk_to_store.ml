@@ -15,7 +15,7 @@ open Mref
 let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
   let page_size = page_size ps in
   let pp = pp ps in
-  assert (disk_ops.block_size = page_size);
+  assert (disk_ops.blk_sz = page_size);
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f|>frame_to_page page_size pp|> (fun p -> 

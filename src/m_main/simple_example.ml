@@ -5,12 +5,15 @@ open Small_string.O
 
 open Ss_ss_map_on_fd
 
-(* filename *)
-let fn = Default.default_filename
+let fn = Default.fn
 
 (* construct keys and values from an int *)
 let k x = "k"^(string_of_int x) |> SS.of_string
 let v x = "v"^(string_of_int x) |> SS.of_string
+
+let close = Map_on_fd.Default_implementation.close
+
+let blk_sz = Default.blk_sz
 
 (* create and init store, write some values, and close *)
 let do_write () = (
@@ -25,7 +28,8 @@ let do_write () = (
     map_ops.insert (k x) (v x);
   done;
   (* close *)
-  close !s
+  close ~blk_sz !s;
+  ()
 )
 
 (* open store, delete some values, and close *)
@@ -36,7 +40,8 @@ let do_delete () = (
   for x=100 to 200 do
     map_ops.delete (k x);
   done;
-  close !s
+  close ~blk_sz !s;
+  ()
 )
 
 (* open store and check whether various keys and values are correct *)
@@ -46,7 +51,8 @@ let do_check () = (
   let map_ops = imperative_map_ops s in
   assert(map_ops.find (k 100) = None);
   assert(map_ops.find (k 1000) = Some(v 1000));
-  close !s
+  close ~blk_sz !s;
+  ()
 )
 
 (* actually execute the above *)

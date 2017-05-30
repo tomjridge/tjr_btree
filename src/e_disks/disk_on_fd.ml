@@ -19,38 +19,38 @@ let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
 
 (* raw operations --------------------------------------------------- *)
 
-let read fd block_size r = Unix.(
-  ignore (lseek fd (r * block_size) SEEK_SET);
-  let buf = Bytes.make block_size (Char.chr 0) in 
-  let n = read fd buf 0 block_size in
-  (* assert (n=block_size); we allow the file to expand
+let read ~fd ~blk_sz ~blk_id = Unix.(
+  ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
+  let buf = Bytes.make blk_sz (Char.chr 0) in 
+  let n = read fd buf 0 blk_sz in
+  (* assert (n=blk_sz); we allow the file to expand
                automatically, so no reason to read any bytes *)
-  assert(n=0 || n=block_size);
-  BLK.of_string block_size buf)
+  assert(n=0 || n=blk_sz);
+  BLK.of_string blk_sz buf)
 
 
-let write ~fd ~block_size ~blk_id ~blk = Unix.(
-    ignore (lseek fd (blk_id * block_size) SEEK_SET);
+let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
+    ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
     let buf = BLK.to_string blk in
-    let n = single_write fd buf 0 block_size in
-    assert (n=block_size);
+    let n = single_write fd buf 0 blk_sz in
+    assert (n=blk_sz);
     ())
 
 
 (* in the monad ----------------------------------------------------- *)
 
-let make_disk block_size ops = (
+let make_disk blk_sz fd_ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->
       safely_ __LOC__ (
-        ops.get ()
+        fd_ops.get ()
         |> bind (fun fd ->
-            return (read fd block_size r))))
+            return (read fd blk_sz r))))
   in
   let write: BLK.r -> BLK.t -> (unit,'t) m = (fun r buf -> 
       safely_ __LOC__ (
-        ops.get ()
+        fd_ops.get ()
         |> bind (fun fd ->           
-            return (write fd block_size r buf))))
+            return (write fd blk_sz r buf))))
   in
-  {block_size;read;write})
+  {blk_sz;read;write})
 

@@ -26,7 +26,7 @@ open Default
 
 (** Disk operations: read, write, and sync *)
 type 't disk_ops = {
-  block_size: BLK.sz;
+  blk_sz: BLK.sz;
   read: BLK.r -> (BLK.t,'t) m;
   write: BLK.r -> BLK.t -> (unit,'t) m;
 (*   disk_sync: unit -> (unit,'t) m; *)
@@ -34,7 +34,7 @@ type 't disk_ops = {
 
 module Imperative_disk_ops = struct
   type idisk_ops = {
-    block_size: BLK.sz;
+    blk_sz: BLK.sz;
     read: BLK.r -> BLK.t;
     write: BLK.r -> BLK.t -> unit;
   }
@@ -50,7 +50,7 @@ module Imperative_disk_ops = struct
       _ref:=t';
       ()
     in
-    { block_size=ops.block_size; read; write}
+    { blk_sz=ops.blk_sz; read; write}
   )
 end
 

@@ -26,8 +26,8 @@ end
 module BLK = Default_block
 
 (** Default filename for testing. *)
-let default_filename = "./btree.store"
+let fn = "./btree.store"
 
 (** Default block size. Clearly this should match the block size of
    the underlying storage. *)
-let default_blk_sz = 4096 (* page/block size *)
+let blk_sz = 4096 (* page/block size *)

@@ -15,7 +15,8 @@ let test_uncached range = (
     __MODULE__ 
     (List.length range);
   flush_out();
-  let s = Map_on_fd.from_file ~fn:default_filename ~create:true ~init:true ~ps:ps in
+  let s = Map_on_fd.Default_implementation.from_file ~fn
+      ~create:true ~init:true ~ps:ps in
   let s = ref s in
   let xs = ref range in
   ignore (

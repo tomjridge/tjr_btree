@@ -1,11 +1,14 @@
 (** Various common parameters to functions. *)
 
-(** The code is heavily parameterized. We don't want function
-   arguments to be too numerous. So we typically have a single
-   "parameters" object ps which is more-or-less untyped. To ensure a
-   parameter is always accessed using a particular name, and to
-   enforce that the value of the parameter has a given type, we define
-   "parameter accessor" functions below.
+(** 
+
+The code is heavily parameterized. We don't want function
+arguments to be too numerous. So we typically have a single
+"parameters" object ps which is more-or-less untyped. To ensure a
+parameter is always accessed using a particular name, and to
+enforce that the value of the parameter has a given type, we define
+"parameter accessor" functions below.
+
 *) 
 
 open Store_ops
@@ -39,10 +42,10 @@ let debug x : ('k,'v,'r,'t,'k2j,'v2j) debug option = (x#debug)
 
 (** Block size, i.e., the number of bytes that can be stored
    atomically on-disk in a single block. *)
-let block_size x : int = (x#block_size)
+let blk_sz x : int = (x#blk_sz)
 
 (** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
-let page_size = block_size
+let page_size = blk_sz
 
 
 (*

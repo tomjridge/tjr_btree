@@ -7,12 +7,14 @@ open Small_string.O
 open Ss_int_map_on_fd
 (* FIXME too many opens *)
 
+(* FIXME Default.fn etc *)
 
 (* TODO use exhaustive *)
 let test () = (
   Printf.printf "%s: " __MODULE__;
   flush_out();
-  let s = Map_on_fd.from_file ~fn:default_filename ~create:true ~init:true ~ps in
+  let s = Map_on_fd.Default_implementation.from_file ~fn
+      ~create:true ~init:true ~ps in
   let s = ref s in
   let xs = ref Test_common.strings in
   let c = ref 1 in
