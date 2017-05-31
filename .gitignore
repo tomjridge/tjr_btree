@@ -70,3 +70,5 @@ src/tree.ml
 *.cmt
 /src/bt_file.ml
 /src/bt_string.ml
+/src/bt_params2.ml
+/src/d_store_to_map/iter_with_check.ml.html

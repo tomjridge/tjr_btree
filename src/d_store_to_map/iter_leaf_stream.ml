@@ -10,24 +10,30 @@ open Btree_api
 open Small_step
 open Monad
 
-let rec next_leaf ps1 lss : (('k,'v,'r) lss option,'t) m = (
-  match (ls_is_finished lss.ls) with
-  | true -> return None
-  | false -> (
-      lss.ls |> ls_step ps1 |> bind (fun ls' ->
-          match (ls_dest_leaf ls') with
-          | None -> next_leaf ps1 {lss with ls=ls'}
-          | Some kvs -> return (Some {kvs;ls=ls'}))))
+let mk ~constants ~cmp ~store_ops ~k = (
 
-let mk_leaf_stream ps1 r : (('k,'v,'r)lss,'t) m = (
-  let ls = mk_ls_state r in
-  match (ls_dest_leaf ls) with
-  | None -> (
-      (* at root, which is not a leaf; there must be some leaf *)
-      next_leaf ps1 {kvs=[];ls} |> bind (fun lss' -> return (dest_Some lss')))
-  | Some kvs -> return {kvs; ls})
+  let rec next_leaf lss : (('k,'v,'r) lss option,'t) m = (
+    match (ls_is_finished lss.ls) with
+    | true -> return None
+    | false -> (
+        lss.ls |> ls_step ~constants ~cmp ~store_ops |> bind (fun ls' ->
+            match (ls_dest_leaf ls') with
+            | None -> next_leaf {lss with ls=ls'}
+            | Some kvs -> return (Some {kvs;ls=ls'}))))
+  in
 
-let ls_kvs ls : ('k*'v) list = ls.kvs
+  let mk_leaf_stream r : (('k,'v,'r)lss,'t) m = (
+    let ls = mk_ls_state r in
+    match (ls_dest_leaf ls) with
+    | None -> (
+        (* at root, which is not a leaf; there must be some leaf *)
+        next_leaf {kvs=[];ls} |> bind (fun lss' -> return (dest_Some lss')))
+    | Some kvs -> return {kvs; ls})
+  in
 
-let ls_step ps1 ls = next_leaf ps1 ls
+  let ls_kvs ls : ('k*'v) list = ls.kvs in
+
+  let ls_step ls = next_leaf ls in
+
+  k ~next_leaf ~mk_leaf_stream ~ls_kvs ~ls_step)
 

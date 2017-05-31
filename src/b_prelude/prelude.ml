@@ -21,6 +21,7 @@ include Small_step.O
 include Test
 
 (* FIXME move pickle and pickle params to a separate package? *)
+(*
 module Params = struct
   include Base_types_params
       
@@ -28,6 +29,7 @@ module Params = struct
 end
 
 include Params
+*)
 
 
 (* r2t ---------------------------------------- *)

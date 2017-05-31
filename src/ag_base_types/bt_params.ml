@@ -11,6 +11,8 @@ enforce that the value of the parameter has a given type, we define
 
 *) 
 
+(*
+
 open Store_ops
 open Frame
 open Bt_tree
@@ -69,5 +71,7 @@ type ('k,'v,'r,'t) ps1 = {
 other common parameters:
 
 r2t tree state 
+
+*)
 
 *)
