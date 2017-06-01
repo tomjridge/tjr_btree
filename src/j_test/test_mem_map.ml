@@ -6,7 +6,7 @@ open Prelude
 open Btree_api
 open Mem_store
 open Page_ref_int
-open Mem_store.O
+open Mem_store
 
 (* we concentrate on relatively small parameters *)
 
@@ -36,7 +36,7 @@ let constants = Constants.{
     min_node_keys = 2;
   }
 
-let pr_ops = Monad.Mref.{
+let page_ref_ops = Monad.{
     get=(fun () -> fun t -> (t,Ok t.r));
     set=(fun r -> fun t -> ({t with r},Ok ()))
   }
@@ -46,18 +46,31 @@ let mem_ops : ('k,'v,T.t) mem_ops = {
   set=(fun s -> fun t -> ({t with s},Ok ()));
 }
 
+let ops =
+  object
+    method page_ref_ops=page_ref_ops
+    method mem_ops=mem_ops
+  end
+
 let store_ops = Mem_store.mk_store_ops mem_ops
 
-let r2t = store_ops_to_r2t store_ops
+let r2t : ('k,'v,'r,'t)r2t = store_ops_to_r2t store_ops
 
 let ps = 
   object
-    method compare_k=Int.compare
+    method cmp=Int.compare
     method constants=constants
-    method debug=Some{r2t;k2j=key_to_yojson;v2j=value_to_yojson;r2j=page_ref_to_yojson} (* TODO Some(r2t) *)
+    method dbg_ps= Some(
+      object
+        method r2t=r2t
+        method k2j=key_to_yojson
+        method v2j=value_to_yojson
+        method r2j=page_ref_to_yojson
+      end)
   end
 
-let map_ops = Mem_map.mk_map_ops ps mem_ops pr_ops
+
+let map_ops = Mem_map.mk_map_ops ~ps ~ops 
 
 (* for maintaing a set of states *)
 module TSET = Set.Make(T)

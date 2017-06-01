@@ -7,6 +7,7 @@ open Digest_.O
 open Small_string.O
 
 open Pickle
+open Pickle_params
 
 module PE = Pickle.Examples
 

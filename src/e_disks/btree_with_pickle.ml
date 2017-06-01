@@ -8,6 +8,7 @@ open Btree_api
 open Page_ref_int
 open Default
 open Pickle
+open Pickle_params
 
 module PE = Pickle.Examples
 

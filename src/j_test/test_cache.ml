@@ -61,7 +61,7 @@ let base_map_ops: (key,value,ts) map_ops = {
 
 (* cached map ------------------------------------------------------- *)
 
-let cache_ops = Monad.Mref.{
+let cache_ops = Monad.{
   get=(fun () t -> (t,Ok t.cache));
   set=(fun cache t -> ({t with cache},Ok()))
 }

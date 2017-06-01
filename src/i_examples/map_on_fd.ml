@@ -14,6 +14,7 @@ open Prelude
 open Btree_api
 open Page_ref_int
 open Frame
+open Params
 
 (*
 
@@ -39,19 +40,22 @@ module S2M = Store_to_map
 
 module Blk = Default.Default_block
 
+(* more common parameters ------------------------------------------- *)
+
+let fd_ops x = x#fd_ops
+let free_ops x = x#free_ops
+
 (* layers ----------------------------------------------------------- *)
 
 (* make various layer operations eg disk_ops, store_ops, map_ops *)
-open Monad.Mref
 
+let mk_disk_ops ~ps ~fd_ops = D.make_disk ~blk_sz:(blk_sz ps) ~fd_ops
 
-let mk_disk_ops ~blk_sz ~fd_ops = D.make_disk blk_sz fd_ops
-
-let mk_store_ops ~fd_ops ~free_ops ps = 
+let mk_store_ops ~ps ~ops = 
   D2S.disk_to_store
     ps
-    (mk_disk_ops ~blk_sz:(blk_sz ps) ~fd_ops)
-    free_ops 
+    (mk_disk_ops ~ps ~fd_ops:(fd_ops ops))
+    (free_ops ops)
 
 
 (* create --------------------------------------------------------- *)
@@ -59,13 +63,15 @@ let mk_store_ops ~fd_ops ~free_ops ps =
 (* FIXME these aren't doing much; also, constants can be computed *)
 open Pickle_params
 
-let mk_map_ops ~page_ref_ops ps = S2M.make_map_ops ps page_ref_ops
+let mk_map_ops ~ps ~ops = 
+  mk_store_ops ~ps ~ops |> fun store_ops -> 
+  S2M.store_ops_to_map_ops ~ps ~page_ref_ops:(page_ref_ops ops) ~store_ops
 
-let mk_ls_ops ~page_ref_ops ps = S2M.make_ls_ops ps page_ref_ops
+let mk_ls_ops ~ps ~page_ref_ops ~store_ops = 
+  S2M.make_ls_ops ~ps ~page_ref_ops ~store_ops
 
-let mk_imperative_map_ops ~page_ref_ops ps = 
-  mk_map_ops ~page_ref_ops ps 
-  |> Btree_api.Imperative_map_ops.of_map_ops
+let mk_imperative_map_ops ~ps ~ops = 
+  mk_map_ops ~ps ~ops |> Btree_api.Imperative_map_ops.of_map_ops
 
 (* root block ---------------------------------------- *)
 
@@ -129,7 +135,6 @@ module Default_implementation = struct
   }        
   type t = global_state
 
-
   let fd_ops = D.{
       get=(fun () -> (fun t -> (t,Ok t.fd)));
       set=(fun fd -> (fun t -> ({t with fd},Ok ())));
@@ -139,21 +144,31 @@ module Default_implementation = struct
       get=(fun () -> (fun t -> (t,Ok t.free)));
       set=(fun free -> (fun t -> ({t with free}, Ok ())));
     }
-                 
-  let page_ref_ops = Monad.Mref.{
+
+  let page_ref_ops = {
     get=(fun () -> (fun t -> (t,Ok t.root)));
     set=(fun root -> (fun t -> ({t with root},Ok ())));
   }
 
-  let mk_disk_ops ps = mk_disk_ops ~blk_sz:(blk_sz ps) ~fd_ops
+  let ops = 
+    object
+      method page_ref_ops=page_ref_ops
+      method free_ops=free_ops
+      method fd_ops=fd_ops
+    end
 
-  let mk_store_ops ps = mk_store_ops ~fd_ops ~free_ops ps
 
-  let mk_map_ops ps = mk_map_ops ~page_ref_ops ps
+  (* just use ops
+  let mk_disk_ops ~ps = mk_disk_ops ~ps ~fd_ops
+
+  let mk_store_ops ~ps = mk_store_ops ~ps ~ops
       
-  let mk_ls_ops ps = mk_ls_ops ~page_ref_ops ps
+  let mk_map_ops ~ps = mk_map_ops ~ps ~ops
+      
+  let mk_ls_ops ~ps = mk_ls_ops ~ps ~page_ref_ops ~store_ops:(mk_store_ops ps)
 
-  let mk_imperative_map_ops ps = mk_imperative_map_ops ~page_ref_ops ps
+  let mk_imperative_map_ops ~ps = mk_imperative_map_ops ~ps ~ops
+     *)
 
   let from_file ~fn ~create ~init ~ps = 
     from_file ~fn ~create ~init ~ps |> (fun (fd,free,root) -> {fd;free;root})
@@ -161,12 +176,6 @@ module Default_implementation = struct
   let close ~blk_sz t = 
     close ~blk_sz ~fd:t.fd ~free:t.free ~root:t.root
 
-(* FIXME expose the following pickling funs somewhere in the ops?
-   as extra ops? why expose? *)
-(*
-let frame_to_page pp = Btree_with_pickle.frame_to_page sz pp
-let page_to_frame pp = Btree_with_pickle.page_to_frame sz pp
-*)
 
 end
 

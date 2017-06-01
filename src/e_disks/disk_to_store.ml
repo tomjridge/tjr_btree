@@ -3,11 +3,12 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Base_types.Monad
+open Monad
 open Btree_with_pickle.O
+open Pickle_params
+open Params
 
-type 't free_ops = (int,'t) Mref.mref
-open Mref
+type 't free_ops = (int,'t) mref
 
 (* convert a disk to a store using pickling and a free counter; assume
    page size and block size are the same *)

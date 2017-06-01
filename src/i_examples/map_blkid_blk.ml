@@ -5,6 +5,7 @@ open Prelude
 open Btree_api
 open Default
 open Monad
+open Params
 
 type blkid = BLK.r
 type blk = BLK.t
@@ -12,16 +13,15 @@ type blk = BLK.t
 
 (* as usual, we implement on top of a store *)
 
-let store_ops_to_map_ops ps pr_ops store_ops : (blkid,blkid,'t) map_ops = (
-  let compare_k=(BLK.compare_r) in
-  let constants=(constants ps) in
-  let debug=None in
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (blkid,blkid,'t) map_ops = (
+  let cmp=(BLK.compare_r) in
+  let dbg_ps=None in
   let ps = object
-    method compare_k=compare_k
-    method constants=constants
-    method debug=debug
+    method cmp=cmp
+    method constants=(constants ps)
+    method dbg_ps=None
   end in
-  Store_to_map.store_ops_to_map_ops ps pr_ops store_ops
+  Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
 )
 
 (* the map blkid->blkid is then used to implement a map blkid->blk,

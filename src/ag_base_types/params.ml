@@ -43,7 +43,7 @@ let v2j x : 'v -> json = x#v2j
 
 let r2j x : 'r -> json = x#r2j
 
-let dbg_ps x = x#debug_ps
+let dbg_ps x = x#dbg_ps
 
 (** Block size, i.e., the number of bytes that can be stored
    atomically on-disk in a single block. *)
@@ -51,6 +51,17 @@ let blk_sz x : int = (x#blk_sz)
 
 (** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
 let page_size = blk_sz
+
+open Pickle_params
+
+let pp x : ('k,'v) pp = x#pp
+
+
+(* these are typically part of "extended" parameters *)
+
+let page_ref_ops x = x#page_ref_ops
+
+let store_ops x = x#store_ops
 
 
 (*
@@ -76,4 +87,5 @@ other common parameters:
 r2t tree state 
 
 *)
+
 

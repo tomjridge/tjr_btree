@@ -20,7 +20,7 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Base_types.Monad
+open Monad
 
 module O = struct
   (* need to cache page_ref to ('k,'v)frame *)
@@ -60,11 +60,10 @@ FIXME don't we also need to know which were allocated since last sync?
     store_sync: unit -> (unit,'t) m;
   }
 
-  type ('k,'v,'t) rs_params = ( ('k,'v)recycling_state, 't) Mref.mref
+  type ('k,'v,'t) rs_params = ( ('k,'v)recycling_state, 't) mref
 end
 
 open O
-open Mref
 
 let make lower ps : ('k,'v,'r,'t) rs_ops = (
   (* cache functions *)

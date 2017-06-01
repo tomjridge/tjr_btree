@@ -15,6 +15,7 @@ open R2t
 
 open Yojson.Safe
 
+(*
 (** Debugging parameters. Includes r2t (see {!R2t}) and various
    conversions to json for keys, values and references. Passed
    separately to normal parameters. Shortened to [dbg_ps] *)
@@ -24,6 +25,7 @@ type ('k,'v,'r,'t,'tree,'o) debug_params = {
   op_state2j: 'o -> json;
 }
 
+*)
 
 (*  k2j: 'k -> json;
   v2j: 'v -> json;
@@ -51,16 +53,4 @@ type ('a,'b,'c,'d,'e) params = {
 
 
 
-(** Typical pickling parameters used by the B-tree. Includes
-   information on the length (in bytes) of a pickled key and value. *)
-open Pickle
 
-(** Pickling parameters including length information. *)
-type ('k,'v) pp = {
-  p_k: 'k -> P.m;
-  u_k: 'k U.m;
-  k_len: int;
-  p_v: 'v -> P.m;
-  u_v: 'v U.m;
-  v_len: int      
-}

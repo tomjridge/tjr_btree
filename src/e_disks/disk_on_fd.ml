@@ -3,12 +3,11 @@
 open Prelude
 open Btree_api
 open Default
-open Base_types.Monad
+open Monad
 
 type fd = Unix.file_descr
 
-open Mref
-type 't fd_ops = (fd,'t) Mref.mref
+type 't fd_ops = (fd,'t) mref
 
 (* don't want to clobber any other "safely" *)
 let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
@@ -39,7 +38,7 @@ let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
 
 (* in the monad ----------------------------------------------------- *)
 
-let make_disk blk_sz fd_ops = (
+let make_disk ~blk_sz ~fd_ops = (
   let read: BLK.r -> (BLK.t,'t) m = (fun r ->
       safely_ __LOC__ (
         fd_ops.get ()

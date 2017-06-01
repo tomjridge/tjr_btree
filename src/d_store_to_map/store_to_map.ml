@@ -17,7 +17,6 @@ open Page_ref_int  (* TODO generalize? *)
    "current" reference to the B-tree root in the global state
    somehow. A value of type ['t page_ref_ops] reveals how to read and
    write this reference in the global state. *)
-open Monad.Mref
 type 't page_ref_ops = (page_ref,'t) mref
 (*
 {
@@ -58,33 +57,19 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
 (** Make [map_ops], given a [page_ref_ops]. TODO make store_ops
    explicit in arguments to this function *)
 (* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
-let make_map_ops ps page_ref_ops = 
-  Iter_with_check.make_pre_map_ops ps
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops = 
+  Iter_with_check.make_pre_map_ops ~ps ~store_ops
   |> fun x -> make_map_ops' x page_ref_ops
-
-let store_ops_to_map_ops ps page_ref_ops store_ops0 = (
-  let ps = 
-    object 
-      method store_ops=store_ops0 
-      method compare_k=(compare_k ps)
-      method constants=(constants ps)
-      method debug=(debug ps)
-    end 
-  in
-  make_map_ops ps page_ref_ops
-)
 
 
 module N = Iter_leaf_stream
 
 (** Make [ls_ops], given a [page_ref_ops]. TODO ditto *)
-let make_ls_ops ps page_ref_ops : ('k,'v,'r,'t) ls_ops = (
-  let mk_leaf_stream = (fun () ->
-      page_ref_ops.get () |> bind (fun r -> 
-          N.mk_leaf_stream ps r))
-  in
-  let ls_step = N.ls_step ps in
-  let ls_kvs = N.ls_kvs in
-  { mk_leaf_stream; ls_step; ls_kvs }
-)
+let make_ls_ops ~ps ~store_ops ~page_ref_ops : ('k,'v,'r,'t) ls_ops = (
+  N.mk ~ps ~store_ops ~kk:(fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+      let mk_leaf_stream = (fun () ->
+          page_ref_ops.get () |> bind (fun r -> 
+              mk_leaf_stream r))
+      in
+      { mk_leaf_stream; ls_step; ls_kvs }))
 

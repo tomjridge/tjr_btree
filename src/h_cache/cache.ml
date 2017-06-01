@@ -51,7 +51,6 @@ module O = struct
      dirty=false), or has been deleted (if dirty=true); Some v with
      dirty=true indicates that this needs to be flushed to lower *)
 
-  open Monad.Mref
   type ('k,'v,'t) cache_ops = ( ('k,'v)cache_state,'t) mref
 end
 
@@ -131,8 +130,6 @@ exception E_
 (* FIXME correctness of following not clear *)
 
 open Monad
-open Mref
-
 
 (* flush evictees, assuming already removed from c; map_ops is the ops
    of the underlying layer; exposed so can call when we want to flush
