@@ -11,36 +11,39 @@ enforce that the value of the parameter has a given type, we define
 
 *) 
 
-(*
-
-open Store_ops
 open Frame
-open Bt_tree
+open Tree
 open R2t
-module Constants = Bt_constants
+
+(*
+let compare_k x : 'k -> 'k -> int = (x#compare_k)
+*)
 
 (** The order on keys. B-trees work with ordered keys. *)
-let compare_k x : 'k -> 'k -> int = (x#compare_k)
+let cmp x : 'k -> 'k -> int = (x#cmp)
 
 (** Constants. See {!Constants} *)
 let constants x : Constants.t = (x#constants)
 
+(*
 (** Store operations. See {!Store_ops} *)
 let store_ops x : ('k,'v,'r,'t) store_ops = (x#store_ops)
+*)
 
 open Yojson.Safe
 
 (** Debugging parameters. Includes r2t (see {!R2t}) and various
    conversions to json for keys, values and references. *)
-type ('k,'v,'r,'t,'k2j,'v2j) debug = {
-  r2t: ('k,'v,'r,'t) r2t;
-  k2j: 'k -> json;
-  v2j: 'v -> json;
-  r2j: 'r -> json
-}
+(** Debugging parameters are usually optional. Use (dbg x) to get debug parameters. *)
+let r2t x : ('k,'v,'r,'t) r2t = x#r2t
 
-(** Debugging parameters are usually optional. *)
-let debug x : ('k,'v,'r,'t,'k2j,'v2j) debug option = (x#debug)
+let k2j x : 'k -> json = x#k2j
+
+let v2j x : 'v -> json = x#v2j
+
+let r2j x : 'r -> json = x#r2j
+
+let dbg_ps x = x#debug_ps
 
 (** Block size, i.e., the number of bytes that can be stored
    atomically on-disk in a single block. *)
@@ -74,4 +77,3 @@ r2t tree state
 
 *)
 
-*)
