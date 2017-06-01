@@ -80,7 +80,7 @@ let dest_f_finished fs: ('r * 'k * 'r * 'kvs * ('k,'r) rstk) option = (
     Find.dest_f_finished fs 
     |> (function None -> None | Some  x -> Some (x5 x)))
 
-open Bt_params2
+open Params2
 
 (* only check if we have access to the relevant r2t and spec_tree *)
 (* ASSUMES r2t ps <> None *)

@@ -10,8 +10,6 @@ module Small_step = Bt_small_step
 
 include Prelude_pervasives
 
-include Pickle_params
-
 (* FIXME in base types? *)
 type 'k ord = 'k -> 'k -> int
 

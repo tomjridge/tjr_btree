@@ -98,7 +98,7 @@ module Imperative_map_ops = struct
     delete: 'k -> unit;
   }
 
-  open Base_types.Monad
+  open Monad
   let of_map_ops (map_ops:('k,'v,'t)map_ops) (s_ref:'t ref) = (
     let find k = 
       map_ops.find k |> run (!s_ref) 

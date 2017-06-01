@@ -10,9 +10,8 @@ arguments to be too numerous. So we typically have a single
 
 open Store_ops
 open Frame
-open Bt_tree
+open Tree
 open R2t
-module Constants = Bt_constants
 
 open Yojson.Safe
 
@@ -49,3 +48,19 @@ type ('a,'b,'c,'d,'e) params = {
 (** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
 (* let page_size = blk_sz *)
 
+
+
+
+(** Typical pickling parameters used by the B-tree. Includes
+   information on the length (in bytes) of a pickled key and value. *)
+open Pickle
+
+(** Pickling parameters including length information. *)
+type ('k,'v) pp = {
+  p_k: 'k -> P.m;
+  u_k: 'k U.m;
+  k_len: int;
+  p_v: 'v -> P.m;
+  u_v: 'v U.m;
+  v_len: int      
+}

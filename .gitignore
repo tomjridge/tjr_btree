@@ -72,3 +72,6 @@ src/tree.ml
 /src/bt_string.ml
 /src/bt_params2.ml
 /src/d_store_to_map/iter_with_check.ml.html
+/src/monad.ml
+/src/params.ml
+/src/params2.ml

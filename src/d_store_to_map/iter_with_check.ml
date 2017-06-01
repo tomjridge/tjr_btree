@@ -37,10 +37,8 @@ let rec iter ops : (unit,'t) m = (fun s ->
 let if_some f = function Some x -> f x | _ -> ()
 *)
 
-let check_some f x = (match x with None -> true | Some x -> f x)
+(* let check_some f x = (match x with None -> true | Some x -> f x) *)
 
-
-(* find ---------------------------------------- *)
 
 (* Raw_map exposes a monad, but here we repeatedly run the step
    and check various invariants *)
@@ -49,78 +47,69 @@ let check_some f x = (match x with None -> true | Some x -> f x)
    tree; this is required for checking; if we have it, we also have
    the initial tree *)
 
-type ('k,'v,'t,'o,'a) t = {
-  spec_tree:('k,'v)tree option; (* fixed for duration of iter *)
+type ('o,'t) tt = {
+  (* spec_tree:('k,'v)tree option; (* fixed for duration of iter *) *)
   store: 't;
   op_state: 'o;
-  init_args: 'a;
+(*  init_args: 'a; *)
 }
 
-open Bt_params2
+open Params2
 
-(* dbg_ps takes and fun ... -> () and calls fun with params or does nothign if no dbg *)
-let mk ~cmp ~constants ~tree2j ~r2t ~store_ops ~op_state2j
-    ~wf_op_state ~finished ~dest ~step ~init_op_state
-  = (
+let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) ~(init_store:t) : (t * 'u res) = (
+  let check_trans s s' = true in      (* TODO *)
+  let step (x:(o,t)tt) : _ * unit res = (
+    step x.op_state x.store
+    |> (fun (s',y) -> 
+        match y with
+        | Ok fs' -> ({store=s';op_state=fs'},Ok ())
+        | Error e -> ({x with store=s'},Error e) ))
+  in
+  let ops = { check_state; check_trans; step; finished } in
+  iter ops 
+  |> run {op_state=init_op_state;store=init_store}
+  |> (function 
+      | (s,Ok ()) -> (s.store,Ok(dest s))
+      | (s,Error e) -> (s.store,Error e)))
 
+let _ = mk
+
+
+(* find ---------------------------------------- *)
+
+
+let mk_find (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) ~(init_store:t) = (
+  let init_op_state = X.mk_find_state k r in
+  let finished s = s.op_state |> X.dest_f_finished |> is_Some in
+  let dest s : (r * (k*v)list) = s.op_state |> X.dest_f_finished |> (fun (Some(_,_,r,kvs,_)) -> (r,kvs)) in
+  let step = X.find_step ~constants ~cmp ~store_ops in
+  let with_check ~r2t ~k2j ~v2j ~r2j = 
+    let tree = r2t init_store r |> dest_Some in
     let check_state s = (
-      (match s.spec_tree with | None -> () | Some t ->
-          log __LOC__;
-          log (t |> tree2j |> Yojson.Safe.pretty_to_string));
-      (match op_state2j with | None -> () | Some op_state2j ->
-          log __LOC__;
-          log (s.op_state |> op_state2j |> Yojson.Safe.pretty_to_string));
-      (match s.spec_tree with | None -> () | Some t ->
-          test (fun _ -> assert (wf_op_state t s)));
+      log __LOC__;
+      log (tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
+      log (s.op_state |> Isa_export.Find.find_state_to_yojson k2j v2j r2j |> Yojson.Safe.pretty_to_string);
+      test (fun _ -> assert (X.wellformed_find_state ~r2t ~cmp tree s.store s.op_state));
       true)
     in
-    let check_trans s s' = true in      (* TODO *)
-    let dest s = dest s.op_state in
-
-    (* NB this does not update tree - that needs to be passed in at the
-       start of the iter *)
-    let step x : _ * unit res = (
-      step x.op_state x.store
-      |> (fun (s',y) -> 
-          match y with
-          | Ok fs' -> ({ x with store=s';op_state=fs'},Ok ())
-          | Error e -> ({x with store=s'},Error e) ))
-    in
-    let ops = { check_state; check_trans; step; finished } in
-    let mk_init_state init_args r s = 
-      let spec_tree = match r2t with None -> None | Some r2t -> r2t s r in
-      {
-        spec_tree;
-        store=s; 
-        op_state=init_op_state init_args r;
-        init_args;
-      }
-    in
-    let op init_args r s : ('t * 'u res) = (
-      mk_init_state init_args r s 
-      |> (fun s -> iter ops |> run s)
-      |> (function 
-          | (s,Ok ()) -> (s.store,Ok(dest s))
-          | (s,Error e) -> (s.store,Error e)))
-    in
-    op)
+    mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
+  in
+  let check_state s = true in
+  let without_check = 
+    mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
+  in
+  (with_check,without_check))
 
 
 (** Find. Take a key, a pointer to the root of a B-tree, and the
     global state. Return the updated state, a reference to the leaf of
     the B-tree that possibly contains the key (or alternatively return
     an error). *)
-let find ~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops = (
-  let wf_op_state t s = match r2t with None -> true | Some r2t -> 
-    X.wellformed_find_state ~cmp ~r2t t s.store s.op_state in
-  let finished s = s.op_state|>X.dest_f_finished|>(fun x -> x<>None) in
-  let dest s : ('r * 'kvs) = X.dest_f_finished s |> (fun (Some(_,_,r,kvs,_)) -> (r,kvs)) in
-  let step = X.find_step ~constants ~cmp ~store_ops in
-  let init_op_state k r = X.mk_find_state k r in
-  mk ~cmp ~constants ~r2t ~tree2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state ~op_state2j
-  |> fun op -> 
-  let f k r s : ('t * ('r*'kvs) res) = op k r s in
-  f)
+let find ~cmp ~constants ~store_ops ~k ~r ~init_store = (
+  mk_find ~cmp ~constants ~store_ops ~k ~r ~init_store |> snd)
+
+let find_with_check ~cmp ~constants ~store_ops ~k ~r ~init_store ~r2t ~k2j ~v2j ~r2j = (
+  mk_find ~cmp ~constants ~store_ops ~k ~r ~init_store |> fst |> fun f -> f ~r2t ~k2j ~v2j ~r2j)
 
 
 (* insert ---------------------------------------- *)
@@ -137,7 +126,7 @@ let insert ~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops = (
   let dest s : 'r = X.dest_i_finished s |> dest_Some in
   let step = X.insert_step ~cmp ~constants ~store_ops in
   let init_op_state (k,v) r = X.mk_insert_state k v r in
-  mk ~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state
+  mk ~r2t ~tree2j ~op_state2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state
   |> fun op -> 
   let f k v r s : ('t * 'r res) = op (k,v) r s in
   f)
@@ -159,7 +148,7 @@ let insert_many ~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops = (
   let dest s : 'r*'kvs = s |> X.dest_im_finished |> dest_Some in
   let step = X.im_step ~constants ~cmp ~store_ops in
   let init_op_state (k,v,kvs) r = X.mk_im_state k v kvs r in
-  mk~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state
+  mk ~r2t ~tree2j ~op_state2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state
   |> fun op -> 
   let f k v kvs r s : ('t * ('r * 'kv list) res) = op (k,v,kvs) r s in
   f)
@@ -178,7 +167,7 @@ let delete ~cmp ~constants ~r2t ~tree2j ~op_state2j ~store_ops = (
   let dest s : 'r = X.dest_d_finished s |> (fun (Some(r)) -> r) in
   let step = X.delete_step ~constants ~cmp ~store_ops in
   let init_op_state k r = X.mk_delete_state k r in
-  mk ~cmp ~constants ~r2t ~tree2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state ~op_state2j
+  mk ~r2t ~tree2j ~store_ops ~wf_op_state ~finished ~dest ~step ~init_op_state ~op_state2j
   |> fun op -> 
   let f k r s : ('t * 'r res) = op k r s in
   f)

@@ -1,4 +1,4 @@
-open Bt_tree
+open Tree
 
 (** The r2t type represents a pure view of a given system state. It is
    constructed as a function from system state. The result is a
