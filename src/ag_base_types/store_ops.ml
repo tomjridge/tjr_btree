@@ -1,5 +1,5 @@
 open Frame
-open Base_types_pervasives
+open Monad
 
 (* just an abstraction, so no sync; use sync on underlying disk *)
 (** Store operations: alloc, free and read. *)

@@ -1,12 +1,8 @@
 (** Simple state-passing monad *)
 
-module O = struct
-  (** The monad takes a state and returns an updated state, and a
-     result of type ['a] (or an error). *)
-  type ('a,'s) m = 's -> 's * ('a,string) result
-end
-
-include O
+(** The monad type, a function from an initial state to a final state,
+   and a possible result of type ['a] (or an error). *)
+type ('a,'s) m = 's -> 's * ('a,string) result
 
 let bind : ('a -> ('b,'s) m) -> ('a,'s)m -> ('b,'s)m = fun f x s ->
   match x s with
@@ -20,12 +16,8 @@ let err e = fun s -> (s,Error e)
 let run s = fun m -> m s
 
 
-module Mref = struct
-  
-  (** Monadic reference operations *)
-  type ('a,'s) mref = {
-    get: unit -> ('a,'s) m;
-    set: 'a -> (unit,'s) m
-  }
-
-end
+(** Monadic reference operations *)
+type ('a,'s) mref = {
+  get: unit -> ('a,'s) m;
+  set: 'a -> (unit,'s) m
+}
