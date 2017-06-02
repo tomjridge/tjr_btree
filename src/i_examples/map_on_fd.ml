@@ -38,7 +38,7 @@ module D2S = Disk_to_store
 module RS = Recycling_store
 module S2M = Store_to_map
 
-module Blk = Default.Default_block
+open Block
 
 (* more common parameters ------------------------------------------- *)
 
@@ -86,7 +86,7 @@ let write_root_block ~fd ~blk_sz ~free ~root = (
   let p : P.m = (p_pair (p_int free) (p_int root)) in
   let s = p |> P.run_w_exception "" in
   let blk_id = 0 in
-  let blk = Blk.of_string blk_sz s in
+  let blk = Block.of_string blk_sz s in
   let _ = Disk_on_fd.write ~fd ~blk_sz ~blk_id ~blk in
   ())
 
@@ -94,7 +94,7 @@ let read_root_block ~blk_sz ~fd = (
   let blk_id = 0 in
   let blk = Disk_on_fd.read ~fd ~blk_sz ~blk_id in
   let u = u_pair u_int (fun _ -> u_int) in
-  let (_,(free,root)) = u |> U.run_w_exception (Blk.to_string blk) in
+  let (_,(free,root)) = u |> U.run_w_exception (Block.to_string blk) in
   (free,root)
 )
 

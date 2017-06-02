@@ -5,32 +5,38 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Map_on_fd.RS.html">
+<link rel="next" href="Map_on_fd.Default_implementation.html">
 <link rel="Up" href="Map_on_fd.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="String_" rel="Chapter" href="String_.html">
 <link title="Test" rel="Chapter" href="Test.html">
-<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
 <link title="Pickle" rel="Chapter" href="Pickle.html">
-<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
-<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Map_int" rel="Chapter" href="Map_int.html">
+<link title="Map_string" rel="Chapter" href="Map_string.html">
+<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
-<link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
-<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Set_int" rel="Chapter" href="Set_int.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Params" rel="Chapter" href="Params.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Params2" rel="Chapter" href="Params2.html">
 <link title="Base_types" rel="Chapter" href="Base_types.html">
-<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
-<link title="Config" rel="Chapter" href="Config.html">
-<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="File_" rel="Chapter" href="File_.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Prelude" rel="Chapter" href="Prelude.html">
-<link title="Default" rel="Chapter" href="Default.html">
 <link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
@@ -42,15 +48,17 @@
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
-<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
 <link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
 <link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_blkid_blk" rel="Chapter" href="Map_blkid_blk.html">
 <link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Int64_map_on_fd" rel="Chapter" href="Int64_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
@@ -65,28 +73,13 @@
 <body>
 <div class="navbar"><a class="pre" href="Map_on_fd.RS.html" title="Map_on_fd.RS">Previous</a>
 &nbsp;<a class="up" href="Map_on_fd.html" title="Map_on_fd">Up</a>
-&nbsp;</div>
+&nbsp;<a class="post" href="Map_on_fd.Default_implementation.html" title="Map_on_fd.Default_implementation">Next</a>
+</div>
 <h1>Module <a href="type_Map_on_fd.S2M.html">Map_on_fd.S2M</a></h1>
 
 <pre><span class="keyword">module</span> S2M: <code class="type"><a href="Store_to_map.html">Store_to_map</a></code></pre><hr width="100%">
 
-<pre><code><span id="TYPEpage_ref_ops"><span class="keyword">type</span> <code class="type">'t</code> page_ref_ops</span> = {</code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpage_ref_ops.get_page_ref">get_page_ref</span>&nbsp;: <code class="type">unit -> (<a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't) Base_types.m</code>;</code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpage_ref_ops.set_page_ref">set_page_ref</span>&nbsp;: <code class="type"><a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a> -> (unit, 't) Base_types.m</code>;</code></td>
-
-</tr></table>
-}
-
+<pre><span id="TYPEpage_ref_ops"><span class="keyword">type</span> <code class="type">'t</code> page_ref_ops</span> = <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>, 't) Base_types.mref</code> </pre>
 <div class="info ">
 The B-tree code exports a <code class="code">pre_map_ops</code> version of a map, with
    explicit passing of the reference to the root of the B-tree. In
@@ -97,15 +90,14 @@ The B-tree code exports a <code class="code">pre_map_ops</code> version of a map
 </div>
 
 
-<pre><span id="VALmake_map_ops'"><span class="keyword">val</span> make_map_ops'</span> : <code class="type">('k, 'v, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't) <a href="Pre_map_ops.html#TYPEpre_map_ops">Pre_map_ops.pre_map_ops</a> -><br>       't <a href="Store_to_map.html#TYPEpage_ref_ops">page_ref_ops</a> -> ('k, 'v, 't) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a></code></pre>
-<pre><span id="VALmake_map_ops"><span class="keyword">val</span> make_map_ops</span> : <code class="type">< compare_k : 'a -> 'a -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         debug : ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 'c, 'd, 'e)<br>                 Base_types.Base_types_params.debug option;<br>         store_ops : ('a, 'b, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 'c)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>;<br>         .. > -><br>       'c <a href="Store_to_map.html#TYPEpage_ref_ops">page_ref_ops</a> -> ('a, 'b, 'c) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a></code></pre><div class="info ">
+<pre><span id="VALmake_map_ops'"><span class="keyword">val</span> make_map_ops'</span> : <code class="type">('k, 'v, 'a, 't) <a href="Pre_map_ops.html#TYPEpre_map_ops">Pre_map_ops.pre_map_ops</a> -><br>       ('a, 't) <a href="Monad.html#TYPEmref">Monad.mref</a> -> ('k, 'v, 't) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a></code></pre>
+<pre><span id="VALstore_ops_to_map_ops"><span class="keyword">val</span> store_ops_to_map_ops</span> : <code class="type">ps:< cmp : 'a -> 'a -> int; constants : <a href="Constants.html#TYPEt">Constants.t</a>;<br>            dbg_ps : < k2j : 'a -> Yojson.Safe.json; r2j : 'b -> Yojson.Safe.json;<br>                       r2t : ('a, 'c, 'b, 'd) <a href="R2t.html#TYPEr2t">R2t.r2t</a>; v2j : 'c -> Yojson.Safe.json;<br>                       .. ><br>                     option;<br>            .. > -><br>       page_ref_ops:('b, 'd) <a href="Monad.html#TYPEmref">Monad.mref</a> -><br>       store_ops:('a, 'c, 'b, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('a, 'c, 'd) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a></code></pre><div class="info ">
 Make <code class="code">map_ops</code>, given a <code class="code">page_ref_ops</code>. TODO make store_ops
    explicit in arguments to this function<br>
 </div>
 
-<pre><span id="VALmap_ops_to_imperative_map_ops"><span class="keyword">val</span> map_ops_to_imperative_map_ops</span> : <code class="type">('k, 'v, 't) <a href="Btree_api.html#TYPEmap_ops">Btree_api.map_ops</a> -><br>       't Pervasives.ref -> ('k, 'v) <a href="Btree_api.Imperative_map_ops.html#TYPEmap_ops">Btree_api.Imperative_map_ops.map_ops</a></code></pre>
 <pre><span class="keyword">module</span> <a href="Store_to_map.N.html">N</a>: <code class="type"><a href="Iter_leaf_stream.html">Iter_leaf_stream</a></code></pre>
-<pre><span id="VALmake_ls_ops"><span class="keyword">val</span> make_ls_ops</span> : <code class="type">< compare_k : 'k -> 'k -> int;<br>         constants : Base_types.Base_types_params.Constants.t;<br>         store_ops : ('k, 'v, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a>;<br>         .. > -><br>       't <a href="Store_to_map.html#TYPEpage_ref_ops">page_ref_ops</a> -><br>       ('k, 'v, <a href="Btree_api.Page_ref_int.html#TYPEpage_ref">Btree_api.Page_ref_int.page_ref</a>, 't) <a href="Btree_api.html#TYPEls_ops">Btree_api.ls_ops</a></code></pre><div class="info ">
+<pre><span id="VALmake_ls_ops"><span class="keyword">val</span> make_ls_ops</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : <a href="Constants.html#TYPEt">Constants.t</a>; .. > -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       page_ref_ops:('r, 't) <a href="Monad.html#TYPEmref">Monad.mref</a> -> ('k, 'v, 'r, 't) <a href="Btree_api.html#TYPEls_ops">Btree_api.ls_ops</a></code></pre><div class="info ">
 Make <code class="code">ls_ops</code>, given a <code class="code">page_ref_ops</code>. TODO ditto<br>
 </div>
 </body></html>

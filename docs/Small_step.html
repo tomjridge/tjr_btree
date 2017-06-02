@@ -1,0 +1,156 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<link rel="Start" href="index.html">
+<link rel="previous" href="File_.html">
+<link rel="next" href="Prelude.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="String_" rel="Chapter" href="String_.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Pickle" rel="Chapter" href="Pickle.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Int_" rel="Chapter" href="Int_.html">
+<link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Map_int" rel="Chapter" href="Map_int.html">
+<link title="Map_string" rel="Chapter" href="Map_string.html">
+<link title="Monad" rel="Chapter" href="Monad.html">
+<link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
+<link title="Set_int" rel="Chapter" href="Set_int.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
+<link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Params" rel="Chapter" href="Params.html">
+<link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Params2" rel="Chapter" href="Params2.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
+<link title="File_" rel="Chapter" href="File_.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
+<link title="Prelude" rel="Chapter" href="Prelude.html">
+<link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
+<link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
+<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
+<link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
+<link title="Btree_with_pickle" rel="Chapter" href="Btree_with_pickle.html">
+<link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
+<link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
+<link title="Mem_store" rel="Chapter" href="Mem_store.html">
+<link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
+<link title="Digest_" rel="Chapter" href="Digest_.html">
+<link title="Small_string" rel="Chapter" href="Small_string.html">
+<link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
+<link title="Cache" rel="Chapter" href="Cache.html">
+<link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_blkid_blk" rel="Chapter" href="Map_blkid_blk.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
+<link title="Mem_map" rel="Chapter" href="Mem_map.html">
+<link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
+<link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
+<link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Int64_map_on_fd" rel="Chapter" href="Int64_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
+<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
+<link title="Test_cache" rel="Chapter" href="Test_cache.html">
+<link title="Test_common" rel="Chapter" href="Test_common.html">
+<link title="Test_config" rel="Chapter" href="Test_config.html">
+<link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
+<link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
+<link title="Test_sh" rel="Chapter" href="Test_sh.html">
+<link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Small_step</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="File_.html" title="File_">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Prelude.html" title="Prelude">Next</a>
+</div>
+<h1>Module <a href="type_Small_step.html">Small_step</a></h1>
+
+<pre><span class="keyword">module</span> Small_step: <code class="code">sig</code> <a href="Small_step.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Wrapper functions round functions exported from Isabelle. The main
+   functions are <code class="code">mk_find_state</code>, <code class="code">find_step</code>, <code class="code">dest_f_finished</code>,
+   <code class="code">wellformed_find_state</code> and similar functions for insert, insert
+   many, delete and the leaf stream operations.<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Small_step.O.html">O</a>: <code class="code">sig</code> <a href="Small_step.O.html">..</a> <code class="code">end</code></pre><div class="info">
+Sub-modules called O are safe to open in other modules.
+</div>
+
+<pre><span class="keyword">include</span> O</pre>
+
+<pre><span class="keyword">module</span> <a href="Small_step.X.html">X</a>: <code class="code">sig</code> <a href="Small_step.X.html">..</a> <code class="code">end</code></pre><div class="info">
+Translations between Isabelle types and OCaml native types.
+</div>
+
+<pre><span id="VALx5"><span class="keyword">val</span> x5</span> : <code class="type">'a * ('b * ('c * ('d * 'e))) -> 'a * 'b * 'c * 'd * 'e</code></pre>
+<pre><span id="VALmk_find_state"><span class="keyword">val</span> mk_find_state</span> : <code class="type">'k -> 'r -> ('k, 'v, 'r) find_state</code></pre><div class="info ">
+Construct an initial "find state" given a key and a reference to a B-tree root.<br>
+</div>
+
+<pre><span id="VALfind_step"><span class="keyword">val</span> find_step</span> : <code class="type">constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       cmp:('a -> 'a -> int) -><br>       store_ops:('a, 'b, 'c, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('a, 'b, 'c) <a href="Isa_export.Find.html#TYPEfind_state">Isa_export.Find.find_state</a> -><br>       (('a, 'b, 'c) <a href="Isa_export.Find.html#TYPEfind_state">Isa_export.Find.find_state</a>, 't) Base_types.m</code></pre><div class="info ">
+Small step the find state: take a find state and return an updated
+   find state (in the monad).<br>
+</div>
+
+<pre><span id="VALdest_f_finished"><span class="keyword">val</span> dest_f_finished</span> : <code class="type">('k, 'a, 'r) <a href="Isa_export.Find.html#TYPEfind_state">Isa_export.Find.find_state</a> -><br>       ('r * 'k * 'r * ('k * 'a) list * ('k, 'r) rstk) option</code></pre><div class="info ">
+Check whether we have reached a leaf. Returns the reference to the
+   B-tree root (when <code class="code">mk_find_state</code> was called), the key we are
+   looking for (ditto), a reference to a leaf (that may contain the
+   key... if any leaf contains the key, this leaf does) and a the list
+   of (key,values) in that leaf.<br>
+</div>
+
+<pre><span id="VALwellformed_find_state"><span class="keyword">val</span> wellformed_find_state</span> : <code class="type">r2t:('t -> 'r -> ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> option) -><br>       cmp:('k -> 'k -> int) -><br>       ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> -> 't -> ('k, 'v, 'r) find_state -> bool</code></pre><div class="info ">
+Wellformedness check. Assumes access to the "spec tree", the
+   global state and the find state.<br>
+</div>
+
+<pre><span id="VALmk_delete_state"><span class="keyword">val</span> mk_delete_state</span> : <code class="type">'k -> 'r -> ('k, 'v, 'r) delete_state</code></pre><div class="info ">
+Similar functionality to <code class="code">mk_find_state</code><br>
+</div>
+
+<pre><span id="VALdelete_step"><span class="keyword">val</span> delete_step</span> : <code class="type">constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       cmp:('a -> 'a -> int) -><br>       store_ops:('a, 'b, 'c, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('a, 'b, 'c) <a href="Isa_export.Delete.html#TYPEdelete_state">Isa_export.Delete.delete_state</a> -><br>       (('a, 'b, 'c) <a href="Isa_export.Delete.html#TYPEdelete_state">Isa_export.Delete.delete_state</a>, 't) Base_types.m</code></pre>
+<pre><span id="VALdest_d_finished"><span class="keyword">val</span> dest_d_finished</span> : <code class="type">('k, 'v, 'r) delete_state -> 'r option</code></pre><div class="info ">
+The result is a reference to the updated B-tree<br>
+</div>
+
+<pre><span id="VALwellformed_delete_state"><span class="keyword">val</span> wellformed_delete_state</span> : <code class="type">cmp:('k -> 'k -> int) -><br>       constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       r2t:('t -> 'r -> ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> option) -><br>       ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> -><br>       't -> 'k -> ('k, 'v, 'r) delete_state -> bool</code></pre>
+<pre><span id="VALmk_insert_state"><span class="keyword">val</span> mk_insert_state</span> : <code class="type">'k -> 'v -> 'r -> ('k, 'v, 'r) insert_state</code></pre>
+<pre><span id="VALinsert_step"><span class="keyword">val</span> insert_step</span> : <code class="type">cmp:('a -> 'a -> int) -><br>       constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       store_ops:('a, 'b, 'c, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('a, 'b, 'c) <a href="Isa_export.Insert.html#TYPEinsert_state">Isa_export.Insert.insert_state</a> -><br>       (('a, 'b, 'c) <a href="Isa_export.Insert.html#TYPEinsert_state">Isa_export.Insert.insert_state</a>, 't) Base_types.m</code></pre>
+<pre><span id="VALdest_i_finished"><span class="keyword">val</span> dest_i_finished</span> : <code class="type">('k, 'v, 'r) insert_state -> 'r option</code></pre><div class="info ">
+Result is a reference to the updated B-tree<br>
+</div>
+
+<pre><span id="VALwellformed_insert_state"><span class="keyword">val</span> wellformed_insert_state</span> : <code class="type">cmp:('k -> 'k -> int) -><br>       constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       r2t:('t -> 'r -> ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> option) -><br>       ('k, 'v) <a href="Isa_export.Tree.html#TYPEtree">Isa_export.Tree.tree</a> -><br>       't -> 'k -> 'v -> ('k, 'v, 'r) insert_state -> bool</code></pre>
+<pre><span id="VALmk_im_state"><span class="keyword">val</span> mk_im_state</span> : <code class="type">'k -> 'v -> ('k * 'v) list -> 'r -> ('k, 'v, 'r) im_state</code></pre>
+<pre><span id="VALim_step"><span class="keyword">val</span> im_step</span> : <code class="type">constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       cmp:('a -> 'a -> int) -><br>       store_ops:('a, 'b, 'c, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('a, 'b, 'c) <a href="Isa_export.Insert_many.html#TYPEist">Isa_export.Insert_many.ist</a> -><br>       (('a, 'b, 'c) <a href="Isa_export.Insert_many.html#TYPEist">Isa_export.Insert_many.ist</a>, 't) Base_types.m</code></pre>
+<pre><span id="VALdest_im_finished"><span class="keyword">val</span> dest_im_finished</span> : <code class="type">('k, 'v, 'r) im_state -> ('r * ('k * 'v) list) option</code></pre>
+<pre><span id="VALmk_ls_state"><span class="keyword">val</span> mk_ls_state</span> : <code class="type">'r -> ('k, 'v, 'r) ls_state</code></pre><div class="info ">
+Given a reference to a B-tree root, construct a stream of leaves<br>
+</div>
+
+<pre><span id="VALls_step"><span class="keyword">val</span> ls_step</span> : <code class="type">constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       cmp:('k -> 'k -> int) -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('k, 'v, 'r) <a href="Isa_export.Leaf_stream.html#TYPEls_state">Isa_export.Leaf_stream.ls_state</a> -><br>       't -> 't * ('k, 'v, 'r) ls_state Base_types.res</code></pre><div class="info ">
+Step the leaf stream to the next leaf. If the leaf stream is
+   finished (no more leaves), stepping will just return the leaf
+   stream unchanged. So in the loop you need to check whether you have
+   finished using <code class="code">ls_is_finished</code>. FIXME here and elsewhere, staging<br>
+</div>
+
+<pre><span id="VALls_dest_leaf"><span class="keyword">val</span> ls_dest_leaf</span> : <code class="type">('a, 'b, 'c) <a href="Isa_export.Leaf_stream.html#TYPEls_state">Isa_export.Leaf_stream.ls_state</a> -> ('a * 'b) list option</code></pre><div class="info ">
+Return the (key,value) list at the current leaf in the stream.<br>
+</div>
+
+<pre><span id="VALls_is_finished"><span class="keyword">val</span> ls_is_finished</span> : <code class="type">('a, 'b, 'c) <a href="Isa_export.Leaf_stream.html#TYPEls_state">Isa_export.Leaf_stream.ls_state</a> -> bool</code></pre></body></html>

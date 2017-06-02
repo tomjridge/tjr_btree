@@ -8,26 +8,31 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="String_" rel="Chapter" href="String_.html">
 <link title="Test" rel="Chapter" href="Test.html">
-<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
 <link title="Pickle" rel="Chapter" href="Pickle.html">
-<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
-<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Map_int" rel="Chapter" href="Map_int.html">
+<link title="Map_string" rel="Chapter" href="Map_string.html">
+<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
-<link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
-<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Set_int" rel="Chapter" href="Set_int.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Params" rel="Chapter" href="Params.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Params2" rel="Chapter" href="Params2.html">
 <link title="Base_types" rel="Chapter" href="Base_types.html">
-<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
-<link title="Config" rel="Chapter" href="Config.html">
-<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="File_" rel="Chapter" href="File_.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Prelude" rel="Chapter" href="Prelude.html">
-<link title="Default" rel="Chapter" href="Default.html">
 <link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
@@ -39,15 +44,17 @@
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
-<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
 <link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
 <link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_blkid_blk" rel="Chapter" href="Map_blkid_blk.html">
 <link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Int64_map_on_fd" rel="Chapter" href="Int64_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
@@ -68,9 +75,15 @@
 <tr><td><a href="Test_mem_map.html#TYPEaction">action</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>B</td></tr>
+<tr><td><a href="Block.BlkN.html#TYPEblk">blk</a> [<a href="Block.BlkN.html">Block.BlkN</a>]</td>
+<td></td></tr>
 <tr><td><a href="Bytestore.DISK_T.html#TYPEblk_id">blk_id</a> [<a href="Bytestore.DISK_T.html">Bytestore.DISK_T</a>]</td>
 <td></td></tr>
+<tr><td><a href="Block.BlkN.html#TYPEblk_id">blk_id</a> [<a href="Block.BlkN.html">Block.BlkN</a>]</td>
+<td></td></tr>
 <tr><td><a href="Bytestore.html#TYPEblk_index">blk_index</a> [<a href="Bytestore.html">Bytestore</a>]</td>
+<td></td></tr>
+<tr><td><a href="Block.html#TYPEblk_sz">blk_sz</a> [<a href="Block.html">Block</a>]</td>
 <td></td></tr>
 <tr><td><a href="Bytestore.DISK_T.html#TYPEblock">block</a> [<a href="Bytestore.DISK_T.html">Bytestore.DISK_T</a>]</td>
 <td></td></tr>
@@ -81,19 +94,12 @@
 <td></td></tr>
 <tr><td><a href="Cache.O.html#TYPEcache_state">cache_state</a> [<a href="Cache.O.html">Cache.O</a>]</td>
 <td></td></tr>
-<tr><td><a href="Config.html#TYPEconfig">config</a> [<a href="Config.html">Config</a>]</td>
-<td></td></tr>
 <tr><td><a href="Isa_export.Prelude.html#TYPEconstants_ext">constants_ext</a> [<a href="Isa_export.Prelude.html">Isa_export.Prelude</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>D</td></tr>
-<tr><td><a href="Bt_params.html#TYPEdebug">debug</a> [<a href="Bt_params.html">Bt_params</a>]</td>
-<td><div class="info">
-Debugging parameters.
-</div>
-</td></tr>
 <tr><td><a href="Isa_export.Delete.html#TYPEdel_t">del_t</a> [<a href="Isa_export.Delete.html">Isa_export.Delete</a>]</td>
 <td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEdelete_state">delete_state</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPEdelete_state">delete_state</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Delete.html#TYPEdelete_state">delete_state</a> [<a href="Isa_export.Delete.html">Isa_export.Delete</a>]</td>
 <td></td></tr>
@@ -105,7 +111,7 @@ Debugging parameters.
 <td></td></tr>
 <tr><td><a href="Btree_api.html#TYPEdisk_ops">disk_ops</a> [<a href="Btree_api.html">Btree_api</a>]</td>
 <td><div class="info">
-Disk operations: read, write, and sync
+Disk operations: read, write, and sync.
 </div>
 </td></tr>
 <tr><td align="left"><br>E</td></tr>
@@ -116,7 +122,7 @@ Disk operations: read, write, and sync
 <td></td></tr>
 <tr><td><a href="Disk_on_fd.html#TYPEfd_ops">fd_ops</a> [<a href="Disk_on_fd.html">Disk_on_fd</a>]</td>
 <td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEfind_state">find_state</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPEfind_state">find_state</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Find.html#TYPEfind_state">find_state</a> [<a href="Isa_export.Find.html">Isa_export.Find</a>]</td>
 <td></td></tr>
@@ -126,7 +132,7 @@ Disk operations: read, write, and sync
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEframe">frame</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
-<tr><td><a href="Btree_api.Page_ref_int.html#TYPEframe">frame</a> [<a href="Btree_api.Page_ref_int.html">Btree_api.Page_ref_int</a>]</td>
+<tr><td><a href="Page_ref_int.html#TYPEframe">frame</a> [<a href="Page_ref_int.html">Page_ref_int</a>]</td>
 <td></td></tr>
 <tr><td><a href="Frame.html#TYPEframe">frame</a> [<a href="Frame.html">Frame</a>]</td>
 <td></td></tr>
@@ -137,14 +143,21 @@ Disk operations: read, write, and sync
 <tr><td align="left"><br>G</td></tr>
 <tr><td><a href="Test_mem_map.T.html#TYPEglobal_state">global_state</a> [<a href="Test_mem_map.T.html">Test_mem_map.T</a>]</td>
 <td></td></tr>
-<tr><td><a href="Map_on_fd.html#TYPEglobal_state">global_state</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<tr><td><a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> [<a href="Map_on_fd.Default_implementation.html">Map_on_fd.Default_implementation</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>I</td></tr>
 <tr><td><a href="Isa_export.Insert.html#TYPEi12_t">i12_t</a> [<a href="Isa_export.Insert.html">Isa_export.Insert</a>]</td>
 <td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEim_state">im_state</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Btree_api.Imperative_disk_ops.html#TYPEidisk_ops">idisk_ops</a> [<a href="Btree_api.Imperative_disk_ops.html">Btree_api.Imperative_disk_ops</a>]</td>
 <td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEinsert_state">insert_state</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPEim_state">im_state</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
+<td></td></tr>
+<tr><td><a href="Btree_api.Imperative_map_ops.html#TYPEimap_ops">imap_ops</a> [<a href="Btree_api.Imperative_map_ops.html">Btree_api.Imperative_map_ops</a>]</td>
+<td><div class="info">
+Imperative version of the map interface; throws exceptions.
+</div>
+</td></tr>
+<tr><td><a href="Small_step.O.html#TYPEinsert_state">insert_state</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Insert.html#TYPEinsert_state">insert_state</a> [<a href="Isa_export.Insert.html">Isa_export.Insert</a>]</td>
 <td></td></tr>
@@ -155,6 +168,8 @@ Disk operations: read, write, and sync
 <tr><td><a href="Iter_with_check.html#TYPEiter_ops">iter_ops</a> [<a href="Iter_with_check.html">Iter_with_check</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>K</td></tr>
+<tr><td><a href="Map_blkid_blk.html#TYPEk">k</a> [<a href="Map_blkid_blk.html">Map_blkid_blk</a>]</td>
+<td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEkey">key</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_cache.O.html#TYPEkey">key</a> [<a href="Test_cache.O.html">Test_cache.O</a>]</td>
@@ -168,7 +183,7 @@ A leaf stream is a linear sequence of the leaves in a B-tree, used
    for iterating over all the bindings in the tree.
 </div>
 </td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEls_state">ls_state</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPEls_state">ls_state</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Leaf_stream.html#TYPEls_state">ls_state</a> [<a href="Isa_export.Leaf_stream.html">Isa_export.Leaf_stream</a>]</td>
 <td></td></tr>
@@ -180,38 +195,33 @@ Leaf stream representation.
 <tr><td align="left"><br>M</td></tr>
 <tr><td><a href="Bytestore.DISK_T.html#TYPEm">m</a> [<a href="Bytestore.DISK_T.html">Bytestore.DISK_T</a>]</td>
 <td></td></tr>
-<tr><td><a href="Base_types_pervasives.html#TYPEm">m</a> [<a href="Base_types_pervasives.html">Base_types_pervasives</a>]</td>
+<tr><td><a href="Monad.html#TYPEm">m</a> [<a href="Monad.html">Monad</a>]</td>
 <td><div class="info">
 The monad type, a function from an initial state to a final state,
    and a possible result of type <code class="code">'a</code> (or an error).
-</div>
-</td></tr>
-<tr><td><a href="Bt_monad.O.html#TYPEm">m</a> [<a href="Bt_monad.O.html">Bt_monad.O</a>]</td>
-<td><div class="info">
-The monad takes a state and returns an updated state, and a
-     result of type <code class="code">'a</code> (or an error).
 </div>
 </td></tr>
 <tr><td><a href="Pickle.U.html#TYPEm">m</a> [<a href="Pickle.U.html">Pickle.U</a>]</td>
 <td></td></tr>
 <tr><td><a href="Pickle.P.html#TYPEm">m</a> [<a href="Pickle.P.html">Pickle.P</a>]</td>
 <td></td></tr>
-<tr><td><a href="Btree_api.Imperative_map_ops.html#TYPEmap_ops">map_ops</a> [<a href="Btree_api.Imperative_map_ops.html">Btree_api.Imperative_map_ops</a>]</td>
-<td><div class="info">
-Imperative version of the map interface; throws exceptions.
-</div>
-</td></tr>
 <tr><td><a href="Btree_api.html#TYPEmap_ops">map_ops</a> [<a href="Btree_api.html">Btree_api</a>]</td>
 <td><div class="info">
-Map operations: find, insert, delete
+Map operations: find, insert, <code class="code">insert_many</code> and
+   delete.
 </div>
 </td></tr>
-<tr><td><a href="Mem_store.O.html#TYPEmem">mem</a> [<a href="Mem_store.O.html">Mem_store.O</a>]</td>
+<tr><td><a href="Mem_store.html#TYPEmem">mem</a> [<a href="Mem_store.html">Mem_store</a>]</td>
 <td></td></tr>
-<tr><td><a href="Mem_store.O.html#TYPEmem_ops">mem_ops</a> [<a href="Mem_store.O.html">Mem_store.O</a>]</td>
+<tr><td><a href="Mem_store.html#TYPEmem_ops">mem_ops</a> [<a href="Mem_store.html">Mem_store</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Prelude.html#TYPEmin_size_t">min_size_t</a> [<a href="Isa_export.Prelude.html">Isa_export.Prelude</a>]</td>
 <td></td></tr>
+<tr><td><a href="Monad.html#TYPEmref">mref</a> [<a href="Monad.html">Monad</a>]</td>
+<td><div class="info">
+Monadic reference operations
+</div>
+</td></tr>
 <tr><td align="left"><br>N</td></tr>
 <tr><td><a href="Isa_export.Arith.html#TYPEnat">nat</a> [<a href="Isa_export.Arith.html">Isa_export.Arith</a>]</td>
 <td></td></tr>
@@ -235,7 +245,7 @@ Map operations: find, insert, delete
 <tr><td align="left"><br>P</td></tr>
 <tr><td><a href="Btree_with_pickle.html#TYPEpage">page</a> [<a href="Btree_with_pickle.html">Btree_with_pickle</a>]</td>
 <td></td></tr>
-<tr><td><a href="Btree_api.Page_ref_int.html#TYPEpage_ref">page_ref</a> [<a href="Btree_api.Page_ref_int.html">Btree_api.Page_ref_int</a>]</td>
+<tr><td><a href="Page_ref_int.html#TYPEpage_ref">page_ref</a> [<a href="Page_ref_int.html">Page_ref_int</a>]</td>
 <td></td></tr>
 <tr><td><a href="Store_to_map.html#TYPEpage_ref_ops">page_ref_ops</a> [<a href="Store_to_map.html">Store_to_map</a>]</td>
 <td><div class="info">
@@ -267,9 +277,7 @@ Pickling parameters including length information.
 <tr><td><a href="Pickle.html#TYPEptt">ptt</a> [<a href="Pickle.html">Pickle</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>R</td></tr>
-<tr><td><a href="Default.Default_block.html#TYPEr">r</a> [<a href="Default.Default_block.html">Default.Default_block</a>]</td>
-<td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPEr2f">r2f</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPEr2f">r2f</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="R2t.html#TYPEr2t">r2t</a> [<a href="R2t.html">R2t</a>]</td>
 <td><div class="info">
@@ -293,7 +301,7 @@ The result type.
 <td></td></tr>
 <tr><td><a href="Recycling_store.O.html#TYPErs_params">rs_params</a> [<a href="Recycling_store.O.html">Recycling_store.O</a>]</td>
 <td></td></tr>
-<tr><td><a href="Bt_small_step.O.html#TYPErstk">rstk</a> [<a href="Bt_small_step.O.html">Bt_small_step.O</a>]</td>
+<tr><td><a href="Small_step.O.html#TYPErstk">rstk</a> [<a href="Small_step.O.html">Small_step.O</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>S</td></tr>
 <tr><td><a href="Isa_export.Set.html#TYPEset">set</a> [<a href="Isa_export.Set.html">Isa_export.Set</a>]</td>
@@ -318,8 +326,6 @@ Store operations: alloc, free and read.
 </td></tr>
 <tr><td><a href="Isa_export.Params.html#TYPEstore_ops_ext">store_ops_ext</a> [<a href="Isa_export.Params.html">Isa_export.Params</a>]</td>
 <td></td></tr>
-<tr><td><a href="Default.Default_block.html#TYPEsz">sz</a> [<a href="Default.Default_block.html">Default.Default_block</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>T</td></tr>
 <tr><td><a href="Test_mem_map.T.html#TYPEt">t</a> [<a href="Test_mem_map.T.html">Test_mem_map.T</a>]</td>
 <td></td></tr>
@@ -327,7 +333,7 @@ Store operations: alloc, free and read.
 <td></td></tr>
 <tr><td><a href="Test_cache.S.State.html#TYPEt">t</a> [<a href="Test_cache.S.State.html">Test_cache.S.State</a>]</td>
 <td></td></tr>
-<tr><td><a href="Map_on_fd.html#TYPEt">t</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<tr><td><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> [<a href="Map_on_fd.Default_implementation.html">Map_on_fd.Default_implementation</a>]</td>
 <td></td></tr>
 <tr><td><a href="Bytestore.BUFFER.html#TYPEt">t</a> [<a href="Bytestore.BUFFER.html">Bytestore.BUFFER</a>]</td>
 <td></td></tr>
@@ -337,21 +343,11 @@ Store operations: alloc, free and read.
 <td></td></tr>
 <tr><td><a href="Digest_.Digest.html#TYPEt">t</a> [<a href="Digest_.Digest.html">Digest_.Digest</a>]</td>
 <td></td></tr>
-<tr><td><a href="Iter_with_check.Delete.html#TYPEt">t</a> [<a href="Iter_with_check.Delete.html">Iter_with_check.Delete</a>]</td>
+<tr><td><a href="Int_.html#TYPEt">t</a> [<a href="Int_.html">Int_</a>]</td>
 <td></td></tr>
-<tr><td><a href="Iter_with_check.Im.html#TYPEt">t</a> [<a href="Iter_with_check.Im.html">Iter_with_check.Im</a>]</td>
+<tr><td><a href="Constants.html#TYPEt">t</a> [<a href="Constants.html">Constants</a>]</td>
 <td></td></tr>
-<tr><td><a href="Iter_with_check.Insert.html#TYPEt">t</a> [<a href="Iter_with_check.Insert.html">Iter_with_check.Insert</a>]</td>
-<td></td></tr>
-<tr><td><a href="Iter_with_check.Find.html#TYPEt">t</a> [<a href="Iter_with_check.Find.html">Iter_with_check.Find</a>]</td>
-<td></td></tr>
-<tr><td><a href="Default.Default_block.html#TYPEt">t</a> [<a href="Default.Default_block.html">Default.Default_block</a>]</td>
-<td></td></tr>
-<tr><td><a href="Prelude_pervasives.Int.html#TYPEt">t</a> [<a href="Prelude_pervasives.Int.html">Prelude_pervasives.Int</a>]</td>
-<td></td></tr>
-<tr><td><a href="Bt_constants.html#TYPEt">t</a> [<a href="Bt_constants.html">Bt_constants</a>]</td>
-<td></td></tr>
-<tr><td><a href="Tjr_string.Span.html#TYPEt">t</a> [<a href="Tjr_string.Span.html">Tjr_string.Span</a>]</td>
+<tr><td><a href="String_.Span.html#TYPEt">t</a> [<a href="String_.Span.html">String_.Span</a>]</td>
 <td></td></tr>
 <tr><td><a href="Exhaustive.Make.html#TYPEtest_state">test_state</a> [<a href="Exhaustive.Make.html">Exhaustive.Make</a>]</td>
 <td></td></tr>
@@ -365,7 +361,11 @@ Store operations: alloc, free and read.
 <td></td></tr>
 <tr><td><a href="Isa_export.Tree_stack.html#TYPEts_frame_ext">ts_frame_ext</a> [<a href="Isa_export.Tree_stack.html">Isa_export.Tree_stack</a>]</td>
 <td></td></tr>
+<tr><td><a href="Iter_with_check.html#TYPEtt">tt</a> [<a href="Iter_with_check.html">Iter_with_check</a>]</td>
+<td></td></tr>
 <tr><td align="left"><br>V</td></tr>
+<tr><td><a href="Map_blkid_blk.html#TYPEv">v</a> [<a href="Map_blkid_blk.html">Map_blkid_blk</a>]</td>
+<td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEvalue">value</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_cache.O.html#TYPEvalue">value</a> [<a href="Test_cache.O.html">Test_cache.O</a>]</td>

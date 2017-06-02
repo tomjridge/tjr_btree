@@ -6,13 +6,13 @@
 open Prelude
 open Btree_api
 open Page_ref_int
-open Default
 open Pickle
 open Pickle_params
+open Block
 
 module PE = Pickle.Examples
 
-type page = BLK.t
+type page = blk
 
 (* following assumes tags marshall to single int32 *)
 let node_tag = 0
@@ -22,8 +22,8 @@ let tag_len = 4 (* bytes *)
 (* generic marshalling; format: int node_or_leaf; int number
    of entries; entries *)
 let frame_to_page':
-  BLK.sz -> ('k,'v) pp -> ('k,'v) frame -> page = Pickle.P.(
-    fun sz pp p ->
+  blk_sz -> ('k,'v) pp -> ('k,'v) frame -> page = Pickle.P.(
+    fun blk_sz pp p ->
       let is = PE.(
           match p with
           | Node_frame(ks,rs) -> (
@@ -38,12 +38,12 @@ let frame_to_page':
       in
       let s = is |> P.run_w_exception "" in 
       let _ = test (fun _ ->
-          let (l1,l2) = String.length s , sz in
+          let (l1,l2) = String.length s , blk_sz in
           let b =  l1 <= l2 in
           (if (not b) then Printf.printf "%d %d" l1 l2);
           assert b)
       in
-      BLK.of_string sz s
+      BlkN.of_string blk_sz s
   )
 
 let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
@@ -61,7 +61,7 @@ let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
                       ret (Frame.Leaf_frame(kvs)))))
         )
       in
-      let (_,r) = x |> U.run_w_exception (BLK.to_string buf) in
+      let (_,r) = x |> U.run_w_exception (BlkN.to_string buf) in
       (* basic size checks *)
       (match r with
       | Leaf_frame ks -> (* could be root *) ()

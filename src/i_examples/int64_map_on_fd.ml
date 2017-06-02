@@ -5,7 +5,7 @@ open Btree_api
 open Example_keys_and_values
 open Btree_with_pickle.O
 open Small_string.O
-open Default
+open Block.Blk4096
 
 let ps = 
   let pp = int64_int64_pp in

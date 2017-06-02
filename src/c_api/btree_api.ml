@@ -6,7 +6,7 @@ To understand the interfaces, we need to introduce the following:
 
 - Keys, represented by type variable ['k]
 - Values, by type var ['v]
-- Page/block references, ['r]
+- Page/block references, ['r]; vars [blk_id]
 - Global state, ['t]
 
 The operations typically execute in the {!Base_types.Monad}.
@@ -20,23 +20,23 @@ The operations typically execute in the {!Base_types.Monad}.
 
 open Base_types
 open Prelude
-open Default
+open Block
 
 (* block device ---------------------------------------- *)
 
-(** Disk operations: read, write, and sync *)
+(** Disk operations: read, write, and sync. FIXME move to int64 blkid *)
 type 't disk_ops = {
-  blk_sz: BLK.sz;
-  read: BLK.r -> (BLK.t,'t) m;
-  write: BLK.r -> BLK.t -> (unit,'t) m;
+  blk_sz: blk_sz;
+  read: blk_id -> (blk,'t) m;
+  write: blk_id -> blk -> (unit,'t) m;
 (*   disk_sync: unit -> (unit,'t) m; *)
 }
 
 module Imperative_disk_ops = struct
   type idisk_ops = {
-    blk_sz: BLK.sz;
-    read: BLK.r -> BLK.t;
-    write: BLK.r -> BLK.t -> unit;
+    blk_sz: blk_sz;
+    read: blk_id -> blk;
+    write: blk_id -> blk -> unit;
   }
 
   let of_disk_ops (ops:'t disk_ops) (_ref:'t ref) = (
@@ -152,12 +152,4 @@ let all_kvs: ('k,'v,'r,'t)ls_ops -> (('k * 'v) list,'t) m = Monad.(
       in
       ops.mk_leaf_stream () |> bind (fun s -> loop [] s))
 
-
-(* fix page_ref --------------------------------------------------- *)
-
-(** Utility module to fix page_ref as int *)
-module Page_ref_int = struct
-  type page_ref = int  [@@deriving yojson]
-  type ('k,'v) frame = ('k,'v,page_ref) Frame.frame
-end
 

@@ -11,7 +11,7 @@ open Btree_api
 open Small_string.O
 open Btree_with_pickle.O
 open Example_keys_and_values
-open Default
+open Block.Blk4096
 
 let ps = 
   let pp = ss_ss_pp in

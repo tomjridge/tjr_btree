@@ -2,8 +2,8 @@
 
 open Prelude
 open Btree_api
-open Default
 open Monad
+open Block
 
 type fd = Unix.file_descr
 
@@ -25,12 +25,12 @@ let read ~fd ~blk_sz ~blk_id = Unix.(
   (* assert (n=blk_sz); we allow the file to expand
                automatically, so no reason to read any bytes *)
   assert(n=0 || n=blk_sz);
-  BLK.of_string blk_sz buf)
+  Block.of_string blk_sz buf)
 
 
 let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
     ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
-    let buf = BLK.to_string blk in
+    let buf = Block.to_string blk in
     let n = single_write fd buf 0 blk_sz in
     assert (n=blk_sz);
     ())
@@ -39,13 +39,13 @@ let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
 (* in the monad ----------------------------------------------------- *)
 
 let make_disk ~blk_sz ~fd_ops = (
-  let read: BLK.r -> (BLK.t,'t) m = (fun r ->
+  let read: blk_id -> (blk,'t) m = (fun r ->
       safely_ __LOC__ (
         fd_ops.get ()
         |> bind (fun fd ->
             return (read fd blk_sz r))))
   in
-  let write: BLK.r -> BLK.t -> (unit,'t) m = (fun r buf -> 
+  let write: blk_id -> blk -> (unit,'t) m = (fun r buf -> 
       safely_ __LOC__ (
         fd_ops.get ()
         |> bind (fun fd ->           

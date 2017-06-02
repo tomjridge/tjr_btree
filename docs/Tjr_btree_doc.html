@@ -11,26 +11,31 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="String_" rel="Chapter" href="String_.html">
 <link title="Test" rel="Chapter" href="Test.html">
-<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
 <link title="Pickle" rel="Chapter" href="Pickle.html">
-<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
-<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Map_int" rel="Chapter" href="Map_int.html">
+<link title="Map_string" rel="Chapter" href="Map_string.html">
+<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
-<link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
-<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Set_int" rel="Chapter" href="Set_int.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Params" rel="Chapter" href="Params.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Params2" rel="Chapter" href="Params2.html">
 <link title="Base_types" rel="Chapter" href="Base_types.html">
-<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
-<link title="Config" rel="Chapter" href="Config.html">
-<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="File_" rel="Chapter" href="File_.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Prelude" rel="Chapter" href="Prelude.html">
-<link title="Default" rel="Chapter" href="Default.html">
 <link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
@@ -42,15 +47,17 @@
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
-<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
 <link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
 <link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_blkid_blk" rel="Chapter" href="Map_blkid_blk.html">
 <link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Int64_map_on_fd" rel="Chapter" href="Int64_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
@@ -123,7 +130,7 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 
 The marshalling and pickling routines are in the <code class="code">pickle</code> package. See
    module <a href="Pickle.html"><code class="code">Pickle</code></a>. We also include a utility library for strings
-   <a href="Tjr_string.html"><code class="code">Tjr_string</code></a>, and a few functions to deal with logging and testing
+   <code class="code">Tjr_string</code>, and a few functions to deal with logging and testing
    in <a href="Test.html"><code class="code">Test</code></a>.
 <p>
 
@@ -131,11 +138,11 @@ The marshalling and pickling routines are in the <code class="code">pickle</code
 <p>
 
 This package contains basic B-tree related types. They are collected
-   in the module <a href="Base_types.html"><code class="code">Base_types</code></a>. The <a href="Base_types.Monad.html"><code class="code">Base_types.Monad</code></a> is a
+   in the module <a href="Base_types.html"><code class="code">Base_types</code></a>. The <code class="code">Base_types.Monad</code> is a
    state-passing monad with error; this monad shows up in most of the
    interfaces. <a href="Store_ops.html"><code class="code">Store_ops</code></a> is another important module which
    describes a disk-like interface on top of which we implement the
-   B-tree. The <a href="Base_types.Tree.html"><code class="code">Base_types.Tree</code></a> module describes a B-tree as an
+   B-tree. The <code class="code">Base_types.Tree</code> module describes a B-tree as an
    algebraic datatype. The on-disk B-tree uses references between
    blocks i.e. a graph-like structure with pointers rather than a
    datatype. Indeed, the tree datatype is used only for testing
@@ -145,7 +152,7 @@ This package contains basic B-tree related types. They are collected
 <h2 id="2_Prelude">Prelude</h2>
 <p>
 
-Miscellaneous definitions. <a href="Prelude.Small_step.html"><code class="code">Prelude.Small_step</code></a> wraps the Isabelle
+Miscellaneous definitions. <code class="code">Prelude.Small_step</code> wraps the Isabelle
    small-step definitions.
 <p>
 
@@ -159,7 +166,7 @@ Miscellaneous definitions. <a href="Prelude.Small_step.html"><code class="code">
    module also documents the type variable naming conventions.
 <p>
 
-<a href="Default.html"><code class="code">Default</code></a> is a simple collection of defaults eg default block size.
+<code class="code">Default</code> is a simple collection of defaults eg default block size.
 <p>
 
 <h2 id="2_Storetomap">Store to map</h2>
@@ -167,7 +174,7 @@ Miscellaneous definitions. <a href="Prelude.Small_step.html"><code class="code">
 
 This package, particularly the <a href="Store_to_map.html"><code class="code">Store_to_map</code></a> module, wraps the
    Isabelle routines to implement a map interface on top of a
-   store. The key function is <a href="Store_to_map.html#VALmake_map_ops"><code class="code">Store_to_map.make_map_ops</code></a> which takes
+   store. The key function is <code class="code">Store_to_map.make_map_ops</code> which takes
    a <code class="code">store_ops</code> and returns a <code class="code">map_ops</code>.
 <p>
 

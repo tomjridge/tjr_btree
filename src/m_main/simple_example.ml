@@ -5,15 +5,14 @@ open Small_string.O
 
 open Ss_ss_map_on_fd
 
-let fn = Default.fn
+open Default_filename
+open Block.Blk4096
 
 (* construct keys and values from an int *)
 let k x = "k"^(string_of_int x) |> SS.of_string
 let v x = "v"^(string_of_int x) |> SS.of_string
 
 let close = Map_on_fd.Default_implementation.close
-
-let blk_sz = Default.blk_sz
 
 (* create and init store, write some values, and close *)
 let do_write () = (

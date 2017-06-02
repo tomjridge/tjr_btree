@@ -12,26 +12,31 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="String_" rel="Chapter" href="String_.html">
 <link title="Test" rel="Chapter" href="Test.html">
-<link title="Tjr_string" rel="Chapter" href="Tjr_string.html">
 <link title="Pickle" rel="Chapter" href="Pickle.html">
-<link title="Bt_constants" rel="Chapter" href="Bt_constants.html">
-<link title="Bt_monad" rel="Chapter" href="Bt_monad.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Map_int" rel="Chapter" href="Map_int.html">
+<link title="Map_string" rel="Chapter" href="Map_string.html">
+<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Pickle_params" rel="Chapter" href="Pickle_params.html">
-<link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Bt_tree" rel="Chapter" href="Bt_tree.html">
-<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Set_int" rel="Chapter" href="Set_int.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Params" rel="Chapter" href="Params.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Bt_params" rel="Chapter" href="Bt_params.html">
+<link title="Params2" rel="Chapter" href="Params2.html">
 <link title="Base_types" rel="Chapter" href="Base_types.html">
-<link title="Bt_small_step" rel="Chapter" href="Bt_small_step.html">
-<link title="Config" rel="Chapter" href="Config.html">
-<link title="Prelude_pervasives" rel="Chapter" href="Prelude_pervasives.html">
+<link title="File_" rel="Chapter" href="File_.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Prelude" rel="Chapter" href="Prelude.html">
-<link title="Default" rel="Chapter" href="Default.html">
 <link title="Btree_api" rel="Chapter" href="Btree_api.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
@@ -43,15 +48,17 @@
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
-<link title="Todo_map_idx_blk" rel="Chapter" href="Todo_map_idx_blk.html">
 <link title="Example_keys_and_values" rel="Chapter" href="Example_keys_and_values.html">
 <link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Map_blkid_blk" rel="Chapter" href="Map_blkid_blk.html">
 <link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Int_int_map_on_fd" rel="Chapter" href="Int_int_map_on_fd.html">
+<link title="Int64_map_on_fd" rel="Chapter" href="Int64_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
@@ -78,24 +85,10 @@ Implement disk operations backed by a file-descriptor<br>
 <pre><span id="TYPEfd"><span class="keyword">type</span> <code class="type"></code>fd</span> = <code class="type">Unix.file_descr</code> </pre>
 
 
-<pre><code><span id="TYPEfd_ops"><span class="keyword">type</span> <code class="type">'t</code> fd_ops</span> = {</code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTfd_ops.get_fd">get_fd</span>&nbsp;: <code class="type">unit -> (<a href="Disk_on_fd.html#TYPEfd">fd</a>, 't) Base_types.Monad.m</code>;</code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTfd_ops.set_fd">set_fd</span>&nbsp;: <code class="type"><a href="Disk_on_fd.html#TYPEfd">fd</a> -> (unit, 't) Base_types.Monad.m</code>;</code></td>
-
-</tr></table>
-}
+<pre><span id="TYPEfd_ops"><span class="keyword">type</span> <code class="type">'t</code> fd_ops</span> = <code class="type">(<a href="Disk_on_fd.html#TYPEfd">fd</a>, 't) <a href="Monad.html#TYPEmref">Monad.mref</a></code> </pre>
 
 
-
-<pre><span id="VALsafely"><span class="keyword">val</span> safely</span> : <code class="type">string -> ('a, 't) Base_types.Monad.m -> ('a, 't) Base_types.Monad.m</code></pre>
-<pre><span id="VALmake_disk"><span class="keyword">val</span> make_disk</span> : <code class="type">Default.BLK.sz -> 't <a href="Disk_on_fd.html#TYPEfd_ops">fd_ops</a> -> 't <a href="Btree_api.html#TYPEdisk_ops">Btree_api.disk_ops</a></code></pre></body></html>
+<pre><span id="VALsafely_"><span class="keyword">val</span> safely_</span> : <code class="type">string -> ('a, 't) <a href="Monad.html#TYPEm">Monad.m</a> -> ('a, 't) <a href="Monad.html#TYPEm">Monad.m</a></code></pre>
+<pre><span id="VALread"><span class="keyword">val</span> read</span> : <code class="type">fd:Unix.file_descr -> blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> blk_id:int -> Block.blk</code></pre>
+<pre><span id="VALwrite"><span class="keyword">val</span> write</span> : <code class="type">fd:Unix.file_descr -> blk_sz:int -> blk_id:int -> blk:Block.blk -> unit</code></pre>
+<pre><span id="VALmake_disk"><span class="keyword">val</span> make_disk</span> : <code class="type">blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>       fd_ops:(Unix.file_descr, 't) <a href="Monad.html#TYPEmref">Monad.mref</a> -> 't <a href="Btree_api.html#TYPEdisk_ops">Btree_api.disk_ops</a></code></pre></body></html>
