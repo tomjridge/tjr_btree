@@ -20,7 +20,7 @@ end = struct
       s ^ (String.make (sz - String.length s) (Char.chr 0))
   )
   let to_string: t -> string = fun x -> x
-  let compare_r = Int.compare 
+  let compare_r = Int_.compare 
 end
 
 module BLK = Default_block

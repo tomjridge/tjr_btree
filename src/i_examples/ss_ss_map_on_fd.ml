@@ -65,6 +65,6 @@ let main args = (
                 ()));                
           print_endline "list ok"))
   | _ -> (
-      failwith ("Unrecognized args: "^(Bt_string.concat_strings " " args)^ 
+      failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
                 __LOC__))
 )

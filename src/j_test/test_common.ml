@@ -100,4 +100,4 @@ friendly-pig-44
 tame-octopus-59
 smart-panther-36
 lazy-termite-3
-helpless-snake-32 |} |> Bt_string.split_on_all ~sub:"\n"
+helpless-snake-32 |} |> String_.split_on_all ~sub:"\n"

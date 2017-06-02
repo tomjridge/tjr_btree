@@ -11,22 +11,22 @@ open Pickle_params
 
 module PE = Pickle.Examples
 
-module Int = struct
-  include Int
+module Int_ = struct
+  include Int_
   let size = 4
 end
 
 
 (* digest -> int ---------------------------------------------------- *)
 
-let digest_int_pp: (DIG.t,Int.t) pp = (
+let digest_int_pp: (DIG.t,Int_.t) pp = (
     {
       p_k = (fun k -> k|>DIG.to_string|>PE.p_string);
       u_k = (PE.u_string DIG.size |> U.map DIG.of_string);
       k_len = DIG.size;
       p_v = Examples.p_int;
       u_v = Examples.u_int;
-      v_len = Int.size;
+      v_len = Int_.size;
     })
 
 
@@ -40,7 +40,7 @@ let digest_int_pp: (DIG.t,Int.t) pp = (
 
 (* equal_v is (=) *)
 
-let digest_ss_x_int_pp: (DIG.t,SS.t*Int.t) pp = (
+let digest_ss_x_int_pp: (DIG.t,SS.t*Int_.t) pp = (
     let key_size = DIG.size in
     let value_size = (4+SS.max_size) + 4 in (* length+string, int *) 
     {

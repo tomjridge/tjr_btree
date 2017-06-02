@@ -40,7 +40,7 @@ let compare s1 s2 = (
     (fun () -> 
        Map_int.compare Pervasives.compare s1.base_map s2.base_map))
 
-let init_cache = Cache.mk_initial_cache Int.compare |> Cache.normalize
+let init_cache = Cache.mk_initial_cache Int_.compare |> Cache.normalize
 
 let init_base_map = Map_int.empty
 

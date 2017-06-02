@@ -9,7 +9,7 @@ open Ss_int_map_on_fd
 
 (* FIXME Default.fn etc *)
 
-(* TODO use exhaustive *)
+(* TODO use exhaustive; use imap_ops *)
 let test () = (
   Printf.printf "%s: " __MODULE__;
   flush_out();

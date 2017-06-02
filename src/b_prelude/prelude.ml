@@ -3,12 +3,9 @@
 (* collect together modules, then open Prelude at top of following *)
 
 (* FIXME not sure about the Prelude and Base_types and opening and including *)
+include Base_types_pervasives
 
 open Base_types
-
-module Small_step = Bt_small_step
-
-include Prelude_pervasives
 
 (* FIXME in base types? *)
 type 'k ord = 'k -> 'k -> int

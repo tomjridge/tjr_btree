@@ -6,5 +6,5 @@ let _ =
   match args with
   | "kv"::rest -> (Ss_ss_map_on_fd.main rest)
   | _ -> failwith ("Unrecognized arguments: "^
-                   (Bt_string.concat_strings " " args)^
+                   (String_.concat_strings " " args)^
                    __LOC__)

@@ -58,7 +58,7 @@ let r2t : ('k,'v,'r,'t)r2t = store_ops_to_r2t store_ops
 
 let ps = 
   object
-    method cmp=Int.compare
+    method cmp=Int_.compare
     method constants=constants
     method dbg_ps= Some(
       object
