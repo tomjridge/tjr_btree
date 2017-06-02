@@ -7,7 +7,7 @@ include Base_types_pervasives
 
 open Base_types
 
-(* FIXME in base types? *)
+(* FIXME in base types? remove? *)
 type 'k ord = 'k -> 'k -> int
 
 (* so we can just open Prelude *)
@@ -15,21 +15,10 @@ include Small_step.O
 
 include Test
 
-(* FIXME move pickle and pickle params to a separate package? *)
-(*
-module Params = struct
-  include Base_types_params
-      
-  let pp x : ('k,'v) pp = (x#pp)
-end
-
-include Params
-*)
-
 
 (* r2t ---------------------------------------- *)
 
-(* FIXME not sure where these should go *)
+(* FIXME not sure where these should go; r2t.ml? *)
 
 let mk_r2f store_ops : ('k,'v,'r,'t) r2f = (
   fun s r ->

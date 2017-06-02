@@ -56,7 +56,7 @@ type ('o,'t) tt = {
 
 open Params2
 
-let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) ~(init_store:t) : (t * 'u res) = (
+let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) = (
   let check_trans s s' = true in      (* TODO *)
   let step (x:(o,t)tt) : _ * unit res = (
     step x.op_state x.store
@@ -66,11 +66,13 @@ let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) ~(init_s
         | Error e -> ({x with store=s'},Error e) ))
   in
   let ops = { check_state; check_trans; step; finished } in
-  iter ops 
-  |> run {op_state=init_op_state;store=init_store}
-  |> (function 
-      | (s,Ok ()) -> (s.store,Ok(dest s))
-      | (s,Error e) -> (s.store,Error e)))
+  let f ~init_store : (t * 'u res) =
+    iter ops 
+    |> run {op_state=init_op_state;store=init_store}
+    |> (function 
+        | (s,Ok ()) -> (s.store,Ok(dest s))
+        | (s,Error e) -> (s.store,Error e))
+  in f)
 
 let _ = mk
 
@@ -78,12 +80,12 @@ let _ = mk
 (* find ---------------------------------------- *)
 
 
-let find' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) ~(init_store:t) = (
+let find' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) = (
   let init_op_state = X.mk_find_state k r in
   let finished s = s.op_state |> X.dest_f_finished |> is_Some in
   let dest s : (r * (k*v)list) = s.op_state |> X.dest_f_finished |> (fun (Some(_,_,r,kvs,_)) -> (r,kvs)) in
   let step = X.find_step ~constants ~cmp ~store_ops in
-  let with_check ~r2t ~k2j ~v2j ~r2j = 
+  let with_check ~r2t ~k2j ~v2j ~r2j ~init_store = 
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log __LOC__;
@@ -95,7 +97,7 @@ let find' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) ~(init_store:t
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   let check_state s = true in
-  let without_check = 
+  let without_check ~init_store = 
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   (with_check,without_check))
@@ -107,12 +109,12 @@ let find' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) ~(init_store:t
     an error). *)
 open Params
 
-let find ~ps ~store_ops ~k ~r ~init_store = (
+let find ~ps ~store_ops ~k ~r = (
   match dbg_ps ps with
   | None -> (
-      find' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r ~init_store |> snd)
+      find' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r |> snd)
   | Some ps' -> (
-      find' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r ~init_store 
+      find' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r 
       |> fst 
       |> fun f -> f ~r2t:(r2t ps') ~k2j:(k2j ps') ~v2j:(v2j ps') ~r2j:(r2j ps'))
 )
@@ -121,12 +123,12 @@ let find ~ps ~store_ops ~k ~r ~init_store = (
 
 (* insert ---------------------------------------- *)
 
-let insert' ~cmp ~constants ~store_ops ~k ~v ~r ~init_store = (
+let insert' ~cmp ~constants ~store_ops ~k ~v ~r = (
   let init_op_state = X.mk_insert_state k v r in
   let finished s = s.op_state |> X.dest_i_finished |> is_Some in
   let dest s = s.op_state |> X.dest_i_finished |> fun (Some r) -> r in
   let step = X.insert_step ~constants ~cmp ~store_ops in
-  let with_check ~r2t ~k2j ~v2j ~r2j = 
+  let with_check ~r2t ~k2j ~v2j ~r2j ~init_store = 
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log __LOC__;
@@ -138,7 +140,7 @@ let insert' ~cmp ~constants ~store_ops ~k ~v ~r ~init_store = (
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   let check_state s = true in
-  let without_check = 
+  let without_check ~init_store = 
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   (with_check,without_check))
@@ -147,12 +149,12 @@ let insert' ~cmp ~constants ~store_ops ~k ~v ~r ~init_store = (
 (** Insert. Take a key, a value, a reference (to the B-tree root) and
    a state and return an updated state, with a new reference to the
    root of the updated B-tree. *)
-let insert ~ps ~store_ops ~k ~v ~r ~init_store = (
+let insert ~ps ~store_ops ~k ~v ~r = (
   match dbg_ps ps with
   | None -> (
-      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r ~init_store |> snd)
+      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r |> snd)
   | Some ps' -> (
-      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r ~init_store 
+      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r  
       |> fst 
       |> fun f -> f ~r2t:(r2t ps') ~k2j:(k2j ps') ~v2j:(v2j ps') ~r2j:(r2j ps'))
 )
@@ -161,12 +163,12 @@ let insert ~ps ~store_ops ~k ~v ~r ~init_store = (
 
 (* insert many ---------------------------------------- *)
 
-let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r ~init_store = (
+let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r = (
   let init_op_state = X.mk_im_state k v kvs r in
   let finished s = s.op_state |> X.dest_im_finished |> is_Some in
   let dest s = s.op_state |> X.dest_im_finished |> fun (Some r) -> r in
   let step = X.im_step ~constants ~cmp ~store_ops in
-  let with_check ~r2t ~k2j ~v2j ~r2j = 
+  let with_check ~r2t ~k2j ~v2j ~r2j ~init_store = 
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log __LOC__;
@@ -178,7 +180,7 @@ let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r ~init_store = (
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   let check_state s = true in
-  let without_check = 
+  let without_check ~init_store = 
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   (with_check,without_check))
@@ -191,12 +193,12 @@ let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r ~init_store = (
    key/value. Typically this function is called in a loop till all kvs
    have been inserted. It is assumed faster than multiple inserts,
    although caching may invalidate this assumption. *)
-let insert_many ~ps ~store_ops ~k ~v ~kvs ~r ~init_store = (
+let insert_many ~ps ~store_ops ~k ~v ~kvs ~r = (
   match dbg_ps ps with
   | None -> (
-      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r ~init_store |> snd)
+      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r |> snd)
   | Some ps' -> (
-      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r ~init_store 
+      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r 
       |> fst 
       |> fun f -> f ~r2t:(r2t ps') ~k2j:(k2j ps') ~v2j:(v2j ps') ~r2j:(r2j ps'))
 )
@@ -204,12 +206,12 @@ let insert_many ~ps ~store_ops ~k ~v ~kvs ~r ~init_store = (
 
 (* delete ---------------------------------------- *)
 
-let delete' ~cmp ~constants ~store_ops ~k ~r ~init_store = (
+let delete' ~cmp ~constants ~store_ops ~k ~r = (
   let init_op_state = X.mk_delete_state k r in
   let finished s = s.op_state |> X.dest_d_finished |> is_Some in
   let dest s = s.op_state |> X.dest_d_finished |> fun (Some r) -> r in
   let step = X.delete_step ~constants ~cmp ~store_ops in
-  let with_check ~r2t ~k2j ~v2j ~r2j = 
+  let with_check ~r2t ~k2j ~v2j ~r2j ~init_store = 
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log __LOC__;
@@ -221,7 +223,7 @@ let delete' ~cmp ~constants ~store_ops ~k ~r ~init_store = (
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   let check_state s = true in
-  let without_check = 
+  let without_check ~init_store = 
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
   in
   (with_check,without_check))
@@ -229,12 +231,12 @@ let delete' ~cmp ~constants ~store_ops ~k ~r ~init_store = (
 
 (** Delete. Take a key and a reference to a B-tree root, and a global
    state. Return the updated state and a reference to the new root. *)
-let delete ~ps ~store_ops ~k ~r ~init_store = (
+let delete ~ps ~store_ops ~k ~r = (
   match dbg_ps ps with
   | None -> (
-      delete' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r ~init_store |> snd)
+      delete' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r |> snd)
   | Some ps' -> (
-      delete' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r ~init_store 
+      delete' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r 
       |> fst 
       |> fun f -> f ~r2t:(r2t ps') ~k2j:(k2j ps') ~v2j:(v2j ps') ~r2j:(r2j ps'))
 )
