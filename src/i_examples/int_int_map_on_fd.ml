@@ -36,6 +36,8 @@ let _ = r2t_ref := Prelude.store_ops_to_r2t store_ops
 let map_ops = 
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
 
+let imperative_map_ops = mk_imperative_map_ops ~ps ~ops
+
 let ls_ops = mk_ls_ops ~ps ~page_ref_ops ~store_ops
 
 

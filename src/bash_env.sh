@@ -9,7 +9,7 @@ meta_description="A CoW B-tree library"
 
 required_packages="num,yojson,ppx_deriving_yojson,batteries,extunix,extlib"
 
-natives="main.native test_main.native simple_example.native"
+natives="main.native test_main.native simple_example.native ii_example.native"
 bytes="test_main.byte"
 
 source bash_env.common
