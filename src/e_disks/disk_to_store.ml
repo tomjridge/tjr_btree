@@ -22,12 +22,14 @@ let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
     f|>frame_to_page page_size pp|> (fun p -> 
         free_ops.get () |> bind (fun free -> 
             (* debugging *)
+            (*
             (match dbg_ps ps with None -> () | Some ps' ->
                 f |> Frame.frame_to_yojson (k2j ps') (v2j ps') (r2j ps') 
                 |> Yojson.Safe.to_string
                 |> print_endline);
             Printexc.(get_callstack 100 |> raw_backtrace_to_string 
                       |> print_endline);
+            *)
             disk_ops.write free p |> bind (fun () -> 
                 free_ops.set (free+1) |> bind (fun () ->
                     return free)))))
