@@ -15,7 +15,7 @@ let ps =
     method pp=pp
     method constants=Constants.make_constants blk_sz tag_len pp.k_len pp.v_len
     method cmp=Int_.compare
-    method dbg_ps=Some(
+    method dbg_ps=None(*Some(
         let f = (fun i -> `Int i) in
         object 
           method k2j=f
@@ -23,7 +23,7 @@ let ps =
           method r2j=f
           method r2t=(!r2t_ref)
         end
-      )
+      ) *)
   end
 
 open Map_on_fd

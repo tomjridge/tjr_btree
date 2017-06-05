@@ -27,8 +27,8 @@ let rec iter ops : (unit,'t) m = (fun s ->
         ops.step s|> (fun x ->
             match x with
             | (s',Ok ()) -> (
-                assert(ops.check_state s');
-                assert(ops.check_trans s s');
+                test(fun _ -> assert(ops.check_state s'));
+                test(fun _ -> assert(ops.check_trans s s'));
                 iter ops s')
             | (s',Error e) -> (s',Error(e))))
     | true -> (s,Ok()) )

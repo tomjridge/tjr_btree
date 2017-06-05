@@ -16,7 +16,7 @@ type 't free_ops = (int,'t) mref
 let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
   let page_size = page_size ps in
   let pp = pp ps in
-  assert (disk_ops.blk_sz = page_size);
+  test(fun _ -> assert (disk_ops.blk_sz = page_size));
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = (
     f|>frame_to_page page_size pp|> (fun p -> 
@@ -42,15 +42,4 @@ let disk_to_store ps disk_ops free_ops : ('k,'v,'r,'t) store_ops = (
   {store_free; store_read; store_alloc } 
 )
 
-
-
-(* FIXME where does this go?
-
-  (* let cs0 = Constants.make_constants page_size tag_len pp.k_len pp.v_len in *)
-
-  let r2f t r : ('k,'v) frame option = 
-    store_read r t |> (function (_,Ok f) -> Some f 
-                              | _ -> (ignore(assert(false)); None))
-  in
-*)
 

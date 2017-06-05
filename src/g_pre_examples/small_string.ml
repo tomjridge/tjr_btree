@@ -1,4 +1,5 @@
 (** Strings with <= 256 bytes, used as keys in maps *)
+open Test
 
 module Small_string : sig
   type t [@@deriving yojson]
@@ -13,7 +14,7 @@ end = struct
   let to_string x = x
   let max_size = 256
   let of_string x = (
-    assert (String.length x <= max_size);
+    test(fun () -> assert (String.length x <= max_size));
     x)
   let compare: t -> t -> int = Pervasives.compare
 end

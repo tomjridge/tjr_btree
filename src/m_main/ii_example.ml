@@ -13,7 +13,7 @@ let v x = x
 
 let close = Map_on_fd.Default_implementation.close
 
-let max = 10000
+let max = 1000
 
 (* create and init store, write some values, and close *)
 let do_write () = (
@@ -24,7 +24,7 @@ let do_write () = (
   let map_ops = imperative_map_ops s in
   (* write values *)
   for x=1 to max do
-    print_endline (string_of_int x);
+    (* print_endline (string_of_int x); *)
     (* TODO this would be much faster if we used insert_many *)
     map_ops.insert (k x) (v x);
   done;

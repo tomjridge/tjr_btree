@@ -1,6 +1,8 @@
 (** Marshalling and pickling. Marshalling is very low-level. Pickling
    has combinators etc. *)
 
+open Test
+
 (** Basic conversions from int to bytes etc *)
 module Basic_marshalling = struct
 
@@ -18,7 +20,7 @@ module Basic_marshalling = struct
 
   (* assumes bs length 4 *)
   let bytes_to_int32 = Int32.(fun bs -> 
-      assert (List.length bs = 4);
+      test (fun _ -> assert(List.length bs = 4));
       let arr = Array.of_list bs in
       let i = ref (Int32.of_int 0) in
       for j = 0 to 3 do
@@ -30,9 +32,9 @@ module Basic_marshalling = struct
 
   let _ = Test.test (fun _ ->
       let f i = (
-        assert (i |> int32_to_bytes |> bytes_to_int32 = i);
+        test(fun _ -> assert (i |> int32_to_bytes |> bytes_to_int32 = i));
         let j = i |> int32_to_bytes in
-        assert (j |> bytes_to_int32 |> int32_to_bytes = j);
+        test(fun _ -> assert (j |> bytes_to_int32 |> int32_to_bytes = j));
         ())
       in
       List.iter f [Int32.of_int 0;Int32.of_int 1;Int32.of_int (-1);Int32.max_int;Int32.min_int])
@@ -51,7 +53,7 @@ module Basic_marshalling = struct
 
   (* assumes bs length 8 *)
   let bytes_to_int64 = Int64.(fun bs -> 
-      assert (List.length bs = 8);
+      test (fun _ -> assert (List.length bs = 8));
       let arr = Array.of_list bs in
       let i = ref (Int64.of_int 0) in
       for j = 0 to 7 do
@@ -148,7 +150,7 @@ end = struct
       | Error e -> raise (Pickle_exception e))
 
   let read_bytes : int -> char list m = (fun n s -> 
-      assert (String.length s >= n);
+      test(fun _ -> assert (String.length s >= n));
       String_.split_at s n |> 
       (fun (bs,s') -> (s',Ok (bs|>BatString.explode))))
 

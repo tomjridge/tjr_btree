@@ -154,25 +154,3 @@ let make lower ps : ('k,'v,'r,'t) rs_ops = (
 
 
 
-
-(*
-  (* FIXME can't this be derived from store_read? why needed in interface? *)
-  let mk_r2f: W.t -> page_ref -> ('k,'v)frame option = (fun t ->
-      let lower_r2f = lower.store_ops.mk_r2f t in
-      fun r -> (
-          let m = (
-            get_cache () |> bind (fun c -> 
-                (* consult cache first *)
-                (try Some(Cache.find r c) with Not_found -> None)
-                |> (function
-                    | Some p -> (return (Some p))
-                    | None -> (
-                        return (lower_r2f r)))))
-          in
-          match (m t) with
-          | (_,Ok f) -> f
-          | (_,Error e) -> (
-              (* assume only called on page_refs that are valid *)
-              ignore(assert(false)); None)))  
-  in
-*)
