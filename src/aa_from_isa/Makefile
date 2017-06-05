@@ -20,6 +20,6 @@ orig.patch: orig.ml patched.ml
 
 isa_export.ml: orig.ml FORCE
 	-patch -i orig.patch orig.ml -o $@ 
-	cp $@ ../ag_base_types
+	cp $@ ../ac_test
 
 FORCE:
