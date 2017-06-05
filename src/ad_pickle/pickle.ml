@@ -232,14 +232,13 @@ module Examples = struct
 
   let u_list : ('a U.m) -> 'a list U.m = U.(
       fun u ->
-        u_int |> bind (fun n ->
-            let rec loop xs = (
-              (* FIXME inefficient *)
-              match List.length xs < n with
-                true -> u |> bind (fun x -> loop (x::xs))
-              | false -> ret (List.rev xs))
+        u_int |> bind (fun n -> 
+            let _ = test (fun _ -> assert (n>=0)) in
+            let rec loop n xs = (
+              if n=0 then ret (List.rev xs) 
+              else u |> bind (fun x -> loop (n-1) (x::xs)))
             in
-            loop [])
+            loop n [])
     )
 
 
