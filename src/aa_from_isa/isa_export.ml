@@ -287,6 +287,8 @@ module Res = struct
   type 'a res = ('a,string) result
 end
 
+let check_flag = ref true
+
 module Util : sig
   include module type of Res
   type error = String_error of string
@@ -295,13 +297,14 @@ module Util : sig
   val from_to : Arith.nat -> Arith.nat -> Arith.nat list
   val is_None : 'a option -> bool
   val failwitha : string -> 'a
-  val assert_true : bool -> bool
+  val check_true : (unit -> bool) -> bool
   val split_at : Arith.nat -> 'a list -> 'a list * 'a list
   val dest_Some : 'a option -> 'a
   val dest_list : 'a list -> 'a * 'a list
   val iter_step : ('a -> 'a option) -> 'a -> 'a
   val dest_lista : 'a list -> 'a list * 'a
   val split_at_3 : Arith.nat -> 'a list -> 'a list * ('a * 'a list)
+  val assert_true : bool -> bool
   val impossible1 : string -> 'a
   val max_of_list : Arith.nat list -> Arith.nat
 end = struct
@@ -322,11 +325,11 @@ let rec is_None x = Option.is_none x;;
 
 let rec failwitha x = failwith x
 
-let rec assert_true b = (if b then b else failwitha "assert_true");;
+let rec check_true f = if !check_flag then f () else true;;
 
 let rec split_at
   n xs =
-    (let _ = assert_true (Arith.less_eq_nat n (List.size_list xs)) in
+    (let _ = check_true (fun _ -> Arith.less_eq_nat n (List.size_list xs)) in
      List.take n xs,
       List.drop n xs);;
 
@@ -347,12 +350,15 @@ let rec dest_lista
 let rec split_at_3
   n xs =
     let _ =
-      assert_true
-        (Arith.less_eq_nat n
-          (Arith.minus_nat (List.size_list xs) Arith.one_nat))
+      check_true
+        (fun _ ->
+          Arith.less_eq_nat n
+            (Arith.minus_nat (List.size_list xs) Arith.one_nat))
       in
     (List.take n xs,
       (List.nth xs n, List.drop (Arith.plus_nat n Arith.one_nat) xs));;
+
+let rec assert_true b = (if b then b else failwitha "assert_true");;
 
 let rec impossible1 x = failwitha x;;
 
@@ -418,26 +424,30 @@ let rec kvs_insert
 let rec split_leaf
   c kvs =
     let _ =
-      Util.assert_true
-        (Arith.less_eq_nat
-          (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size)
-            Arith.one_nat)
-          (List.size_list kvs))
+      Util.check_true
+        (fun _ ->
+          Arith.less_eq_nat
+            (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size)
+              Arith.one_nat)
+            (List.size_list kvs))
       in
     let cut_point =
       Arith.minus_nat
         (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size) Arith.one_nat)
         (Util.rev_apply c Prelude.min_leaf_size)
       in
-    let _ = Util.assert_true (Arith.less_eq_nat cut_point (List.size_list kvs))
+    let _ =
+      Util.check_true
+        (fun _ -> Arith.less_eq_nat cut_point (List.size_list kvs))
       in
     let (l, r) = Util.split_at cut_point kvs in
     let _ =
-      Util.assert_true
-        (Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
-           (List.size_list l) &&
+      Util.check_true
+        (fun _ ->
           Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
-            (List.size_list r))
+            (List.size_list l) &&
+            Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
+              (List.size_list r))
       in
     let k =
       (match r with [] -> Util.impossible1 "key_value, split_leaf"
@@ -453,9 +463,10 @@ let rec split_node
           in
         let (ks1, (k, ks2)) = Util.split_at_3 cut_point ks in
         let _ =
-          Util.assert_true
-            (Arith.less_eq_nat (Util.rev_apply c Prelude.min_node_keys)
-              (List.size_list ks2))
+          Util.check_true
+            (fun _ ->
+              Arith.less_eq_nat (Util.rev_apply c Prelude.min_node_keys)
+                (List.size_list ks2))
           in
         let (rs1, rs2) =
           Util.split_at (Arith.plus_nat cut_point Arith.one_nat) rs in
@@ -475,17 +486,20 @@ let rec split_ks_rs
   cmp k ks_rs =
     let (ks, rs) = ks_rs in
     let _ =
-      Util.assert_true
-        (Arith.equal_nat (List.size_list rs)
-          (Arith.plus_nat (List.size_list ks) Arith.one_nat))
+      Util.check_true
+        (fun _ ->
+          Arith.equal_nat (List.size_list rs)
+            (Arith.plus_nat (List.size_list ks) Arith.one_nat))
       in
     let i = search_key_to_index cmp ks k in
-    let _ = Util.assert_true (Arith.less_eq_nat i (List.size_list ks)) in
+    let _ = Util.check_true (fun _ -> Arith.less_eq_nat i (List.size_list ks))
+      in
     let (ks1, ks2) = Util.split_at i ks in
     let _ =
-      Util.assert_true
-        (Arith.less_eq_nat i
-          (Arith.minus_nat (List.size_list rs) Arith.one_nat))
+      Util.check_true
+        (fun _ ->
+          Arith.less_eq_nat i
+            (Arith.minus_nat (List.size_list rs) Arith.one_nat))
       in
     let (rs1, (r, rs2)) = Util.split_at_3 i rs in
     ((ks1, rs1), (r, (ks2, rs2)));;
@@ -1174,7 +1188,7 @@ let rec post_steal_or_merge
         let f =
           (match Arith.equal_nat p_sz Arith.zero_nat
             with true ->
-              let _ = Util.assert_true (List.null stk) in
+              let _ = Util.check_true (fun _ -> List.null stk) in
               Monad.return (D_updated_subtree c)
             | false ->
               (match
@@ -1205,7 +1219,7 @@ let rec post_steal_or_merge
               (Util.rev_apply (Util.rev_apply ps1 Params.cs)
                 Prelude.min_node_keys)
             with true ->
-              let _ = Util.assert_true (List.null stk) in
+              let _ = Util.check_true (fun _ -> List.null stk) in
               Monad.return
                 (D_small_node (Util.rev_apply p Frame.dest_Node_frame))
             | false ->
@@ -1913,7 +1927,7 @@ type ('a, 'b, 'c) ls_state =
   LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
 
 let rec step_up
-  fs = let _ = Util.assert_true (not (List.null fs)) in
+  fs = let _ = Util.check_true (fun _ -> not (List.null fs)) in
        (match fs with [] -> Util.failwitha "impossible: Leaf_stream.step_up"
          | f :: fsa ->
            let a = Util.rev_apply f Tree_stack.dest_ts_frame in
