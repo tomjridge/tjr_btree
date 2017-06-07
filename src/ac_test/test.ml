@@ -2,10 +2,6 @@
    enabled/disabled. Also includes [log] and [warn] logging
    support. *)
 
-(** Control isabelle inessential checks via flag *)
-let enable_isa_checks () = Isa_export.check_flag:=true
-let disable_isa_checks () = Isa_export.check_flag:=false
-
 
 (* testing ---------------------------------------------------------- *)
 
@@ -45,3 +41,13 @@ let warn s = (
   log (fun _ -> s)
 )
 
+
+
+(* exit_hook -------------------------------------------------------- *)
+
+let exit_hooks = ref []
+
+let add_exit_hook (f:unit -> unit) = exit_hooks := f::!exit_hooks
+
+let run_exit_hooks () = 
+  List.iter (fun f -> f()) !exit_hooks

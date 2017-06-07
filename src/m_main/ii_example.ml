@@ -6,6 +6,8 @@ open Default_filename
 open Block.Blk4096
 
 let _ = Test.disable()
+let _ = Isa_test.disable_isa_checks()
+
 
 (* construct keys and values from an int *)
 let k x = x
@@ -78,3 +80,5 @@ let do_full_check () = (
 )
 
 let _ = do_full_check ()
+
+let _ = Test.run_exit_hooks()

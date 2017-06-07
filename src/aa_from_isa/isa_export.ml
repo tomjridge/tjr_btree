@@ -110,10 +110,10 @@ end;; (*struct Arith*)
 
 module List : sig
   val nth : 'a list -> Arith.nat -> 'a
+  val rev : 'a list -> 'a list
   val upt : Arith.nat -> Arith.nat -> Arith.nat list
   val zip : 'a list -> 'b list -> ('a * 'b) list
   val drop : Arith.nat -> 'a list -> 'a list
-  val find : ('a -> bool) -> 'a list -> 'a option
   val null : 'a list -> bool
   val last : 'a list -> 'a
   val take : Arith.nat -> 'a list -> 'a list
@@ -134,6 +134,12 @@ let rec nth
     (if Arith.equal_nat n Arith.zero_nat then x
       else nth xs (Arith.minus_nat n Arith.one_nat));;
 
+let rec fold
+  f x1 s = match f, x1, s with f, x :: xs, s -> fold f xs (f x s)
+    | f, [], s -> s;;
+
+let rec rev xs = fold (fun a b -> a :: b) xs [];;
+
 let rec upt
   i j = (if Arith.less_nat i j then i :: upt (Arith.suc i) j else []);;
 
@@ -147,10 +153,6 @@ let rec drop
     | n, x :: xs ->
         (if Arith.equal_nat n Arith.zero_nat then x :: xs
           else drop (Arith.minus_nat n Arith.one_nat) xs);;
-
-let rec find
-  uu x1 = match uu, x1 with uu, [] -> None
-    | p, x :: xs -> (if p x then Some x else find p xs);;
 
 let rec null = function [] -> true
                | x :: xs -> false;;
@@ -368,8 +370,8 @@ let rec max_of_list
 end;; (*struct Util*)
 
 module Key_value : sig
-  val key_eq : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
   val key_lt : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
+  val key_eq : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
   val kvs_equal : ('a * 'b) list -> ('a * 'b) list -> bool
   val check_keys :
     ('a -> 'a -> Arith.int) -> 'a option -> 'a Set.set -> 'a option -> bool
@@ -390,11 +392,21 @@ module Key_value : sig
   val ordered_key_list : ('a -> 'a -> Arith.int) -> 'a list -> bool
 end = struct
 
+let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
+
+let rec aux
+  cmp k0 ks_rs1 ks_rs2 =
+    let (ks1, rs1) = ks_rs1 in
+    let (ks, rs) = ks_rs2 in
+    let (r, rsa) = (List.hd rs, List.tl rs) in
+    (match ks with [] -> ((List.rev ks1, List.rev rs1), (r, (ks, rsa)))
+      | k :: ksa ->
+        (if key_lt cmp k0 k then ((List.rev ks1, List.rev rs1), (r, (ks, rsa)))
+          else aux cmp k0 (k :: ks1, r :: rs1) (ksa, rsa)));;
+
 let rec key_eq ord k1 k2 = Arith.equal_int (ord k1 k2) Arith.zero_int;;
 
 let rec key_le ord k1 k2 = Arith.less_eq_int (ord k1 k2) Arith.zero_int;;
-
-let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
 
 let rec kvs_equal x y = (x=y)
 
@@ -472,37 +484,7 @@ let rec split_node
           Util.split_at (Arith.plus_nat cut_point Arith.one_nat) rs in
         ((ks1, rs1), (k, (ks2, rs2)));;
 
-let rec search_key_to_index
-  cmp ks k =
-    let num_keys = List.size_list ks in
-    let i =
-      List.find (fun x -> key_lt cmp k (List.nth ks x))
-        (List.upt Arith.zero_nat num_keys)
-      in
-    let ia = (match i with None -> num_keys | Some x -> x) in
-    ia;;
-
-let rec split_ks_rs
-  cmp k ks_rs =
-    let (ks, rs) = ks_rs in
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.equal_nat (List.size_list rs)
-            (Arith.plus_nat (List.size_list ks) Arith.one_nat))
-      in
-    let i = search_key_to_index cmp ks k in
-    let _ = Util.check_true (fun _ -> Arith.less_eq_nat i (List.size_list ks))
-      in
-    let (ks1, ks2) = Util.split_at i ks in
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.less_eq_nat i
-            (Arith.minus_nat (List.size_list rs) Arith.one_nat))
-      in
-    let (rs1, (r, rs2)) = Util.split_at_3 i rs in
-    ((ks1, rs1), (r, (ks2, rs2)));;
+let rec split_ks_rs cmp k ks_rs = aux cmp k ([], []) ks_rs;;
 
 let rec ordered_key_list
   ord ks =

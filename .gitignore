@@ -88,3 +88,5 @@ src/map_string.ml
 src/page_ref_int.ml
 src/set_int.ml
 src/small_step.ml
+/src/isa_test.ml
+/src/profile.ml
