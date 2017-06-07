@@ -56,12 +56,21 @@ open Pickle_params
 
 let pp x : ('k,'v) pp = x#pp
 
+open Block
+open Frame
+
+let pg_to_frm x : blk -> ('k,'v,'r) frame = x#page_to_frame
+
+(* following takes block size to allow uniformity *)
+let frm_to_pg x : int -> ('k,'v,'r) frame -> blk = x#frame_to_page
 
 (* these are typically part of "extended" parameters *)
 
 let page_ref_ops x = x#page_ref_ops
 
 let store_ops x = x#store_ops
+
+
 
 
 (*

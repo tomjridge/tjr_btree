@@ -1,46 +1,82 @@
 (* a map from int to int, backed by file ------------------------------- *)
+
+(* for performance reasons, we use custom marshalling *)
+
 open Prelude
 open Btree_api
 open Example_keys_and_values
 open Btree_with_pickle.O
 open Small_string.O
 open Block.Blk4096
+open Frame
+open Page_ref_int
+
+module Blk = Block.Blk4096
 
 let r2t_ref = ref (fun x -> failwith "")
 
+module BP = Bin_prot
+
+open BP.Std
+
+type iis = N of int list * int list | L of (int*int) list [@@deriving bin_io]
+
+let f2iis frm = (
+  match frm with
+  | Node_frame (ks,rs) -> N (ks,rs)
+  | Leaf_frame kvs -> L kvs)
+
+let iis2f iis = (
+  match iis with
+  | N (ks,rs) -> Node_frame(ks,rs)
+  | L kvs -> Leaf_frame kvs)
+
+open Bigarray
+type buf = BP.Common.buf
+
+let frm_to_pg blk_sz (frm:(int,int)frame) = (
+  let buf = BP.Common.create_buf blk_sz in
+  let pos' = frm |> f2iis |> bin_writer_iis.write buf ~pos:0 in
+  let s = Bytes.create blk_sz in
+  let () = BP.Common.blit_buf_string buf s pos' in
+  s |> Blk.of_string
+)
+
+let pg_to_frm pg = (
+  let s = pg |> Blk.to_string in
+  let buf = BP.Common.create_buf blk_sz in
+  let _ = BP.Common.blit_string_buf s buf blk_sz in
+  let iis : iis = bin_reader_iis.read buf (ref 0) in
+  iis|>iis2f)
+
 let ps = 
-  let pp = int_int_pp in
   object
     method blk_sz=blk_sz
-    method pp=pp
-    method constants=Constants.make_constants blk_sz tag_len pp.k_len pp.v_len
+    method page_to_frame=pg_to_frm
+    method frame_to_page=frm_to_pg
     method cmp=Int_.compare
-    method dbg_ps=None(*Some(
-        let f = (fun i -> `Int i) in
-        object 
-          method k2j=f
-          method v2j=f
-          method r2j=f
-          method r2t=(!r2t_ref)
-        end
-      ) *)
+    method constants=Constants.make_constants blk_sz tag_len 4 4 (* TODO not correct - need min and max size that can fit using bin_prot *)
+    method dbg_ps=None
   end
 
 open Map_on_fd
 open Map_on_fd.Default_implementation
 
-let store_ops = mk_store_ops ~ps ~ops
+let disk_ops = mk_disk_ops ~ps ~fd_ops:ops#fd_ops
+
+let store_ops = Disk_to_store.disk_to_store_with_custom_marshalling
+    ~ps ~disk_ops ~free_ops
 
 let _ = r2t_ref := Prelude.store_ops_to_r2t store_ops
 
 let map_ops = 
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
 
-let imperative_map_ops = mk_imperative_map_ops ~ps ~ops
+(* let imperative_map_ops = Btree_api.Imperative_map_ops.of_map_ops map_ops *)
 
 let ls_ops = mk_ls_ops ~ps ~page_ref_ops ~store_ops
 
-
+(* FIXME pp shouldn't be hardcoded in ps - we need frm2p and p2frm *)
 let from_file ~fn ~create ~init = from_file ~fn ~create ~init ~ps
 
 let main args = (

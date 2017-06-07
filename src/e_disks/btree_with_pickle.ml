@@ -19,11 +19,14 @@ let node_tag = 0
 let leaf_tag = 1
 let tag_len = 4 (* bytes *)
 
+module X = Profile
+
 (* generic marshalling; format: int node_or_leaf; int number
    of entries; entries *)
 let frame_to_page':
   blk_sz -> ('k,'v) pp -> ('k,'v) frame -> page = Pickle.P.(
     fun blk_sz pp p ->
+      assert(X.log X.P.cd);
       let is = PE.(
           match p with
           | Node_frame(ks,rs) -> (
@@ -43,11 +46,13 @@ let frame_to_page':
           (if (not b) then Printf.printf "%d %d" l1 l2);
           assert b)
       in
+      assert(X.log X.P.de);
       BlkN.of_string blk_sz s
   )
 
 let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
     fun pp buf -> 
+      assert(X.log X.P.ef);      
       let x = PE.(
           u_int |> bind (fun tag -> 
               match tag with 
@@ -66,6 +71,7 @@ let page_to_frame' : ('k,'v) pp -> page -> ('k,'v)frame = Pickle.U.(
       test(fun _ -> (match r with
       | Leaf_frame ks -> (* could be root *) ()
       | Node_frame (ks,rs) -> assert(List.length ks +1 = List.length rs)));
+      assert(X.log X.P.fg);      
       r)
 
 module O = struct
