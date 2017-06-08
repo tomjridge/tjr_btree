@@ -52,7 +52,7 @@ let free_ops x = x#free_ops
 let mk_disk_ops ~ps ~fd_ops = D.make_disk ~blk_sz:(blk_sz ps) ~fd_ops
 
 let mk_store_ops ~ps ~ops = 
-  D2S.disk_to_store
+  D2S.disk_to_store_with_custom_marshalling
     ps
     (mk_disk_ops ~ps ~fd_ops:(fd_ops ops))
     (free_ops ops)
@@ -80,7 +80,7 @@ let mk_imperative_map_ops ~ps ~ops =
 
 open Pickle
 open Examples
-open Btree_with_pickle.O
+(* open Btree_with_pickle.O *)
 
 let write_root_block ~fd ~blk_sz ~free ~root = (
   let p : P.m = (p_pair (p_int free) (p_int root)) in
@@ -100,14 +100,14 @@ let read_root_block ~blk_sz ~fd = (
 
 let from_file ~fn ~create ~init ~ps = (
   let blk_sz = blk_sz ps in
-  let pp = pp ps in
+(*  let pp = pp ps in *)
   let fd = File_.fd_from_file fn create init in
   match init with
   | true -> (
       (* now need to write the initial frame *)
       let _ = 
         let frm = Leaf_frame [] in
-        let p = frm|>frame_to_page blk_sz pp in
+        let p = frm|>frame_to_page ps blk_sz in
         Disk_on_fd.write fd blk_sz 1 p 
       in
       (* 0,1 are taken so 2 is free; 1 is the root of the btree *)

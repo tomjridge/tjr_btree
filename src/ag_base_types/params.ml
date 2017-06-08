@@ -52,17 +52,19 @@ let blk_sz x : int = (x#blk_sz)
 (** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
 let page_size = blk_sz
 
+(*
 open Pickle_params
 
 let pp x : ('k,'v) pp = x#pp
+*)
 
 open Block
 open Frame
 
-let pg_to_frm x : blk -> ('k,'v,'r) frame = x#page_to_frame
+let page_to_frame x : blk -> ('k,'v,'r) frame = x#page_to_frame
 
 (* following takes block size to allow uniformity *)
-let frm_to_pg x : int -> ('k,'v,'r) frame -> blk = x#frame_to_page
+let frame_to_page x : int -> ('k,'v,'r) frame -> blk = x#frame_to_page
 
 (* these are typically part of "extended" parameters *)
 

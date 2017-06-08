@@ -5,15 +5,13 @@
 open Prelude
 open Btree_api
 open Example_keys_and_values
-open Btree_with_pickle.O
+(* open Btree_with_pickle_ *)
 open Small_string.O
 open Block.Blk4096
 open Frame
 open Page_ref_int
 
 module Blk = Block.Blk4096
-
-let r2t_ref = ref (fun x -> failwith "")
 
 module BP = Bin_prot
 
@@ -55,7 +53,7 @@ let ps =
     method page_to_frame=pg_to_frm
     method frame_to_page=frm_to_pg
     method cmp=Int_.compare
-    method constants=Constants.make_constants blk_sz tag_len 4 4 (* TODO not correct - need min and max size that can fit using bin_prot *)
+    method constants=Constants.make_constants blk_sz 4 4 4 (* TODO not correct - need min and max size that can fit using bin_prot *)
     method dbg_ps=None
   end
 
@@ -67,12 +65,10 @@ let disk_ops = mk_disk_ops ~ps ~fd_ops:ops#fd_ops
 let store_ops = Disk_to_store.disk_to_store_with_custom_marshalling
     ~ps ~disk_ops ~free_ops
 
-let _ = r2t_ref := Prelude.store_ops_to_r2t store_ops
-
 let map_ops = 
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
 
-(* let imperative_map_ops = Btree_api.Imperative_map_ops.of_map_ops map_ops *)
+let imperative_map_ops = Btree_api.Imperative_map_ops.of_map_ops map_ops
 
 let ls_ops = mk_ls_ops ~ps ~page_ref_ops ~store_ops
 

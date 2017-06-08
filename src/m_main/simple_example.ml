@@ -77,4 +77,6 @@ let do_full_check () = (
 
 let _ = do_full_check ()
 
+(*
 let _ = Test.run_exit_hooks()
+*)

@@ -4,7 +4,7 @@ open Prelude
 open Btree_api
 open Page_ref_int
 open Monad
-open Btree_with_pickle.O
+(* open Btree_with_pickle.O *)
 open Pickle_params
 open Params
 
@@ -17,6 +17,7 @@ type 't free_ops = (int,'t) mref
    pickling we currently have; then the pickling can be mapped to the
    usual f2p and p2f *)
 
+(*
 let disk_to_store ~ps ~disk_ops ~free_ops : ('k,'v,'r,'t) store_ops = (
   let page_size = page_size ps in
   let pp = pp ps in
@@ -45,7 +46,7 @@ let disk_to_store ~ps ~disk_ops ~free_ops : ('k,'v,'r,'t) store_ops = (
   in
   {store_free; store_read; store_alloc } 
 )
-
+*)
 
 (* version which uses custom frame_to_page and page_to_frame *)
 let disk_to_store_with_custom_marshalling ~ps ~disk_ops ~free_ops 
@@ -54,7 +55,7 @@ let disk_to_store_with_custom_marshalling ~ps ~disk_ops ~free_ops
   test(fun _ -> assert (disk_ops.blk_sz = page_size));
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = (
-    f|>(frm_to_pg ps) page_size |> (fun p -> 
+    f|>(frame_to_page ps) page_size |> (fun p -> 
         free_ops.get () |> bind (fun free -> 
             (* debugging *)
             (*
@@ -71,7 +72,7 @@ let disk_to_store_with_custom_marshalling ~ps ~disk_ops ~free_ops
   in
   let store_read r : (('k,'v)frame,'t) m = 
     disk_ops.read r |> bind (fun blk ->
-        blk |> (pg_to_frm ps) |> (fun frm ->
+        blk |> (page_to_frame ps) |> (fun frm ->
             return frm))
   in
   {store_free; store_read; store_alloc } 
