@@ -57,52 +57,37 @@ let ps =
     method dbg_ps=None
   end
 
-open Map_on_fd
-open Map_on_fd.Default_implementation
-
-let disk_ops = mk_disk_ops ~ps ~fd_ops:ops#fd_ops
-
-let store_ops = Disk_to_store.disk_to_store_with_custom_marshalling
-    ~ps ~disk_ops ~free_ops
-
-let map_ops = 
-  Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
-
-let imperative_map_ops = Btree_api.Imperative_map_ops.of_map_ops map_ops
-
-let ls_ops = mk_ls_ops ~ps ~page_ref_ops ~store_ops
-
-(* FIXME pp shouldn't be hardcoded in ps - we need frm2p and p2frm *)
-let from_file ~fn ~create ~init = from_file ~fn ~create ~init ~ps
-
 let main args = (
   (* turn off wf checking *)
-  Test.disable ();
-  match args with
-  | ["init"; fn] -> (
-      from_file ~fn ~create:true ~init:true
-      |> (fun _ -> print_endline "init ok"))
-  | ["insert";fn;k;v] -> (
-      from_file ~fn ~create:false ~init:false
-      |> map_ops.insert (int_of_string k) (int_of_string v) 
-      |> function (t,Ok _) -> (close ~blk_sz t))
-  | ["delete";fn;k] -> (
-      from_file ~fn ~create:false ~init:false
-      |> map_ops.delete (int_of_string k) 
-      |> function (t,Ok _) -> (close ~blk_sz t))
-  | ["list";fn] -> (
-      from_file ~fn  ~create:false ~init:false
-      |> (fun s -> 
-          s 
-          |> all_kvs ls_ops 
-          |> (function (s',Ok kvs) -> (
-                (List.iter (fun (k,v) -> 
-                     Printf.printf "%s -> %s\n" (string_of_int k) 
-                       (string_of_int v)) kvs);
-                close ~blk_sz s';
-                ()));                
-          print_endline "list ok"))
-  | _ -> (
-      failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
-                __LOC__))
+  Examples_common.mk_example ~ps ~kk:(
+    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
+      ~from_file ~close -> 
+      Test.disable ();
+      match args with
+      | ["init"; fn] -> (
+          from_file ~fn ~create:true ~init:true
+          |> (fun _ -> print_endline "init ok"))
+      | ["insert";fn;k;v] -> (
+          from_file ~fn ~create:false ~init:false
+          |> map_ops.insert (int_of_string k) (int_of_string v) 
+          |> function (t,Ok _) -> (close t))
+      | ["delete";fn;k] -> (
+          from_file ~fn ~create:false ~init:false
+          |> map_ops.delete (int_of_string k) 
+          |> function (t,Ok _) -> (close t))
+      | ["list";fn] -> (
+          from_file ~fn  ~create:false ~init:false
+          |> (fun s -> 
+              s 
+              |> all_kvs ls_ops 
+              |> (function (s',Ok kvs) -> (
+                    (List.iter (fun (k,v) -> 
+                         Printf.printf "%s -> %s\n" (string_of_int k) 
+                           (string_of_int v)) kvs);
+                    close s';
+                    ()));                
+              print_endline "list ok"))
+      | _ -> (
+          failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
+                    __LOC__)))
 )

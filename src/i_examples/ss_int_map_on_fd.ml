@@ -23,12 +23,4 @@ let ps =
     method dbg_ps=None (* TODO *)
   end
 
-open Map_on_fd
-open Map_on_fd.Default_implementation
-
-let store_ops = mk_store_ops ~ps ~ops
-
-let map_ops = 
-  Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
-
-let ls_ops = mk_ls_ops ~ps ~page_ref_ops ~store_ops
+let mk ~kk = Examples_common.mk_example ~ps ~kk

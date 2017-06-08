@@ -90,3 +90,4 @@ src/set_int.ml
 src/small_step.ml
 /src/isa_test.ml
 /src/profile.ml
+/src/examples_common.ml

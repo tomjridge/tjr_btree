@@ -12,27 +12,29 @@ open Monad
 (* test uncached ---------------------------------------- *)
 
 let test_uncached range = (
-  Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
-    __MODULE__ 
-    (List.length range);
-  flush_out();
-  let s = Map_on_fd.Default_implementation.from_file ~fn
-      ~create:true ~init:true ~ps:ps in
-  let s = ref s in
-  let xs = ref range in
-  ignore (
-    while (!xs <> []) do
-      print_string "."; flush_out();
-      let x = List.hd !xs in
-      ignore (map_ops.insert x (2*x) 
-              |> run !s 
-              |> function (s',Ok()) -> s:=s');
-      xs:=List.tl !xs;
-    done);
-  print_newline ();
-  (* FIXME check result? *)
-  Unix.close ((!s).fd);
-  ())
+  Examples_common.mk_example ~ps ~kk:(
+    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
+      ~from_file ~close -> 
+      Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
+        __MODULE__ 
+        (List.length range);
+      flush_out();
+      let s = from_file ~fn ~create:true ~init:true in
+      let s = ref s in
+      let xs = ref range in
+      ignore (
+        while (!xs <> []) do
+          print_string "."; flush_out();
+          let x = List.hd !xs in
+          ignore (map_ops.insert x (2*x) 
+                  |> run !s 
+                  |> function (s',Ok()) -> s:=s');
+          xs:=List.tl !xs;
+        done);
+      print_newline ();
+      (* FIXME check result? *)
+      close !s;
+      ()))
 
 
 (* test cached ------------------------------------------------------------ *)

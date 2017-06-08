@@ -12,7 +12,12 @@ open Block.Blk4096
 let k x = "k"^(string_of_int x) |> SS.of_string
 let v x = "v"^(string_of_int x) |> SS.of_string
 
-let close = Map_on_fd.Default_implementation.close
+let from_file,imperative_map_ops,close = 
+  Examples_common.mk_example ~ps ~kk:(
+    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
+      ~from_file ~close ->   
+      from_file,imperative_map_ops,close)
+
 
 (* create and init store, write some values, and close *)
 let do_write () = (
@@ -27,7 +32,7 @@ let do_write () = (
     map_ops.insert (k x) (v x);
   done;
   (* close *)
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 
@@ -39,7 +44,7 @@ let do_delete () = (
   for x=100 to 200 do
     map_ops.delete (k x);
   done;
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 
@@ -50,7 +55,7 @@ let do_check () = (
   let map_ops = imperative_map_ops s in
   assert(map_ops.find (k 100) = None);
   assert(map_ops.find (k 1000) = Some(v 1000));
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 

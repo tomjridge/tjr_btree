@@ -8,17 +8,22 @@ open Block.Blk4096
 let _ = Test.disable()
 let _ = Isa_test.disable_isa_checks()
 
+let from_file,imperative_map_ops,close = 
+  Examples_common.mk_example ~ps ~kk:(
+    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
+      ~from_file ~close ->   
+      from_file,imperative_map_ops,close)
 
 (* construct keys and values from an int *)
 let k x = x
 let v x = x
 
-let close = Map_on_fd.Default_implementation.close
+let max = 10000
 
-let max = 1000
 
 (* create and init store, write some values, and close *)
 let do_write () = (
+  Printf.printf "Executing %d writes...\n" max;
   print_endline "Writing...";
   (* create and initialize *)
   let s = ref (from_file ~fn ~create:true ~init:true) in
@@ -31,7 +36,7 @@ let do_write () = (
     map_ops.insert (k x) (v x);
   done;
   (* close *)
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 
@@ -43,7 +48,7 @@ let do_delete () = (
   for x=100 to 200 do
     map_ops.delete (k x);
   done;
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 
@@ -54,7 +59,7 @@ let do_check () = (
   let map_ops = imperative_map_ops s in
   assert(map_ops.find (k 100) = None);
   assert(map_ops.find (k 1000) = Some(v 1000));
-  close ~blk_sz !s;
+  close !s;
   ()
 )
 
