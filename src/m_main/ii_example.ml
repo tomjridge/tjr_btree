@@ -8,11 +8,15 @@ open Block.Blk4096
 let _ = Test.disable()
 let _ = Isa_test.disable_isa_checks()
 
-let from_file,imperative_map_ops,close = 
-  Examples_common.mk_example ~ps ~kk:(
-    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
-      ~from_file ~close ->   
-      from_file,imperative_map_ops,close)
+open Examples_common
+
+let x = mk_example ~ps
+
+let from_file = from_file x
+let imperative_map_ops = imperative_map_ops x
+let close = close x
+
+
 
 (* construct keys and values from an int *)
 let k x = x

@@ -47,47 +47,63 @@ let pg_to_frm pg = (
   let iis : iis = bin_reader_iis.read buf (ref 0) in
   iis|>iis2f)
 
+let _ = assert (Sys.int_size = 63)  (* ensure we are on 64 bit system *)
+
 let ps = 
+  let int_size=5 in (* bin_prot marshalling an int *)
+  let list_tag_size=5 in
+  let n_or_l_tag_size=5 in
+  let kv_size = 2*int_size in
+  let kvs_in_blk = (blk_sz - n_or_l_tag_size - list_tag_size) / kv_size in 
+  (* for nodes, the calculation is similar, except that we have two lists and one more r than k *)
+  let max_node_keys = (blk_sz - n_or_l_tag_size - 2 * list_tag_size - int_size) / (2*int_size) in
+  let constants=Constants.({min_leaf_size=2;max_leaf_size=kvs_in_blk;min_node_keys=2; max_node_keys}) in
   object
     method blk_sz=blk_sz
     method page_to_frame=pg_to_frm
     method frame_to_page=frm_to_pg
     method cmp=Int_.compare
-    method constants=Constants.make_constants blk_sz 4 4 4 (* TODO not correct - need min and max size that can fit using bin_prot *)
+    method constants=constants
     method dbg_ps=None
   end
 
+open Examples_common
+
+let x = mk_example ~ps
+
+let from_file = from_file x
+let map_ops = map_ops x
+let close = close x
+let ls_ops = ls_ops x
+
 let main args = (
   (* turn off wf checking *)
-  Examples_common.mk_example ~ps ~kk:(
-    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
-      ~from_file ~close -> 
-      Test.disable ();
-      match args with
-      | ["init"; fn] -> (
-          from_file ~fn ~create:true ~init:true
-          |> (fun _ -> print_endline "init ok"))
-      | ["insert";fn;k;v] -> (
-          from_file ~fn ~create:false ~init:false
-          |> map_ops.insert (int_of_string k) (int_of_string v) 
-          |> function (t,Ok _) -> (close t))
-      | ["delete";fn;k] -> (
-          from_file ~fn ~create:false ~init:false
-          |> map_ops.delete (int_of_string k) 
-          |> function (t,Ok _) -> (close t))
-      | ["list";fn] -> (
-          from_file ~fn  ~create:false ~init:false
-          |> (fun s -> 
-              s 
-              |> all_kvs ls_ops 
-              |> (function (s',Ok kvs) -> (
-                    (List.iter (fun (k,v) -> 
-                         Printf.printf "%s -> %s\n" (string_of_int k) 
-                           (string_of_int v)) kvs);
-                    close s';
-                    ()));                
-              print_endline "list ok"))
-      | _ -> (
-          failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
-                    __LOC__)))
+  Test.disable ();
+  match args with
+  | ["init"; fn] -> (
+      from_file ~fn ~create:true ~init:true
+      |> (fun _ -> print_endline "init ok"))
+  | ["insert";fn;k;v] -> (
+      from_file ~fn ~create:false ~init:false
+      |> map_ops.insert (int_of_string k) (int_of_string v) 
+      |> function (t,Ok _) -> (close t))
+  | ["delete";fn;k] -> (
+      from_file ~fn ~create:false ~init:false
+      |> map_ops.delete (int_of_string k) 
+      |> function (t,Ok _) -> (close t))
+  | ["list";fn] -> (
+      from_file ~fn  ~create:false ~init:false
+      |> (fun s -> 
+          s 
+          |> all_kvs ls_ops 
+          |> (function (s',Ok kvs) -> (
+                (List.iter (fun (k,v) -> 
+                     Printf.printf "%s -> %s\n" (string_of_int k) 
+                       (string_of_int v)) kvs);
+                close s';
+                ()));                
+          print_endline "list ok"))
+  | _ -> (
+      failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
+                __LOC__))
 )

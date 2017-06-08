@@ -12,11 +12,13 @@ open Block.Blk4096
 let k x = "k"^(string_of_int x) |> SS.of_string
 let v x = "v"^(string_of_int x) |> SS.of_string
 
-let from_file,imperative_map_ops,close = 
-  Examples_common.mk_example ~ps ~kk:(
-    fun ~disk_ops ~store_ops ~map_ops ~imperative_map_ops ~ls_ops 
-      ~from_file ~close ->   
-      from_file,imperative_map_ops,close)
+open Examples_common
+
+let x = mk_example ~ps
+
+let from_file = from_file x
+let imperative_map_ops = imperative_map_ops x
+let close = close x
 
 
 (* create and init store, write some values, and close *)

@@ -22,4 +22,4 @@ let ps =
     method dbg_ps=None (* TODO *)
   end
 
-let mk ~kk = Examples_common.mk_example ~ps ~kk
+let mk = Examples_common.mk_example ~ps
