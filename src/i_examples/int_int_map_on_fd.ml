@@ -50,13 +50,13 @@ let pg_to_frm pg = (
 let _ = assert (Sys.int_size = 63)  (* ensure we are on 64 bit system *)
 
 let ps = 
-  let int_size=5 in (* bin_prot marshalling an int *)
-  let list_tag_size=5 in
-  let n_or_l_tag_size=5 in
+  let int_size=9 in (* bin_prot marshalling an int *)
+  let list_tag_size=int_size in
+  let iis_tag_size=int_size in
   let kv_size = 2*int_size in
-  let kvs_in_blk = (blk_sz - n_or_l_tag_size - list_tag_size) / kv_size in 
+  let kvs_in_blk = (blk_sz - iis_tag_size - list_tag_size) / kv_size in 
   (* for nodes, the calculation is similar, except that we have two lists and one more r than k *)
-  let max_node_keys = (blk_sz - n_or_l_tag_size - 2 * list_tag_size - int_size) / (2*int_size) in
+  let max_node_keys = (blk_sz - iis_tag_size - 2 * list_tag_size - int_size) / (2*int_size) in
   let constants=Constants.({min_leaf_size=2;max_leaf_size=kvs_in_blk;min_node_keys=2; max_node_keys}) in
   object
     method blk_sz=blk_sz
