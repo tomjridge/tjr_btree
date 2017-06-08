@@ -26,7 +26,7 @@ emacs=emacs;
 merlin=merlin;
 tuareg=tuareg;
 
-buildInputs = [ ocaml findlib opam op.yojson op.ocaml_batteries op.ppx_deriving ppx_deriving_yojson extunix extlib merlin emacs ];
+buildInputs = [ ocaml findlib opam op.yojson op.ocaml_batteries op.ppx_deriving ppx_deriving_yojson extunix extlib merlin emacs core ];
 
 configurePhase = ''true''; 	 # Skip configure
 
