@@ -52,7 +52,7 @@ let free_ops x = x#free_ops
 let mk_disk_ops ~ps ~fd_ops = D.make_disk ~blk_sz:(blk_sz ps) ~fd_ops
 
 let mk_store_ops ~ps ~ops = 
-  D2S.disk_to_store_with_custom_marshalling
+  D2S.disk_to_store
     ps
     (mk_disk_ops ~ps ~fd_ops:(fd_ops ops))
     (free_ops ops)

@@ -49,7 +49,7 @@ let disk_to_store ~ps ~disk_ops ~free_ops : ('k,'v,'r,'t) store_ops = (
 *)
 
 (* version which uses custom frame_to_page and page_to_frame *)
-let disk_to_store_with_custom_marshalling ~ps ~disk_ops ~free_ops 
+let disk_to_store ~ps ~disk_ops ~free_ops 
   : ('k,'v,'r,'t) store_ops = (
   let page_size = page_size ps in
   test(fun _ -> assert (disk_ops.blk_sz = page_size));

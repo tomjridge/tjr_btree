@@ -5,9 +5,7 @@ open Map_on_fd.Default_implementation
 
 let mk_example ~ps = (
   let disk_ops = mk_disk_ops ~ps ~fd_ops in
-  let store_ops = Disk_to_store.disk_to_store_with_custom_marshalling
-      ~ps ~disk_ops ~free_ops
-  in
+  let store_ops = Disk_to_store.disk_to_store ~ps ~disk_ops ~free_ops in
   let map_ops = 
     Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
   let imperative_map_ops = Btree_api.Imperative_map_ops.of_map_ops map_ops in

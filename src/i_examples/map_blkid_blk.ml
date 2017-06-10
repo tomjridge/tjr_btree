@@ -28,9 +28,9 @@ type k = blk_id
 type v = blk
 
 let mk_blk_id_blk_map 
-    (write_blk:blk->(blk_id,'t)m)  (* write blk in data *)
-    (read_blk:blk_id->(blk option,'t)m)
-    (map_ops:(blk_id,blk_id,'t)map_ops) 
+    ~(write_blk:blk->(blk_id,'t)m)  (* write blk in data *)
+    ~(read_blk:blk_id->(blk option,'t)m)
+    ~(map_ops:(blk_id,blk_id,'t)map_ops) 
   : (k,v,'t) map_ops = (
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)

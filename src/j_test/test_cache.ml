@@ -3,7 +3,7 @@
 open Base_types
 open Prelude
 open Btree_api
-open Cache.O
+open Cache
 
 (* we test just cache behaviour, not linked with btree *)
 
@@ -66,7 +66,9 @@ let cache_ops = Monad.{
   set=(fun cache t -> ({t with cache},Ok()))
 }
 
-let cached_map_ops = Cache.make_cached_map base_map_ops cache_ops
+let cached_map_ops = 
+  Cache.make_cached_map ~map_ops:base_map_ops ~cache_ops 
+    ~kk:(fun ~cached_map_ops ~evict_hook -> cached_map_ops)
 
 
 (* exhaustive testing ----------------------------------------------- *)
