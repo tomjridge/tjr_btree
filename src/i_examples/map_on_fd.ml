@@ -61,7 +61,6 @@ let mk_store_ops ~ps ~ops =
 (* create --------------------------------------------------------- *)
 
 (* FIXME these aren't doing much; also, constants can be computed *)
-open Pickle_params
 
 let mk_map_ops ~ps ~ops = 
   mk_store_ops ~ps ~ops |> fun store_ops -> 
@@ -77,6 +76,8 @@ let mk_imperative_map_ops ~ps ~ops =
 
 (* we implement the map by writing the free counter and root
    page_ref into the root block *)
+
+FIXME move to bin_prot
 
 open Pickle
 open Examples
