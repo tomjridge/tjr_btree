@@ -11,8 +11,36 @@ open Btree_api
 open Small_string.O
 open Btree_with_pickle
 open Example_keys_and_values
-open Block.Blk4096
+module Blk = Block.Blk4096
+open Blk
+open Frame
+open Page_ref_int
 
+module BP = Bin_prot
+
+open BP.Std
+open Binprot_marshalling
+
+
+(* for ss->ss *)
+
+let reader_ss = SS.bin_reader_t
+let writer_ss = SS.bin_writer_t
+
+
+
+let (read_k,write_k,read_v,write_v) = 
+  (reader_ss,writer_ss,reader_ss,writer_ss)
+
+let ss_size = 3+256   (* length + chars *)
+
+let (k_size,v_size) = (ss_size,ss_size)
+
+let cmp = SS.compare
+
+let ps = ps ~cmp ~k_size ~v_size ~read_k ~write_k ~read_v ~write_v
+
+(*
 let pp = ss_ss_pp 
 
 let frame_to_page' blk_sz = bwp_frame_to_page blk_sz pp 
@@ -27,6 +55,8 @@ let ps =
     method cmp=SS.compare
     method dbg_ps=None (* TODO *)
   end
+*)
+
 
 open Examples_common
 

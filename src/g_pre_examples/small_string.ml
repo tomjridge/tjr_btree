@@ -2,14 +2,15 @@
 open Test
 
 module Small_string : sig
-  type t [@@deriving yojson]
+  type t [@@deriving bin_io, yojson]
   type ss = t
   val to_string: t -> string
   val of_string: string -> t
   val max_size: int
   val compare: t -> t -> int
 end = struct
-  type t = string [@@deriving yojson]
+  open Bin_prot.Std
+  type t = string [@@deriving bin_io, yojson]
   type ss = t
   let to_string x = x
   let max_size = 256
