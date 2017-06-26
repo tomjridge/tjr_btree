@@ -20,6 +20,8 @@ let from_file = from_file x
 let imperative_map_ops = imperative_map_ops x
 let close = close x
 
+let max = 10000
+
 
 (* create and init store, write some values, and close *)
 let do_write () = (
@@ -29,7 +31,7 @@ let do_write () = (
   (* get map operations *)
   let map_ops = imperative_map_ops s in
   (* write values *)
-  for x=1 to 1000 do
+  for x=1 to max do
     (* TODO this would be much faster if we used insert_many *)
     map_ops.insert (k x) (v x);
   done;
@@ -63,6 +65,7 @@ let do_check () = (
 
 (* actually execute the above *)
 let _ = (
+  Printf.printf "Executing %d writes...\n" max;
   do_write();
   do_delete();
   do_check()
@@ -73,7 +76,7 @@ let do_full_check () = (
   print_endline "Full check...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
-  for x = 1 to 1000 do
+  for x = 1 to max do
     if (100 <= x && x <= 200) then
       assert(map_ops.find (k x) = None)
     else
