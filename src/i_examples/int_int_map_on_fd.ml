@@ -1,17 +1,10 @@
 (* a map from int to int, backed by file ------------------------------- *)
 
-(* for performance reasons, we use custom marshalling *)
-
 open Prelude
 open Btree_api
-(* open Example_keys_and_values *)
-(* open Btree_with_pickle_ *)
-module SS = Small_string
-open Block.Blk4096
 open Frame
 open Page_ref_int
 open Examples_common
-module Blk = Block.Blk4096
 
 module Int_ = Bin_prot_int
 
@@ -20,8 +13,6 @@ let ps =
     ~cmp:Int_.compare ~k_size:Int_.size ~v_size:Int_.size
     ~read_k:Int_.bin_reader_t ~write_k:Int_.bin_writer_t
     ~read_v:Int_.bin_reader_t ~write_v:Int_.bin_writer_t
-
-let _ = ps
 
 let x = mk_example ~ps
 
@@ -58,6 +49,7 @@ let main args = (
                 ()));                
           print_endline "list ok"))
   | _ -> (
-      failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
-                __LOC__))
-)
+      failwith (
+        "Unrecognized args: "^
+        (String_.concat_strings " " args)^ 
+        __LOC__)) )
