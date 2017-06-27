@@ -2,25 +2,17 @@
 
 open Prelude
 open Btree_api
-open Example_keys_and_values
-open Btree_with_pickle
-open Small_string.O
 open Block.Blk4096
 open Page_ref_int
+open Examples_common
 
-let pp = ss_int_pp
-
-let frame_to_page' blk_sz = bwp_frame_to_page blk_sz pp 
-let page_to_frame' = bwp_page_to_frame blk_sz pp
+module SS = Bin_prot_ss
+module Int_ = Bin_prot_int
 
 let ps = 
-  object
-    method blk_sz=blk_sz
-    method frame_to_page=frame_to_page'
-    method page_to_frame=page_to_frame'
-    method constants=Constants.make_constants blk_sz 4 260 4 (* TODO *)
-    method cmp=SS.compare
-    method dbg_ps=None (* TODO *)
-  end
+  Binprot_marshalling.mk_ps ~blk_sz:4096
+    ~cmp:SS.compare ~k_size:SS.size ~v_size:Int_.size
+    ~read_k:SS.bin_reader_t ~write_k:SS.bin_writer_t
+    ~read_v:Int_.bin_reader_t ~write_v:Int_.bin_writer_t
 
 let x = Examples_common.mk_example ~ps

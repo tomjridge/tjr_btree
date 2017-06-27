@@ -27,8 +27,6 @@ end
 
 open O
 
-let int_int_pp = Example_keys_and_values.int_int_pp
-
 let then_ f x = (if x=0 then f () else x)
 
 (* FIXME v inefficient *)

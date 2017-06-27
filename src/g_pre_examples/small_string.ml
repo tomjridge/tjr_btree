@@ -1,7 +1,7 @@
 (** Strings with <= 256 bytes, used as keys in maps *)
 open Test
 
-module Small_string : sig
+module SS : sig
   type t [@@deriving bin_io, yojson]
   type ss = t
   val to_string: t -> string
@@ -20,7 +20,9 @@ end = struct
   let compare: t -> t -> int = Pervasives.compare
 end
 
+(*
 module O = struct
   type ss = Small_string.ss
   module SS = Small_string  (* abbrev *)
 end
+*)

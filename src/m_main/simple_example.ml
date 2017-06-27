@@ -1,6 +1,6 @@
 (** A simple example of a kv store. *)
 
-open Small_string.O
+open Small_string
 (* SS is now an alias for Small_string *)
 
 open Ss_ss_map_on_fd

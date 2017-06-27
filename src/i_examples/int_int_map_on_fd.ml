@@ -4,70 +4,24 @@
 
 open Prelude
 open Btree_api
-open Example_keys_and_values
+(* open Example_keys_and_values *)
 (* open Btree_with_pickle_ *)
-open Small_string.O
+module SS = Small_string
 open Block.Blk4096
 open Frame
 open Page_ref_int
-
+open Examples_common
 module Blk = Block.Blk4096
 
-module BP = Bin_prot
-
-open BP.Std
-
-type iis = N of int list * int list | L of (int*int) list [@@deriving bin_io]
-  
-let f2iis frm = (
-  match frm with
-  | Node_frame (ks,rs) -> N (ks,rs)
-  | Leaf_frame kvs -> L kvs)
-
-let iis2f iis = (
-  match iis with
-  | N (ks,rs) -> Node_frame(ks,rs)
-  | L kvs -> Leaf_frame kvs)
-
-open Bigarray
-type buf = BP.Common.buf
-
-let frm_to_pg blk_sz (frm:(int,int)frame) = (
-  let buf = BP.Common.create_buf blk_sz in
-  let pos' = frm |> f2iis |> bin_writer_iis.write buf ~pos:0 in
-  let s = Bytes.create blk_sz in
-  let () = BP.Common.blit_buf_string buf s pos' in
-  s |> Blk.of_string
-)
-
-let pg_to_frm pg = (
-  let s = pg |> Blk.to_string in
-  let buf = BP.Common.create_buf blk_sz in
-  let _ = BP.Common.blit_string_buf s buf blk_sz in
-  let iis : iis = bin_reader_iis.read buf (ref 0) in
-  iis|>iis2f)
-
-let _ = assert (Sys.int_size = 63)  (* ensure we are on 64 bit system *)
+module Int_ = Bin_prot_int
 
 let ps = 
-  let int_size=9 in (* bin_prot marshalling an int *)
-  let list_tag_size=int_size in
-  let iis_tag_size=int_size in
-  let kv_size = 2*int_size in
-  let kvs_in_blk = (blk_sz - iis_tag_size - list_tag_size) / kv_size in 
-  (* for nodes, the calculation is similar, except that we have two lists and one more r than k *)
-  let max_node_keys = (blk_sz - iis_tag_size - 2 * list_tag_size - int_size) / (2*int_size) in
-  let constants=Constants.({min_leaf_size=2;max_leaf_size=kvs_in_blk;min_node_keys=2; max_node_keys}) in
-  object
-    method blk_sz=blk_sz
-    method page_to_frame=pg_to_frm
-    method frame_to_page=frm_to_pg
-    method cmp=Int_.compare
-    method constants=constants
-    method dbg_ps=None
-  end
+  Binprot_marshalling.mk_ps ~blk_sz:4096 
+    ~cmp:Int_.compare ~k_size:Int_.size ~v_size:Int_.size
+    ~read_k:Int_.bin_reader_t ~write_k:Int_.bin_writer_t
+    ~read_v:Int_.bin_reader_t ~write_v:Int_.bin_writer_t
 
-open Examples_common
+let _ = ps
 
 let x = mk_example ~ps
 

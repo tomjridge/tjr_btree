@@ -77,27 +77,29 @@ let mk_imperative_map_ops ~ps ~ops =
 (* we implement the map by writing the free counter and root
    page_ref into the root block *)
 
-FIXME move to bin_prot
-
+(*
 open Pickle
 open Examples
+*)
 (* open Btree_with_pickle.O *)
 
-let write_root_block ~fd ~blk_sz ~free ~root = (
-  let p : P.m = (p_pair (p_int free) (p_int root)) in
-  let s = p |> P.run_w_exception "" in
-  let blk_id = 0 in
-  let blk = Block.of_string blk_sz s in
-  let _ = Disk_on_fd.write ~fd ~blk_sz ~blk_id ~blk in
-  ())
+(* we use standard ocaml marshalling for the root block - this is a
+   demo anyway TODO *)
 
-let read_root_block ~blk_sz ~fd = (
-  let blk_id = 0 in
-  let blk = Disk_on_fd.read ~fd ~blk_sz ~blk_id in
-  let u = u_pair u_int (fun _ -> u_int) in
-  let (_,(free,root)) = u |> U.run_w_exception (Block.to_string blk) in
-  (free,root)
-)
+let marshal_to_string x = Marshal.to_string x []
+
+let marshal_from_string s = Marshal.from_string s 0
+
+let root_blk_id = 0
+
+let write_root_block ~fd ~blk_sz ~free ~root = 
+  (free,root) |> marshal_to_string |> Block.of_string blk_sz 
+  |> fun blk -> Disk_on_fd.write ~fd ~blk_sz ~blk_id:root_blk_id ~blk
+
+let read_root_block ~blk_sz ~fd = 
+  Disk_on_fd.read ~fd ~blk_sz ~blk_id:root_blk_id 
+  |> Block.to_string |> (fun x -> (marshal_from_string x : (int * int)))
+  |> fun (free,root) -> (free,root)
 
 let from_file ~fn ~create ~init ~ps = (
   let blk_sz = blk_sz ps in
