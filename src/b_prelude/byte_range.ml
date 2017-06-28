@@ -111,7 +111,7 @@ e1 represents the first position not covered by i1.
         [r2;r1])
     | _ when s2 <= s1 && e2 > s1 && e2 <= e1 -> (
         (* (E) i2 overlaps start of i1 *)
-        let r1' = r1 |> set_end e2 in
+        let r1' = r1 |> set_start e2 in
         [r2;r1'])
     | _ when s2 <= s1 && e1 <= e2 -> (
         (* (F) i1 a subinterval  of i2 *)        
@@ -127,8 +127,8 @@ end
 
 
 
-(* now give typical implementation using subarrays *)
-
+(* now give typical implementation using subarrays; the array from
+   start maps to a range from start+shift *)
 type 'a range' = { arr: 'a array; start:int; end_:int; shift:int }
 
 module B : A with type 'a range = 'a range' = struct
@@ -153,6 +153,48 @@ end
 
 module Byte_range' = Byte_range(B)
 
+
+module Test = functor (X: sig end) -> struct
+
 open Byte_range'
 
 
+let r1_init = {arr=[| 10;11;12;13;14;15;16;17;18;19 |]; start=0; end_=10; shift=10 }
+
+let r2_init = {arr=[| 20;21;22;23;24;25;26;27;28;29 |]; start=0; end_=10; shift=20 }
+
+let (r1,r2) = (r1_init,r2_init)
+
+let _ = merge r1 r2
+
+
+let r2 = {r2_init with start=2;end_=4; shift=15}
+
+let _ = merge r1 r2
+
+
+(* C *)
+let r2 = {r2_init with start=2;end_=7; shift=15}
+
+let _ = merge r1 r2
+
+
+(* D *)
+let r2 = {r2_init with start=2;end_=4; shift=5}
+
+let _ = merge r1 r2
+
+
+(* E *)
+let r2 = {r2_init with start=2;end_=4; shift=7}
+
+let _ = merge r1 r2
+
+(* F *)
+let r1 = {r1_init with start=1; end_=5; shift=10}
+let r2 = {r2_init with start=0;end_=10; shift=10}
+
+let _ = merge r1 r2
+
+
+end
