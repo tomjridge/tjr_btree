@@ -93,3 +93,5 @@ src/small_step.ml
 /src/examples_common.ml
 /src/binprot_marshalling.ml
 /src/map_int_blk.ml
+/src/byte_range.ml
+/src/bytestore2.ml

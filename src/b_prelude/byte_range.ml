@@ -57,7 +57,7 @@ module type A = sig
 end
 
 
-module Byte_range = functor (A:A) -> struct
+module Mk_byte_range = functor (A:A) -> struct
 
   module A = A
   open A
@@ -128,8 +128,9 @@ end
 
 
 (* now give typical implementation using subarrays; the array from
-   start maps to a range from start+shift *)
-type 'a range' = { arr: 'a array; start:int; end_:int; shift:int }
+   start maps to a range from start+shift; expect 'a = 'b array *)
+
+type 'a range' = { arr: 'a; start:int; end_:int; shift:int }
 
 module B : A with type 'a range = 'a range' = struct
 
@@ -151,7 +152,7 @@ module B : A with type 'a range = 'a range' = struct
 end
 
 
-module Byte_range' = Byte_range(B)
+module Byte_range' = Mk_byte_range(B)
 
 
 module Test = functor (X: sig end) -> struct
