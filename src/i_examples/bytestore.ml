@@ -125,12 +125,21 @@ module Make = functor (S:S) -> struct
         in
         blk' |> bind (fun blk' -> 
             let blk' = blk_to_buffer blk' in
+
             (* blk' is the block that we are preparing; at this point, if
                needed it contains the data that was already present at
                blk_index; now we blit the new bytes *)
+
+            (* FIXME we probably want to ensure that blks are
+               immutable, but at the same time minimize copying *)
+
             blit ~src:src ~src_pos:src_pos ~dst:blk' ~dst_pos:offset ~len:src_len;
-            map_ops.insert blk_index (buffer_to_blk blk') |> bind (fun _ -> 
-                (* we may have to adjust the size of the bfile *)
+            let blk' = buffer_to_blk blk' in
+            map_ops.insert blk_index blk' |> bind (fun _ -> 
+
+                (* we may have to adjust the size of the bfile; but
+                   clearly we want to avoid reading and writing the
+                   meta block if we can; *)
                 failwith "FIXME" |> bind (fun _ -> return src_len)))))
 
 
