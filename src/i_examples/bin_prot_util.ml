@@ -11,5 +11,5 @@ let bin_writer_ss = SS.bin_writer_ss
 module BP = Bin_prot.Std
 
 let bin_reader_int = BP.bin_reader_int
-let bin_writer_int = BP.bin_reader_int
+let bin_writer_int = BP.bin_writer_int
 
