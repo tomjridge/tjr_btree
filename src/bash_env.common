@@ -135,6 +135,12 @@ function mk_doc() {
 }
 
 
+# clean ----------------------------------------------------------------
+
+function clean() {
+	rm -f *.{cmi,cmo,cmx,o,cmt} a.out *.cma *.cmxa *.a *.byte *.native
+}
+
 # ocamlfind install, remove, reinstall --------------------
 
 function install() {

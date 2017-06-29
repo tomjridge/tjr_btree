@@ -2,7 +2,7 @@
 
 let dest_Some = function Some x -> x | _ -> (failwith "dest_Some")
 
-let now () = Core.Time_stamp_counter.(now () |> to_int63 |> Core.Std.Int63.to_int |> dest_Some)
+let now () = Core.Time_stamp_counter.(now () |> to_int63 |> Core.Std.Int63.to_int |> dest_Some)[@warning "-3"]  (* TODO remove and remove Core.Std which is deprecated *)
 
 module P = struct  (* timing points *)
 

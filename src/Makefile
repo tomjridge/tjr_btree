@@ -41,8 +41,8 @@ _reinstall:
 	remove
 	install
 
-README.html: README.adoc
-	asciidoctor $<
+# README.html: README.adoc
+# 	asciidoctor $<
 
 _depend:
 	mkdir -p _depend
@@ -65,7 +65,8 @@ _doc:
 	$$ocamlc -g -linkpkg -open $$Libname -o $*.byte $$libname.cma $<
 
 clean:
-	rm -f *.{cmi,cmo,cmx,o,cmt} a.out *.cma *.cmxa *.a *.byte *.native *.html
+	clean
+	rm -f *.html
 
 real_clean: clean
 	rm_links
