@@ -20,6 +20,9 @@ end = struct
   let compare: t -> t -> int = Pervasives.compare
 end
 
+type ss = SS.ss 
+
+
 (*
 module O = struct
   type ss = Small_string.ss

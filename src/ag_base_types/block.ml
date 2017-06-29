@@ -7,13 +7,13 @@ type blk_sz = int  (* in bytes *)
    capture this in the type. *)
 module BlkN : sig
   type blk
-  type blk_id = int
+  type blk_id = int 
   val of_string: blk_sz -> string -> blk
   val to_string: blk -> string
   val compare_blk_id: blk_id -> blk_id -> int 
 end = struct
   type blk = string
-  type blk_id = int
+  type blk_id = int 
   let of_string: blk_sz -> string -> blk = (
     fun sz s ->
       Test.test (fun _ -> assert (String.length s <= sz)); 

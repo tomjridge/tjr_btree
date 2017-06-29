@@ -1,4 +1,4 @@
-(** A map from blkid to blk, implemented as a map from blkid to blkid *)
+(** A map from blk index to blk, implemented as a map from index to blkid *)
 
 open Base_types
 open Prelude
@@ -10,8 +10,11 @@ open Block
 
 (* as usual, we implement on top of a store *)
 
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (blk_id,blk_id,'t) map_ops = (
-  let cmp=(Block.compare_blk_id) in
+type k1 = int  (* index *)
+type v1 = blk_id  (* location of underlying block that corresponds to this index *)
+
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (k1,v1,'t) map_ops = (
+  let cmp=(Int_.compare) in
   let dbg_ps=None in
   let ps = object
     method cmp=cmp
@@ -21,17 +24,16 @@ let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (blk_id,blk_id,'t) map_o
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
 )
 
-(* the map blk_id->blk_id is then used to implement a map blk_id->blk,
-   which in turn is used to implement a snapshottable disk interface! *)
+(* the map index->blk_id (k1->v1) is then used to implement a map index->blk *)
 
-type k = blk_id
-type v = blk
+type k2 = k1
+type v2 = blk
 
-let mk_blk_id_blk_map 
+let mk_int_blk_map 
     ~(write_blk:blk->(blk_id,'t)m)  (* write blk in data *)
     ~(read_blk:blk_id->(blk option,'t)m)
-    ~(map_ops:(blk_id,blk_id,'t)map_ops) 
-  : (k,v,'t) map_ops = (
+    ~(map_ops:(k1,v1,'t)map_ops) 
+  : (k2,v2,'t) map_ops = (
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)
       map_ops.find i |> bind (

@@ -1,5 +1,6 @@
 (** A simple example of a kv store. *)
 
+open Map_int_int
 open Int_int_map_on_fd
 
 open Default_filename
