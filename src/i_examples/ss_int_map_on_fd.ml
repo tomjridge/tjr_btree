@@ -6,11 +6,11 @@ open Block.Blk4096
 open Page_ref_int
 open Examples_common
 open Small_string
-open Bin_prot_max_sizes
+open Bin_prot_util
 
-let read_k = SS.bin_reader_t
-let write_k = SS.bin_writer_t
-let read_v = Bin_prot.Std.bin_reader_int
+let read_k = bin_reader_ss
+let write_k = bin_writer_ss
+let read_v = bin_reader_int
 let write_v = Bin_prot.Std.bin_writer_int
 
 let ps' ~blk_sz = 

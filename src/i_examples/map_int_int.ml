@@ -5,7 +5,7 @@ open Btree_api
 open Frame
 open Page_ref_int
 open Examples_common
-open Bin_prot_max_sizes
+open Bin_prot_util
 
 let read = Bin_prot.Std.bin_reader_int
 let write = Bin_prot.Std.bin_writer_int

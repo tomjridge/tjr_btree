@@ -2,25 +2,26 @@
 open Test
 
 module SS : sig
-  type t [@@deriving bin_io, yojson]
-  type ss = t
+  type ss [@@deriving bin_io, yojson]
+  type t = ss
+  val max_length: int
   val to_string: t -> string
   val of_string: string -> t
-  val max_size: int
   val compare: t -> t -> int
 end = struct
   open Bin_prot.Std
-  type t = string [@@deriving bin_io, yojson]
-  type ss = t
+  type ss = string [@@deriving bin_io, yojson]
+  type t = ss
+  let max_length = 256 
   let to_string x = x
-  let max_size = 256
   let of_string x = (
-    test(fun () -> assert (String.length x <= max_size));
+    test(fun () -> assert (String.length x <= max_length));
     x)
   let compare: t -> t -> int = Pervasives.compare
 end
 
-type ss = SS.ss 
+include SS
+
 
 
 (*

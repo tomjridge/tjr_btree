@@ -6,12 +6,12 @@ open Frame
 open Page_ref_int
 open Examples_common
 open Small_string
-open Bin_prot_max_sizes
+open Bin_prot_util
 
-let read_k = SS.bin_reader_t
-let write_k = SS.bin_writer_t
-let read_v = SS.bin_reader_t
-let write_v = SS.bin_writer_t
+let read_k = bin_reader_ss
+let write_k = bin_writer_ss
+let read_v = bin_reader_ss
+let write_v = bin_writer_ss
 
 
 let ps' ~blk_sz = Binprot_marshalling.mk_ps ~blk_sz
