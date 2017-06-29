@@ -5,14 +5,20 @@ open Btree_api
 open Frame
 open Page_ref_int
 open Examples_common
+open Bin_prot_max_sizes
 
-module Int_ = Bin_prot_int
+let read = Bin_prot.Std.bin_reader_int
+let write = Bin_prot.Std.bin_writer_int
+let sz = bin_size_int
 
-let ps = 
-  Binprot_marshalling.mk_ps ~blk_sz:4096 
-    ~cmp:Int_.compare ~k_size:Int_.size ~v_size:Int_.size
-    ~read_k:Int_.bin_reader_t ~write_k:Int_.bin_writer_t
-    ~read_v:Int_.bin_reader_t ~write_v:Int_.bin_writer_t
+(* this is generally useful, not just in examples *)
+let ps' ~blk_sz = 
+  Binprot_marshalling.mk_ps ~blk_sz
+    ~cmp:Int_.compare ~k_size:sz ~v_size:sz
+    ~read_k:read ~write_k:write
+    ~read_v:read ~write_v:write
+
+let ps = ps' ~blk_sz
 
 let x = mk_example ~ps
 

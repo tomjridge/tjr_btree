@@ -5,12 +5,21 @@ open Btree_api
 open Frame
 open Page_ref_int
 open Examples_common
-module SS = Bin_prot_ss
+open Small_string
+open Bin_prot_max_sizes
 
-let ps = Binprot_marshalling.mk_ps ~blk_sz:4096
-    ~cmp:SS.compare ~k_size:SS.size ~v_size:SS.size
-    ~read_k:SS.bin_reader_t ~write_k:SS.bin_writer_t
-    ~read_v:SS.bin_reader_t ~write_v:SS.bin_writer_t
+let read_k = SS.bin_reader_t
+let write_k = SS.bin_writer_t
+let read_v = SS.bin_reader_t
+let write_v = SS.bin_writer_t
+
+
+let ps' ~blk_sz = Binprot_marshalling.mk_ps ~blk_sz
+    ~cmp:SS.compare ~k_size:bin_size_ss ~v_size:bin_size_ss
+    ~read_k ~write_k
+    ~read_v ~write_v
+
+let ps = ps' ~blk_sz
 
 let x = mk_example ~ps
 

@@ -29,15 +29,5 @@ let map_ops x = x#map_ops
 let imperative_map_ops x = x#imperative_map_ops
 let ls_ops x = x#ls_ops
 
+let blk_sz = 4096
 
-module Bin_prot_int = struct
-  open Bin_prot.Std
-  type t = int [@@deriving bin_io]
-  let compare = Int_.compare
-  let size = 9 (* bytes *) 
-end
-
-module Bin_prot_ss = struct
-  include Small_string.SS
-  let size = 3+256 (* length + contents *)
-end
