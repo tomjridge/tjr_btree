@@ -29,7 +29,12 @@ open Monad
 open Pre_map_ops
 
 (* produce a map, with page_ref state set/get via monad_ops *)
-let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
+let make_map_ops' (type k v r t) pre_map_ops page_ref_ops kk = (
+  let find_leaf = (fun k ->
+      page_ref_ops.get () |> bind (fun r ->
+          pre_map_ops.find_leaf k r |> bind (fun kvs ->               
+              return kvs)))
+  in
   let find = (fun k ->
       page_ref_ops.get () |> bind (fun r ->
           pre_map_ops.find k r |> bind (fun (r',kvs) -> 
@@ -52,14 +57,16 @@ let make_map_ops' pre_map_ops page_ref_ops : ('k,'v,'t) map_ops = (
           pre_map_ops.delete k r |> bind (fun r' ->
               page_ref_ops.set r')))
   in
-  Btree_api.{find; insert; insert_many; delete })
+  let map_ops: (k,v,t) map_ops = Btree_api.{find; insert; insert_many; delete } in
+  kk ~map_ops ~find_leaf
+)
 
 (** Make [map_ops], given a [page_ref_ops]. TODO make store_ops
    explicit in arguments to this function *)
 (* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops = 
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops ~kk = 
   Iter_with_check.make_pre_map_ops ~ps ~store_ops
-  |> fun x -> make_map_ops' x page_ref_ops
+  |> fun x -> make_map_ops' x page_ref_ops kk
 
 
 module N = Iter_leaf_stream

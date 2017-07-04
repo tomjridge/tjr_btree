@@ -22,7 +22,7 @@ module Mk = functor (
 
 open X
 
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (blk_id,v,'t) map_ops = (
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops ~kk  = (
   let cmp=(Block.compare_blk_id) in
   let dbg_ps=None in
   let ps = object
@@ -31,6 +31,7 @@ let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (blk_id,v,'t) map_ops = 
     method dbg_ps=None
   end in
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
+    ~kk:(fun ~(map_ops:(blk_id,v,'t) map_ops) ~find_leaf -> kk ~map_ops ~find_leaf)
 )
 
 (* the map blk_id->blk_id is then used to implement a map blk_id->blk,

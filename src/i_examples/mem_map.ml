@@ -10,3 +10,4 @@ open Params
 let mk_map_ops ~ps ~ops : ('k,'v,'t) map_ops = 
   Mem_store.mk_store_ops (mem_ops ops) |> fun store_ops ->
   store_ops_to_map_ops ~ps ~page_ref_ops:(page_ref_ops ops) ~store_ops
+    ~kk:(fun ~map_ops ~find_leaf -> map_ops)  (* FIXME find_leaf? *)

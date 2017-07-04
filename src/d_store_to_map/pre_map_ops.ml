@@ -9,6 +9,7 @@ type ('k,'v,'r,'t) pre_map_ops = {
   (** NOTE the return value includes a reference to a leaf, not a
      reference to the updated B-tree... find does not alter the B-tree
      *)
+  find_leaf: 'k -> 'r -> (('k*'v)list,'t) m; 
   find: 'k -> 'r -> ('r * ('k*'v)list,'t) m; 
   insert: 'k -> 'v -> 'r -> ('r,'t) m;
   insert_many: 'k -> 'v -> ('k*'v)list -> 'r -> ('r * ('k*'v)list,'t) m; 

@@ -74,6 +74,7 @@ type ('k,'v,'r,'t) store_ops = ('k,'v,'r,'t) Store_ops.store_ops = {
    single operation, and returns the remainder, and so is typically
    called in a loop. *)
 type ('k,'v,'t) map_ops = {
+(*  find_leaf: 'k -> ( ('k*'v)list,'t) m; not in map api *)
   find: 'k -> ('v option,'t) m;
   insert: 'k -> 'v -> (unit,'t) m;
   insert_many: 'k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m;

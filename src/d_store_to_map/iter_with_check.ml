@@ -76,6 +76,28 @@ let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) = (
 
 let _ = mk
 
+(* find leaf -------------------------------------------------------- *)
+
+
+let find_leaf' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) = (
+  let init_op_state = X.mk_find_state k r in
+  let finished s = s.op_state |> X.dest_f_finished |> is_Some in
+  let dest s = 
+    s.op_state |> X.dest_f_finished 
+    |> (fun (Some(r1,k,r2,kvs,stk)) -> kvs)  (* FIXME may want to expose r2,stk *)
+  in
+  let step = X.find_step ~constants ~cmp ~store_ops in
+  let check_state s = true in
+  let without_check ~init_store = 
+    mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
+  in
+  without_check)
+
+
+open Params
+
+let find_leaf ~ps ~store_ops ~k ~r = (
+  find_leaf' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~r)
 
 (* find ---------------------------------------- *)
 
@@ -249,6 +271,7 @@ open Pre_map_ops
 (** Construct [pre_map_ops] using functions above. Takes a "parameters" object ps. *)
 let make_pre_map_ops ~ps ~store_ops = 
   {
+    find_leaf=(fun k r s -> find_leaf ~ps ~store_ops ~k ~r ~init_store:s);
     find=(fun k r s -> find ~ps ~store_ops ~k ~r ~init_store:s);
     insert=(fun k v r s -> insert ~ps ~store_ops ~k ~v ~r ~init_store:s);
     insert_many=(fun k v kvs r s -> insert_many ~ps ~store_ops ~k ~v ~kvs ~r ~init_store:s);

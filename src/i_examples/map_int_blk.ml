@@ -13,7 +13,7 @@ open Block
 type k1 = int  (* index *)
 type v1 = blk_id  (* location of underlying block that corresponds to this index *)
 
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (k1,v1,'t) map_ops = (
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops ~kk = (
   let cmp=(Int_.compare) in
   let dbg_ps=None in
   let ps = object
@@ -22,6 +22,7 @@ let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : (k1,v1,'t) map_ops = (
     method dbg_ps=None
   end in
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
+    ~kk:(fun ~(map_ops:(k1,v1,'t)map_ops) ~find_leaf -> kk ~map_ops ~find_leaf)
 )
 
 (* the map index->blk_id (k1->v1) is then used to implement a map index->blk *)
