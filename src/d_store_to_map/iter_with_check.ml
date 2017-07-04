@@ -84,7 +84,7 @@ let find_leaf' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) = (
   let finished s = s.op_state |> X.dest_f_finished |> is_Some in
   let dest s = 
     s.op_state |> X.dest_f_finished 
-    |> (fun (Some(r1,k,r2,kvs,stk)) -> kvs)  (* FIXME may want to expose r2,stk *)
+    |> (fun (Some(r1,k,r2,kvs,stk)) -> (r2,kvs,stk))  (* FIXME may want to expose r2,stk *)
   in
   let step = X.find_step ~constants ~cmp ~store_ops in
   let check_state s = true in
