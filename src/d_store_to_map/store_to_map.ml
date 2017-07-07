@@ -71,7 +71,8 @@ let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops ~kk =
 
 module N = Iter_leaf_stream
 
-(** Make [ls_ops], given a [page_ref_ops]. TODO ditto *)
+(** Make [ls_ops], given a [page_ref_ops]. We only read from
+    page_ref_ops. TODO ditto *)
 let make_ls_ops ~ps ~store_ops ~page_ref_ops : ('k,'v,'r,'t) ls_ops = (
   N.mk ~ps ~store_ops ~kk:(fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
       let mk_leaf_stream = (fun () ->
