@@ -9,7 +9,7 @@ open Bin_prot_util
 
 let read = Bin_prot.Std.bin_reader_int
 let write = Bin_prot.Std.bin_writer_int
-let sz = bin_size_int
+let sz = bp_size_int
 
 (* this is generally useful, not just in examples *)
 let ps' ~blk_sz = 

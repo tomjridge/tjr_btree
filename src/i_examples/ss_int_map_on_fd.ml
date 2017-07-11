@@ -15,7 +15,7 @@ let write_v = Bin_prot.Std.bin_writer_int
 
 let ps' ~blk_sz = 
   Binprot_marshalling.mk_ps ~blk_sz
-    ~cmp:SS.compare ~k_size:bin_size_ss ~v_size:bin_size_int
+    ~cmp:SS.compare ~k_size:bp_size_ss ~v_size:bp_size_int
     ~read_k ~write_k
     ~read_v ~write_v
 
