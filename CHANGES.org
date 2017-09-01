@@ -1,1 +1,1 @@
-* 2017-09-01 merging dev branch into master
+* 2017-09-01 merging dev branch into master; tagging 0.1.1-2017-09-01
