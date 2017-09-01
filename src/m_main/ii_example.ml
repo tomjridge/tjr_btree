@@ -26,6 +26,8 @@ let v x = x
 let max = 10000
 
 
+(* TODO this would be much faster if we used insert_many *)
+
 (* create and init store, write some values, and close *)
 let do_write () = (
   Printf.printf "Executing %d writes...\n" max;
@@ -36,14 +38,10 @@ let do_write () = (
   let map_ops = imperative_map_ops s in
   (* write values *)
   for x=1 to max do
-    (* print_endline (string_of_int x); *)
-    (* TODO this would be much faster if we used insert_many *)
     map_ops.insert (k x) (v x);
   done;
-  (* close *)
   close !s;
-  ()
-)
+  ())
 
 (* open store, delete some values, and close *)
 let do_delete () = (
@@ -54,8 +52,7 @@ let do_delete () = (
     map_ops.delete (k x);
   done;
   close !s;
-  ()
-)
+  ())
 
 (* open store and check whether various keys and values are correct *)
 let do_check () = (
