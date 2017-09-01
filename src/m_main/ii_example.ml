@@ -83,8 +83,7 @@ let do_full_check () = (
     else
       assert(map_ops.find (k x) = Some(v x))
   done;
-  close !s
-)
+  close !s)
 
 let _ = do_full_check ()
 
