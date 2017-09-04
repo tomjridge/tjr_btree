@@ -62,16 +62,16 @@ let mk_store_ops ~ps ~ops =
 
 (* FIXME these aren't doing much; also, constants can be computed *)
 
-let mk_map_ops ~ps ~ops = 
+let mk_map_ops ~ps ~ops : [<`Map_ops of 'a] = 
   mk_store_ops ~ps ~ops |> fun store_ops -> 
   S2M.store_ops_to_map_ops ~ps ~page_ref_ops:(page_ref_ops ops) ~store_ops
-    ~kk:(fun ~map_ops ~find_leaf -> map_ops)  (* FIXME may need find_leaf? *)
 
 let mk_ls_ops ~ps ~page_ref_ops ~store_ops = 
   S2M.make_ls_ops ~ps ~page_ref_ops ~store_ops
 
 let mk_imperative_map_ops ~ps ~ops = 
-  mk_map_ops ~ps ~ops |> Btree_api.Imperative_map_ops.of_map_ops
+  mk_map_ops ~ps ~ops |> fun map_ops -> 
+  Btree_api.map_ops_to_imperative map_ops
 
 (* root block ---------------------------------------- *)
 

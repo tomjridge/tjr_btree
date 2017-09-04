@@ -45,6 +45,8 @@ For this we need:
 
 (* FIXME rename prefer btree_file? *)
 
+(* FIXME 2017-09-04 update to take functions?
+
 open Btree_api
 open Base_types
 open Prelude
@@ -283,4 +285,5 @@ end
                   | false -> (return ()))
               in
               f 0 |> bind (fun () -> return buf))))
+*)
 *)

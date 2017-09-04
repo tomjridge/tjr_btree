@@ -12,7 +12,7 @@ type time = int
 type dirty = bool
 
 module Queue = Map_int
-    
+
 (* following needs polymorphic map - 
    batteries? no, only Pervasives.compare
    extlib? yes, allows parameterization by compare 
@@ -55,7 +55,7 @@ open Monad
 
 
 (* for testing, we typically need to normalize wrt. time *)
-let normalize c = (
+let normalize c =
   (* we need to map times to times *)
   let t_map = ref Map_int.empty in
   let time = ref 0 in
@@ -75,12 +75,11 @@ let normalize c = (
    map=Pmap.map (fun (v,t,d) -> (v,Map_int.find t (!t_map),d)) c.map;
    queue=(!queue);
   }
-)
 
 let then_ f x = (if x=0 then f () else x)
 
 (* FIXME a bit horrible! *)
-let compare c1 c2 = (
+let compare c1 c2 =
   test(fun _ -> assert (c1.max_size = c2.max_size));
   (Pervasives.compare c1.current c2.current) |> then_
     (fun () -> Pervasives.compare 
@@ -88,15 +87,15 @@ let compare c1 c2 = (
         (c2.map |> Pmap.bindings)) |> then_
     (fun () -> Pervasives.compare
         (c1.queue |> Map_int.bindings)
-        (c2.queue |> Map_int.bindings)))
+        (c2.queue |> Map_int.bindings))
 
-let mk_initial_cache compare_k = ({
-    max_size=8;
-    evict_count=4;
-    current=0;
-    map=((Pmap.empty compare_k):('k,'v)Pmap.t);
-    queue=Queue.empty
-  })
+let mk_initial_cache compare_k = {
+  max_size=8;
+  evict_count=4;
+  current=0;
+  map=((Pmap.empty compare_k):('k,'v)Pmap.t);
+  queue=Queue.empty
+}
 
 
 (* the cache never has more than max_size elts; the queue never has
@@ -107,17 +106,13 @@ let mk_initial_cache compare_k = ({
      map and queue agree on timings
 
 *)
-let wf c = (
-  Test.test (
-    fun () -> 
-      assert (Pmap.cardinal c.map <= c.max_size);
-      assert (Queue.cardinal c.queue <= c.max_size);
-      assert (Pmap.cardinal c.map = Queue.cardinal c.queue);
-      Pmap.iter (fun k (v,t,d) -> 
-          assert(Queue.find t c.queue = k)) c.map;
-      ()
-  )
-)
+let wf c =
+  Test.test @@ fun () -> 
+  assert (Pmap.cardinal c.map <= c.max_size);
+  assert (Queue.cardinal c.queue <= c.max_size);
+  assert (Pmap.cardinal c.map = Queue.cardinal c.queue);
+  Pmap.iter (fun k (v,t,d) -> assert(Queue.find t c.queue = k)) c.map;
+  ()
 
 
 (* for quick abort *)
@@ -130,7 +125,8 @@ open Monad
 (* flush evictees, assuming already removed from c; map_ops is the ops
    of the underlying layer; exposed so can call when we want to flush
    the entire cache *)
-let sync_evictees map_ops evictees = (
+let sync_evictees map_ops evictees =
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let rec loop es = (
     match es with
     | [] -> return ()
@@ -142,31 +138,32 @@ let sync_evictees map_ops evictees = (
             | false -> loop es
             | true -> (
                 (* need to delete *)
-                map_ops.delete k |> bind (fun () -> loop es) ))
+                delete k |> bind (fun () -> loop es) ))
         | Some v -> (
             match dirty with
             | false -> loop es
             | true -> (
                 (* write out and continue *)
-                map_ops.insert k v |> bind (fun () -> loop es) ))))
+                insert k v |> bind (fun () -> loop es) ))))
   in
-  loop evictees)
+  loop evictees
 
 (* if we flush all entries, we can mark cache as clean *)
 let mark_all_clean cache_ops = 
-  cache_ops.get () |> bind (fun c ->
-      let dirty = false in
-      let c' = Pmap.map (fun (v,t,d) -> (v,t,dirty)) c in
-      cache_ops.set c' )
+  cache_ops.get () |> bind @@ fun c ->
+  let dirty = false in
+  let c' = Pmap.map (fun (v,t,d) -> (v,t,dirty)) c in
+  cache_ops.set c'
 
 
-let sync map_ops cache_ops = (
-  cache_ops.get () |> bind (fun c ->
-      sync_evictees map_ops (Pmap.bindings c) |> bind (fun () ->
-          mark_all_clean cache_ops)))
+let sync map_ops cache_ops =
+  cache_ops.get () |> bind @@ fun c ->
+  sync_evictees map_ops (Pmap.bindings c) |> bind @@ fun () ->
+  mark_all_clean cache_ops
 
 
-let make_cached_map ~map_ops ~cache_ops ~kk = (
+let make_cached_map ~map_ops ~cache_ops =
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let evict_hook : (unit -> unit) ref = ref (fun () -> ()) in
   (* update time on each put *)
   let put_cache c = 
@@ -225,7 +222,7 @@ let make_cached_map ~map_ops ~cache_ops ~kk = (
           put_cache c |> bind (fun () -> return v))
         with Not_found -> (
             (* retrieve from lower level *)
-            (map_ops.find k) 
+            (find k) 
             |> bind (
               fun v -> 
                 (* update cache *)
@@ -291,5 +288,7 @@ let make_cached_map ~map_ops ~cache_ops ~kk = (
             maybe_flush_evictees c)))
   in
   let get_leaf_stream () = failwith "FIXME" in
-  kk ~cached_map_ops:{find; insert; insert_many; delete} ~evict_hook
-)
+  let cached_map_ops = 
+    Btree_api.mk_map_ops ~find ~insert ~insert_many:(Some(insert_many)) ~delete 
+  in
+  fun ~kk -> kk ~cached_map_ops ~evict_hook

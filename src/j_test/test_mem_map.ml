@@ -54,7 +54,9 @@ let ops =
 
 let store_ops = Mem_store.mk_store_ops mem_ops
 
-let r2t : ('k,'v,'r,'t)r2t = store_ops_to_r2t store_ops
+let r2t : ('k,'v,'r,'t)r2t = 
+  dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  store_read_to_r2t store_read
 
 let ps = 
   object
@@ -106,18 +108,22 @@ let (init_store,init_r) = Mem_store.(
     |> (fun s -> (s,0)))
 
 
+let (find,insert,delete) = 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+  (find,insert,delete)
+
 let step range (t:global_state) = (
   let r1 = (
     range|>List.map (
       fun x -> 
         action:=Insert x; 
-        map_ops.insert x x|>(fun f -> f t)))
+        insert x x|>(fun f -> f t)))
   in
   let r2 = (
     range|>List.map (
       fun x -> 
         action:=Delete x; 
-        map_ops.delete x|>(fun f -> f t)))
+        delete x|>(fun f -> f t)))
   in
   r1@r2 |> List.map (
     fun (t',res) -> 
@@ -167,7 +173,7 @@ let test_insert range = (
     if (!c) mod 100 = 0 then (Printf.printf "."; flush_out ()) else ();
     let x = List.hd !xs in
     ignore(
-      map_ops.insert x (2*x) |> run !s0
+      insert x (2*x) |> run !s0
       |> (fun (s',Ok ()) -> s0:=s'));
     c:=!c+1;
     xs:=List.tl !xs;

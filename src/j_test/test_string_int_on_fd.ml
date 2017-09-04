@@ -19,6 +19,10 @@ let map_ops = map_ops x
 let close = close x
 let ls_ops = ls_ops x
 
+let (find,insert,delete) = 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+  (find,insert,delete)
+
 (* TODO use exhaustive; use imap_ops *)
 let test () = (
   Printf.printf "%s: " __MODULE__;
@@ -34,7 +38,7 @@ let test () = (
       let (k,v) = (List.hd !xs, !c) in
       (* log __LOC__;
          log (Printf.sprintf "insert: %s %s" k (v|>string_of_int)); *)
-      ignore (map_ops.insert (SS.of_string k) v 
+      ignore (insert (SS.of_string k) v 
               |> run !s 
               |> (function (s',Ok ()) -> s:=s'));
       m:=(Map_string.add k v !m);
@@ -44,10 +48,10 @@ let test () = (
     done);
   (* check the bindings match *)
   ignore (!m|>Map_string.bindings|>List.iter (fun (k,v) ->
-      ignore (map_ops.find (SS.of_string k) 
+      ignore (find (SS.of_string k) 
               |> run !s 
               |> (function (_,Ok res) -> assert (res = Some v)));
-      ignore (map_ops.delete (SS.of_string k) 
+      ignore (delete (SS.of_string k) 
               |> run !s 
               |> function (s',Ok ()) -> s:=s');
       ()));

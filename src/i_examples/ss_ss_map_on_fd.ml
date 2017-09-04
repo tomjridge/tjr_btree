@@ -31,23 +31,24 @@ let ls_ops = ls_ops x
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   match args with
   | ["init"; fn] -> (
       from_file ~fn ~create:true ~init:true
       |> (fun _ -> print_endline "init ok"))
   | ["insert";fn;k;v] -> (
       from_file ~fn ~create:false ~init:false
-      |> map_ops.insert (SS.of_string k) (SS.of_string v) 
+      |> insert (SS.of_string k) (SS.of_string v) 
       |> function (t,Ok _) -> (close t))
   | ["delete";fn;k] -> (
       from_file ~fn ~create:false ~init:false
-      |> map_ops.delete (SS.of_string k) 
+      |> delete (SS.of_string k) 
       |> function (t,Ok _) -> (close t))
   | ["list";fn] -> (
       from_file ~fn  ~create:false ~init:false
       |> (fun s -> 
           s 
-          |> all_kvs ls_ops 
+          |> all_kvs ~ls_ops 
           |> (function (s',Ok kvs) -> (
                 (List.iter (fun (k,v) -> 
                      Printf.printf "%s -> %s\n" (SS.to_string k) 

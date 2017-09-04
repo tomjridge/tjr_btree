@@ -49,10 +49,10 @@ let disk_to_store ~ps ~disk_ops ~free_ops : ('k,'v,'r,'t) store_ops = (
 *)
 
 (* version which uses custom frame_to_page and page_to_frame *)
-let disk_to_store ~ps ~disk_ops ~free_ops 
-  : ('k,'v,'r,'t) store_ops = (
+let disk_to_store ~ps ~disk_ops ~free_ops : [<`Store_ops of 'a] =
+  dest_disk_ops disk_ops @@ fun ~blk_sz ~read ~write ->
   let page_size = page_size ps in
-  test(fun _ -> assert (disk_ops.blk_sz = page_size));
+  test(fun _ -> assert (blk_sz = page_size));
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = (
     f|>(frame_to_page ps) page_size |> (fun p -> 
@@ -66,16 +66,15 @@ let disk_to_store ~ps ~disk_ops ~free_ops
             Printexc.(get_callstack 100 |> raw_backtrace_to_string 
                       |> print_endline);
             *)
-            disk_ops.write free p |> bind (fun () -> 
+            write free p |> bind (fun () -> 
                 free_ops.set (free+1) |> bind (fun () ->
                     return free)))))
   in
   let store_read r : (('k,'v)frame,'t) m = 
-    disk_ops.read r |> bind (fun blk ->
+    read r |> bind (fun blk ->
         blk |> (page_to_frame ps) |> (fun frm ->
             return frm))
   in
-  {store_free; store_read; store_alloc } 
-)
+  Store_ops.mk_store_ops ~store_free ~store_read ~store_alloc
 
 

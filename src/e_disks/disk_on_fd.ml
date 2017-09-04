@@ -38,7 +38,7 @@ let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
 
 (* in the monad ----------------------------------------------------- *)
 
-let make_disk ~blk_sz ~fd_ops = (
+let make_disk ~blk_sz ~fd_ops = 
   let read: blk_id -> (blk,'t) m = (fun r ->
       safely_ __LOC__ (
         fd_ops.get ()
@@ -51,5 +51,5 @@ let make_disk ~blk_sz ~fd_ops = (
         |> bind (fun fd ->           
             return (write fd blk_sz r buf))))
   in
-  {blk_sz;read;write})
+  Btree_api.mk_disk_ops ~blk_sz ~read ~write
 

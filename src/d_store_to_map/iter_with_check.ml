@@ -270,13 +270,15 @@ open Pre_map_ops
 
 (** Construct [pre_map_ops] using functions above. Takes a "parameters" object ps. *)
 let make_pre_map_ops ~ps ~store_ops = 
-  {
-    find_leaf=(fun k r s -> find_leaf ~ps ~store_ops ~k ~r ~init_store:s);
-    find=(fun k r s -> find ~ps ~store_ops ~k ~r ~init_store:s);
-    insert=(fun k v r s -> insert ~ps ~store_ops ~k ~v ~r ~init_store:s);
-    insert_many=(fun k v kvs r s -> insert_many ~ps ~store_ops ~k ~v ~kvs ~r ~init_store:s);
-    delete=(fun k r s -> delete ~ps ~store_ops ~k ~r ~init_store:s);
-  }
+  Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  assert(wf_store_ops ~store_free ~store_read ~store_alloc);
+  let find_leaf=(fun k r s -> find_leaf ~ps ~store_ops ~k ~r ~init_store:s) in
+  let find=(fun k r s -> find ~ps ~store_ops ~k ~r ~init_store:s) in
+  let insert=(fun k v r s -> insert ~ps ~store_ops ~k ~v ~r ~init_store:s) in
+  let insert_many=(fun k v kvs r s -> insert_many ~ps ~store_ops ~k ~v ~kvs ~r ~init_store:s) in
+  let delete=(fun k r s -> delete ~ps ~store_ops ~k ~r ~init_store:s) in
+  assert(wf_pre_map_ops ~find_leaf ~find ~insert ~delete ~insert_many);
+  Pre_map_ops.mk_pre_map_ops ~find_leaf ~find ~insert ~insert_many ~delete
 
 let _ = make_pre_map_ops
 

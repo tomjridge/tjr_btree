@@ -49,13 +49,13 @@ let initial_state = { spec=init_spec; cache=init_cache; base_map=init_base_map }
 
 (* base uncached map ------------------------------------------------ *)
 
-let base_map_ops: (key,value,ts) map_ops = {
-    find=(fun k -> (fun t -> 
-      (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None))));
-    insert=(fun k v -> (fun t -> failwith ""));
-    insert_many=(fun k v kvs -> fun t -> failwith __LOC__);
-    delete=(fun k -> failwith "");
-  }
+let base_map_ops: [<`Map_ops of 'a] = 
+  let find=(fun k -> (fun t -> 
+      (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None)))) in
+  let insert=(fun k v -> (fun t -> failwith "")) in
+  let insert_many=Some (fun k v kvs -> fun t -> failwith __LOC__) in
+  let delete=(fun k -> failwith "") in
+  mk_map_ops ~find ~insert ~delete ~insert_many
 
 (* cached map ------------------------------------------------------- *)
 
@@ -68,6 +68,8 @@ let cached_map_ops =
   Cache.make_cached_map ~map_ops:base_map_ops ~cache_ops 
     ~kk:(fun ~cached_map_ops ~evict_hook -> cached_map_ops)
 
+let _ = cached_map_ops
+
 
 (* exhaustive testing ----------------------------------------------- *)
 
@@ -75,15 +77,19 @@ module S (* : Exhaustive.S *)= struct
   module State = struct type t = ts let compare = compare end
   type op = O.op
 
+  let (find,insert,delete) = 
+    dest_map_ops cached_map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+    (find,insert,delete)
+
   let step op t = (
     match op with
-    | Find k -> (cached_map_ops.find k |> (fun f -> f t) |> function (t',Ok _) -> t')
+    | Find k -> (find k |> (fun f -> f t) |> function (t',Ok _) -> t')
     | Insert (k,v) -> (
-        cached_map_ops.insert k v 
+        insert k v 
         |> (fun f -> f t)
         |> (function (t',Ok ()) -> {t' with spec=Map_int.add k v t'.spec}))
     | Delete k -> (
-        cached_map_ops.delete k
+        delete k
         |> (fun f -> f t)
         |> (function (t',Ok ()) -> {t' with spec=Map_int.remove k t'.spec})))
     |> (fun x -> [{ x with cache=Cache.normalize x.cache}])

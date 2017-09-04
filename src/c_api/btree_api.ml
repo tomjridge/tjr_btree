@@ -43,11 +43,20 @@ let wf_disk_ops
     ~(write:blk_id -> blk -> (unit,'t) m) 
   = true
 
+let mk_disk_ops ~blk_sz ~read ~write =
+  `Disk_ops(blk_sz,read,write)
+
+let dest_disk_ops (`Disk_ops(blk_sz,read,write)) = 
+  assert(wf_disk_ops ~blk_sz ~read ~write);
+  fun k -> k ~blk_sz ~read ~write
+
 let wf_imperative_disk_ops 
     ~(blk_sz:blk_sz)
     ~(read:blk_id -> blk)
     ~(write:blk_id -> blk -> unit)
   = true
+
+
 
 
 let disk_ops_to_imperative ~blk_sz ~read ~write = 
@@ -140,6 +149,14 @@ let wf_map_ops
   true
 
 
+let mk_map_ops ~find ~insert ~delete ~insert_many =
+  assert(wf_map_ops ~find ~insert ~delete ~insert_many);
+  `Map_ops(find,insert,delete,insert_many)
+
+let dest_map_ops (`Map_ops(find,insert,delete,insert_many)) =
+  assert(wf_map_ops ~find ~insert ~delete ~insert_many);
+  fun k -> k ~find ~insert ~delete ~insert_many
+    
 (** Call [insert_many] in a loop. *)
 let rec insert_all insert_many k v kvs = Monad.(
     insert_many k v kvs |> bind (fun kvs' -> 
@@ -156,7 +173,8 @@ let wf_imperative_map_ops
   true
 
 
-let map_ops_to_imperative ~find ~insert ~delete = 
+let map_ops_to_imperative map_ops = 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   assert(wf_map_ops ~find ~insert ~delete ~insert_many:None);
   fun ~s_ref ->
     let find k = 
@@ -209,6 +227,8 @@ module Imperative_map_ops = struct
 end
 *)
 
+(* leaf stream ------------------------------------------------------ *)
+
 
 (* we only reveal lss when it points to a leaf *)
 
@@ -236,11 +256,20 @@ let wf_ls_ops
   =
   true
 
+let mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs =
+  assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);
+  `Ls_ops(mk_leaf_stream,ls_step,ls_kvs)
+
+let dest_ls_ops (`Ls_ops(mk_leaf_stream,ls_step,ls_kvs)) = 
+  assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);
+  fun k -> k ~mk_leaf_stream ~ls_step ~ls_kvs
+
+
 (* for debugging *)
 
 (** Get all (key,value) pairs from a leaf stream. Debugging only. *)
-let all_kvs ~mk_leaf_stream ~ls_step ~ls_kvs : (('k * 'v) list,'t) m = Monad.(
-    assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);
+let all_kvs ~ls_ops : (('k * 'v) list,'t) m = Monad.(
+    dest_ls_ops ls_ops @@ fun ~mk_leaf_stream ~ls_step ~ls_kvs ->
     let rec loop kvs s = (
       let kvs' = ls_kvs s in
       let kvs = kvs@kvs' in

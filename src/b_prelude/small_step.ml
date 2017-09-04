@@ -50,10 +50,11 @@ module X = struct
     Ps0(constants|>x_constants, cmp|>x_cmp))
 
   let x_store_ops store_ops : ('k,'v,'r,'t,unit) IE.Params.store_ops_ext = (
+    Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
     Store_ops_ext(
-      store_ops.store_read,
-      store_ops.store_alloc,
-      store_ops.store_free,()))
+      store_read,
+      store_alloc,
+      store_free,()))
 
   let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
       Ps1(x_ps0 ~constants ~cmp, x_store_ops store_ops))

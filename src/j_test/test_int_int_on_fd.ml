@@ -23,6 +23,10 @@ let map_ops = map_ops x
 let close = close x
 let ls_ops = ls_ops x
 
+let (find,insert,delete) = 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  (find,insert,delete)
+
 let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
     __MODULE__ 
@@ -35,7 +39,7 @@ let test_uncached range = (
     while (!xs <> []) do
       print_string "."; flush_out();
       let x = List.hd !xs in
-      ignore (map_ops.insert x (2*x) 
+      ignore (insert x (2*x) 
               |> run !s 
               |> function (s',Ok()) -> s:=s');
       xs:=List.tl !xs;
