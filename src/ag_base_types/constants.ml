@@ -13,6 +13,7 @@ type t = {
    the on-disk format. Here we assume the strategy implemented in
    Btree_with_pickle, and so we must also provide details of the
    length of keys and values when stored on disk. *)
+(*
 let make_constants ~page_size ~tag_len ~k_len ~v_len = (
   let max_leaf_size = 
     (page_size - tag_len - tag_len) (* for tag and length *)
@@ -27,3 +28,4 @@ let make_constants ~page_size ~tag_len ~k_len ~v_len = (
   let min_node_keys = 2 in
   { min_leaf_size; max_leaf_size; min_node_keys; max_node_keys}
 )
+*)

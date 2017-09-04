@@ -166,7 +166,7 @@ let sync map_ops cache_ops = (
           mark_all_clean cache_ops)))
 
 
-let make_cached_map ~map_ops ~cache_ops ~ kk = (
+let make_cached_map ~map_ops ~cache_ops ~kk = (
   let evict_hook : (unit -> unit) ref = ref (fun () -> ()) in
   (* update time on each put *)
   let put_cache c = 

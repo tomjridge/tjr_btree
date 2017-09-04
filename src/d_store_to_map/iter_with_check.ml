@@ -54,7 +54,7 @@ type ('o,'t) tt = {
 (*  init_args: 'a; *)
 }
 
-open Params2
+(*open Params2*)
 
 let mk (type o t) ~check_state ~finished ~dest ~step ~(init_op_state:o) = (
   let check_trans s s' = true in      (* TODO *)
