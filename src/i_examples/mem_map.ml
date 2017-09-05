@@ -1,6 +1,5 @@
 (** Generic in-memory map *)
 
-open Prelude
 open Btree_api
 
 open Mem_store

@@ -1,6 +1,5 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
-open Prelude
 open Btree_api
 open Frame
 open Page_ref_int

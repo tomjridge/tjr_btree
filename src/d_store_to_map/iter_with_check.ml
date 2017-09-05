@@ -9,8 +9,8 @@
    and apply the step functions repeatedly *)
 
 open Base_types
-open Prelude
 open Monad
+open Test
 
 module X = Small_step
 
@@ -267,6 +267,7 @@ let delete ~ps ~store_ops ~k ~r = (
 (* make pre_map_ops ---------------------------------------- *)
 
 open Pre_map_ops
+open Store_ops
 
 (** Construct [pre_map_ops] using functions above. Takes a "parameters" object ps. *)
 let make_pre_map_ops ~ps ~store_ops = 

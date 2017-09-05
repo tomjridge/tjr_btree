@@ -1,5 +1,4 @@
 open Monad
-open Prelude
 open Btree_api
 open Page_ref_int
 open Block.Blk4096
@@ -26,7 +25,7 @@ let (find,insert,delete) =
 (* TODO use exhaustive; use imap_ops *)
 let test () = (
   Printf.printf "%s: " __MODULE__;
-  flush_out();
+  Base_types.flush_out();
   let s = from_file ~fn ~create:true ~init:true in
   let s = ref s in
   let xs = ref Test_common.strings in
@@ -34,7 +33,7 @@ let test () = (
   let m = ref Map_string.empty in
   ignore (
     while (!xs <> []) do
-      print_string "."; flush_out();
+      print_string "."; Base_types.flush_out();
       let (k,v) = (List.hd !xs, !c) in
       (* log __LOC__;
          log (Printf.sprintf "insert: %s %s" k (v|>string_of_int)); *)

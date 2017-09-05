@@ -3,7 +3,6 @@
 (* used by bytestore2 *)
 
 open Base_types
-open Prelude
 open Btree_api
 open Monad
 open Params

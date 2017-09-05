@@ -7,7 +7,6 @@
    use records rather than functors *)
 
 open Base_types
-open Prelude
 open Btree_api
 open Page_ref_int  (* TODO generalize? *)
 

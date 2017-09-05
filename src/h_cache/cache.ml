@@ -4,7 +4,6 @@
    version *)
 
 open Base_types
-open Prelude
 open Btree_api
 
 type time = int
@@ -80,7 +79,7 @@ let then_ f x = (if x=0 then f () else x)
 
 (* FIXME a bit horrible! *)
 let compare c1 c2 =
-  test(fun _ -> assert (c1.max_size = c2.max_size));
+  Test.test(fun _ -> assert (c1.max_size = c2.max_size));
   (Pervasives.compare c1.current c2.current) |> then_
     (fun () -> Pervasives.compare 
         (c1.map |> Pmap.bindings)

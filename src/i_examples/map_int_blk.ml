@@ -1,7 +1,6 @@
 (** A map from blk index to blk, implemented as a map from index to blkid *)
 
 open Base_types
-open Prelude
 open Btree_api
 open Monad
 open Params

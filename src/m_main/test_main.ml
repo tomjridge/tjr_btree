@@ -1,4 +1,3 @@
-open Prelude
 
 let from_to l h : int list = Batteries.(l -- h |> List.of_enum)
 
@@ -66,17 +65,17 @@ let _ = try (
   match Array.to_list Sys.argv |> List.tl with
   (* run tests based on json config file *)
   | [n] -> (
-      let s = File_.read_file n in
+      let s = File_util.read_file n in
       let Ok tests = s|>Yojson.Safe.from_string|>tests_of_yojson in
       List.iter (fun t -> run_test t) tests
     )
 ) with e -> (
     Test.print_logs ();
-    flush_out();
+    Base_types.flush_out();
     ignore(e|>Printexc.to_string|>print_endline);
-    flush_out();
+    Base_types.flush_out();
     ignore(Printexc.get_backtrace () |>print_endline);
-    flush_out();
+    Base_types.flush_out();
     raise e
   )
 

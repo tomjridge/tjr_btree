@@ -1,6 +1,5 @@
 (** Use pickling to convert a disk-like thing to a store-like thing *)
 
-open Prelude
 open Btree_api
 open Page_ref_int
 open Monad
@@ -52,7 +51,7 @@ let disk_to_store ~ps ~disk_ops ~free_ops : ('k,'v,'r,'t) store_ops = (
 let disk_to_store ~ps ~disk_ops ~free_ops : [<`Store_ops of 'a] =
   dest_disk_ops disk_ops @@ fun ~blk_sz ~read ~write ->
   let page_size = page_size ps in
-  test(fun _ -> assert (blk_sz = page_size));
+  Test.test(fun _ -> assert (blk_sz = page_size));
   let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = (
     f|>(frame_to_page ps) page_size |> (fun p -> 

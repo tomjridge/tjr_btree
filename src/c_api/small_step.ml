@@ -4,7 +4,7 @@
    many, delete and the leaf stream operations. *)
 
 open Base_types
-
+open Rstk
 (** Sub-modules called O are safe to open in other modules. This
    module contains types which are often used in the rest of the
    code. *)
@@ -17,7 +17,6 @@ module O = struct
 *)
   open R2f
   open Isa_export
-  type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
   type ('k,'v,'r) find_state = ('k,'v,'r) Find.find_state
   type ('k,'v,'r) insert_state = ('k,'v,'r) Insert.insert_state
   type ('k,'v,'r) im_state = ('k,'v,'r) Insert_many.ist

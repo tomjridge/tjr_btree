@@ -101,3 +101,5 @@ src/small_step.ml
 /src/bin_prot_util.ml
 /src/ord.ml
 /src/r2f.ml
+/src/file_util.ml
+/src/rstk.ml

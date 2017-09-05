@@ -2,7 +2,6 @@
 
 open Base_types
 open Monad
-open Prelude
 open Btree_api
 open Mem_store
 open Page_ref_int
@@ -55,7 +54,7 @@ let ops =
 let store_ops = Mem_store.mk_store_ops mem_ops
 
 let r2t : ('k,'v,'r,'t)r2t = 
-  dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
   store_read_to_r2t store_read
 
 let ps = 

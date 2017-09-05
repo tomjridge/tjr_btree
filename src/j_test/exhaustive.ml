@@ -3,7 +3,6 @@
 (* we factor out the common code *)
 
 open Base_types
-open Prelude
 
 module type S = sig
   module State : Set.OrderedType

@@ -1,6 +1,5 @@
 (* a map from int to int, backed by file ------------------------------- *)
 
-open Prelude
 open Btree_api
 open Frame
 open Page_ref_int

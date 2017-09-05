@@ -1,6 +1,5 @@
 (** A map from small string to int, backed by file descriptor *)
 
-open Prelude
 open Btree_api
 open Block.Blk4096
 open Page_ref_int

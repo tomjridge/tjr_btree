@@ -8,8 +8,8 @@ include Base_types_pervasives
 open Base_types
 
 (* so we can just open Prelude *)
-include Small_step.O
+(*include Small_step.O *)
 
-include Test
+(* include Test *)
 
 

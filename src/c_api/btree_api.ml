@@ -22,7 +22,6 @@ The operations typically execute in the {!Base_types.Monad}.
 (* this module safe to open *)
 
 open Base_types
-open Prelude
 open Block
 
 (* block device ---------------------------------------- *)

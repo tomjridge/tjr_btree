@@ -10,7 +10,6 @@ We fix:
 *)
 
 open Base_types
-open Prelude
 open Btree_api
 open Page_ref_int
 open Frame
@@ -105,7 +104,7 @@ let read_root_block ~blk_sz ~fd =
 let from_file ~fn ~create ~init ~ps = (
   let blk_sz = blk_sz ps in
 (*  let pp = pp ps in *)
-  let fd = File_.fd_from_file fn create init in
+  let fd = File_util.fd_from_file fn create init in
   match init with
   | true -> (
       (* now need to write the initial frame *)

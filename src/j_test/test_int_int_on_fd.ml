@@ -2,7 +2,6 @@
 
 (* this is for performance testing *)
 
-open Prelude
 open Btree_api
 open Map_int_int  
 open Int_int_map_on_fd
@@ -31,13 +30,13 @@ let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
     __MODULE__ 
     (List.length range);
-  flush_out();
+  Base_types.flush_out();
   let s = from_file ~fn ~create:true ~init:true in
   let s = ref s in
   let xs = ref range in
   ignore (
     while (!xs <> []) do
-      print_string "."; flush_out();
+      print_string "."; Base_types.flush_out();
       let x = List.hd !xs in
       ignore (insert x (2*x) 
               |> run !s 

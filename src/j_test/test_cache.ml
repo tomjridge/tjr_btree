@@ -1,7 +1,6 @@
 (* testing cache ---------------------------------------- *)
 
 open Base_types
-open Prelude
 open Btree_api
 open Cache
 
