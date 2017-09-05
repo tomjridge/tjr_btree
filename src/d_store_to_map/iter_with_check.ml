@@ -1,7 +1,7 @@
 (** Iterate small-step map operations to provide big-step map
-   operations. The important functions in this module are [find],
-   [insert], [insert_many] and [delete] (together with the leaf stream
-   big-step operations). *)
+    operations. The important functions in this module are [find],
+    [insert], [insert_many] and [delete] (together with the leaf stream
+    big-step operations). *)
 
 (* iterate operations till finished ---------------------------------------- *)
 
@@ -51,7 +51,7 @@ type ('o,'t) tt = {
   (* spec_tree:('k,'v)tree option; (* fixed for duration of iter *) *)
   store: 't;
   op_state: 'o;
-(*  init_args: 'a; *)
+  (*  init_args: 'a; *)
 }
 
 (*open Params2*)
@@ -111,9 +111,14 @@ let find' (type k v r t) ~cmp ~constants ~store_ops ~(k:k) ~(r:r) = (
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log (fun _ -> __LOC__);
-      log (fun _ -> tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
-      log (fun _ -> s.op_state |> Isa_export.Find.find_state_to_yojson k2j v2j r2j |> Yojson.Safe.pretty_to_string);
-      test (fun _ -> assert (X.wellformed_find_state ~r2t ~cmp tree s.store s.op_state));
+      log (fun _ -> 
+          tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
+      log (fun _ -> 
+          s.op_state 
+          |> Isa_export.Find.find_state_to_yojson k2j v2j r2j 
+          |> Yojson.Safe.pretty_to_string);
+      test (fun _ -> 
+          assert (X.wellformed_find_state ~r2t ~cmp tree s.store s.op_state));
       true)
     in
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
@@ -154,9 +159,14 @@ let insert' ~cmp ~constants ~store_ops ~k ~v ~r = (
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log (fun _ -> __LOC__);
-      log (fun _ -> tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
-      log (fun _ -> s.op_state |> Isa_export.Insert.insert_state_to_yojson k2j v2j r2j |> Yojson.Safe.pretty_to_string);
-      test (fun _ -> assert (X.wellformed_insert_state ~r2t ~cmp ~constants tree s.store k v s.op_state));
+      log (fun _ -> 
+          tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
+      log (fun _ -> 
+          s.op_state 
+          |> Isa_export.Insert.insert_state_to_yojson k2j v2j r2j 
+          |> Yojson.Safe.pretty_to_string);
+      test (fun _ -> 
+          assert (X.wellformed_insert_state ~r2t ~cmp ~constants tree s.store k v s.op_state));
       true)
     in
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
@@ -169,12 +179,12 @@ let insert' ~cmp ~constants ~store_ops ~k ~v ~r = (
 
 
 (** Insert. Take a key, a value, a reference (to the B-tree root) and
-   a state and return an updated state, with a new reference to the
-   root of the updated B-tree. *)
+    a state and return an updated state, with a new reference to the
+    root of the updated B-tree. *)
 let insert ~ps ~store_ops ~k ~v ~r = (
   match dbg_ps ps with
   | None -> (
-      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r |> snd)
+      insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r|> snd)
   | Some ps' -> (
       insert' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~r  
       |> fst 
@@ -194,9 +204,13 @@ let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r = (
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log (fun _ -> __LOC__);
-      log (fun _ -> tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
-      (* FIXME log (s.op_state |> Isa_export.Insert_many.insert_many_state_to_yojson k2j v2j r2j |> Yojson.Safe.pretty_to_string); *)
-      (* FIXME test (fun _ -> assert (X.wellformed_im_state ~r2t ~cmp ~constants tree s.store k v s.op_state)); *)
+      log (fun _ -> 
+          tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
+      (* FIXME log (s.op_state |>
+         Isa_export.Insert_many.insert_many_state_to_yojson k2j v2j r2j
+         |> Yojson.Safe.pretty_to_string); *)
+      (* FIXME test (fun _ -> assert (X.wellformed_im_state ~r2t ~cmp
+         ~constants tree s.store k v s.op_state)); *)
       true)
     in
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
@@ -209,16 +223,16 @@ let im' ~cmp ~constants ~store_ops ~k ~v ~kvs ~r = (
 
 
 (** Insert many. Take a key, value, and list of further key/values, a
-   pointer to the B-tree root and a global state. Return the updated
-   state, a new pointer to a B-tree root, and a list of key/values
-   which could not be inserted into the same leaf as the first
-   key/value. Typically this function is called in a loop till all kvs
-   have been inserted. It is assumed faster than multiple inserts,
-   although caching may invalidate this assumption. *)
+    pointer to the B-tree root and a global state. Return the updated
+    state, a new pointer to a B-tree root, and a list of key/values
+    which could not be inserted into the same leaf as the first
+    key/value. Typically this function is called in a loop till all kvs
+    have been inserted. It is assumed faster than multiple inserts,
+    although caching may invalidate this assumption. *)
 let insert_many ~ps ~store_ops ~k ~v ~kvs ~r = (
   match dbg_ps ps with
   | None -> (
-      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r |> snd)
+      im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r|>snd)
   | Some ps' -> (
       im' ~cmp:(cmp ps) ~constants:(constants ps) ~store_ops ~k ~v ~kvs ~r 
       |> fst 
@@ -237,9 +251,14 @@ let delete' ~cmp ~constants ~store_ops ~k ~r = (
     let tree = r2t init_store r |> dest_Some in
     let check_state s = (
       log (fun _ -> __LOC__);
-      log (fun _ -> tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
-      log (fun _ -> s.op_state |> Isa_export.Delete.delete_state_to_yojson k2j v2j r2j |> Yojson.Safe.pretty_to_string);
-      test (fun _ -> assert (X.wellformed_delete_state ~r2t ~cmp ~constants tree s.store k s.op_state));
+      log (fun _ -> 
+          tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
+      log (fun _ -> 
+          s.op_state 
+          |> Isa_export.Delete.delete_state_to_yojson k2j v2j r2j 
+          |> Yojson.Safe.pretty_to_string);
+      test (fun _ -> 
+          assert (X.wellformed_delete_state ~r2t ~cmp ~constants tree s.store k s.op_state));
       true)
     in
     mk ~check_state ~finished ~dest ~step ~init_op_state ~init_store
@@ -252,7 +271,7 @@ let delete' ~cmp ~constants ~store_ops ~k ~r = (
 
 
 (** Delete. Take a key and a reference to a B-tree root, and a global
-   state. Return the updated state and a reference to the new root. *)
+    state. Return the updated state and a reference to the new root. *)
 let delete ~ps ~store_ops ~k ~r = (
   match dbg_ps ps with
   | None -> (
@@ -271,7 +290,8 @@ open Store_ops
 
 (** Construct [pre_map_ops] using functions above. Takes a "parameters" object ps. *)
 let make_pre_map_ops ~ps ~store_ops = 
-  Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  Store_ops.dest_store_ops store_ops @@ 
+  fun ~store_free ~store_read ~store_alloc ->
   assert(wf_store_ops ~store_free ~store_read ~store_alloc);
   let find_leaf=(fun k r s -> find_leaf ~ps ~store_ops ~k ~r ~init_store:s) in
   let find=(fun k r s -> find ~ps ~store_ops ~k ~r ~init_store:s) in

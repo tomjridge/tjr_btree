@@ -10,16 +10,18 @@ open Monad
 open Params
 open Leaf_stream_ops
 
-let mk ~ps ~store_ops ~kk = (
+let mk ~ps ~store_ops = (
 
   let rec next_leaf lss : (('k,'v,'r) lss option,'t) m = (
     match (ls_is_finished lss.ls) with
     | true -> return None
     | false -> (
-        lss.ls |> ls_step ~constants:(constants ps) ~cmp:(cmp ps) ~store_ops |> bind (fun ls' ->
-            match (ls_dest_leaf ls') with
-            | None -> next_leaf {lss with ls=ls'}
-            | Some kvs -> return (Some {kvs;ls=ls'}))))
+        lss.ls 
+        |> ls_step ~constants:(constants ps) ~cmp:(cmp ps) ~store_ops 
+        |> bind @@ fun ls' ->
+        match (ls_dest_leaf ls') with
+        | None -> next_leaf {lss with ls=ls'}
+        | Some kvs -> return (Some {kvs;ls=ls'})))
   in
 
   let mk_leaf_stream r : (('k,'v,'r)lss,'t) m = (
@@ -35,5 +37,5 @@ let mk ~ps ~store_ops ~kk = (
 
   let ls_step ls = next_leaf ls in
 
-  kk ~mk_leaf_stream ~ls_kvs ~ls_step)
+  fun k -> k ~mk_leaf_stream ~ls_kvs ~ls_step)
 

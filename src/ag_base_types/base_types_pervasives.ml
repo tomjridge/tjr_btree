@@ -18,3 +18,6 @@ let is_Some x = not(is_None x)
 let impossible (x:string) = failwith ("impossible: "^x)
 
 let flush_out () = flush Pervasives.stdout
+
+
+(* FIXME rename to misc or similar *)

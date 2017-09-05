@@ -22,8 +22,8 @@ let read ~fd ~blk_sz ~blk_id = Unix.(
   ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
   let buf = Bytes.make blk_sz (Char.chr 0) in 
   let n = read fd buf 0 blk_sz in
-  (* assert (n=blk_sz); we allow the file to expand
-               automatically, so no reason to read any bytes *)
+  (* assert (n=blk_sz); we allow the file to expand automatically, so
+     no reason to read any bytes *)
   test(fun _ -> assert(n=0 || n=blk_sz));
   Block.of_string blk_sz buf)
 
@@ -39,17 +39,15 @@ let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
 (* in the monad ----------------------------------------------------- *)
 
 let make_disk ~blk_sz ~fd_ops = 
-  let read: blk_id -> (blk,'t) m = (fun r ->
-      safely_ __LOC__ (
-        fd_ops.get ()
-        |> bind (fun fd ->
-            return (read fd blk_sz r))))
+  let read: blk_id -> (blk,'t) m = fun r ->
+    safely_ __LOC__ (
+      fd_ops.get () |> bind @@ fun fd ->
+      return (read fd blk_sz r))
   in
-  let write: blk_id -> blk -> (unit,'t) m = (fun r buf -> 
-      safely_ __LOC__ (
-        fd_ops.get ()
-        |> bind (fun fd ->           
-            return (write fd blk_sz r buf))))
+  let write: blk_id -> blk -> (unit,'t) m = fun r buf -> 
+    safely_ __LOC__ (
+      fd_ops.get () |> bind @@ fun fd ->           
+      return (write fd blk_sz r buf))
   in
   Disk_ops.mk_disk_ops ~blk_sz ~read ~write
 

@@ -20,10 +20,11 @@ type 't page_ref_ops = (page_ref,'t) mref
 open Monad
 open Pre_map_ops
 open Map_ops
+
 (* produce a map, with page_ref state set/get via monad_ops *)
 let make_map_ops' (type k v r t) pre_map_ops page_ref_ops = 
-  let `Pre_map_ops(find_leaf,find,insert,insert_many,delete) = pre_map_ops in
-  assert(wf_pre_map_ops ~find_leaf ~find ~insert ~insert_many ~delete);
+  dest_pre_map_ops pre_map_ops @@ 
+  fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
   let find_leaf = (fun k ->
       page_ref_ops.get () |> bind (fun r ->
           find_leaf k r |> bind (fun kvs ->               
@@ -32,7 +33,8 @@ let make_map_ops' (type k v r t) pre_map_ops page_ref_ops =
   let find = (fun k ->
       page_ref_ops.get () |> bind (fun r ->
           find k r |> bind (fun (r',kvs) -> 
-              (* page_ref_ops.set_page_ref r' |> bind (fun () -> NO! the r is the pointer to the leaf *)
+              (* page_ref_ops.set_page_ref r' |> bind (fun () -> 
+                 NO! the r is the pointer to the leaf *)
               return (try Some(List.assoc k kvs) with _ -> None))))
   in
   let insert = (fun k v ->
@@ -68,12 +70,12 @@ module N = Iter_leaf_stream
 
 (** Make [ls_ops], given a [page_ref_ops]. We only read from
     page_ref_ops. TODO ditto *)
-let make_ls_ops ~ps ~store_ops ~page_ref_ops : [<`Ls_ops of 'a] = (
-  N.mk ~ps ~store_ops ~kk:(fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
-      let mk_leaf_stream = (fun () ->
-          page_ref_ops.get () |> bind (fun r -> 
-              mk_leaf_stream r))
-      in
-      Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs))
+let make_ls_ops ~ps ~store_ops ~page_ref_ops : [<`Ls_ops of 'a] =
+  N.mk ~ps ~store_ops @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+  let mk_leaf_stream = (fun () ->
+      page_ref_ops.get () |> bind (fun r -> 
+          mk_leaf_stream r))
+  in
+  Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs
 
 let _ = make_ls_ops
