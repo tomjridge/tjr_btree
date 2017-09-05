@@ -15,7 +15,7 @@ module O = struct
   include Tree
   include R2t
 *)
-  type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
+  open R2f
   open Isa_export
   type ('k,'r) rstk = ('k,'r,unit) Tree_stack.ts_frame_ext list
   type ('k,'v,'r) find_state = ('k,'v,'r) Find.find_state

@@ -192,6 +192,9 @@ let map_ops_to_imperative map_ops =
     assert(wf_imperative_map_ops ~find ~insert ~delete);
     `Imperative_map_ops(find,insert,delete)
 
+let dest_imperative_map_ops (`Imperative_map_ops(find,insert,delete)) =
+  assert(wf_imperative_map_ops ~find ~insert ~delete);
+  fun k -> k ~find ~insert ~delete
 
 
 (** Dummy module containing imperative version of the map interface. *)

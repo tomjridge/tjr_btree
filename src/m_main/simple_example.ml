@@ -30,38 +30,38 @@ let do_write () = (
   let s = ref (from_file ~fn ~create:true ~init:true) in
   (* get map operations *)
   let map_ops = imperative_map_ops s in
+  Btree_api.dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
   (* write values *)
   for x=1 to max do
     (* TODO this would be much faster if we used insert_many *)
-    map_ops.insert (k x) (v x);
+    insert (k x) (v x);
   done;
   (* close *)
   close !s;
-  ()
-)
+  ())
 
 (* open store, delete some values, and close *)
 let do_delete () = (
   print_endline "Deleting...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
+  Btree_api.dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
   for x=100 to 200 do
-    map_ops.delete (k x);
+    delete (k x);
   done;
   close !s;
-  ()
-)
+  ())
 
 (* open store and check whether various keys and values are correct *)
 let do_check () = (
   print_endline "Checking...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
-  assert(map_ops.find (k 100) = None);
-  assert(map_ops.find (k 1000) = Some(v 1000));
+  Btree_api.dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  assert(find (k 100) = None);
+  assert(find (k 1000) = Some(v 1000));
   close !s;
-  ()
-)
+  ())
 
 (* actually execute the above *)
 let _ = (
@@ -76,14 +76,15 @@ let do_full_check () = (
   print_endline "Full check...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
+  Btree_api.dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
   for x = 1 to max do
     if (100 <= x && x <= 200) then
-      assert(map_ops.find (k x) = None)
+      assert(find (k x) = None)
     else
-      assert(map_ops.find (k x) = Some(v x))
+      assert(find (k x) = Some(v x))
   done;
-  close !s
-)
+  close !s;
+  ())
 
 let _ = do_full_check ()
 

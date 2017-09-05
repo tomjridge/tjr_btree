@@ -99,3 +99,5 @@ src/small_step.ml
 /src/bin_prot_max_sizes.ml
 /src/map_int_int.ml
 /src/bin_prot_util.ml
+/src/ord.ml
+/src/r2f.ml
