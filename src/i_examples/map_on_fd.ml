@@ -10,10 +10,10 @@ We fix:
 *)
 
 open Base_types
-open Btree_api
 open Page_ref_int
 open Frame
 open Params
+open Map_ops
 
 (*
 
@@ -70,7 +70,7 @@ let mk_ls_ops ~ps ~page_ref_ops ~store_ops =
 
 let mk_imperative_map_ops ~ps ~ops = 
   mk_map_ops ~ps ~ops |> fun map_ops -> 
-  Btree_api.map_ops_to_imperative map_ops
+  map_ops_to_imperative map_ops
 
 (* root block ---------------------------------------- *)
 

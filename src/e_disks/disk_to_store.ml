@@ -1,11 +1,11 @@
 (** Use pickling to convert a disk-like thing to a store-like thing *)
 
-open Btree_api
 open Page_ref_int
 open Monad
 (* open Btree_with_pickle.O *)
 (* open Pickle_params *)
 open Params
+open Disk_ops
 
 type 't free_ops = (int,'t) mref
 

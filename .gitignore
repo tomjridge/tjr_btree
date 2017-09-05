@@ -103,3 +103,6 @@ src/small_step.ml
 /src/r2f.ml
 /src/file_util.ml
 /src/rstk.ml
+/src/disk_ops.ml
+/src/leaf_stream_ops.ml
+/src/map_ops.ml

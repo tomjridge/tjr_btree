@@ -2,10 +2,10 @@
 
 open Base_types
 open Monad
-open Btree_api
 open Mem_store
 open Page_ref_int
 open Mem_store
+open Map_ops
 
 (* we concentrate on relatively small parameters *)
 

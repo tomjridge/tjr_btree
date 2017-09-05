@@ -7,7 +7,6 @@
    use records rather than functors *)
 
 open Base_types
-open Btree_api
 open Page_ref_int  (* TODO generalize? *)
 
 (** The B-tree code exports a [pre_map_ops] version of a map, with
@@ -20,7 +19,7 @@ type 't page_ref_ops = (page_ref,'t) mref
 
 open Monad
 open Pre_map_ops
-
+open Map_ops
 (* produce a map, with page_ref state set/get via monad_ops *)
 let make_map_ops' (type k v r t) pre_map_ops page_ref_ops = 
   let `Pre_map_ops(find_leaf,find,insert,insert_many,delete) = pre_map_ops in
@@ -75,6 +74,6 @@ let make_ls_ops ~ps ~store_ops ~page_ref_ops : [<`Ls_ops of 'a] = (
           page_ref_ops.get () |> bind (fun r -> 
               mk_leaf_stream r))
       in
-      Btree_api.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs))
+      Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs))
 
 let _ = make_ls_ops

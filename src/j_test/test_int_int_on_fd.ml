@@ -2,12 +2,12 @@
 
 (* this is for performance testing *)
 
-open Btree_api
 open Map_int_int  
 open Int_int_map_on_fd
 open Block.Blk4096
 open Default_filename
 open Monad
+open Map_ops
 
 (* test uncached ---------------------------------------- *)
 

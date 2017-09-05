@@ -3,11 +3,10 @@
 (* used by bytestore2 *)
 
 open Base_types
-open Btree_api
 open Monad
 open Params
 open Block
-
+open Map_ops
 
 (* as usual, we implement on top of a store *)
 

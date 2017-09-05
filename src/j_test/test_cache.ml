@@ -1,8 +1,8 @@
 (* testing cache ---------------------------------------- *)
 
 open Base_types
-open Btree_api
 open Cache
+open Map_ops
 
 (* we test just cache behaviour, not linked with btree *)
 

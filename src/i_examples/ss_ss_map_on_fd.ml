@@ -1,6 +1,5 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
-open Btree_api
 open Frame
 open Page_ref_int
 open Examples_common
@@ -30,7 +29,7 @@ let ls_ops = ls_ops x
 let main args = (
   (* turn off wf checking *)
   Test.disable ();
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   match args with
   | ["init"; fn] -> (
       from_file ~fn ~create:true ~init:true
@@ -47,7 +46,7 @@ let main args = (
       from_file ~fn  ~create:false ~init:false
       |> (fun s -> 
           s 
-          |> all_kvs ~ls_ops 
+          |> Leaf_stream_ops.all_kvs ~ls_ops 
           |> (function (s',Ok kvs) -> (
                 (List.iter (fun (k,v) -> 
                      Printf.printf "%s -> %s\n" (SS.to_string k) 

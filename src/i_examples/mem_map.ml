@@ -1,7 +1,5 @@
 (** Generic in-memory map *)
 
-open Btree_api
-
 open Mem_store
 open Store_to_map
 open Params

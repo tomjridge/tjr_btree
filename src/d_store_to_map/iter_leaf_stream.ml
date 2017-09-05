@@ -5,10 +5,10 @@
    constructed or exposed here has dest_LS_leaf <> None *)
 
 open Base_types
-open Btree_api
 open Small_step
 open Monad
 open Params
+open Leaf_stream_ops
 
 let mk ~ps ~store_ops ~kk = (
 

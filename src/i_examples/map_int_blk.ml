@@ -1,11 +1,10 @@
 (** A map from blk index to blk, implemented as a map from index to blkid *)
 
 open Base_types
-open Btree_api
 open Monad
 open Params
 open Block
-
+open Map_ops
 
 (* as usual, we implement on top of a store *)
 
@@ -32,7 +31,7 @@ let mk_int_blk_map
     ~(read_blk:blk_id->(blk option,'t)m)
     ~map_ops
   : [< `Map_ops of 'a ]  (* (k2,v2,'t) map_ops *) = 
-  Btree_api.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)
       find i |> bind @@ fun blk_id -> 

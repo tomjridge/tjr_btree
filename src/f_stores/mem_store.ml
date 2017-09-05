@@ -1,6 +1,5 @@
 (** Simple in-memory store implementation, mainly for testing *)
 
-open Btree_api
 open Page_ref_int
 open Monad
 

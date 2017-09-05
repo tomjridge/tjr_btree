@@ -1,9 +1,9 @@
 (** Implement disk operations backed by a file-descriptor *)
 
-open Btree_api
 open Monad
 open Block
 open Test
+open Disk_ops
 
 type fd = Unix.file_descr
 
@@ -51,5 +51,5 @@ let make_disk ~blk_sz ~fd_ops =
         |> bind (fun fd ->           
             return (write fd blk_sz r buf))))
   in
-  Btree_api.mk_disk_ops ~blk_sz ~read ~write
+  Disk_ops.mk_disk_ops ~blk_sz ~read ~write
 
