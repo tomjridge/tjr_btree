@@ -59,21 +59,18 @@ let normalize c =
   let t_map = ref Map_int.empty in
   let time = ref 0 in
   let queue = ref Queue.empty in
-  let _ = 
-    Queue.iter
-      (fun t k -> 
-         let t' = (!time) in
-         t_map:=Map_int.add t t' (!t_map);
-         queue:=Queue.add t' k (!queue);
-         time:=!time+1;
-         ())
-      c.queue
-  in
+  Queue.iter
+    (fun t k -> 
+       let t' = (!time) in
+       t_map:=Map_int.add t t' (!t_map);
+       queue:=Queue.add t' k (!queue);
+       time:=!time+1;
+       ())
+    c.queue;
   {c with
    current=(!time);
    map=Pmap.map (fun (v,t,d) -> (v,Map_int.find t (!t_map),d)) c.map;
-   queue=(!queue);
-  }
+   queue=(!queue) }
 
 let then_ f x = (if x=0 then f () else x)
 
@@ -184,7 +181,7 @@ let make_cached_map ~map_ops ~cache_ops =
         let evictees = ref [] in
         let queue = ref c.queue in  
         let map = ref c.map in
-        let _ = (
+        begin 
           try (
             Queue.iter 
               (fun time k -> 
@@ -193,98 +190,89 @@ let make_cached_map ~map_ops ~cache_ops =
                  map:=Pmap.remove k !map;
                  count:=!count +1;
                  if !count >= n then raise E_ else ())
-              c.queue
-          ) with E_ -> ())
-        in
+              c.queue) 
+          with E_ -> ()
+        end;
         (* now we have evictees, new queue, and new map *)
-        (sync_evictees map_ops !evictees) 
-        |> bind (fun () ->
-            let c' = {c with map=(!map); queue=(!queue)} in
-            put_cache c' )))
+        (sync_evictees map_ops !evictees) |> bind @@ fun () ->
+        let c' = {c with map=(!map); queue=(!queue)} in
+        put_cache c' ))
   in
 
   let find k = (
-    cache_ops.get () 
-    |> bind (
-      fun c ->
-        (* try to find in cache *)
-        try (
-          let (v,time,dirty) = Pmap.find k c.map in          
-          (* update time *)
-          let time' = c.current in
-          let c = {c with map=(Pmap.add k (v,time',dirty) c.map) } in
-          (* remove entry from queue *)
-          let c = {c with queue=(Queue.remove time c.queue) } in
-          (* add new entry *)
-          let c = {c with queue=(Queue.add time' k c.queue) } in
-          (* update cache *)
-          put_cache c |> bind (fun () -> return v))
-        with Not_found -> (
-            (* retrieve from lower level *)
-            (find k) 
-            |> bind (
-              fun v -> 
-                (* update cache *)
-                let time = c.current in
-                let dirty = false in
-                let c = {c with map=(Pmap.add k (v,time,dirty) c.map) } in
-                (* update queue *)
-                let c = {c with queue=(Queue.add time k c.queue) } in
-                maybe_flush_evictees c |> bind (fun () -> return v)))))
+    cache_ops.get () |> bind @@ fun c ->
+    (* try to find in cache *)
+    try (
+      let (v,time,dirty) = Pmap.find k c.map in          
+      (* update time *)
+      let time' = c.current in
+      let c = {c with map=(Pmap.add k (v,time',dirty) c.map) } in
+      (* remove entry from queue *)
+      let c = {c with queue=(Queue.remove time c.queue) } in
+      (* add new entry *)
+      let c = {c with queue=(Queue.add time' k c.queue) } in
+      (* update cache *)
+      put_cache c |> bind (fun () -> return v))
+    with Not_found -> (
+        (* retrieve from lower level *)
+        find k |> bind @@ fun v -> 
+        (* update cache *)
+        let time = c.current in
+        let dirty = false in
+        let c = {c with map=(Pmap.add k (v,time,dirty) c.map) } in
+        (* update queue *)
+        let c = {c with queue=(Queue.add time k c.queue) } in
+        maybe_flush_evictees c |> bind (fun () -> return v)))
   in
 
   let insert k v = (
-    cache_ops.get () 
-    |> bind (
-      fun c -> 
-        try (
-          let (v_,time,dirty) = Pmap.find k c.map in          
-          (* update time *)
-          let time' = c.current in
-          let dirty' = true in
-          let c = {c with map=(Pmap.add k (Some v,time',dirty') c.map) } in
-          (* remove entry from queue *)
-          let c = {c with queue=(Queue.remove time c.queue) } in
-          (* add new entry *)
-          let c = {c with queue=(Queue.add time' k c.queue) } in
-          (* update cache *)
-          put_cache c)
-        with Not_found -> (
-            (* update cache *)
-            let time = c.current in
-            let dirty = true in
-            let c = {c with map=(Pmap.add k (Some v,time,dirty) c.map) } in
-            (* update queue *)
-            let c = {c with queue=(Queue.add time k c.queue) } in
-            maybe_flush_evictees c)))
+    cache_ops.get () |> bind @@ fun c -> 
+    try (
+      let (v_,time,dirty) = Pmap.find k c.map in          
+      (* update time *)
+      let time' = c.current in
+      let dirty' = true in
+      let c = {c with map=(Pmap.add k (Some v,time',dirty') c.map) } in
+      (* remove entry from queue *)
+      let c = {c with queue=(Queue.remove time c.queue) } in
+      (* add new entry *)
+      let c = {c with queue=(Queue.add time' k c.queue) } in
+      (* update cache *)
+      put_cache c)
+    with Not_found -> (
+        (* update cache *)
+        let time = c.current in
+        let dirty = true in
+        let c = {c with map=(Pmap.add k (Some v,time,dirty) c.map) } in
+        (* update queue *)
+        let c = {c with queue=(Queue.add time k c.queue) } in
+        maybe_flush_evictees c))
   in
+
   (* TODO make insert_many more efficient *)
-  let insert_many k v kvs = (  
-    insert k v |> bind (fun () -> return kvs))
-  in
+  let insert_many k v kvs = insert k v |> bind (fun () -> return kvs) in
+
   let delete k = (
-    cache_ops.get () 
-    |> bind (
-      fun c -> 
-        try (
-          let (v_,time,dirty) = Pmap.find k c.map in          
-          (* update time *)
-          let time' = c.current in
-          let dirty' = true in
-          let c = {c with map=(Pmap.add k (None,time',dirty') c.map) } in
-          (* remove entry from queue *)
-          let c = {c with queue=(Queue.remove time c.queue) } in
-          (* add new entry *)
-          let c = {c with queue=(Queue.add time' k c.queue) } in
-          maybe_flush_evictees c)
-        with Not_found -> (
-            let time = c.current in
-            let dirty = true in
-            let c = {c with map=(Pmap.add k (None,time,dirty) c.map)} in
-            (* add new entry to queue *)
-            let c = {c with queue=(Queue.add time k c.queue) } in
-            (* update cache *)            
-            maybe_flush_evictees c)))
+    cache_ops.get () |> bind @@ fun c -> 
+    try (
+      let (v_,time,dirty) = Pmap.find k c.map in          
+      (* update time *)
+      let time' = c.current in
+      let dirty' = true in
+      let c = {c with map=(Pmap.add k (None,time',dirty') c.map) } in
+      (* remove entry from queue *)
+      let c = {c with queue=(Queue.remove time c.queue) } in
+      (* add new entry *)
+      let c = {c with queue=(Queue.add time' k c.queue) } in
+      maybe_flush_evictees c)
+    with Not_found -> (
+        let time = c.current in
+        let dirty = true in
+        let c = {c with map=(Pmap.add k (None,time,dirty) c.map)} in
+        (* add new entry to queue *)
+        let c = {c with queue=(Queue.add time k c.queue) } in
+        (* update cache *)            
+        maybe_flush_evictees c))
   in
   let get_leaf_stream () = failwith "FIXME" in
   let cached_map_ops = 
