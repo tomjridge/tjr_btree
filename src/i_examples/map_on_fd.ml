@@ -4,7 +4,9 @@
 We fix:
 
 - disk (block_size is a parameter)
-- store (constants and pp are parameters; block_size is a param because blocks/pages are typed according to size; clearly there are dependencies between these)
+- store (constants and pp are parameters; block_size is a param
+  because blocks/pages are typed according to size; clearly there are
+  dependencies between these)
 - map
 
 *)
@@ -39,14 +41,8 @@ module S2M = Store_to_map
 
 open Block
 
-(* more common parameters ------------------------------------------- *)
 
-let fd_ops x = x#fd_ops
-let free_ops x = x#free_ops
-
-(* layers ----------------------------------------------------------- *)
-
-(* make various layer operations eg disk_ops, store_ops, map_ops *)
+(* layers: disk_ops and store_ops --------------------------------- *)
 
 let mk_disk_ops ~ps ~fd_ops = D.make_disk ~blk_sz:(blk_sz ps) ~fd_ops
 
@@ -69,22 +65,16 @@ let mk_ls_ops ~ps ~page_ref_ops ~store_ops =
   S2M.make_ls_ops ~ps ~page_ref_ops ~store_ops
 
 let mk_imperative_map_ops ~ps ~ops = 
-  mk_map_ops ~ps ~ops |> fun map_ops -> 
-  map_ops_to_imperative map_ops
+  mk_map_ops ~ps ~ops |> fun map_ops -> map_ops_to_imperative map_ops
+
 
 (* root block ---------------------------------------- *)
 
 (* we implement the map by writing the free counter and root
    page_ref into the root block *)
 
-(*
-open Pickle
-open Examples
-*)
-(* open Btree_with_pickle.O *)
-
-(* we use standard ocaml marshalling for the root block - this is a
-   demo anyway TODO *)
+(* TODO we use standard ocaml marshalling for the root block - this is
+   a demo anyway *)
 
 let marshal_to_string x = Marshal.to_string x []
 
@@ -101,9 +91,9 @@ let read_root_block ~blk_sz ~fd =
   |> Block.to_string |> (fun x -> (marshal_from_string x : (int * int)))
   |> fun (free,root) -> (free,root)
 
-let from_file ~fn ~create ~init ~ps = (
+let from_file ~fn ~create ~init ~ps = 
   let blk_sz = blk_sz ps in
-(*  let pp = pp ps in *)
+  (*  let pp = pp ps in *)
   let fd = File_util.fd_from_file fn create init in
   match init with
   | true -> (
@@ -121,11 +111,10 @@ let from_file ~fn ~create ~init ~ps = (
   | false -> (
       let (free,root) = read_root_block ~blk_sz ~fd in 
       (fd,free,root))
-)
 
-let close ~blk_sz ~fd ~free ~root = (
+let close ~blk_sz ~fd ~free ~root = 
   write_root_block ~fd ~blk_sz ~free ~root;
-  Unix.close fd)
+  Unix.close fd
 
 
 module Default_implementation = struct
@@ -160,18 +149,6 @@ module Default_implementation = struct
       method fd_ops=fd_ops
     end
 
-
-  (* just use ops
-  let mk_disk_ops ~ps = mk_disk_ops ~ps ~fd_ops
-
-  let mk_store_ops ~ps = mk_store_ops ~ps ~ops
-      
-  let mk_map_ops ~ps = mk_map_ops ~ps ~ops
-      
-  let mk_ls_ops ~ps = mk_ls_ops ~ps ~page_ref_ops ~store_ops:(mk_store_ops ps)
-
-  let mk_imperative_map_ops ~ps = mk_imperative_map_ops ~ps ~ops
-     *)
 
   let from_file ~fn ~create ~init ~ps = 
     from_file ~fn ~create ~init ~ps |> (fun (fd,free,root) -> {fd;free;root})

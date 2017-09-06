@@ -107,3 +107,4 @@ src/small_step.ml
 /src/leaf_stream_ops.ml
 /src/map_ops.ml
 /src/ls_state.ml
+/src/leaf_stream_util.ml

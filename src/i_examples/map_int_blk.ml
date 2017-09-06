@@ -9,14 +9,17 @@ open Map_ops
 (* as usual, we implement on top of a store *)
 
 type k1 = int  (* index *)
-type v1 = blk_id  (* location of underlying block that corresponds to this index *)
+
+(* location of underlying block that corresponds to this index *)
+type v1 = blk_id  
 
 let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] =
-  let cmp=(Int_.compare) in
+  let cmp=Int_.compare in
   let dbg_ps=None in
+  let cs = constants ps in
   let ps = object
     method cmp=cmp
-    method constants=(constants ps)
+    method constants=cs
     method dbg_ps=None
   end in
   Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops
@@ -64,7 +67,8 @@ let mk_int_blk_map
               fun () -> return []))
   in
   let delete : 'k -> (unit,'t) m = (fun i -> 
-      (* no-op: we never "delete" a particular block *)
+      (* no-op: we never "delete" a particular block FIXME use
+         different type for map_ops? or just pass on functions directly? *)
       failwith __LOC__)
   in
   mk_map_ops ~find ~insert ~insert_many ~delete

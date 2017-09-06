@@ -72,6 +72,10 @@ let page_ref_ops x = x#page_ref_ops
 
 let store_ops x = x#store_ops
 
+(* more common parameters ------------------------------------------- *)
+
+let fd_ops x = x#fd_ops
+let free_ops x = x#free_ops
 
 
 

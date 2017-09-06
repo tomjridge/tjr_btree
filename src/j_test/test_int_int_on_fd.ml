@@ -3,7 +3,6 @@
 (* this is for performance testing *)
 
 open Map_int_int  
-open Int_int_map_on_fd
 open Block.Blk4096
 open Default_filename
 open Monad
@@ -15,7 +14,7 @@ open Examples_common
 
 (* FIXME following not needd with map_int_int *)
 
-let x = mk_example ~ps
+let x = mk_example_on_fd ~ps
 
 let from_file = from_file x
 let map_ops = map_ops x

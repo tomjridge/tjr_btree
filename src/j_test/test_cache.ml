@@ -64,8 +64,8 @@ let cache_ops = Monad.{
 }
 
 let cached_map_ops = 
-  Cache.make_cached_map ~map_ops:base_map_ops ~cache_ops 
-    ~kk:(fun ~cached_map_ops ~evict_hook -> cached_map_ops)
+  Cache.make_cached_map ~map_ops:base_map_ops ~cache_ops @@
+  fun ~cached_map_ops ~evict_hook -> cached_map_ops
 
 let _ = cached_map_ops
 

@@ -11,7 +11,7 @@ open Map_ops
 
 open Examples_common
 
-let x = mk_example ~ps
+let x = mk_example_on_fd ~ps
 
 let from_file = from_file x
 let map_ops = map_ops x

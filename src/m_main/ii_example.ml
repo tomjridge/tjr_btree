@@ -1,23 +1,20 @@
 (** A simple example of a kv store. *)
 
-open Map_int_int
-open Int_int_map_on_fd
-
 open Default_filename
 open Block.Blk4096
 open Map_ops
+open Map_int_int
 
 let _ = Test.disable()
 let _ = Isa_test.disable_isa_checks()
 
 open Examples_common
 
-let x = mk_example ~ps
+let x = mk_example_on_fd ~ps
 
 let from_file = from_file x
 let imperative_map_ops = imperative_map_ops x
 let close = close x
-
 
 
 (* construct keys and values from an int *)
@@ -30,7 +27,7 @@ let max = 10000
 (* TODO this would be much faster if we used insert_many *)
 
 (* create and init store, write some values, and close *)
-let do_write () = (
+let do_write () = 
   Printf.printf "Executing %d writes...\n" max;
   print_endline "Writing...";
   (* create and initialize *)
@@ -43,10 +40,10 @@ let do_write () = (
     insert (k x) (v x);
   done;
   close !s;
-  ())
+  ()
 
 (* open store, delete some values, and close *)
-let do_delete () = (
+let do_delete () = 
   print_endline "Deleting...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
@@ -55,10 +52,10 @@ let do_delete () = (
     delete (k x);
   done;
   close !s;
-  ())
+  ()
 
 (* open store and check whether various keys and values are correct *)
-let do_check () = (
+let do_check () = 
   print_endline "Checking...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
@@ -66,17 +63,17 @@ let do_check () = (
   assert(find (k 100) = None);
   assert(find (k 1000) = Some(v 1000));
   close !s;
-  ())
+  ()
 
 (* actually execute the above *)
-let _ = (
+let _ = 
   do_write();
   do_delete();
-  do_check()
-)
+  do_check();
+  ()
 
 
-let do_full_check () = (
+let do_full_check () = 
   print_endline "Full check...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
   let map_ops = imperative_map_ops s in
@@ -87,7 +84,8 @@ let do_full_check () = (
     else
       assert(find (k x) = Some(v x))
   done;
-  close !s)
+  close !s;
+  ()
 
 let _ = do_full_check ()
 

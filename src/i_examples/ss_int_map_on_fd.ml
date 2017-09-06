@@ -1,7 +1,5 @@
 (** A map from small string to int, backed by file descriptor *)
 
-open Block.Blk4096
-open Page_ref_int
 open Examples_common
 open Small_string
 open Bin_prot_util
@@ -19,4 +17,4 @@ let ps' ~blk_sz =
 
 let ps = ps' ~blk_sz
 
-let x = Examples_common.mk_example ~ps
+let x = mk_example_on_fd ~ps

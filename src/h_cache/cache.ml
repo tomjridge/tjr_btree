@@ -278,4 +278,4 @@ let make_cached_map ~map_ops ~cache_ops =
   let cached_map_ops = 
     mk_map_ops ~find ~insert ~insert_many ~delete 
   in
-  fun ~kk -> kk ~cached_map_ops ~evict_hook
+  fun kk -> kk ~cached_map_ops ~evict_hook

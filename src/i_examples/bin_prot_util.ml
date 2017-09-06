@@ -1,12 +1,16 @@
-(* max sizes etc *)
+(** Binprot util: max sizes etc *)
 
 open Small_string
 
 let bp_size_int = Bin_prot.Size.Maximum.bin_size_int
+
+
 let bp_size_ss = 3+SS.max_length
 
 let bin_reader_ss = SS.bin_reader_ss
+
 let bin_writer_ss = SS.bin_writer_ss
+
 
 module BP = Bin_prot.Std
 

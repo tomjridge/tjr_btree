@@ -1,9 +1,9 @@
-(* construct various layers based on parameters ps *)
 open Params
 open Map_on_fd
 open Map_on_fd.Default_implementation
 
-let mk_example ~ps = (
+(** Construct various api layers based on parameters ps *)
+let mk_example_on_fd ~ps = 
   let disk_ops = mk_disk_ops ~ps ~fd_ops in
   let store_ops = Disk_to_store.disk_to_store ~ps ~disk_ops ~free_ops in
   let map_ops = Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
@@ -20,13 +20,18 @@ let mk_example ~ps = (
     method from_file=from_file
     method close=close
   end
-)
 
-let from_file x = x#from_file
-let close x = x#close
+
+(* specific params ------------------------------------------------ *)
+
 let map_ops x = x#map_ops
 let imperative_map_ops x = x#imperative_map_ops
 let ls_ops x = x#ls_ops
+let from_file x = x#from_file
+let close x = x#close
+
+
+(* default blocksize ------------------------------------------------ *)
 
 let blk_sz = 4096
 

@@ -1,7 +1,5 @@
 (* a small KV store; keys and values are <=256 bytes *)
 
-open Frame
-open Page_ref_int
 open Examples_common
 open Small_string
 open Bin_prot_util
@@ -12,21 +10,19 @@ let read_v = bin_reader_ss
 let write_v = bin_writer_ss
 
 
-let ps' ~blk_sz = Binprot_marshalling.mk_binprot_ps ~blk_sz
+let ps = Binprot_marshalling.mk_binprot_ps ~blk_sz
     ~cmp:SS.compare ~k_size:bp_size_ss ~v_size:bp_size_ss
     ~read_k ~write_k
     ~read_v ~write_v
 
-let ps = ps' ~blk_sz
-
-let x = mk_example ~ps
+let x = mk_example_on_fd ~ps
 
 let from_file = from_file x
 let map_ops = map_ops x
 let close = close x
 let ls_ops = ls_ops x
 
-let main args = (
+let main args = 
   (* turn off wf checking *)
   Test.disable ();
   Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
@@ -57,4 +53,4 @@ let main args = (
   | _ -> (
       failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
                 __LOC__))
-)
+
