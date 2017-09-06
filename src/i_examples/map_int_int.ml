@@ -11,7 +11,7 @@ let sz = bp_size_int
 
 (* this is generally useful, not just in examples *)
 let ps' ~blk_sz = 
-  Binprot_marshalling.mk_ps ~blk_sz
+  Binprot_marshalling.mk_binprot_ps ~blk_sz
     ~cmp:Int_.compare ~k_size:sz ~v_size:sz
     ~read_k:read ~write_k:write
     ~read_v:read ~write_v:write

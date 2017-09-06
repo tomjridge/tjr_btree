@@ -10,7 +10,7 @@ open Monad
 open Params
 open Leaf_stream_ops
 
-let mk ~ps ~store_ops = (
+let ils_mk ~ps ~store_ops = (
 
   let rec next_leaf lss : (('k,'v,'r) lss option,'t) m = (
     match (ls_is_finished lss.ls) with

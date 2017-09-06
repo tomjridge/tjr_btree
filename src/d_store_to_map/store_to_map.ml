@@ -25,56 +25,56 @@ open Map_ops
 let make_map_ops' (type k v r t) pre_map_ops page_ref_ops = 
   dest_pre_map_ops pre_map_ops @@ 
   fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
-  let find_leaf = (fun k ->
-      page_ref_ops.get () |> bind (fun r ->
-          find_leaf k r |> bind (fun kvs ->               
-              return kvs)))
+  let find_leaf = fun k ->
+    page_ref_ops.get () |> bind @@ fun r ->
+    find_leaf k r |> bind @@ fun kvs ->               
+    return kvs
   in
-  let find = (fun k ->
-      page_ref_ops.get () |> bind (fun r ->
-          find k r |> bind (fun (r',kvs) -> 
-              (* page_ref_ops.set_page_ref r' |> bind (fun () -> 
-                 NO! the r is the pointer to the leaf *)
-              return (try Some(List.assoc k kvs) with _ -> None))))
+  let find = fun k ->
+    page_ref_ops.get () |> bind @@ fun r ->
+    find k r |> bind @@ fun (r',kvs) -> 
+    (* page_ref_ops.set_page_ref r' |> bind (fun () -> 
+       NO! the r is the pointer to the leaf *)
+    return (try Some(List.assoc k kvs) with _ -> None)
   in
-  let insert = (fun k v ->
-      page_ref_ops.get () |> bind (fun r ->
-          insert k v r |> bind (fun r' -> 
-              page_ref_ops.set r')))
+  let insert = fun k v ->
+    page_ref_ops.get () |> bind @@ fun r ->
+    insert k v r |> bind @@ fun r' -> 
+    page_ref_ops.set r'
   in
-  let insert_many = (fun k v kvs -> 
-      page_ref_ops.get () |> bind (fun r ->
-          insert_many k v kvs r |> bind (fun (r',kvs') ->
-              page_ref_ops.set r' |> bind (fun () ->
-                  return kvs'))))
+  let insert_many = fun k v kvs -> 
+    page_ref_ops.get () |> bind @@ fun r ->
+    insert_many k v kvs r |> bind @@ fun (r',kvs') ->
+    page_ref_ops.set r' |> bind @@ fun () ->
+    return kvs'
   in
-  let delete = (fun k ->
-      page_ref_ops.get () |> bind (fun r -> 
-          delete k r |> bind (fun r' ->
-              page_ref_ops.set r')))
+  let delete = fun k ->
+    page_ref_ops.get () |> bind @@ fun r -> 
+    delete k r |> bind @@ fun r' ->
+    page_ref_ops.set r'
   in
   assert(wf_map_ops ~find ~insert ~delete ~insert_many);
   mk_map_ops ~find ~insert ~delete ~insert_many
-(* NOTE always returns an insert_many *)
 
-(** Make [map_ops], given a [page_ref_ops]. *)
 
 (* TODO make store_ops explicit in arguments to this function *)
 (* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
+
+(** Make [map_ops], given a [page_ref_ops]. *)
 let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] = 
   Iter_with_check.make_pre_map_ops ~ps ~store_ops
   |> fun pre_map_ops -> make_map_ops' pre_map_ops page_ref_ops
 
 
-module N = Iter_leaf_stream
+let ils_mk = Iter_leaf_stream.ils_mk
 
 (** Make [ls_ops], given a [page_ref_ops]. We only read from
     page_ref_ops. TODO ditto *)
 let make_ls_ops ~ps ~store_ops ~page_ref_ops : [<`Ls_ops of 'a] =
-  N.mk ~ps ~store_ops @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
-  let mk_leaf_stream = (fun () ->
-      page_ref_ops.get () |> bind (fun r -> 
-          mk_leaf_stream r))
+  ils_mk ~ps ~store_ops @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+  let mk_leaf_stream = fun () ->
+    page_ref_ops.get () |> bind @@ fun r -> 
+    mk_leaf_stream r
   in
   Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs
 

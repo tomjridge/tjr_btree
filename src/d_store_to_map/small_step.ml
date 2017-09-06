@@ -3,6 +3,8 @@
    [wellformed_find_state] and similar functions for insert, insert
    many, delete and the leaf stream operations. *)
 
+(* FIXME this module a bit horrible *)
+
 open Base_types
 open Rstk
 (** Sub-modules called O are safe to open in other modules. This

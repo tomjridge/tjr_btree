@@ -1,5 +1,5 @@
-(*module Blk = Block.Blk4096
-open Blk*)
+(** Marshal frames to blocks using binprot *)
+
 open Frame
 open Page_ref_int
 
@@ -38,7 +38,7 @@ let frm_to_pg ~write_k ~write_v ~blk_sz =
     let () = BP.Common.blit_buf_string buf s pos' in
     s |> BlkN.of_string blk_sz
 
-let mk_ps ~blk_sz = (
+let mk_binprot_ps ~blk_sz = (
 
   let pg_to_frm ~read_k ~read_v = 
     let bin_reader' = bin_reader_binprot_tree read_k read_v in

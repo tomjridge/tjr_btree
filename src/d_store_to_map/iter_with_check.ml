@@ -3,6 +3,8 @@
     [insert], [insert_many] and [delete] (together with the leaf stream
     big-step operations). *)
 
+(* FIXME this module a bit horrible *)
+
 (* iterate operations till finished ---------------------------------------- *)
 
 (* this includes code to construct initial states (eg init find_state)

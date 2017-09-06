@@ -1,3 +1,5 @@
+(** Fix page_ref type as int; also shadow frame type with more specific type. *)
+
 (* fix page_ref --------------------------------------------------- *)
 
 open Bin_prot.Std

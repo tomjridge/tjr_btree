@@ -1,5 +1,5 @@
 (** Store operations: alloc, free and read. The store is a level above
-   the raw disk, on which we build the B-tree. *)
+   the raw disk block device, on which we build the B-tree. *)
 
 open Frame
 open Monad
@@ -29,26 +29,4 @@ let _ = wf_store_ops
 
 let _ = dest_store_ops
 
-
-(* old -------------------------------------------------------------- *)
-
-
-(* just an abstraction, so no sync; use sync on underlying disk *)
-(** Store operations: alloc, free and read. *)
-(*
-type ('k,'v,'r,'t) store_ops = {
-  store_free: 'r list -> (unit,'t) m;
-  store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
-  store_alloc : ('k, 'v,'r) frame -> ('r,'t) m;
-}
-*)
-
-
-(*
-type ('k,'v,'r,'t) store_opsFIXME = ('k,'v,'r,'t) Store_ops.store_ops = {
-  store_free: 'r list -> (unit,'t) m;
-  store_read : 'r -> (('k, 'v,'r) frame,'t) m;  (* FIXME option? *)
-  store_alloc : ('k, 'v,'r) frame -> ('r,'t) m;
-}
-*)
 

@@ -5,9 +5,35 @@ open Block
 open Test
 open Disk_ops
 
+
 type fd = Unix.file_descr
 
+
+(** [fd_ops] identifies a filedescriptor in the global state *)
 type 't fd_ops = (fd,'t) mref
+
+
+(* raw operations --------------------------------------------------- *)
+
+let read ~fd ~blk_sz ~blk_id = 
+  ignore (Unix.lseek fd (blk_id * blk_sz) SEEK_SET);
+  let buf = Bytes.make blk_sz (Char.chr 0) in 
+  let n = Unix.read fd buf 0 blk_sz in
+  (* assert (n=blk_sz); we allow the file to expand automatically, so
+     no reason to read any bytes since file could be empty *)
+  test(fun _ -> assert(n=0 || n=blk_sz));
+  Block.of_string blk_sz buf
+
+
+let write ~fd ~blk_sz ~blk_id ~blk = 
+  ignore (Unix.lseek fd (blk_id * blk_sz) SEEK_SET);
+  let buf = Block.to_string blk in
+  let n = Unix.single_write fd buf 0 blk_sz in
+  test(fun _ -> assert (n=blk_sz));
+  ()
+
+
+(* in the monad ----------------------------------------------------- *)
 
 (* don't want to clobber any other "safely" *)
 let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
@@ -16,28 +42,8 @@ let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
     try m s 
     with e -> (s,Error (msg ^ (Printexc.to_string e))))
 
-(* raw operations --------------------------------------------------- *)
 
-let read ~fd ~blk_sz ~blk_id = Unix.(
-  ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
-  let buf = Bytes.make blk_sz (Char.chr 0) in 
-  let n = read fd buf 0 blk_sz in
-  (* assert (n=blk_sz); we allow the file to expand automatically, so
-     no reason to read any bytes *)
-  test(fun _ -> assert(n=0 || n=blk_sz));
-  Block.of_string blk_sz buf)
-
-
-let write ~fd ~blk_sz ~blk_id ~blk = Unix.(
-    ignore (lseek fd (blk_id * blk_sz) SEEK_SET);
-    let buf = Block.to_string blk in
-    let n = single_write fd buf 0 blk_sz in
-    test(fun _ -> assert (n=blk_sz));
-    ())
-
-
-(* in the monad ----------------------------------------------------- *)
-
+(** Construct [disk_ops] *)
 let make_disk ~blk_sz ~fd_ops = 
   let read: blk_id -> (blk,'t) m = fun r ->
     safely_ __LOC__ (

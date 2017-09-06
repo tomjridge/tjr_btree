@@ -12,7 +12,7 @@ let read_v = bin_reader_ss
 let write_v = bin_writer_ss
 
 
-let ps' ~blk_sz = Binprot_marshalling.mk_ps ~blk_sz
+let ps' ~blk_sz = Binprot_marshalling.mk_binprot_ps ~blk_sz
     ~cmp:SS.compare ~k_size:bp_size_ss ~v_size:bp_size_ss
     ~read_k ~write_k
     ~read_v ~write_v
@@ -46,7 +46,7 @@ let main args = (
       from_file ~fn  ~create:false ~init:false
       |> (fun s -> 
           s 
-          |> Leaf_stream_ops.all_kvs ~ls_ops 
+          |> Leaf_stream_util.all_kvs ~ls_ops 
           |> (function (s',Ok kvs) -> (
                 (List.iter (fun (k,v) -> 
                      Printf.printf "%s -> %s\n" (SS.to_string k) 

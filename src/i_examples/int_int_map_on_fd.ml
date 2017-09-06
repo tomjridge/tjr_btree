@@ -24,7 +24,7 @@ let main args = (
       from_file ~fn  ~create:false ~init:false
       |> (fun s -> 
           s 
-          |> Leaf_stream_ops.all_kvs ~ls_ops 
+          |> Leaf_stream_util.all_kvs ~ls_ops 
           |> (function (s',Ok kvs) -> (
                 (List.iter (fun (k,v) -> 
                      Printf.printf "%s -> %s\n" (string_of_int k) 
