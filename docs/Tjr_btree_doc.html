@@ -184,6 +184,40 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
    <a href="Map_ops.html"><code class="code">Map_ops</code></a>).
 <p>
 
+   <b>Important note on style</b> Interfaces are essentially
+   groups of polymorphic functions. We wrap each tuple of functions in
+   a polymorphic variant constructor to group them together, and this
+   also makes the types easier to read. 
+<p>
+
+   For example, map operations are something of the form <code class="code">`Map_ops
+   ...</code>. To get a handle on the components of such a thing we provide
+   functions such as <a href="Map_ops.html#VALdest_map_ops"><code class="code">Map_ops.dest_map_ops</code></a> which takes a set of map
+   operations and a "continuation" function and calls the function with the
+   components of the set. Example code should make this clearer eg see
+   <code class="code">ii_example.ml</code> which includes the following use of 
+   <code class="code">dest_imperative_map_ops</code> together with the continuation function 
+   which binds the <code class="code">find</code>, <code class="code">insert</code> and <code class="code">delete</code> functions.
+<p>
+
+   FIXME following code extract does not preserve line breaking; 
+   ocamldoc should support raw html frags?
+<p>
+
+<code class="code">
+  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete -&gt;
+  (* write values *)
+  for x=1 to max do
+    insert (k x) (v x);
+  done;
+</code>
+<p>
+
+   This style is rather unusual, for which apologies. Unfortunately
+   functors were not working for me (although I can see that they
+   would be very useful eg for OCaml's <code class="code">Set</code> and <code class="code">Map</code> modules).
+<p>
+
    <h2 id="2_Storetomap">Store to map</h2>
 <p>
 

@@ -80,6 +80,36 @@ Exported code is in the [from_isa] package. There is some patching of
    module also documents the type variable naming conventions (see
    {!Map_ops}).
 
+   {b Important note on style} Interfaces are essentially
+   groups of polymorphic functions. We wrap each tuple of functions in
+   a polymorphic variant constructor to group them together, and this
+   also makes the types easier to read. 
+
+   For example, map operations are something of the form [`Map_ops
+   ...]. To get a handle on the components of such a thing we provide
+   functions such as {!Map_ops.dest_map_ops} which takes a set of map
+   operations and a "continuation" function and calls the function with the
+   components of the set. Example code should make this clearer eg see
+   [ii_example.ml] which includes the following use of 
+   [dest_imperative_map_ops] together with the continuation function 
+   which binds the [find], [insert] and [delete] functions.
+
+   FIXME following code extract does not preserve line breaking; 
+   ocamldoc should support raw html frags?
+
+<code>
+  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  (* write values *)
+  for x=1 to max do
+    insert (k x) (v x);
+  done;
+</code>
+
+   This style is rather unusual, for which apologies. Unfortunately
+   functors were not working for me (although I can see that they
+   would be very useful eg for OCaml's {!Set} and {!Map} modules).
+
+
 
    {2 Store to map}
 
@@ -139,7 +169,7 @@ Exported code is in the [from_isa] package. There is some patching of
 
    These [xxx.ml] files get turned into executables
    [xxx.native]. 
-   
+
    - [ii_example.native] is the [int -> int] example
    - [main.native] is used by the [kv_main.sh] example
    - [simple_example.native] is the [string->string] kv example
