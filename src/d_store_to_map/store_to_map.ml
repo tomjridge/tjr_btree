@@ -53,8 +53,8 @@ let make_map_ops' (type k v r t) pre_map_ops page_ref_ops =
           delete k r |> bind (fun r' ->
               page_ref_ops.set r')))
   in
-  assert(wf_map_ops ~find ~insert ~delete ~insert_many:(Some insert_many));
-  mk_map_ops ~find ~insert ~delete ~insert_many:(Some insert_many)
+  assert(wf_map_ops ~find ~insert ~delete ~insert_many);
+  mk_map_ops ~find ~insert ~delete ~insert_many
 (* NOTE always returns an insert_many *)
 
 (** Make [map_ops], given a [page_ref_ops]. *)

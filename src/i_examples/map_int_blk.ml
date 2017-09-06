@@ -47,22 +47,21 @@ let mk_int_blk_map
   in
   (* NOTE following returns an empty list, since we really want to
      insert all the blocks *)
-  let insert_many: ('k -> 'v -> ('k*'v)list -> (('k*'v)list,'t) m) option =
-    insert_many |> option_map (fun insert_many ->
-        fun k v kvs ->
-          (* allocate lots of new blks from disk *)
-          let rec loop (_done,todo) = (
-            match todo with
-            | [] -> return _done
-            | (blk_id,blk)::todo' -> (
-                write_blk blk |> bind (fun blk_id' ->
-                    loop( (blk_id,blk_id')::_done,todo'))))
-          in
-          loop ([],(k,v)::kvs) |> bind (fun xs -> 
-              match xs with
-              | [] -> impossible __LOC__
-              | (i,i')::xs -> insert_all insert_many i i' xs |> bind (
-                  fun () -> return [])))
+  let insert_many: 'k -> 'v -> ('k*'v)list -> (('k*'v)list,'t) m =
+    fun k v kvs ->
+      (* allocate lots of new blks from disk *)
+      let rec loop (_done,todo) = (
+        match todo with
+        | [] -> return _done
+        | (blk_id,blk)::todo' -> (
+            write_blk blk |> bind (fun blk_id' ->
+                loop( (blk_id,blk_id')::_done,todo'))))
+      in
+      loop ([],(k,v)::kvs) |> bind (fun xs -> 
+          match xs with
+          | [] -> impossible __LOC__
+          | (i,i')::xs -> insert_all insert_many i i' xs |> bind (
+              fun () -> return []))
   in
   let delete : 'k -> (unit,'t) m = (fun i -> 
       (* no-op: we never "delete" a particular block *)

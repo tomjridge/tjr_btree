@@ -52,7 +52,7 @@ let base_map_ops: [<`Map_ops of 'a] =
   let find=(fun k -> (fun t -> 
       (t,Ok(try Some(Map_int.find k t.base_map) with _ -> None)))) in
   let insert=(fun k v -> (fun t -> failwith "")) in
-  let insert_many=Some (fun k v kvs -> fun t -> failwith __LOC__) in
+  let insert_many=(fun k v kvs -> fun t -> failwith __LOC__) in
   let delete=(fun k -> failwith "") in
   mk_map_ops ~find ~insert ~delete ~insert_many
 

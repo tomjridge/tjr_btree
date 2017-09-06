@@ -276,6 +276,6 @@ let make_cached_map ~map_ops ~cache_ops =
   in
   let get_leaf_stream () = failwith "FIXME" in
   let cached_map_ops = 
-    mk_map_ops ~find ~insert ~insert_many:(Some(insert_many)) ~delete 
+    mk_map_ops ~find ~insert ~insert_many ~delete 
   in
   fun ~kk -> kk ~cached_map_ops ~evict_hook

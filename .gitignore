@@ -106,3 +106,4 @@ src/small_step.ml
 /src/disk_ops.ml
 /src/leaf_stream_ops.ml
 /src/map_ops.ml
+/src/ls_state.ml

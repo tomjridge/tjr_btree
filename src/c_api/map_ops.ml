@@ -32,7 +32,7 @@ let wf_map_ops
     ~(find: 'k -> ('v option,'t) m)
     ~(insert: 'k -> 'v -> (unit,'t) m)
     ~(delete: 'k -> (unit,'t) m)
-    ~(insert_many: ('k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m) option)
+    ~(insert_many: 'k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m) 
   = 
   true
 
@@ -63,7 +63,7 @@ let wf_imperative_map_ops
 
 let map_ops_to_imperative map_ops = 
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
-  assert(wf_map_ops ~find ~insert ~delete ~insert_many:None);
+  assert(wf_map_ops ~find ~insert ~delete ~insert_many);
   fun ~s_ref ->
     let find k = 
       find k |> run (!s_ref) 
