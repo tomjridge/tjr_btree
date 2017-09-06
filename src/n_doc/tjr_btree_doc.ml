@@ -1,5 +1,4 @@
-(** tjr_btree, a COW B-tree in OCaml (documentation) *)
-
+(** Main documentation entry point *)
 (**
 
 General documentation and overview
@@ -55,10 +54,10 @@ Exported code is in the [from_isa] package. There is some patching of
 - {!Rstk} for the type of framestacks
 - {!Tree} for the tree type imported from Isabelle
 
-   The {!Base_types.Monad} is a state-passing monad with error; this
+   The {!Monad} is a state-passing monad with error; this
    monad shows up in most of the interfaces.
 
-   The {!Base_types.Tree} module describes a B-tree as an algebraic
+   The {!Tree} module describes a B-tree as an algebraic
    datatype. The on-disk B-tree uses references between blocks i.e. a
    graph-like structure with pointers rather than a datatype. Indeed,
    the tree datatype is used only for testing purposes.
@@ -92,7 +91,7 @@ Exported code is in the [from_isa] package. There is some patching of
 
    {2 Disks}
 
-   {!Disk_on_fd} is a persistent disk on top of a file. 
+   {!Disk_on_fd} is a persistent block device on top of a "normal" file. 
 
    {!Disk_to_store} includes a function that naively transforms a disk
    to a store. 
@@ -143,8 +142,8 @@ Exported code is in the [from_isa] package. There is some patching of
    
    - [ii_example.native] is the [int -> int] example
    - [main.native] is used by the [kv_main.sh] example
-   - [test_main.native] is used for testing
    - [simple_example.native] is the [string->string] kv example
+   - [test_main.native] is used for testing
 
 *)
 let dummy = 1

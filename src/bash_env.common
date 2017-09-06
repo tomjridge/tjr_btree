@@ -131,7 +131,7 @@ function mk_codetags() {
 # doc ----------------------------------------------------
 
 function mk_doc() {
-    ocamlfind ocamldoc $PKGS $WARN -html `cat _depend/*`
+    ocamlfind ocamldoc $PKGS $WARN -html -intro n_doc/intro.odoc `cat _depend/*`
 }
 
 
