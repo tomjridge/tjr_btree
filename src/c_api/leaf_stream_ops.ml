@@ -1,4 +1,5 @@
 open Monad
+open Ls_state
 
 (* leaf stream ------------------------------------------------------ *)
 
@@ -7,7 +8,7 @@ open Monad
 
 (** Leaf stream representation. This type is for debugging - you
    shouldn't need to access components. *)
-type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)Small_step.ls_state }
+type ('k,'v,'r) lss = { kvs: ('k*'v) list; ls: ('k,'v,'r)ls_state }
 
 (** A leaf stream is a linear sequence of the leaves in a B-tree, used
    for iterating over all the bindings in the tree. Leaf stream

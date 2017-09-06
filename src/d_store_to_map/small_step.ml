@@ -21,12 +21,12 @@ module O = struct
   type ('k,'v,'r) insert_state = ('k,'v,'r) Insert.insert_state
   type ('k,'v,'r) im_state = ('k,'v,'r) Insert_many.ist
   type ('k,'v,'r) delete_state = ('k,'v,'r) Delete.delete_state
-  type ('k,'v,'r) ls_state = ('k,'v,'r) Leaf_stream.ls_state
 end
 
 include O
 open Isa_export
 open Store_ops
+open Ls_state
 
 (** Translations between Isabelle types and OCaml native types. *)
 module X = struct
