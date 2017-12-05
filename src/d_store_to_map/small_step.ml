@@ -47,8 +47,8 @@ module X = struct
 
   open IE.Params
   let x_cmp cmp x y = cmp x y |> int_to_int
-  let x_ps0 ~constants ~cmp : 'k IE.Params.ps0 = (
-    Ps0(constants|>x_constants, cmp|>x_cmp))
+(*  let x_ps0 ~constants ~cmp : 'k IE.Params.ps0 = (
+    Ps0(constants|>x_constants, cmp|>x_cmp)) *)
 
   let x_store_ops store_ops : ('k,'v,'r,'t,unit) IE.Params.store_ops_ext = (
     Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
@@ -58,7 +58,7 @@ module X = struct
       store_free,()))
 
   let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
-      Ps1(x_ps0 ~constants ~cmp, x_store_ops store_ops))
+      Ps1(x_constants constants, (x_cmp cmp, x_store_ops store_ops)))
 end
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
@@ -110,7 +110,7 @@ let dest_d_finished: ('k,'v,'r) delete_state->'r option = Delete.dest_d_finished
 let wellformed_delete_state ~cmp ~constants ~r2t : 'tree->'t->'k->('k,'v,'r) delete_state->bool = (
   fun t s k ds -> 
     Delete.wellformed_delete_state 
-      (X.x_ps0 ~constants ~cmp) 
+      (X.x_constants constants) (X.x_cmp cmp)
       r2t t s k ds)
   
 
@@ -129,7 +129,8 @@ let dest_i_finished: ('k,'v,'r)insert_state -> 'r option =
 let wellformed_insert_state ~cmp ~constants ~r2t :'tree->'t->'k->'v->('k,'v,'r) insert_state->bool = (
   fun t s k v is ->
     Insert.wellformed_insert_state 
-      (X.x_ps0 ~cmp ~constants) r2t t s k v is)
+      (X.x_constants constants) (X.x_cmp cmp)
+      r2t t s k v is)
 
 (* insert_many ---------------------------------------- *)
 
