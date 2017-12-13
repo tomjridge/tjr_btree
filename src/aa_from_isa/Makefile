@@ -6,7 +6,7 @@ SHELL:=/bin/bash
 #
 # - Copy to ./orig.ml
 # - Try to apply patch: make isa_export.ml
-# - If this fails, fixup isa_export.ml and: make orig.patch
+# - If this fails, apply patch to orig, output to patched.ml and: make orig.patch
 #
 # https://forums.anandtech.com/threads/best-practices-for-creating-patch-with-diff.2264468/
 

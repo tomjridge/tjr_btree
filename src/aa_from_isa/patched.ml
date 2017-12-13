@@ -13,6 +13,19 @@ let rec comp f g = (fun x -> f (g x));;
 
 end;; (*struct Fun*)
 
+module HOL : sig
+  type 'a equal = {equal : 'a -> 'a -> bool}
+  val equal : 'a equal -> 'a -> 'a -> bool
+  val eq : 'a equal -> 'a -> 'a -> bool
+end = struct
+
+type 'a equal = {equal : 'a -> 'a -> bool};;
+let equal _A = _A.equal;;
+
+let rec eq _A a b = equal _A a b;;
+
+end;; (*struct HOL*)
+
 module Orderings : sig
   type 'a ord = {less_eq : 'a -> 'a -> bool; less : 'a -> 'a -> bool}
   val less_eq : 'a ord -> 'a -> 'a -> bool
@@ -30,6 +43,8 @@ end;; (*struct Orderings*)
 
 module Arith : sig
   type nat
+  val equal_nata : nat -> nat -> bool
+  val equal_nat : nat HOL.equal
   val less_eq_nat : nat -> nat -> bool
   val less_nat : nat -> nat -> bool
   val ord_nat : nat Orderings.ord
@@ -39,12 +54,13 @@ module Arith : sig
   val one_nat : nat
   val suc : nat -> nat
   val less_int : int -> int -> bool
+  val int_of_nat : nat -> int
   val zero_int : int
   val zero_nat : nat
   val nat_of_integer : Big_int.big_int -> nat
   val equal_int : int -> int -> bool
+  val minus_int : int -> int -> int
   val less_eq_int : int -> int -> bool
-  val equal_nat : nat -> nat -> bool
   val minus_nat : nat -> nat -> nat
   val times_nat : nat -> nat -> nat
 end = struct
@@ -52,6 +68,11 @@ end = struct
 type nat = Nat of Big_int.big_int;;
 
 let rec integer_of_nat (Nat x) = x;;
+
+let rec equal_nata
+  m n = Big_int.eq_big_int (integer_of_nat m) (integer_of_nat n);;
+
+let equal_nat = ({HOL.equal = equal_nata} : nat HOL.equal);;
 
 let rec less_eq_nat
   m n = Big_int.le_big_int (integer_of_nat m) (integer_of_nat n);;
@@ -83,6 +104,8 @@ let rec integer_of_int (Int_of_integer k) = k;;
 let rec less_int
   k l = Big_int.lt_big_int (integer_of_int k) (integer_of_int l);;
 
+let rec int_of_nat n = Int_of_integer (integer_of_nat n);;
+
 let zero_int : int = Int_of_integer Big_int.zero_big_int;;
 
 let zero_nat : nat = Nat Big_int.zero_big_int;;
@@ -93,11 +116,12 @@ let rec nat_of_integer
 let rec equal_int
   k l = Big_int.eq_big_int (integer_of_int k) (integer_of_int l);;
 
+let rec minus_int
+  k l = Int_of_integer
+          (Big_int.sub_big_int (integer_of_int k) (integer_of_int l));;
+
 let rec less_eq_int
   k l = Big_int.le_big_int (integer_of_int k) (integer_of_int l);;
-
-let rec equal_nat
-  m n = Big_int.eq_big_int (integer_of_nat m) (integer_of_nat n);;
 
 let rec minus_nat
   m n = Nat (Orderings.max ord_integer Big_int.zero_big_int
@@ -109,18 +133,17 @@ let rec times_nat
 end;; (*struct Arith*)
 
 module List : sig
+  val equal_lista : 'a HOL.equal -> 'a list -> 'a list -> bool
+  val equal_list : 'a HOL.equal -> ('a list) HOL.equal
   val nth : 'a list -> Arith.nat -> 'a
+  val rev : 'a list -> 'a list
   val upt : Arith.nat -> Arith.nat -> Arith.nat list
-  val zip : 'a list -> 'b list -> ('a * 'b) list
   val drop : Arith.nat -> 'a list -> 'a list
-  val find : ('a -> bool) -> 'a list -> 'a option
   val null : 'a list -> bool
-  val last : 'a list -> 'a
   val take : Arith.nat -> 'a list -> 'a list
   val foldr : ('a -> 'b -> 'b) -> 'a list -> 'b -> 'b
   val concat : ('a list) list -> 'a list
   val filter : ('a -> bool) -> 'a list -> 'a list
-  val butlast : 'a list -> 'a list
   val hd : 'a list -> 'a
   val tl : 'a list -> 'a list
   val list_ex : ('a -> bool) -> 'a list -> bool
@@ -129,38 +152,41 @@ module List : sig
   val size_list : 'a list -> Arith.nat
 end = struct
 
+let rec equal_lista _A
+  x0 x1 = match x0, x1 with [], x21 :: x22 -> false
+    | x21 :: x22, [] -> false
+    | x21 :: x22, y21 :: y22 -> HOL.eq _A x21 y21 && equal_lista _A x22 y22
+    | [], [] -> true;;
+
+let rec equal_list _A = ({HOL.equal = equal_lista _A} : ('a list) HOL.equal);;
+
 let rec nth
   (x :: xs) n =
-    (if Arith.equal_nat n Arith.zero_nat then x
+    (if Arith.equal_nata n Arith.zero_nat then x
       else nth xs (Arith.minus_nat n Arith.one_nat));;
+
+let rec fold
+  f x1 s = match f, x1, s with f, x :: xs, s -> fold f xs (f x s)
+    | f, [], s -> s;;
+
+let rec rev xs = fold (fun a b -> a :: b) xs [];;
 
 let rec upt
   i j = (if Arith.less_nat i j then i :: upt (Arith.suc i) j else []);;
 
-let rec zip
-  xs ys = match xs, ys with x :: xs, y :: ys -> (x, y) :: zip xs ys
-    | xs, [] -> []
-    | [], ys -> [];;
-
 let rec drop
   n x1 = match n, x1 with n, [] -> []
     | n, x :: xs ->
-        (if Arith.equal_nat n Arith.zero_nat then x :: xs
+        (if Arith.equal_nata n Arith.zero_nat then x :: xs
           else drop (Arith.minus_nat n Arith.one_nat) xs);;
-
-let rec find
-  uu x1 = match uu, x1 with uu, [] -> None
-    | p, x :: xs -> (if p x then Some x else find p xs);;
 
 let rec null = function [] -> true
                | x :: xs -> false;;
 
-let rec last (x :: xs) = (if null xs then x else last xs);;
-
 let rec take
   n x1 = match n, x1 with n, [] -> []
     | n, x :: xs ->
-        (if Arith.equal_nat n Arith.zero_nat then []
+        (if Arith.equal_nata n Arith.zero_nat then []
           else x :: take (Arith.minus_nat n Arith.one_nat) xs);;
 
 let rec foldr
@@ -172,10 +198,6 @@ let rec concat xss = foldr (fun a b -> a @ b) xss [];;
 let rec filter
   p x1 = match p, x1 with p, [] -> []
     | p, x :: xs -> (if p x then x :: filter p xs else filter p xs);;
-
-let rec butlast
-  = function [] -> []
-    | x :: xs -> (if null xs then [] else x :: butlast xs);;
 
 let rec hd (x21 :: x22) = x21;;
 
@@ -205,24 +227,490 @@ end;; (*struct List*)
 module Set : sig
   type 'a set = Set of 'a list | Coset of 'a list
   val ball : 'a set -> ('a -> bool) -> bool
+  val is_empty : 'a set -> bool
 end = struct
 
 type 'a set = Set of 'a list | Coset of 'a list;;
 
 let rec ball (Set xs) p = List.pred_list p xs;;
 
+let rec is_empty (Set xs) = List.null xs;;
+
 end;; (*struct Set*)
 
 module Product_Type : sig
+  val equal_proda : 'a HOL.equal -> 'b HOL.equal -> 'a * 'b -> 'a * 'b -> bool
+  val equal_prod : 'a HOL.equal -> 'b HOL.equal -> ('a * 'b) HOL.equal
   val fst : 'a * 'b -> 'a
-  val snd : 'a * 'b -> 'b
 end = struct
+
+let rec equal_proda _A _B
+  (x1, x2) (y1, y2) = HOL.eq _A x1 y1 && HOL.eq _B x2 y2;;
+
+let rec equal_prod _A _B =
+  ({HOL.equal = equal_proda _A _B} : ('a * 'b) HOL.equal);;
 
 let rec fst (x1, x2) = x1;;
 
-let rec snd (x1, x2) = x2;;
-
 end;; (*struct Product_Type*)
+
+module String : sig
+  type nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 |
+    Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC |
+    NibbleD | NibbleE | NibbleF
+end = struct
+
+type nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 |
+  Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD
+  | NibbleE | NibbleF;;
+
+end;; (*struct String*)
+
+module Option : sig
+  val is_none : 'a option -> bool
+end = struct
+
+let rec is_none = function Some x -> false
+                  | None -> true;;
+
+end;; (*struct Option*)
+
+module Res = struct
+  include Pervasives
+  type 'a res = ('a,string) result
+end
+
+let check_flag = ref true
+
+module Util : sig
+  include module type of Res
+  type error = String_error of string
+  val from_to : Arith.nat -> Arith.nat -> Arith.nat list
+  val is_Nil : 'a list -> bool
+  val is_None : 'a option -> bool
+  val rev_apply : 'a -> ('a -> 'b) -> 'b
+  val failwitha : string -> 'a
+  val check_true : (unit -> bool) -> bool
+  val split_at : Arith.nat -> 'a list -> 'a list * 'a list
+  val dest_Some : 'a option -> 'a
+  val iter_step : ('a -> 'a option) -> 'a -> 'a
+  val split_at_3 : Arith.nat -> 'a list -> 'a list * ('a * 'a list)
+  val assert_true : bool -> bool
+  val impossible1 : string -> 'a
+  val max_of_list : Arith.nat list -> Arith.nat
+  val from_to_tests : unit
+  val split_at_tests : unit
+  val split_at_3_tests : unit
+end = struct
+
+type error = String_error of string;;
+
+include Res
+
+let rec from_to x y = List.upt x (Arith.suc y);;
+
+let rec is_Nil x = (match x with [] -> true | _ :: _ -> false);;
+
+let rec is_None x = Option.is_none x;;
+
+let rec rev_apply x f = f x;;
+
+let rec failwitha x = failwith x
+
+let rec check_true f = if !check_flag then f () else true;;
+
+let rec split_at
+  n xs =
+    (let _ = check_true (fun _ -> Arith.less_eq_nat n (List.size_list xs)) in
+     List.take n xs,
+      List.drop n xs);;
+
+let rec dest_Some = function Some x -> x
+                    | None -> failwith "undefined";;
+
+let rec iter_step
+  f x = let a = f x in
+        (match a with None -> x | Some aa -> iter_step f aa);;
+
+let rec split_at_3
+  n xs =
+    let _ = check_true (fun _ -> Arith.less_nat n (List.size_list xs)) in
+    (List.take n xs,
+      (List.nth xs n, List.drop (Arith.plus_nat n Arith.one_nat) xs));;
+
+let rec assert_true b = (if b then b else failwitha "assert_true");;
+
+let rec impossible1 x = failwitha x;;
+
+let rec max_of_list
+  xs = List.foldr (Orderings.max Arith.ord_nat) xs Arith.zero_nat;;
+
+let from_to_tests : unit
+  = let _ =
+      assert_true
+        (List.equal_lista Arith.equal_nat
+          (from_to (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            (Arith.nat_of_integer (Big_int.big_int_of_int 5)))
+          [Arith.nat_of_integer (Big_int.big_int_of_int 3);
+            Arith.nat_of_integer (Big_int.big_int_of_int 4);
+            Arith.nat_of_integer (Big_int.big_int_of_int 5)])
+      in
+    let _ =
+      assert_true
+        (List.equal_lista Arith.equal_nat
+          (from_to (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            (Arith.nat_of_integer (Big_int.big_int_of_int 3)))
+          [Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+      in
+    let _ =
+      assert_true
+        (List.null
+          (from_to (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            (Arith.nat_of_integer (Big_int.big_int_of_int 2))))
+      in
+    ();;
+
+let split_at_tests : unit
+  = let _ =
+      assert_true
+        (Product_Type.equal_proda (List.equal_list Arith.equal_nat)
+          (List.equal_list Arith.equal_nat)
+          (split_at (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3);
+              Arith.nat_of_integer (Big_int.big_int_of_int 4)])
+          ([Arith.zero_nat; Arith.one_nat;
+             Arith.nat_of_integer (Big_int.big_int_of_int 2)],
+            [Arith.nat_of_integer (Big_int.big_int_of_int 3);
+              Arith.nat_of_integer (Big_int.big_int_of_int 4)]))
+      in
+    let _ =
+      assert_true
+        (Product_Type.equal_proda (List.equal_list Arith.equal_nat)
+          (List.equal_list Arith.equal_nat)
+          (split_at (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 2)])
+          ([Arith.zero_nat; Arith.one_nat;
+             Arith.nat_of_integer (Big_int.big_int_of_int 2)],
+            []))
+      in
+    ();;
+
+let split_at_3_tests : unit
+  = let _ =
+      assert_true
+        (Product_Type.equal_proda (List.equal_list Arith.equal_nat)
+          (Product_Type.equal_prod Arith.equal_nat
+            (List.equal_list Arith.equal_nat))
+          (split_at_3 (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3);
+              Arith.nat_of_integer (Big_int.big_int_of_int 4)])
+          ([Arith.zero_nat; Arith.one_nat;
+             Arith.nat_of_integer (Big_int.big_int_of_int 2)],
+            (Arith.nat_of_integer (Big_int.big_int_of_int 3),
+              [Arith.nat_of_integer (Big_int.big_int_of_int 4)])))
+      in
+    let _ =
+      assert_true
+        (Product_Type.equal_proda (List.equal_list Arith.equal_nat)
+          (Product_Type.equal_prod Arith.equal_nat
+            (List.equal_list Arith.equal_nat))
+          (split_at_3 (Arith.nat_of_integer (Big_int.big_int_of_int 3))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+          ([Arith.zero_nat; Arith.one_nat;
+             Arith.nat_of_integer (Big_int.big_int_of_int 2)],
+            (Arith.nat_of_integer (Big_int.big_int_of_int 3), [])))
+      in
+    ();;
+
+end;; (*struct Util*)
+
+module Key_value : sig
+  val key_eq : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
+  val key_lt : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
+  val check_keys :
+    ('a -> 'a -> Arith.int) -> 'a option -> 'a Set.set -> 'a option -> bool
+  val ck_tests : unit
+  val ck2_tests : unit
+  val kvs_equal : ('a * 'b) list -> ('a * 'b) list -> bool
+  val ordered_key_list : ('a -> 'a -> Arith.int) -> 'a list -> bool
+  val okl_tests : unit
+  val kvs_delete :
+    ('a -> 'a -> Arith.int) -> 'a -> ('a * 'b) list -> ('a * 'b) list
+  val kvs_insert :
+    ('a -> 'a -> Arith.int) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list
+  val kvs_insert_tests : unit
+end = struct
+
+let rec key_eq ord k1 k2 = Arith.equal_int (ord k1 k2) Arith.zero_int;;
+
+let rec key_le ord k1 k2 = Arith.less_eq_int (ord k1 k2) Arith.zero_int;;
+
+let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
+
+let rec nat_ord
+  x y = let n2i = Arith.int_of_nat in
+        Arith.minus_int (n2i x) (n2i y);;
+
+let rec check_keys
+  cmp kl ks kr =
+    let b1 =
+      (match kl with None -> true | Some kla -> Set.ball ks (key_le cmp kla)) in
+    let a =
+      (match kr with None -> true
+        | Some kra -> Set.ball ks (fun k -> key_lt cmp k kra))
+      in
+    b1 && a;;
+
+let ck_tests : unit
+  = let _ =
+      Util.assert_true
+        (check_keys nat_ord (Some Arith.one_nat)
+          (Set.Set
+            [Arith.one_nat; Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+          (Some (Arith.nat_of_integer (Big_int.big_int_of_int 4))))
+      in
+    let _ =
+      Util.assert_true
+        (not (check_keys nat_ord (Some Arith.one_nat)
+               (Set.Set
+                 [Arith.one_nat;
+                   Arith.nat_of_integer (Big_int.big_int_of_int 2);
+                   Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+               (Some (Arith.nat_of_integer (Big_int.big_int_of_int 3)))))
+      in
+    ();;
+
+let rec check_keys_2
+  cmp xs l ks u zs =
+    (match Option.is_none l with true -> Set.is_empty xs | false -> true) &&
+      ((match Option.is_none u with true -> Set.is_empty zs | false -> true) &&
+        (check_keys cmp None xs l &&
+          (check_keys cmp l ks u && check_keys cmp u zs None)));;
+
+let ck2_tests : unit
+  = let _ =
+      Util.assert_true
+        (check_keys_2 nat_ord (Set.Set [Arith.zero_nat]) (Some Arith.one_nat)
+          (Set.Set
+            [Arith.one_nat; Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+          (Some (Arith.nat_of_integer (Big_int.big_int_of_int 4)))
+          (Set.Set
+            [Arith.nat_of_integer (Big_int.big_int_of_int 4);
+              Arith.nat_of_integer (Big_int.big_int_of_int 5)]))
+      in
+    ();;
+
+let rec kvs_equal x y = (x=y)
+
+let rec ordered_key_list
+  ord ks =
+    Arith.less_nat (List.size_list ks)
+      (Arith.nat_of_integer (Big_int.big_int_of_int 2)) ||
+      List.pred_list
+        (fun i ->
+          key_lt ord (List.nth ks i)
+            (List.nth ks (Arith.plus_nat i Arith.one_nat)))
+        (Util.from_to Arith.zero_nat
+          (Arith.minus_nat (List.size_list ks)
+            (Arith.nat_of_integer (Big_int.big_int_of_int 2))));;
+
+let okl_tests : unit
+  = let _ =
+      Util.assert_true
+        (ordered_key_list nat_ord
+          [Arith.zero_nat; Arith.one_nat;
+            Arith.nat_of_integer (Big_int.big_int_of_int 2);
+            Arith.nat_of_integer (Big_int.big_int_of_int 3)])
+      in
+    let _ =
+      Util.assert_true
+        (not (ordered_key_list nat_ord
+               [Arith.zero_nat; Arith.one_nat; Arith.one_nat;
+                 Arith.nat_of_integer (Big_int.big_int_of_int 3)]))
+      in
+    ();;
+
+let rec kvs_delete
+  ord k kvs =
+    List.filter (fun kv -> not (key_eq ord (Product_Type.fst kv) k)) kvs;;
+
+let rec kvs_insert
+  cmp kv x2 = match cmp, kv, x2 with cmp, kv, [] -> [kv]
+    | cmp, kva, kv :: kvs ->
+        let (k, v) = kva in
+        let (ka, va) = kv in
+        (if key_lt cmp ka k then (ka, va) :: kvs_insert cmp kva kvs
+          else (if key_eq cmp k ka then (k, v) :: kvs
+                 else (k, v) :: (ka, va) :: kvs));;
+
+let kvs_insert_tests : unit
+  = let _ =
+      Util.assert_true
+        (List.equal_lista
+          (Product_Type.equal_prod Arith.equal_nat Arith.equal_nat)
+          (kvs_insert nat_ord
+            (Arith.nat_of_integer (Big_int.big_int_of_int 2),
+              Arith.nat_of_integer (Big_int.big_int_of_int 2))
+            (List.map (fun x -> (x, x))
+              [Arith.zero_nat; Arith.one_nat;
+                Arith.nat_of_integer (Big_int.big_int_of_int 3);
+                Arith.nat_of_integer (Big_int.big_int_of_int 4)]))
+          (List.map (fun x -> (x, x))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 2);
+              Arith.nat_of_integer (Big_int.big_int_of_int 3);
+              Arith.nat_of_integer (Big_int.big_int_of_int 4)]))
+      in
+    let _ =
+      Util.assert_true
+        (List.equal_lista
+          (Product_Type.equal_prod Arith.equal_nat Arith.equal_nat)
+          (kvs_insert nat_ord
+            (Arith.nat_of_integer (Big_int.big_int_of_int 6),
+              Arith.nat_of_integer (Big_int.big_int_of_int 6))
+            (List.map (fun x -> (x, x))
+              [Arith.zero_nat; Arith.one_nat;
+                Arith.nat_of_integer (Big_int.big_int_of_int 3);
+                Arith.nat_of_integer (Big_int.big_int_of_int 4)]))
+          (List.map (fun x -> (x, x))
+            [Arith.zero_nat; Arith.one_nat;
+              Arith.nat_of_integer (Big_int.big_int_of_int 3);
+              Arith.nat_of_integer (Big_int.big_int_of_int 4);
+              Arith.nat_of_integer (Big_int.big_int_of_int 6)]))
+      in
+    ();;
+
+end;; (*struct Key_value*)
+
+module Searching_and_splitting : sig
+  type ('a, 'b, 'c) rsplit_node_ext =
+    Rsplit_node_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c  [@@deriving yojson]
+  val r_ts2 : ('a, 'b, 'c) rsplit_node_ext -> 'b list
+  val r_ts1 : ('a, 'b, 'c) rsplit_node_ext -> 'b list
+  val r_ks2 : ('a, 'b, 'c) rsplit_node_ext -> 'a list
+  val r_ks1 : ('a, 'b, 'c) rsplit_node_ext -> 'a list
+  val r_t : ('a, 'b, 'c) rsplit_node_ext -> 'b
+  val unsplit_node : ('a, 'b, unit) rsplit_node_ext -> 'a list * 'b list
+  val mk_rsplit_node :
+    ('a -> 'a -> Arith.int) ->
+      'a -> 'a list * 'b list -> ('a, 'b, unit) rsplit_node_ext
+  val rsplit_node_map :
+    ('a -> 'b) ->
+      ('c, 'a, unit) rsplit_node_ext -> ('c, 'b, unit) rsplit_node_ext
+  val dest_rsplit_node :
+    ('a, 'b, unit) rsplit_node_ext ->
+      'a list * ('b list * ('b * ('a list * 'b list)))
+  val rsplit_get_bounds :
+    ('a, 'b, unit) rsplit_node_ext -> 'a option * 'a option
+  val r_t_update :
+    ('a -> 'a) -> ('b, 'a, 'c) rsplit_node_ext -> ('b, 'a, 'c) rsplit_node_ext
+  val r_ks1_update :
+    ('a list -> 'a list) ->
+      ('a, 'b, 'c) rsplit_node_ext -> ('a, 'b, 'c) rsplit_node_ext
+  val r_ks2_update :
+    ('a list -> 'a list) ->
+      ('a, 'b, 'c) rsplit_node_ext -> ('a, 'b, 'c) rsplit_node_ext
+  val r_ts1_update :
+    ('a list -> 'a list) ->
+      ('b, 'a, 'c) rsplit_node_ext -> ('b, 'a, 'c) rsplit_node_ext
+  val r_ts2_update :
+    ('a list -> 'a list) ->
+      ('b, 'a, 'c) rsplit_node_ext -> ('b, 'a, 'c) rsplit_node_ext
+end = struct
+
+type ('a, 'b, 'c) rsplit_node_ext =
+  Rsplit_node_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c  [@@deriving yojson];;
+
+let rec aux
+  cmp k0 ks_rs1 ks_rs2 =
+    let (ks1, rs1) = ks_rs1 in
+    let (ks, rs) = ks_rs2 in
+    let (r, rsa) = (List.hd rs, List.tl rs) in
+    (match ks with [] -> ((ks1, rs1), (r, (ks, rsa)))
+      | k :: ksa ->
+        (if Key_value.key_lt cmp k0 k then ((ks1, rs1), (r, (ks, rsa)))
+          else aux cmp k0 (k :: ks1, r :: rs1) (ksa, rsa)));;
+
+let rec r_ts2
+  (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) = r_ts2;;
+
+let rec r_ts1
+  (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) = r_ts1;;
+
+let rec r_ks2
+  (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) = r_ks2;;
+
+let rec r_ks1
+  (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) = r_ks1;;
+
+let rec r_t (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) = r_t;;
+
+let rec unsplit_node
+  r = let ks = List.rev (Util.rev_apply r r_ks1) @ Util.rev_apply r r_ks2 in
+      let a =
+        List.rev (Util.rev_apply r r_ts1) @
+          [Util.rev_apply r r_t] @ Util.rev_apply r r_ts2
+        in
+      (ks, a);;
+
+let rec mk_rsplit_node
+  cmp k ks_rs =
+    let a = aux cmp k ([], []) ks_rs in
+    let (aa, b) = a in
+    let (ks1, rs1) = aa in
+    (fun (r, (ks2, rs2)) -> Rsplit_node_ext (ks1, rs1, r, ks2, rs2, ()))
+      b;;
+
+let rec rsplit_node_map
+  g f = Rsplit_node_ext
+          (Util.rev_apply f r_ks1,
+            Util.rev_apply (Util.rev_apply f r_ts1) (List.map g),
+            Util.rev_apply (Util.rev_apply f r_t) g, Util.rev_apply f r_ks2,
+            Util.rev_apply (Util.rev_apply f r_ts2) (List.map g), ());;
+
+let rec dest_rsplit_node
+  r = (Util.rev_apply r r_ks1,
+        (Util.rev_apply r r_ts1,
+          (Util.rev_apply r r_t,
+            (Util.rev_apply r r_ks2, Util.rev_apply r r_ts2))));;
+
+let rec rsplit_get_bounds
+  rn = let l =
+         (match Util.rev_apply rn r_ks1 with [] -> None | x :: _ -> Some x) in
+       let a =
+         (match Util.rev_apply rn r_ks2 with [] -> None | x :: _ -> Some x) in
+       (l, a);;
+
+let rec r_t_update
+  r_ta (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) =
+    Rsplit_node_ext (r_ks1, r_ts1, r_ta r_t, r_ks2, r_ts2, more);;
+
+let rec r_ks1_update
+  r_ks1a (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) =
+    Rsplit_node_ext (r_ks1a r_ks1, r_ts1, r_t, r_ks2, r_ts2, more);;
+
+let rec r_ks2_update
+  r_ks2a (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) =
+    Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2a r_ks2, r_ts2, more);;
+
+let rec r_ts1_update
+  r_ts1a (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) =
+    Rsplit_node_ext (r_ks1, r_ts1a r_ts1, r_t, r_ks2, r_ts2, more);;
+
+let rec r_ts2_update
+  r_ts2a (Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2, more)) =
+    Rsplit_node_ext (r_ks1, r_ts1, r_t, r_ks2, r_ts2a r_ts2, more);;
+
+end;; (*struct Searching_and_splitting*)
 
 module Prelude : sig
   type min_size_t = Small_root_node_or_leaf | Small_node | Small_leaf
@@ -260,263 +748,6 @@ let rec min_node_keys
     = min_node_keys;;
 
 end;; (*struct Prelude*)
-
-module String : sig
-  type nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 |
-    Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC |
-    NibbleD | NibbleE | NibbleF
-end = struct
-
-type nibble = Nibble0 | Nibble1 | Nibble2 | Nibble3 | Nibble4 | Nibble5 |
-  Nibble6 | Nibble7 | Nibble8 | Nibble9 | NibbleA | NibbleB | NibbleC | NibbleD
-  | NibbleE | NibbleF;;
-
-end;; (*struct String*)
-
-module Option : sig
-  val is_none : 'a option -> bool
-end = struct
-
-let rec is_none = function Some x -> false
-                  | None -> true;;
-
-end;; (*struct Option*)
-
-module Res = struct
-  include Pervasives
-  type 'a res = ('a,string) result
-end
-
-let check_flag = ref true
-
-module Util : sig
-  include module type of Res
-  type error = String_error of string
-  val rev_apply : 'a -> ('a -> 'b) -> 'b
-  val unzip : ('a * 'b) list -> 'a list * 'b list
-  val from_to : Arith.nat -> Arith.nat -> Arith.nat list
-  val is_None : 'a option -> bool
-  val failwitha : string -> 'a
-  val check_true : (unit -> bool) -> bool
-  val split_at : Arith.nat -> 'a list -> 'a list * 'a list
-  val dest_Some : 'a option -> 'a
-  val dest_list : 'a list -> 'a * 'a list
-  val iter_step : ('a -> 'a option) -> 'a -> 'a
-  val dest_lista : 'a list -> 'a list * 'a
-  val split_at_3 : Arith.nat -> 'a list -> 'a list * ('a * 'a list)
-  val assert_true : bool -> bool
-  val impossible1 : string -> 'a
-  val max_of_list : Arith.nat list -> Arith.nat
-end = struct
-
-type error = String_error of string;;
-
-include Res
-
-let rec rev_apply x f = f x;;
-
-let rec unzip
-  xs = (rev_apply xs (List.map Product_Type.fst),
-         rev_apply xs (List.map Product_Type.snd));;
-
-let rec from_to x y = List.upt x (Arith.suc y);;
-
-let rec is_None x = Option.is_none x;;
-
-let rec failwitha x = failwith x
-
-let rec check_true f = if !check_flag then f () else true;;
-
-let rec split_at
-  n xs =
-    (let _ = check_true (fun _ -> Arith.less_eq_nat n (List.size_list xs)) in
-     List.take n xs,
-      List.drop n xs);;
-
-let rec dest_Some = function Some x -> x
-                    | None -> failwith "undefined";;
-
-let rec dest_list
-  xs = (match xs with [] -> failwitha "dest_list" | a :: b -> (a, b));;
-
-let rec iter_step
-  f x = let a = f x in
-        (match a with None -> x | Some aa -> iter_step f aa);;
-
-let rec dest_lista
-  xs = (match xs with [] -> failwitha "dest_list\039 "
-         | _ :: _ -> (List.butlast xs, List.last xs));;
-
-let rec split_at_3
-  n xs =
-    let _ =
-      check_true
-        (fun _ ->
-          Arith.less_eq_nat n
-            (Arith.minus_nat (List.size_list xs) Arith.one_nat))
-      in
-    (List.take n xs,
-      (List.nth xs n, List.drop (Arith.plus_nat n Arith.one_nat) xs));;
-
-let rec assert_true b = (if b then b else failwitha "assert_true");;
-
-let rec impossible1 x = failwitha x;;
-
-let rec max_of_list
-  xs = List.foldr (Orderings.max Arith.ord_nat) xs Arith.zero_nat;;
-
-end;; (*struct Util*)
-
-module Key_value : sig
-  val key_eq : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
-  val key_lt : ('a -> 'a -> Arith.int) -> 'a -> 'a -> bool
-  val kvs_equal : ('a * 'b) list -> ('a * 'b) list -> bool
-  val check_keys :
-    ('a -> 'a -> Arith.int) -> 'a option -> 'a Set.set -> 'a option -> bool
-  val kvs_delete :
-    ('a -> 'a -> Arith.int) -> 'a -> ('a * 'b) list -> ('a * 'b) list
-  val kvs_insert :
-    ('a -> 'a -> Arith.int) -> 'a * 'b -> ('a * 'b) list -> ('a * 'b) list
-  val split_leaf :
-    unit Prelude.constants_ext ->
-      ('a * 'b) list -> ('a * 'b) list * ('a * ('a * 'b) list)
-  val split_node :
-    unit Prelude.constants_ext ->
-      'a list * 'b list -> ('a list * 'b list) * ('a * ('a list * 'b list))
-  val split_ks_rs :
-    ('a -> 'a -> Arith.int) ->
-      'a -> 'a list * 'b list ->
-              ('a list * 'b list) * ('b * ('a list * 'b list))
-  val ordered_key_list : ('a -> 'a -> Arith.int) -> 'a list -> bool
-end = struct
-
-let rec key_eq ord k1 k2 = Arith.equal_int (ord k1 k2) Arith.zero_int;;
-
-let rec key_le ord k1 k2 = Arith.less_eq_int (ord k1 k2) Arith.zero_int;;
-
-let rec key_lt ord k1 k2 = Arith.less_int (ord k1 k2) Arith.zero_int;;
-
-let rec kvs_equal x y = (x=y)
-
-let rec check_keys
-  cmp kl ks kr =
-    let b1 =
-      (match kl with None -> true | Some kla -> Set.ball ks (key_le cmp kla)) in
-    let a =
-      (match kr with None -> true
-        | Some kra -> Set.ball ks (fun k -> key_lt cmp k kra))
-      in
-    b1 && a;;
-
-let rec kvs_delete
-  ord k kvs =
-    List.filter (fun kv -> not (key_eq ord (Product_Type.fst kv) k)) kvs;;
-
-let rec kvs_insert
-  cmp kv x2 = match cmp, kv, x2 with cmp, kv, [] -> [kv]
-    | cmp, kva, kv :: kvs ->
-        let (k, v) = kva in
-        let (ka, va) = kv in
-        (if key_lt cmp ka k then (ka, va) :: kvs_insert cmp kva kvs
-          else (if key_eq cmp k ka then (k, v) :: kvs
-                 else (k, v) :: (ka, va) :: kvs));;
-
-let rec split_leaf
-  c kvs =
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.less_eq_nat
-            (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size)
-              Arith.one_nat)
-            (List.size_list kvs))
-      in
-    let cut_point =
-      Arith.minus_nat
-        (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size) Arith.one_nat)
-        (Util.rev_apply c Prelude.min_leaf_size)
-      in
-    let _ =
-      Util.check_true
-        (fun _ -> Arith.less_eq_nat cut_point (List.size_list kvs))
-      in
-    let (l, r) = Util.split_at cut_point kvs in
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
-            (List.size_list l) &&
-            Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
-              (List.size_list r))
-      in
-    let k =
-      (match r with [] -> Util.impossible1 "key_value, split_leaf"
-        | (k, _) :: _ -> k)
-      in
-    (l, (k, r));;
-
-let rec split_node
-  c n = let (ks, rs) = n in
-        let cut_point =
-          Arith.minus_nat (Util.rev_apply c Prelude.max_node_keys)
-            (Util.rev_apply c Prelude.min_node_keys)
-          in
-        let (ks1, (k, ks2)) = Util.split_at_3 cut_point ks in
-        let _ =
-          Util.check_true
-            (fun _ ->
-              Arith.less_eq_nat (Util.rev_apply c Prelude.min_node_keys)
-                (List.size_list ks2))
-          in
-        let (rs1, rs2) =
-          Util.split_at (Arith.plus_nat cut_point Arith.one_nat) rs in
-        ((ks1, rs1), (k, (ks2, rs2)));;
-
-let rec search_key_to_index
-  cmp ks k =
-    let num_keys = List.size_list ks in
-    let i =
-      List.find (fun x -> key_lt cmp k (List.nth ks x))
-        (List.upt Arith.zero_nat num_keys)
-      in
-    let ia = (match i with None -> num_keys | Some x -> x) in
-    ia;;
-
-let rec split_ks_rs
-  cmp k ks_rs =
-    let (ks, rs) = ks_rs in
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.equal_nat (List.size_list rs)
-            (Arith.plus_nat (List.size_list ks) Arith.one_nat))
-      in
-    let i = search_key_to_index cmp ks k in
-    let _ = Util.check_true (fun _ -> Arith.less_eq_nat i (List.size_list ks))
-      in
-    let (ks1, ks2) = Util.split_at i ks in
-    let _ =
-      Util.check_true
-        (fun _ ->
-          Arith.less_eq_nat i
-            (Arith.minus_nat (List.size_list rs) Arith.one_nat))
-      in
-    let (rs1, (r, rs2)) = Util.split_at_3 i rs in
-    ((ks1, rs1), (r, (ks2, rs2)));;
-
-let rec ordered_key_list
-  ord ks =
-    Arith.less_nat (List.size_list ks)
-      (Arith.nat_of_integer (Big_int.big_int_of_int 2)) ||
-      List.pred_list
-        (fun i ->
-          key_lt ord (List.nth ks i)
-            (List.nth ks (Arith.plus_nat i Arith.one_nat)))
-        (Util.from_to Arith.zero_nat
-          (Arith.minus_nat (List.size_list ks)
-            (Arith.nat_of_integer (Big_int.big_int_of_int 2))));;
-
-end;; (*struct Key_value*)
 
 module Tree : sig
   type ('a, 'b) tree = Node of ('a list * ('a, 'b) tree list) |
@@ -606,10 +837,10 @@ let rec wf_size
 let rec balanced_1
   t0 = (match t0
          with Node (_, cs) ->
-           List.null cs ||
+           not (List.null cs) &&
              List.pred_list
                (fun c ->
-                 Arith.equal_nat (height c)
+                 Arith.equal_nata (height c)
                    (height (List.nth cs Arith.zero_nat)))
                cs
          | Leaf _ -> true);;
@@ -619,7 +850,7 @@ let rec balanced t = Util.assert_true (forall_subtrees balanced_1 t);;
 let rec wf_ks_rs_1
   t0 = (match t0
          with Node (l, cs) ->
-           Arith.equal_nat (Arith.plus_nat Arith.one_nat (List.size_list l))
+           Arith.equal_nata (Arith.plus_nat Arith.one_nat (List.size_list l))
              (List.size_list cs)
          | Leaf _ -> true);;
 
@@ -660,7 +891,7 @@ let min_child_index : Arith.nat = Arith.zero_nat;;
 let rec index_to_bound
   ks i =
     let l =
-      (if Arith.equal_nat i min_child_index then None
+      (if Arith.equal_nata i min_child_index then None
         else Some (List.nth ks (Arith.minus_nat i Arith.one_nat)))
       in
     let a =
@@ -703,141 +934,124 @@ let rec wellformed_tree
 end;; (*struct Tree*)
 
 module Tree_stack : sig
-  type ('a, 'b, 'c) ts_frame_ext =
-    Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c [@@deriving yojson]
-  val stack_map :
+  val rstack_map :
     ('a -> 'b) ->
-      ('c, 'a, unit) ts_frame_ext list -> ('c, 'b, unit) ts_frame_ext list
+      ('c, 'a, unit) Searching_and_splitting.rsplit_node_ext list ->
+        ('c, 'b, unit) Searching_and_splitting.rsplit_node_ext list
   val no_focus :
-    ('a, 'b, unit) ts_frame_ext list ->
-      ('a, ('b option), unit) ts_frame_ext list
-  val r_stk_to_rs : ('a, 'b, unit) ts_frame_ext list -> 'b list
-  val stack_equal :
-    ('a, 'b, unit) ts_frame_ext list -> ('a, 'b, unit) ts_frame_ext list -> bool
-  val dest_ts_frame :
-    ('a, 'b, unit) ts_frame_ext ->
-      ('a list * 'b list) * ('b * ('a list * 'b list))
-  val tree_to_stack :
+    ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list ->
+      ('a, ('b option), unit) Searching_and_splitting.rsplit_node_ext list
+  val r_stk_to_rs :
+    ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list -> 'b list
+  val rstack_equal :
+    ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list ->
+      ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list -> bool
+  val tree_to_rstack :
     ('a -> 'a -> Arith.int) ->
       'a -> ('a, 'b) Tree.tree ->
               Arith.nat ->
                 ('a, 'b) Tree.tree *
-                  ('a, ('a, 'b) Tree.tree, unit) ts_frame_ext list
+                  ('a, ('a, 'b) Tree.tree, unit)
+                    Searching_and_splitting.rsplit_node_ext list
+  val rstack_get_bounds :
+    ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list ->
+      'a option * 'a option
   val add_new_stack_frame :
     ('a -> 'a -> Arith.int) ->
       'a -> 'a list * 'b list ->
-              ('a, 'b, unit) ts_frame_ext list ->
-                ('a, 'b, unit) ts_frame_ext list * 'b
-  val stack_to_lu_of_child :
-    ('a, 'b, unit) ts_frame_ext list -> 'a option * 'a option
+              ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list ->
+                ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list * 'b
 end = struct
 
-type ('a, 'b, 'c) ts_frame_ext =
-  Ts_frame_ext of 'a list * 'b list * 'b * 'a list * 'b list * 'c [@@deriving yojson];;
-
-let rec f_t_update
-  f_ta (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) =
-    Ts_frame_ext (f_ks1, f_ts1, f_ta f_t, f_ks2, f_ts2, more);;
-
-let rec f_ts2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts2;;
-
-let rec f_ts1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ts1;;
-
-let rec f_ks2 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks2;;
-
-let rec f_ks1 (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_ks1;;
-
-let rec f_t (Ts_frame_ext (f_ks1, f_ts1, f_t, f_ks2, f_ts2, more)) = f_t;;
-
-let rec ts_frame_map
-  g f = Ts_frame_ext
-          (Util.rev_apply f f_ks1,
-            Util.rev_apply (Util.rev_apply f f_ts1) (List.map g),
-            Util.rev_apply (Util.rev_apply f f_t) g, Util.rev_apply f f_ks2,
-            Util.rev_apply (Util.rev_apply f f_ts2) (List.map g), ());;
-
-let rec stack_map f stk = Util.rev_apply stk (List.map (ts_frame_map f));;
+let rec rstack_map
+  f stk =
+    Util.rev_apply stk (List.map (Searching_and_splitting.rsplit_node_map f));;
 
 let rec no_focus
-  stk = Util.rev_apply (Util.rev_apply stk (stack_map (fun a -> Some a)))
+  stk = Util.rev_apply (Util.rev_apply stk (rstack_map (fun a -> Some a)))
           (fun a ->
             (match a with [] -> []
-              | frm :: aa -> f_t_update (fun _ -> None) frm :: aa));;
+              | frm :: aa ->
+                Searching_and_splitting.r_t_update (fun _ -> None) frm :: aa));;
 
-let rec r_stk_to_rs xs = Util.rev_apply xs (List.map f_t);;
+let rec r_stk_to_rs
+  xs = Util.rev_apply xs (List.map Searching_and_splitting.r_t);;
 
-let rec stack_equal s1 s2 = (s1=s2)
+let rec rstack_equal s1 s2 = (s1=s2)
 
-let rec dest_ts_frame
-  f = ((Util.rev_apply f f_ks1, Util.rev_apply f f_ts1),
-        (Util.rev_apply f f_t,
-          (Util.rev_apply f f_ks2, Util.rev_apply f f_ts2)));;
-
-let rec tree_to_stack
+let rec tree_to_rstack
   ord k t n =
-    (if Arith.equal_nat n Arith.zero_nat then (t, [])
-      else (match tree_to_stack ord k t (Arith.minus_nat n Arith.one_nat)
+    (if Arith.equal_nata n Arith.zero_nat then (t, [])
+      else (match tree_to_rstack ord k t (Arith.minus_nat n Arith.one_nat)
              with (Tree.Node (ks, ts), stk) ->
-               let a = Key_value.split_ks_rs ord k (ks, ts) in
-               let (aa, b) = a in
-               let (ks1, ts1) = aa in
-               (fun (ta, (ks2, ts2)) ->
-                 let frm = Ts_frame_ext (ks1, ts1, ta, ks2, ts2, ()) in
-                 (ta, frm :: stk))
-                 b
+               let frm = Searching_and_splitting.mk_rsplit_node ord k (ks, ts)
+                 in
+               (Util.rev_apply frm Searching_and_splitting.r_t, frm :: stk)
              | (Tree.Leaf _, _) -> Util.failwitha "tree_to_stack"));;
+
+let rec rstack_get_bounds
+  = function [] -> (None, None)
+    | x :: stk ->
+        let (l, u) = Searching_and_splitting.rsplit_get_bounds x in
+        let a =
+          (match (l, u)
+            with (None, _) ->
+              let (la, ua) = rstack_get_bounds stk in
+              ((if Option.is_none l then la else l),
+                (if Option.is_none u then ua else u))
+            | (Some _, None) ->
+              let (la, ua) = rstack_get_bounds stk in
+              ((if Option.is_none l then la else l),
+                (if Option.is_none u then ua else u))
+            | (Some la, Some ua) -> (Some la, Some ua))
+          in
+        let (aa, b) = a in
+        (aa, b);;
 
 let rec add_new_stack_frame
   cmp k ks_rs stk =
     let (ks, rs) = ks_rs in
-    let a = Key_value.split_ks_rs cmp k (ks, rs) in
-    let (aa, b) = a in
-    let (ks1, rs1) = aa in
-    (fun (r, (ks2, rs2)) ->
-      let frm = Ts_frame_ext (ks1, rs1, r, ks2, rs2, ()) in
-      (frm :: stk, r))
-      b;;
-
-let rec stack_to_lu_of_child
-  = function [] -> (None, None)
-    | x :: stk ->
-        let (l, u) = stack_to_lu_of_child stk in
-        let (ks1, ks2) = (Util.rev_apply x f_ks1, Util.rev_apply x f_ks2) in
-        let la =
-          (if not (List.null ks1) then Some (Util.rev_apply ks1 List.last)
-            else l)
-          in
-        let a =
-          (if not (List.null ks2) then Some (Util.rev_apply ks2 List.hd) else u)
-          in
-        (la, a);;
+    let r = Searching_and_splitting.mk_rsplit_node cmp k (ks, rs) in
+    (r :: stk, Util.rev_apply r Searching_and_splitting.r_t);;
 
 end;; (*struct Tree_stack*)
 
-module Frame : sig
-  type ('a, 'b, 'c) frame = Node_frame of ('a list * 'c list) |
-    Leaf_frame of ('a * 'b) list  [@@deriving yojson]
-  val dest_Leaf_frame : ('a, 'b, 'c) frame -> ('a * 'b) list
-  val dest_Node_frame : ('a, 'b, 'c) frame -> 'a list * 'c list
+module Disk_node : sig
+  type ('a, 'b, 'c) dnode = Disk_node of ('a list * 'c list) |
+    Disk_leaf of ('a * 'b) list  [@@deriving yojson]
+  val mk_Disk_node : 'a list * 'b list -> ('a, 'c, 'b) dnode
+  val dest_Disk_leaf : ('a, 'b, 'c) dnode -> ('a * 'b) list
+  val dest_Disk_node : ('a, 'b, 'c) dnode -> 'a list * 'c list
 end = struct
 
-type ('a, 'b, 'c) frame = Node_frame of ('a list * 'c list) |
-  Leaf_frame of ('a * 'b) list  [@@deriving yojson];;
+type ('a, 'b, 'c) dnode = Disk_node of ('a list * 'c list) |
+  Disk_leaf of ('a * 'b) list   [@@deriving yojson];;
 
-let rec dest_Leaf_frame
-  f = (match f with Node_frame _ -> Util.failwitha "dest_Leaf_frame"
-        | Leaf_frame x -> x);;
+let rec check_length_ks_rs
+  ks_rs =
+    let (ks, rs) = ks_rs in
+    Arith.equal_nata (Arith.plus_nat Arith.one_nat (List.size_list ks))
+      (List.size_list rs);;
 
-let rec dest_Node_frame
-  f = (match f with Node_frame x -> x
-        | Leaf_frame _ -> Util.failwitha "dest_Node_frame");;
+let rec mk_Disk_node
+  ks_rs =
+    let _ = Util.check_true (fun _ -> check_length_ks_rs ks_rs) in
+    Disk_node ks_rs;;
 
-end;; (*struct Frame*)
+let rec dest_Disk_leaf
+  f = (match f with Disk_node _ -> Util.failwitha "dest_Disk_leaf"
+        | Disk_leaf x -> x);;
+
+let rec dest_Disk_node
+  f = (match f with Disk_node x -> x
+        | Disk_leaf _ -> Util.failwitha "dest_Disk_node");;
+
+end;; (*struct Disk_node*)
 
 module Pre_params : sig
   val dummy : unit
   val mk_r2t :
-    ('a -> 'b -> ('c, 'd, 'b) Frame.frame option) ->
+    ('a -> 'b -> ('c, 'd, 'b) Disk_node.dnode option) ->
       Arith.nat -> 'a -> 'b -> ('c, 'd) Tree.tree option
 end = struct
 
@@ -845,9 +1059,9 @@ let dummy : unit = ();;
 
 let rec mk_r2ta
   r2f n t r =
-    (if Arith.equal_nat n Arith.zero_nat then None
+    (if Arith.equal_nata n Arith.zero_nat then None
       else (match r2f t r with None -> None
-             | Some (Frame.Node_frame (ks, rs)) ->
+             | Some (Disk_node.Disk_node (ks, rs)) ->
                let ts =
                  List.map (mk_r2ta r2f (Arith.minus_nat n Arith.one_nat) t) rs
                  in
@@ -856,81 +1070,61 @@ let rec mk_r2ta
                    Some (Tree.Node
                           (ks, Util.rev_apply ts (List.map Util.dest_Some)))
                  | _ :: _ -> None)
-             | Some (Frame.Leaf_frame kvs) -> Some (Tree.Leaf kvs)));;
+             | Some (Disk_node.Disk_leaf kvs) -> Some (Tree.Leaf kvs)));;
 
 let rec mk_r2t x = mk_r2ta x;;
 
 end;; (*struct Pre_params*)
 
 module Params : sig
-  type 'a ps0 = Ps0 of (unit Prelude.constants_ext * ('a -> 'a -> Arith.int))
   type ('a, 'b, 'c, 'd, 'e) store_ops_ext =
     Store_ops_ext of
-      ('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
-        (('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
+      ('c -> 'd -> 'd * ('a, 'b, 'c) Disk_node.dnode Util.res) *
+        (('a, 'b, 'c) Disk_node.dnode -> 'd -> 'd * 'c Util.res) *
         ('c list -> 'd -> 'd * unit Util.res) * 'e
   type ('a, 'b, 'c, 'd) ps1 =
-    Ps1 of ('a ps0 * ('a, 'b, 'c, 'd, unit) store_ops_ext)
-  val ps0_cs : 'a ps0 -> unit Prelude.constants_ext
-  val cs : ('a, 'b, 'c, 'd) ps1 -> unit Prelude.constants_ext
-  val ps0_cmp_k : 'a ps0 -> 'a -> 'a -> Arith.int
-  val cmp_k : ('a, 'b, 'c, 'd) ps1 -> 'a -> 'a -> Arith.int
+    Ps1 of
+      (unit Prelude.constants_ext *
+        (('a -> 'a -> Arith.int) * ('a, 'b, 'c, 'd, unit) store_ops_ext))
   val dummy : unit
-  val ps1_ps0 : ('a, 'b, 'c, 'd) ps1 -> 'a ps0
-  val ps1_store_ops :
+  val dot_cmp : ('a, 'b, 'c, 'd) ps1 -> 'a -> 'a -> Arith.int
+  val dot_constants : ('a, 'b, 'c, 'd) ps1 -> unit Prelude.constants_ext
+  val dot_store_ops :
     ('a, 'b, 'c, 'd) ps1 -> ('a, 'b, 'c, 'd, unit) store_ops_ext
   val store_free :
     ('a, 'b, 'c, 'd, 'e) store_ops_ext -> 'c list -> 'd -> 'd * unit Util.res
   val store_read :
     ('a, 'b, 'c, 'd, 'e) store_ops_ext ->
-      'c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res
+      'c -> 'd -> 'd * ('a, 'b, 'c) Disk_node.dnode Util.res
   val store_alloc :
     ('a, 'b, 'c, 'd, 'e) store_ops_ext ->
-      ('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res
+      ('a, 'b, 'c) Disk_node.dnode -> 'd -> 'd * 'c Util.res
 end = struct
-
-type 'a ps0 = Ps0 of (unit Prelude.constants_ext * ('a -> 'a -> Arith.int));;
 
 type ('a, 'b, 'c, 'd, 'e) store_ops_ext =
   Store_ops_ext of
-    ('c -> 'd -> 'd * ('a, 'b, 'c) Frame.frame Util.res) *
-      (('a, 'b, 'c) Frame.frame -> 'd -> 'd * 'c Util.res) *
+    ('c -> 'd -> 'd * ('a, 'b, 'c) Disk_node.dnode Util.res) *
+      (('a, 'b, 'c) Disk_node.dnode -> 'd -> 'd * 'c Util.res) *
       ('c list -> 'd -> 'd * unit Util.res) * 'e;;
 
 type ('a, 'b, 'c, 'd) ps1 =
-  Ps1 of ('a ps0 * ('a, 'b, 'c, 'd, unit) store_ops_ext);;
-
-let rec dest_ps1 ps1 = let Ps1 a = ps1 in
-                       let (aa, b) = a in
-                       (aa, b);;
-
-let rec dest_ps0 ps0 = let Ps0 a = ps0 in
-                       let (aa, b) = a in
-                       (aa, b);;
-
-let rec ps0_cs
-  ps0 = Util.rev_apply (Util.rev_apply ps0 dest_ps0) Product_Type.fst;;
-
-let rec cs
-  ps1 = Util.rev_apply
-          (Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst)
-          ps0_cs;;
-
-let rec ps0_cmp_k
-  ps0 = Util.rev_apply (Util.rev_apply ps0 dest_ps0) Product_Type.snd;;
-
-let rec cmp_k
-  ps1 = Util.rev_apply
-          (Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst)
-          ps0_cmp_k;;
+  Ps1 of
+    (unit Prelude.constants_ext *
+      (('a -> 'a -> Arith.int) * ('a, 'b, 'c, 'd, unit) store_ops_ext));;
 
 let dummy : unit = Pre_params.dummy;;
 
-let rec ps1_ps0
-  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.fst;;
+let rec dest_ps1 ps1 = let Ps1 (x, (y, z)) = ps1 in
+                       (x, (y, z));;
 
-let rec ps1_store_ops
-  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) Product_Type.snd;;
+let rec dot_cmp
+  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) (fun (_, (y, _)) -> y);;
+
+let rec dot_constants
+  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) (fun (x, (_, _)) -> x);;
+
+let rec dot_store_ops
+  ps1 = Util.rev_apply (Util.rev_apply ps1 dest_ps1) (fun (_, (_, z)) -> z);;
 
 let rec store_free
   (Store_ops_ext (store_read, store_alloc, store_free, more)) = store_free;;
@@ -981,7 +1175,8 @@ module Find : sig
   val dest_f_finished :
     ('a, 'b, 'c) find_state ->
       ('c * ('a * ('c * (('a * 'b) list *
-                          ('a, 'c, unit) Tree_stack.ts_frame_ext list)))) option
+                          ('a, 'c, unit)
+                            Searching_and_splitting.rsplit_node_ext list)))) option
   val wellformed_find_state :
     ('a -> 'a -> Arith.int) ->
       ('b -> 'c -> ('a, 'd) Tree.tree option) ->
@@ -989,27 +1184,30 @@ module Find : sig
 end = struct
 
 type ('a, 'b, 'c) find_state =
-  F_down of ('c * ('a * ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list))) |
-  F_finished of
-    ('c * ('a * ('c * (('a * 'b) list *
-                        ('a, 'c, unit) Tree_stack.ts_frame_ext list)))) [@@deriving yojson];;
+  F_down of
+    ('c * ('a * ('c * ('a, 'c, unit)
+                        Searching_and_splitting.rsplit_node_ext list)))
+  | F_finished of
+      ('c * ('a * ('c * (('a * 'b) list *
+                          ('a, 'c, unit)
+                            Searching_and_splitting.rsplit_node_ext list))))  [@@deriving yojson];;
 
 let rec find_step
   ps1 fs =
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match fs
       with F_down (r0, (k, (r, stk))) ->
         Util.rev_apply (Util.rev_apply store_ops Params.store_read r)
           (Monad.fmap
             (fun a ->
               (match a
-                with Frame.Node_frame (ks, rs) ->
+                with Disk_node.Disk_node (ks, rs) ->
                   let (stka, ra) =
                     Tree_stack.add_new_stack_frame
-                      (Util.rev_apply ps1 Params.cmp_k) k (ks, rs) stk
+                      (Util.rev_apply ps1 Params.dot_cmp) k (ks, rs) stk
                     in
                   F_down (r0, (k, (ra, stka)))
-                | Frame.Leaf_frame kvs ->
+                | Disk_node.Disk_leaf kvs ->
                   F_finished (r0, (k, (r, (kvs, stk)))))))
       | F_finished _ -> Monad.return fs);;
 
@@ -1032,481 +1230,92 @@ let rec wellformed_find_state
        let check_focus = wf_store_tree r2t s in
        let check_stack =
          (fun rstk tstk ->
-           Tree_stack.stack_equal
-             (Util.rev_apply tstk (Tree_stack.stack_map (fun a -> Some a)))
-             (Util.rev_apply rstk (Tree_stack.stack_map (r2t s))))
+           Tree_stack.rstack_equal
+             (Util.rev_apply tstk (Tree_stack.rstack_map (fun a -> Some a)))
+             (Util.rev_apply rstk (Tree_stack.rstack_map (r2t s))))
          in
        (match fs
          with F_down (_, (k, (r, stk))) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
            Util.assert_true (check_focus r t_fo) &&
              Util.assert_true (check_stack stk t_stk)
          | F_finished (_, (k, (r, (_, stk)))) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
            Util.assert_true (check_focus r t_fo) &&
              Util.assert_true (check_stack stk t_stk)));;
 
 end;; (*struct Find*)
 
-module Delete : sig
-  type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
-    D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson]
-  type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c)
-    | D_up of
-        (('a, 'b, 'c) del_t *
-          (('a, 'c, unit) Tree_stack.ts_frame_ext list * 'c))
-    | D_finished of 'c  [@@deriving yojson]
-  val delete_step :
-    ('a, 'b, 'c, 'd) Params.ps1 ->
-      ('a, 'b, 'c) delete_state -> 'd -> 'd * ('a, 'b, 'c) delete_state Util.res
-  val dest_d_finished : ('a, 'b, 'c) delete_state -> 'c option
-  val mk_delete_state : 'a -> 'b -> ('a, 'c, 'b) delete_state
-  val wellformed_delete_state :
-    'a Params.ps0 ->
-      ('b -> 'c -> ('a, 'd) Tree.tree option) ->
-        ('a, 'd) Tree.tree -> 'b -> 'a -> ('a, 'd, 'c) delete_state -> bool
+module Pre_insert : sig
+  val split_leaf :
+    unit Prelude.constants_ext ->
+      ('a * 'b) list -> ('a * 'b) list * ('a * ('a * 'b) list)
+  val split_node :
+    unit Prelude.constants_ext ->
+      'a list * 'b list -> ('a list * 'b list) * ('a * ('a list * 'b list))
 end = struct
 
-type ('a, 'b) d12_t = D1 of 'b | D2 of ('b * ('a * 'b))  [@@deriving yojson];;
-
-type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
-  D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson];;
-
-type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c) |
-  D_up of
-    (('a, 'b, 'c) del_t * (('a, 'c, unit) Tree_stack.ts_frame_ext list * 'c))
-  | D_finished of 'c  [@@deriving yojson];;
-
-let rec wf_d
-  k_ord r2f t0 s d =
-    Util.assert_true
-      (let (fs, _) = d in
-       Util.assert_true (Find.wellformed_find_state k_ord r2f t0 s fs));;
-
-let rec wf_f
-  ps0 r2t t0 s k r =
-    Util.assert_true
-      (let (constants, k_ord) =
-         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
-         in
-       let t = Util.rev_apply (r2t s r) Util.dest_Some in
-       Util.assert_true
-         (Tree.wellformed_tree constants (Some Prelude.Small_root_node_or_leaf)
-           k_ord t) &&
-         Util.assert_true
-           (Key_value.kvs_equal
-             (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
-               (Key_value.kvs_delete k_ord k))
-             (Util.rev_apply t Tree.tree_to_kvs)));;
-
-let rec wf_u
-  ps0 r2t t0 s k u =
-    Util.assert_true
-      (let (constants, k_ord) =
-         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
-         in
-       let (fo, stk) = u in
-       let check_stack =
-         (fun rstk tstk ->
-           Tree_stack.stack_equal
-             (Util.rev_apply
-               (Util.rev_apply rstk (Tree_stack.stack_map (r2t s)))
-               Tree_stack.no_focus)
-             (Util.rev_apply
-               (Util.rev_apply tstk (Tree_stack.stack_map (fun a -> Some a)))
-               Tree_stack.no_focus))
-         in
-       let check_wf = (fun ms -> Tree.wellformed_tree constants ms k_ord) in
-       let check_focus =
-         (fun foa ->
-           Key_value.kvs_equal
-             (Util.rev_apply (Util.rev_apply foa Tree.tree_to_kvs)
-               (Key_value.kvs_delete k_ord k)))
-         in
-       (match fo
-         with D_small_leaf kvs ->
-           let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           let ms =
-             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
-               | _ :: _ -> Some Prelude.Small_leaf)
-             in
-           Util.assert_true (check_stack stk t_stk) &&
-             (Util.assert_true (check_wf ms (Tree.Leaf kvs)) &&
-               Util.assert_true (check_focus t_fo kvs))
-         | D_small_node (ks, rs) ->
-           let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           let ms =
-             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
-               | _ :: _ -> Some Prelude.Small_node)
-             in
-           let t =
-             Tree.Node
-               (ks, Util.rev_apply (Util.rev_apply rs (List.map (r2t s)))
-                      (List.map Util.dest_Some))
-             in
-           Util.assert_true (check_stack stk t_stk) &&
-             (Util.assert_true (check_wf ms t) &&
-               Util.assert_true
-                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))
-         | D_updated_subtree r ->
-           let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
-           let ms =
-             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
-               | _ :: _ -> None)
-             in
-           let t = Util.rev_apply (Util.rev_apply r (r2t s)) Util.dest_Some in
-           Util.assert_true (check_stack stk t_stk) &&
-             (Util.assert_true (check_wf ms t) &&
-               Util.assert_true
-                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))));;
-
-let rec frac_mult
-  xs ys =
-    let a = xs in
-    let (aa, b) = a in
-    let (aaa, ba) = ys in
-    (aa @ aaa, b @ ba);;
-
-let rec post_steal_or_merge
-  ps1 stk p_unused p_1 p_2 x =
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
-    let m = frac_mult in
-    (match x
-      with D1 c ->
-        let p = Frame.Node_frame (m (m p_1 ([], [c])) p_2) in
-        let p_sz =
-          Util.rev_apply
-            (Util.rev_apply (Util.rev_apply p Frame.dest_Node_frame)
-              Product_Type.fst)
-            List.size_list
-          in
-        let f =
-          (match Arith.equal_nat p_sz Arith.zero_nat
-            with true ->
-              let _ = Util.check_true (fun _ -> List.null stk) in
-              Monad.return (D_updated_subtree c)
-            | false ->
-              (match
-                Arith.less_nat p_sz
-                  (Util.rev_apply (Util.rev_apply ps1 Params.cs)
-                    Prelude.min_node_keys)
-                with true ->
-                  Monad.return
-                    (D_small_node (Util.rev_apply p Frame.dest_Node_frame))
-                | false ->
-                  Util.rev_apply
-                    (Util.rev_apply p
-                      (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.fmap (fun a -> D_updated_subtree a))))
-          in
-        Util.rev_apply f (Monad.fmap (fun fa -> (fa, stk)))
-      | D2 (c1, (k, c2)) ->
-        let p = Frame.Node_frame (m (m p_1 ([k], [c1; c2])) p_2) in
-        let p_sz =
-          Util.rev_apply
-            (Util.rev_apply (Util.rev_apply p Frame.dest_Node_frame)
-              Product_Type.fst)
-            List.size_list
-          in
-        let f =
-          (match
-            Arith.less_nat p_sz
-              (Util.rev_apply (Util.rev_apply ps1 Params.cs)
-                Prelude.min_node_keys)
-            with true ->
-              let _ = Util.check_true (fun _ -> List.null stk) in
-              Monad.return
-                (D_small_node (Util.rev_apply p Frame.dest_Node_frame))
-            | false ->
-              Util.rev_apply
-                (Util.rev_apply p (Util.rev_apply store_ops Params.store_alloc))
-                (Monad.fmap (fun a -> D_updated_subtree a)))
-          in
-        Util.rev_apply f (Monad.fmap (fun fa -> (fa, stk))));;
-
-let rec steal_or_merge
-  constants right leaf mk_c c p_k s =
-    let m = frac_mult in
-    let (s_ks, s_ts) = s in
-    let a =
-      (match right
-        with true ->
-          let a = (Util.dest_list s_ks, Util.dest_list s_ts) in
-          let (aa, b) = a in
-          let (k, ks) = aa in
-          (fun (t, ts) -> ((k, t), (ks, ts)))
-            b
-        | false ->
-          let a = (Util.dest_lista s_ks, Util.dest_lista s_ts) in
-          let (aa, b) = a in
-          let (ks, k) = aa in
-          (fun (ts, t) -> ((k, t), (ks, ts)))
-            b)
+let rec split_leaf
+  c kvs =
+    let _ =
+      Util.check_true
+        (fun _ ->
+          Arith.less_eq_nat
+            (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size)
+              Arith.one_nat)
+            (List.size_list kvs))
       in
-    let (aa, b) = a in
-    let (s_k, s_t) = aa in
-    (fun s_1 ->
-      (match
-        Arith.less_nat
-          (if leaf then Util.rev_apply constants Prelude.min_leaf_size
-            else Util.rev_apply constants Prelude.min_node_keys)
-          (Arith.plus_nat Arith.one_nat (List.size_list (Product_Type.fst s_1)))
-        with true ->
-          let ca =
-            let k = (if leaf then s_k else p_k) in
-            (if right then m c ([k], [s_t]) else m ([k], [s_t]) c)
-            in
-          let sa = mk_c s_1 in
-          let p_ka =
-            (if leaf
-              then let right_sib = (if right then s_1 else ca) in
-                   Util.rev_apply (Util.rev_apply right_sib Product_Type.fst)
-                     List.hd
-              else s_k)
-            in
-          let cb = mk_c ca in
-          (if right then D2 (cb, (p_ka, sa)) else D2 (sa, (p_ka, cb)))
-        | false ->
-          let k = (if leaf then ([], []) else ([p_k], [])) in
-          let ab = mk_c (if right then m (m c k) s else m s (m k c)) in
-          D1 ab))
-      b;;
+    let cut_point =
+      Arith.minus_nat
+        (Arith.plus_nat (Util.rev_apply c Prelude.max_leaf_size) Arith.one_nat)
+        (Util.rev_apply c Prelude.min_leaf_size)
+      in
+    let _ =
+      Util.check_true
+        (fun _ -> Arith.less_eq_nat cut_point (List.size_list kvs))
+      in
+    let (l, r) = Util.split_at cut_point kvs in
+    let _ =
+      Util.check_true
+        (fun _ ->
+          Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
+            (List.size_list l) &&
+            Arith.less_eq_nat (Util.rev_apply c Prelude.min_leaf_size)
+              (List.size_list r))
+      in
+    let k =
+      (match r with [] -> Util.impossible1 "key_value, split_leaf"
+        | (k, _) :: _ -> k)
+      in
+    (l, (k, r));;
 
-let rec get_sibling
-  p = let (p_1, p_2) = p in
-      (match p_2
-        with ([], _) ->
-          (match p_1 with ([], _) -> Util.impossible1 "delete, get_sibling"
-            | (_ :: _, []) -> Util.impossible1 "delete, get_sibling"
-            | (_ :: _, _ :: _) ->
-              let right = false in
-              let (p_ks1, p_ts1) = p_1 in
-              let (p_1_ks, p_k) = Util.dest_lista p_ks1 in
-              let (p_1_ts, s) = Util.dest_lista p_ts1 in
-              let (p_1a, _) = ((p_1_ks, p_1_ts), p_2) in
-              (right, ((p_1a, p_2), (p_k, s))))
-        | (_ :: _, []) ->
-          (match p_1 with ([], _) -> Util.impossible1 "delete, get_sibling"
-            | (_ :: _, []) -> Util.impossible1 "delete, get_sibling"
-            | (_ :: _, _ :: _) ->
-              let right = false in
-              let (p_ks1, p_ts1) = p_1 in
-              let (p_1_ks, p_k) = Util.dest_lista p_ks1 in
-              let (p_1_ts, s) = Util.dest_lista p_ts1 in
-              let (p_1a, _) = ((p_1_ks, p_1_ts), p_2) in
-              (right, ((p_1a, p_2), (p_k, s))))
-        | (p_k :: p_ks2, r :: p_ts2) ->
-          let right = true in
-          (right, ((p_1, (p_ks2, p_ts2)), (p_k, r))));;
+let rec split_node
+  c n = let (ks, rs) = n in
+        let cut_point =
+          Arith.minus_nat (Util.rev_apply c Prelude.max_node_keys)
+            (Util.rev_apply c Prelude.min_node_keys)
+          in
+        let (ks1, (k, ks2)) = Util.split_at_3 cut_point ks in
+        let _ =
+          Util.check_true
+            (fun _ ->
+              Arith.less_eq_nat (Util.rev_apply c Prelude.min_node_keys)
+                (List.size_list ks2))
+          in
+        let (rs1, rs2) =
+          Util.split_at (Arith.plus_nat cut_point Arith.one_nat) rs in
+        ((ks1, rs1), (k, (ks2, rs2)));;
 
-let rec step_up
-  ps1 du =
-    let (f, stk) = du in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
-    (match stk with [] -> Util.impossible1 "delete, step_up"
-      | p :: stka ->
-        (match f
-          with D_small_leaf kvs ->
-            let leaf = true in
-            let mk_c = (fun (ks, vs) -> Frame.Leaf_frame (List.zip ks vs)) in
-            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-            let (aa, b) = a in
-            let (p_ks1, p_rs1) = aa in
-            (fun (_, (p_ks2, p_rs2)) ->
-              let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
-              let (right, ac) = ab in
-              let (ad, ba) = ac in
-              let (p_1, p_2) = ad in
-              (fun (p_k, r) ->
-                let frm = Util.rev_apply store_ops Params.store_read r in
-                let d12 =
-                  Util.rev_apply frm
-                    (Monad.fmap
-                      (fun frma ->
-                        steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
-                          mk_c (Util.rev_apply kvs Util.unzip) p_k
-                          (Util.rev_apply
-                            (Util.rev_apply frma Frame.dest_Leaf_frame)
-                            Util.unzip)))
-                  in
-                let d12a =
-                  Util.rev_apply d12
-                    (Monad.bind
-                      (fun ae ->
-                        (match ae
-                          with D1 frma ->
-                            Util.rev_apply
-                              (Util.rev_apply frma
-                                (Util.rev_apply store_ops Params.store_alloc))
-                              (Monad.fmap (fun af -> D1 af))
-                          | D2 (frm1, (p_ka, frm2)) ->
-                            Util.rev_apply
-                              (Util.rev_apply frm1
-                                (Util.rev_apply store_ops Params.store_alloc))
-                              (Monad.bind
-                                (fun r1 ->
-                                  Util.rev_apply
-                                    (Util.rev_apply frm2
-                                      (Util.rev_apply store_ops
-Params.store_alloc))
-                                    (Monad.fmap
-                                      (fun r2 -> D2 (r1, (p_ka, r2)))))))))
-                  in
-                Util.rev_apply d12a
-                  (Monad.bind (post_steal_or_merge ps1 stka p p_1 p_2)))
-                ba)
-              b
-          | D_small_node (ks, rs) ->
-            let leaf = false in
-            let mk_c = (fun a -> Frame.Node_frame a) in
-            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-            let (aa, b) = a in
-            let (p_ks1, p_rs1) = aa in
-            (fun (_, (p_ks2, p_rs2)) ->
-              let ab = get_sibling ((p_ks1, p_rs1), (p_ks2, p_rs2)) in
-              let (right, ac) = ab in
-              let (ad, ba) = ac in
-              let (p_1, p_2) = ad in
-              (fun (p_k, r) ->
-                let frm = Util.rev_apply store_ops Params.store_read r in
-                let d12 =
-                  Util.rev_apply frm
-                    (Monad.fmap
-                      (fun frma ->
-                        steal_or_merge (Util.rev_apply ps1 Params.cs) right leaf
-                          mk_c (ks, rs) p_k
-                          (Util.rev_apply frma Frame.dest_Node_frame)))
-                  in
-                let d12a =
-                  Util.rev_apply d12
-                    (Monad.bind
-                      (fun ae ->
-                        (match ae
-                          with D1 frma ->
-                            Util.rev_apply
-                              (Util.rev_apply frma
-                                (Util.rev_apply store_ops Params.store_alloc))
-                              (Monad.fmap (fun af -> D1 af))
-                          | D2 (frm1, (p_ka, frm2)) ->
-                            Util.rev_apply
-                              (Util.rev_apply frm1
-                                (Util.rev_apply store_ops Params.store_alloc))
-                              (Monad.bind
-                                (fun r1 ->
-                                  Util.rev_apply
-                                    (Util.rev_apply frm2
-                                      (Util.rev_apply store_ops
-Params.store_alloc))
-                                    (Monad.fmap
-                                      (fun r2 -> D2 (r1, (p_ka, r2)))))))))
-                  in
-                Util.rev_apply d12a
-                  (Monad.bind (post_steal_or_merge ps1 stka p p_1 p_2)))
-                ba)
-              b
-          | D_updated_subtree r ->
-            let a = Util.rev_apply p Tree_stack.dest_ts_frame in
-            let (aa, b) = a in
-            let (ks1, rs1) = aa in
-            (fun (_, (ks2, rs2)) ->
-              Util.rev_apply
-                (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-                  (Util.rev_apply store_ops Params.store_alloc))
-                (Monad.fmap (fun ra -> (D_updated_subtree ra, stka))))
-              b));;
-
-let rec delete_step
-  ps1 s =
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
-    (match s
-      with D_down (f, r0) ->
-        (match Find.dest_f_finished f
-          with None ->
-            Util.rev_apply (Find.find_step ps1 f)
-              (Monad.fmap (fun fa -> D_down (fa, r0)))
-          | Some (r0a, (k, (_, (kvs, stk)))) ->
-            Util.rev_apply
-              (Util.rev_apply store_ops Params.store_free
-                (r0a :: Tree_stack.r_stk_to_rs stk))
-              (Monad.bind
-                (fun _ ->
-                  (match
-                    List.list_ex
-                      (fun x ->
-                        Key_value.key_eq (Util.rev_apply ps1 Params.cmp_k) x k)
-                      (Util.rev_apply kvs (List.map Product_Type.fst))
-                    with true ->
-                      let kvsa =
-                        Util.rev_apply kvs
-                          (List.filter
-                            (fun x ->
-                              not (Key_value.key_eq
-                                    (Util.rev_apply ps1 Params.cmp_k)
-                                    (Product_Type.fst x) k)))
-                        in
-                      (match
-                        Arith.less_nat (List.size_list kvsa)
-                          (Util.rev_apply (Util.rev_apply ps1 Params.cs)
-                            Prelude.min_leaf_size)
-                        with true ->
-                          Monad.return (D_up (D_small_leaf kvsa, (stk, r0a)))
-                        | false ->
-                          Util.rev_apply
-                            (Util.rev_apply (Frame.Leaf_frame kvsa)
-                              (Util.rev_apply store_ops Params.store_alloc))
-                            (Monad.fmap
-                              (fun r ->
-                                D_up (D_updated_subtree r, (stk, r0a)))))
-                    | false -> Monad.return (D_finished r0a)))))
-      | D_up (f, (stk, r0)) ->
-        (match stk
-          with [] ->
-            (match f
-              with D_small_leaf kvs ->
-                Util.rev_apply
-                  (Util.rev_apply (Frame.Leaf_frame kvs)
-                    (Util.rev_apply store_ops Params.store_alloc))
-                  (Monad.fmap (fun a -> D_finished a))
-              | D_small_node (ks, rs) ->
-                Util.rev_apply
-                  (Util.rev_apply (Frame.Node_frame (ks, rs))
-                    (Util.rev_apply store_ops Params.store_alloc))
-                  (Monad.fmap (fun a -> D_finished a))
-              | D_updated_subtree r -> Monad.return (D_finished r))
-          | _ :: _ ->
-            Util.rev_apply (step_up ps1 (f, stk))
-              (Monad.fmap (fun (fa, stka) -> D_up (fa, (stka, r0)))))
-      | D_finished _ -> Monad.return s);;
-
-let rec dest_d_finished
-  x = (match x with D_down _ -> None | D_up _ -> None
-        | D_finished a -> Some a);;
-
-let rec mk_delete_state k r = D_down (Find.mk_find_state k r, r);;
-
-let rec wellformed_delete_state
-  ps0 r2t t0 s k ds =
-    Util.assert_true
-      (let (_, k_ord) =
-         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
-         in
-       (match ds with D_down a -> wf_d k_ord r2t t0 s a
-         | D_up (fo, (stk, r)) ->
-           wf_u ps0 r2t t0 s k (fo, stk) &&
-             (match r2t s r with None -> false | Some t -> Tree.tree_equal t t0)
-         | D_finished a -> wf_f ps0 r2t t0 s k a));;
-
-end;; (*struct Delete*)
+end;; (*struct Pre_insert*)
 
 module Insert : sig
-  type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c)) [@@deriving yojson]
+  type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c))  [@@deriving yojson]
   type ('a, 'b, 'c) insert_state = I_down of (('a, 'b, 'c) Find.find_state * 'b)
-    | I_up of (('a, 'b, 'c) i12_t * ('a, 'c, unit) Tree_stack.ts_frame_ext list)
+    | I_up of
+        (('a, 'b, 'c) i12_t *
+          ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
     | I_finished of 'c  [@@deriving yojson]
   val insert_step :
     ('a, 'b, 'c, 'd) Params.ps1 ->
@@ -1514,17 +1323,20 @@ module Insert : sig
   val dest_i_finished : ('a, 'b, 'c) insert_state -> 'c option
   val mk_insert_state : 'a -> 'b -> 'c -> ('a, 'b, 'c) insert_state
   val wellformed_insert_state :
-    'a Params.ps0 ->
-      ('b -> 'c -> ('a, 'd) Tree.tree option) ->
-        ('a, 'd) Tree.tree ->
-          'b -> 'a -> 'd -> ('a, 'd, 'c) insert_state -> bool
+    unit Prelude.constants_ext ->
+      ('a -> 'a -> Arith.int) ->
+        ('b -> 'c -> ('a, 'd) Tree.tree option) ->
+          ('a, 'd) Tree.tree ->
+            'b -> 'a -> 'd -> ('a, 'd, 'c) insert_state -> bool
 end = struct
 
-type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c)) [@@deriving yojson];;
+type ('a, 'b, 'c) i12_t = I1 of 'c | I2 of ('c * ('a * 'c))  [@@deriving yojson];;
 
 type ('a, 'b, 'c) insert_state = I_down of (('a, 'b, 'c) Find.find_state * 'b) |
-  I_up of (('a, 'b, 'c) i12_t * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  I_finished of 'c  [@@deriving yojson];;
+  I_up of
+    (('a, 'b, 'c) i12_t *
+      ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
+  | I_finished of 'c  [@@deriving yojson];;
 
 let rec wf_d
   k_ord r2t t0 s d =
@@ -1533,19 +1345,16 @@ let rec wf_d
        Find.wellformed_find_state k_ord r2t t0 s fs);;
 
 let rec wf_f
-  ps0 r2t t0 s k v r =
+  cs k_ord r2t t0 s k v r =
     Util.assert_true
-      (let (cs, k_ord) =
-         (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k)
-         in
-       (match r2t s r with None -> false
-         | Some t ->
-           Tree.wellformed_tree cs (Some Prelude.Small_root_node_or_leaf) k_ord
-             t &&
-             Key_value.kvs_equal
-               (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
-                 (Key_value.kvs_insert k_ord (k, v)))
-               (Util.rev_apply t Tree.tree_to_kvs)));;
+      (match r2t s r with None -> false
+        | Some t ->
+          Tree.wellformed_tree cs (Some Prelude.Small_root_node_or_leaf) k_ord
+            t &&
+            Key_value.kvs_equal
+              (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
+                (Key_value.kvs_insert k_ord (k, v)))
+              (Util.rev_apply t Tree.tree_to_kvs));;
 
 let rec wf_u
   r2t k_ord t0 s k v u =
@@ -1553,18 +1362,18 @@ let rec wf_u
       (let _ = Find.wf_store_tree r2t s in
        let check_stack =
          (fun rstk tstk ->
-           Tree_stack.stack_equal
+           Tree_stack.rstack_equal
              (Util.rev_apply
-               (Util.rev_apply rstk (Tree_stack.stack_map (r2t s)))
+               (Util.rev_apply rstk (Tree_stack.rstack_map (r2t s)))
                Tree_stack.no_focus)
              (Util.rev_apply
-               (Util.rev_apply tstk (Tree_stack.stack_map (fun a -> Some a)))
+               (Util.rev_apply tstk (Tree_stack.rstack_map (fun a -> Some a)))
                Tree_stack.no_focus))
          in
        (match u
          with (I1 r, stk) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
            Util.assert_true (check_stack stk t_stk) &&
              (match r2t s r with None -> Util.assert_true false
                | Some t ->
@@ -1574,12 +1383,12 @@ let rec wf_u
                        (Key_value.kvs_insert k_ord (k, v)))))
          | (I2 (r1, (ka, r2)), stk) ->
            let (t_fo, t_stk) =
-             Tree_stack.tree_to_stack k_ord k t0 (List.size_list stk) in
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
            Util.assert_true (check_stack stk t_stk) &&
-             let (l, ua) = Tree_stack.stack_to_lu_of_child t_stk in
              (match (r2t s r1, r2t s r2) with (None, _) -> false
                | (Some _, None) -> false
                | (Some t1, Some t2) ->
+                 let (l, ua) = Tree_stack.rstack_get_bounds t_stk in
                  let (ks1, ks2) =
                    (Util.rev_apply t1 Tree.tree_to_keys,
                      Util.rev_apply t2 Tree.tree_to_keys)
@@ -1598,45 +1407,49 @@ let rec wf_u
 let rec step_up
   ps1 u =
     let (cs, _) =
-      (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+      (Util.rev_apply ps1 Params.dot_constants,
+        Util.rev_apply ps1 Params.dot_cmp)
+      in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match u with (_, []) -> Util.impossible1 "insert, step_up"
-      | (fo, x :: stk) ->
-        let a = Tree_stack.dest_ts_frame x in
-        let (aa, b) = a in
-        let (ks1, rs1) = aa in
-        (fun (_, (ks2, rs2)) ->
-          (match fo
-            with I1 r ->
-              Util.rev_apply
-                (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-                  (Util.rev_apply store_ops Params.store_alloc))
-                (Monad.fmap (fun ra -> (I1 ra, stk)))
-            | I2 (r1, (k, r2)) ->
-              let ks = ks1 @ [k] @ ks2 in
-              let rs = rs1 @ [r1; r2] @ rs2 in
-              (match
-                Arith.less_eq_nat (List.size_list ks)
-                  (Util.rev_apply cs Prelude.max_node_keys)
-                with true ->
+      | (I1 r, x :: stk) ->
+        let (ks, rs) =
+          Searching_and_splitting.unsplit_node
+            (Searching_and_splitting.r_t_update (fun _ -> r) x)
+          in
+        Util.rev_apply
+          (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs))
+            (Util.rev_apply store_ops Params.store_alloc))
+          (Monad.fmap (fun ra -> (I1 ra, stk)))
+      | (I2 (r1, (k, r2)), x :: stk) ->
+        let (ks2, rs2) =
+          (Util.rev_apply x Searching_and_splitting.r_ks2,
+            Util.rev_apply x Searching_and_splitting.r_ts2)
+          in
+        let (ks, rs) =
+          Searching_and_splitting.unsplit_node
+            (Searching_and_splitting.r_ts2_update (fun _ -> [r1; r2] @ rs2)
+              (Searching_and_splitting.r_ks2_update (fun _ -> k :: ks2) x))
+          in
+        (match
+          Arith.less_eq_nat (List.size_list ks)
+            (Util.rev_apply cs Prelude.max_node_keys)
+          with true ->
+            Util.rev_apply
+              (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs))
+                (Util.rev_apply store_ops Params.store_alloc))
+              (Monad.fmap (fun r -> (I1 r, stk)))
+          | false ->
+            let (ks_rs1, (ka, ks_rs2)) = Pre_insert.split_node cs (ks, rs) in
+            Util.rev_apply
+              (Util.rev_apply (Disk_node.mk_Disk_node ks_rs1)
+                (Util.rev_apply store_ops Params.store_alloc))
+              (Monad.bind
+                (fun r1a ->
                   Util.rev_apply
-                    (Util.rev_apply (Frame.Node_frame (ks, rs))
+                    (Util.rev_apply (Disk_node.mk_Disk_node ks_rs2)
                       (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.fmap (fun r -> (I1 r, stk)))
-                | false ->
-                  let (ks_rs1, (ka, ks_rs2)) = Key_value.split_node cs (ks, rs)
-                    in
-                  Util.rev_apply
-                    (Util.rev_apply (Frame.Node_frame ks_rs1)
-                      (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.bind
-                      (fun r1a ->
-                        Util.rev_apply
-                          (Util.rev_apply (Frame.Node_frame ks_rs2)
-                            (Util.rev_apply store_ops Params.store_alloc))
-                          (Monad.fmap
-                            (fun r2a -> (I2 (r1a, (ka, r2a)), stk))))))))
-          b);;
+                    (Monad.fmap (fun r2a -> (I2 (r1a, (ka, r2a)), stk)))))));;
 
 let rec step_down
   ps1 d =
@@ -1646,8 +1459,10 @@ let rec step_down
 let rec step_bottom
   ps1 d =
     let (cs, k_ord) =
-      (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+      (Util.rev_apply ps1 Params.dot_constants,
+        Util.rev_apply ps1 Params.dot_cmp)
+      in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     let (fs, v) = d in
     (match Find.dest_f_finished fs
       with None -> Util.impossible1 "insert, step_bottom"
@@ -1665,18 +1480,18 @@ let rec step_bottom
                     (Util.rev_apply cs Prelude.max_leaf_size)
                   with true ->
                     Util.rev_apply
-                      (Util.rev_apply (Frame.Leaf_frame kvsa)
+                      (Util.rev_apply (Disk_node.Disk_leaf kvsa)
                         (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.fmap (fun a -> I1 a))
                   | false ->
-                    let (kvs1, (ka, kvs2)) = Key_value.split_leaf cs kvsa in
+                    let (kvs1, (ka, kvs2)) = Pre_insert.split_leaf cs kvsa in
                     Util.rev_apply
-                      (Util.rev_apply (Frame.Leaf_frame kvs1)
+                      (Util.rev_apply (Disk_node.Disk_leaf kvs1)
                         (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.bind
                         (fun r1 ->
                           Util.rev_apply
-                            (Util.rev_apply (Frame.Leaf_frame kvs2)
+                            (Util.rev_apply (Disk_node.Disk_leaf kvs2)
                               (Util.rev_apply store_ops Params.store_alloc))
                             (Monad.fmap (fun r2 -> I2 (r1, (ka, r2)))))))
                 in
@@ -1684,7 +1499,7 @@ let rec step_bottom
 
 let rec insert_step
   ps1 s =
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match s
       with I_down d ->
         let (fs, _) = d in
@@ -1697,7 +1512,7 @@ let rec insert_step
         (match u with (I1 r, []) -> Monad.return (I_finished r)
           | (I2 (r1, (k, r2)), []) ->
             Util.rev_apply
-              (Util.rev_apply (Frame.Node_frame ([k], [r1; r2]))
+              (Util.rev_apply (Disk_node.mk_Disk_node ([k], [r1; r2]))
                 (Util.rev_apply store_ops Params.store_alloc))
               (Monad.fmap (fun a -> I_finished a))
           | (_, _ :: _) ->
@@ -1711,22 +1526,573 @@ let rec dest_i_finished
 let rec mk_insert_state k v r = I_down (Find.mk_find_state k r, v);;
 
 let rec wellformed_insert_state
-  ps0 r2t t0 s k v is =
+  cs k_ord r2t t0 s k v is =
     Util.assert_true
-      (let k_ord = Util.rev_apply ps0 Params.ps0_cmp_k in
-       (match is with I_down a -> wf_d k_ord r2t t0 s a
-         | I_up a -> wf_u r2t k_ord t0 s k v a
-         | I_finished a -> wf_f ps0 r2t t0 s k v a));;
+      (match is with I_down a -> wf_d k_ord r2t t0 s a
+        | I_up a -> wf_u r2t k_ord t0 s k v a
+        | I_finished a -> wf_f cs k_ord r2t t0 s k v a);;
 
 end;; (*struct Insert*)
+
+module Delete2 : sig
+  type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
+    D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson]
+  type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c)
+    | D_up of
+        (('a, 'b, 'c) del_t *
+          (('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list * 'c))
+    | D_finished of 'c  [@@deriving yojson]
+  val delete_step :
+    ('a, 'b, 'c, 'd) Params.ps1 ->
+      ('a, 'b, 'c) delete_state -> 'd -> 'd * ('a, 'b, 'c) delete_state Util.res
+  val dest_d_finished : ('a, 'b, 'c) delete_state -> 'c option
+  val mk_delete_state : 'a -> 'b -> ('a, 'c, 'b) delete_state
+  val wellformed_delete_state :
+    unit Prelude.constants_ext ->
+      ('a -> 'a -> Arith.int) ->
+        ('b -> 'c -> ('a, 'd) Tree.tree option) ->
+          ('a, 'd) Tree.tree -> 'b -> 'a -> ('a, 'd, 'c) delete_state -> bool
+end = struct
+
+type ('a, 'b, 'c) del_t = D_small_leaf of ('a * 'b) list |
+  D_small_node of ('a list * 'c list) | D_updated_subtree of 'c  [@@deriving yojson];;
+
+type ('a, 'b, 'c) delete_state = D_down of (('a, 'b, 'c) Find.find_state * 'c) |
+  D_up of
+    (('a, 'b, 'c) del_t *
+      (('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list * 'c))
+  | D_finished of 'c  [@@deriving yojson];;
+
+let rec wf_d
+  k_ord r2f t0 s d =
+    Util.assert_true
+      (let (fs, _) = d in
+       Util.assert_true (Find.wellformed_find_state k_ord r2f t0 s fs));;
+
+let rec wf_f
+  constants k_ord r2t t0 s k r =
+    Util.assert_true
+      (let t = Util.rev_apply (r2t s r) Util.dest_Some in
+       Util.assert_true
+         (Tree.wellformed_tree constants (Some Prelude.Small_root_node_or_leaf)
+           k_ord t) &&
+         Util.assert_true
+           (Key_value.kvs_equal
+             (Util.rev_apply (Util.rev_apply t0 Tree.tree_to_kvs)
+               (Key_value.kvs_delete k_ord k))
+             (Util.rev_apply t Tree.tree_to_kvs)));;
+
+let rec wf_u
+  constants k_ord r2t t0 s k u =
+    Util.assert_true
+      (let (fo, stk) = u in
+       let check_stack =
+         (fun rstk tstk ->
+           Tree_stack.rstack_equal
+             (Util.rev_apply
+               (Util.rev_apply rstk (Tree_stack.rstack_map (r2t s)))
+               Tree_stack.no_focus)
+             (Util.rev_apply
+               (Util.rev_apply tstk (Tree_stack.rstack_map (fun a -> Some a)))
+               Tree_stack.no_focus))
+         in
+       let check_wf = (fun ms -> Tree.wellformed_tree constants ms k_ord) in
+       let check_focus =
+         (fun foa ->
+           Key_value.kvs_equal
+             (Util.rev_apply (Util.rev_apply foa Tree.tree_to_kvs)
+               (Key_value.kvs_delete k_ord k)))
+         in
+       (match fo
+         with D_small_leaf kvs ->
+           let (t_fo, t_stk) =
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
+           let ms =
+             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
+               | _ :: _ -> Some Prelude.Small_leaf)
+             in
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms (Tree.Leaf kvs)) &&
+               Util.assert_true (check_focus t_fo kvs))
+         | D_small_node (ks, rs) ->
+           let (t_fo, t_stk) =
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
+           let ms =
+             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
+               | _ :: _ -> Some Prelude.Small_node)
+             in
+           let t =
+             Tree.Node
+               (ks, Util.rev_apply (Util.rev_apply rs (List.map (r2t s)))
+                      (List.map Util.dest_Some))
+             in
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms t) &&
+               Util.assert_true
+                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))
+         | D_updated_subtree r ->
+           let (t_fo, t_stk) =
+             Tree_stack.tree_to_rstack k_ord k t0 (List.size_list stk) in
+           let ms =
+             (match stk with [] -> Some Prelude.Small_root_node_or_leaf
+               | _ :: _ -> None)
+             in
+           let t = Util.rev_apply (Util.rev_apply r (r2t s)) Util.dest_Some in
+           Util.assert_true (check_stack stk t_stk) &&
+             (Util.assert_true (check_wf ms t) &&
+               Util.assert_true
+                 (check_focus t_fo (Util.rev_apply t Tree.tree_to_kvs)))));;
+
+let rec node_steal_right
+  store_ops p c1 c2 =
+    let (ks1, rs1) = c1 in
+    let (k2 :: rest, r2 :: resta) = c2 in
+    let (k1 :: ks2, _ :: rs2) =
+      (Util.rev_apply p Searching_and_splitting.r_ks2,
+        Util.rev_apply p Searching_and_splitting.r_ts2)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (ks1 @ [k1], rs1 @ [r2]) Disk_node.mk_Disk_node)
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r3 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Util.rev_apply (rest, resta) Disk_node.mk_Disk_node)
+              (Util.rev_apply store_ops Params.store_alloc))
+            (Monad.bind
+              (fun r4 ->
+                Util.rev_apply
+                  (Util.rev_apply
+                    (Util.rev_apply
+                      (Util.rev_apply
+                        (Searching_and_splitting.r_ts2_update
+                          (fun _ -> r4 :: rs2)
+                          (Searching_and_splitting.r_ks2_update
+                            (fun _ -> k2 :: ks2)
+                            (Searching_and_splitting.r_t_update (fun _ -> r3)
+                              p)))
+                        Searching_and_splitting.unsplit_node)
+                      Disk_node.mk_Disk_node)
+                    (Util.rev_apply store_ops Params.store_alloc))
+                  (Monad.bind Monad.return)))));;
+
+let rec maybe_fixup_empty_parent_after_merge
+  cs store_ops krs fo =
+    let (ks, rs) = krs in
+    let n = List.size_list ks in
+    let na =
+      (if Arith.equal_nata n Arith.zero_nat then Arith.zero_nat
+        else (if Arith.less_nat n (Util.rev_apply cs Prelude.min_node_keys)
+               then Arith.one_nat
+               else Arith.nat_of_integer (Big_int.big_int_of_int 2)))
+      in
+    (if Arith.equal_nata na Arith.zero_nat then Monad.return fo
+      else (if Arith.equal_nata (Arith.minus_nat na Arith.one_nat)
+                 Arith.zero_nat
+             then Monad.return (D_small_node (ks, rs))
+             else Util.rev_apply
+                    (Util.rev_apply
+                      (Util.rev_apply (ks, rs) Disk_node.mk_Disk_node)
+                      (Util.rev_apply store_ops Params.store_alloc))
+                    (Monad.bind
+                      (fun r -> Monad.return (D_updated_subtree r)))));;
+
+let rec node_merge_right
+  cs store_ops p c1 c2 =
+    let (ks1, rs1) = c1 in
+    let (_, rs2) = c2 in
+    let (k2 :: ks2, _ :: p_rs2) =
+      (Util.rev_apply p Searching_and_splitting.r_ks2,
+        Util.rev_apply p Searching_and_splitting.r_ts2)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (ks1 @ [k2] @ ks2, rs1 @ rs2) Disk_node.mk_Disk_node)
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r4 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Searching_and_splitting.r_ts2_update (fun _ -> p_rs2)
+                (Searching_and_splitting.r_ks2_update (fun _ -> ks2)
+                  (Searching_and_splitting.r_t_update (fun _ -> r4) p)))
+              Searching_and_splitting.unsplit_node)
+            (fun (ks, rs) ->
+              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
+                (D_updated_subtree r4))));;
+
+let rec leaf_steal_right
+  store_ops p c1 c2 =
+    let k3 :: k4 :: kvs2 = c2 in
+    let (_ :: ks2, _ :: p_rs2) =
+      (Util.rev_apply p Searching_and_splitting.r_ks2,
+        Util.rev_apply p Searching_and_splitting.r_ts2)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (c1 @ [k3]) (fun a -> Disk_node.Disk_leaf a))
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r1 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Util.rev_apply (k4 :: kvs2) (fun a -> Disk_node.Disk_leaf a))
+              (Util.rev_apply store_ops Params.store_alloc))
+            (Monad.bind
+              (fun r2 ->
+                Util.rev_apply
+                  (Util.rev_apply
+                    (Util.rev_apply
+                      (Util.rev_apply
+                        (Searching_and_splitting.r_ts2_update
+                          (fun _ -> r2 :: p_rs2)
+                          (Searching_and_splitting.r_ks2_update
+                            (fun _ -> Product_Type.fst k4 :: ks2)
+                            (Searching_and_splitting.r_t_update (fun _ -> r1)
+                              p)))
+                        Searching_and_splitting.unsplit_node)
+                      Disk_node.mk_Disk_node)
+                    (Util.rev_apply store_ops Params.store_alloc))
+                  (Monad.bind Monad.return)))));;
+
+let rec leaf_merge_right
+  cs store_ops p c1 c2 =
+    let (_ :: ks2, _ :: p_rs2) =
+      (Util.rev_apply p Searching_and_splitting.r_ks2,
+        Util.rev_apply p Searching_and_splitting.r_ts2)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (c1 @ c2) (fun a -> Disk_node.Disk_leaf a))
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r1 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Searching_and_splitting.r_ts2_update (fun _ -> p_rs2)
+                (Searching_and_splitting.r_ks2_update (fun _ -> ks2)
+                  (Searching_and_splitting.r_t_update (fun _ -> r1) p)))
+              Searching_and_splitting.unsplit_node)
+            (fun (ks, rs) ->
+              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
+                (D_updated_subtree r1))));;
+
+let rec node_steal_left
+  store_ops p c1 c2 =
+    let (k1 :: rest, r1 :: resta) =
+      Util.rev_apply c1 (fun (x, y) -> (List.rev x, List.rev y)) in
+    let (ks2, rs2) = c2 in
+    let (k2 :: ks1, _ :: rs1) =
+      (Util.rev_apply p Searching_and_splitting.r_ks1,
+        Util.rev_apply p Searching_and_splitting.r_ts1)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (List.rev rest, List.rev resta) Disk_node.mk_Disk_node)
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r3 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Util.rev_apply (k2 :: ks2, r1 :: rs2) Disk_node.mk_Disk_node)
+              (Util.rev_apply store_ops Params.store_alloc))
+            (Monad.bind
+              (fun r4 ->
+                Util.rev_apply
+                  (Util.rev_apply
+                    (Util.rev_apply
+                      (Util.rev_apply
+                        (Searching_and_splitting.r_t_update (fun _ -> r4)
+                          (Searching_and_splitting.r_ts1_update
+                            (fun _ -> r3 :: rs1)
+                            (Searching_and_splitting.r_ks1_update
+                              (fun _ -> k1 :: ks1) p)))
+                        Searching_and_splitting.unsplit_node)
+                      Disk_node.mk_Disk_node)
+                    (Util.rev_apply store_ops Params.store_alloc))
+                  (Monad.bind Monad.return)))));;
+
+let rec node_merge_left
+  cs store_ops p c1 c2 =
+    let (_, rs1) = c1 in
+    let (ks2, rs2) = c2 in
+    let (k2 :: ks1, _ :: p_rs1) =
+      (Util.rev_apply p Searching_and_splitting.r_ks1,
+        Util.rev_apply p Searching_and_splitting.r_ts1)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (ks1 @ [k2] @ ks2, rs1 @ rs2) Disk_node.mk_Disk_node)
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r4 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Searching_and_splitting.r_ts1_update (fun _ -> p_rs1)
+                (Searching_and_splitting.r_ks1_update (fun _ -> ks1)
+                  (Searching_and_splitting.r_t_update (fun _ -> r4) p)))
+              Searching_and_splitting.unsplit_node)
+            (fun (ks, rs) ->
+              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
+                (D_updated_subtree r4))));;
+
+let rec leaf_steal_left
+  store_ops p c1 c2 =
+    let k2 :: kvs1 = List.rev c1 in
+    let (_ :: ks1, _ :: p_rs1) =
+      (Util.rev_apply p Searching_and_splitting.r_ks1,
+        Util.rev_apply p Searching_and_splitting.r_ts1)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (List.rev kvs1) (fun a -> Disk_node.Disk_leaf a))
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r1 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Util.rev_apply (k2 :: c2) (fun a -> Disk_node.Disk_leaf a))
+              (Util.rev_apply store_ops Params.store_alloc))
+            (Monad.bind
+              (fun r2 ->
+                Util.rev_apply
+                  (Util.rev_apply
+                    (Util.rev_apply
+                      (Util.rev_apply
+                        (Searching_and_splitting.r_ts1_update
+                          (fun _ -> r1 :: p_rs1)
+                          (Searching_and_splitting.r_ks1_update
+                            (fun _ -> Product_Type.fst k2 :: ks1)
+                            (Searching_and_splitting.r_t_update (fun _ -> r2)
+                              p)))
+                        Searching_and_splitting.unsplit_node)
+                      Disk_node.mk_Disk_node)
+                    (Util.rev_apply store_ops Params.store_alloc))
+                  (Monad.bind Monad.return)))));;
+
+let rec leaf_merge_left
+  cs store_ops p c1 c2 =
+    let (_ :: ks1, _ :: p_rs1) =
+      (Util.rev_apply p Searching_and_splitting.r_ks1,
+        Util.rev_apply p Searching_and_splitting.r_ts1)
+      in
+    Util.rev_apply
+      (Util.rev_apply
+        (Util.rev_apply (c1 @ c2) (fun a -> Disk_node.Disk_leaf a))
+        (Util.rev_apply store_ops Params.store_alloc))
+      (Monad.bind
+        (fun r1 ->
+          Util.rev_apply
+            (Util.rev_apply
+              (Searching_and_splitting.r_ts1_update (fun _ -> p_rs1)
+                (Searching_and_splitting.r_ks1_update (fun _ -> ks1)
+                  (Searching_and_splitting.r_t_update (fun _ -> r1) p)))
+              Searching_and_splitting.unsplit_node)
+            (fun (ks, rs) ->
+              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
+                (D_updated_subtree r1))));;
+
+let rec step_up
+  ps1 du =
+    let (f, stk) = du in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
+    let (alloc, read) =
+      (Util.rev_apply store_ops Params.store_alloc,
+        Util.rev_apply store_ops Params.store_read)
+      in
+    let cs = Util.rev_apply ps1 Params.dot_constants in
+    (match stk with [] -> Util.impossible1 "delete, step_up"
+      | p :: stka ->
+        Util.rev_apply
+          (match f
+            with D_small_leaf kvs ->
+              (match
+                Util.is_Nil (Util.rev_apply p Searching_and_splitting.r_ks2)
+                with true ->
+                  let ks1 = Util.rev_apply p Searching_and_splitting.r_ks1 in
+                  let _ =
+                    Util.check_true
+                      (fun _ -> (match ks1 with [] -> false | _ :: _ -> true))
+                    in
+                  let r =
+                    List.hd (Util.rev_apply p Searching_and_splitting.r_ts1) in
+                  Util.rev_apply
+                    (Util.rev_apply (Util.rev_apply r read)
+                      (Monad.fmap Disk_node.dest_Disk_leaf))
+                    (Monad.bind
+                      (fun left_kvs ->
+                        (match
+                          Arith.equal_nata (List.size_list left_kvs)
+                            (Util.rev_apply cs Prelude.min_leaf_size)
+                          with true ->
+                            leaf_merge_left cs store_ops p left_kvs kvs
+                          | false ->
+                            Util.rev_apply
+                              (leaf_steal_left store_ops p left_kvs kvs)
+                              (Monad.fmap (fun a -> D_updated_subtree a)))))
+                | false ->
+                  let r =
+                    List.hd (Util.rev_apply p Searching_and_splitting.r_ts2) in
+                  Util.rev_apply
+                    (Util.rev_apply (Util.rev_apply r read)
+                      (Monad.fmap Disk_node.dest_Disk_leaf))
+                    (Monad.bind
+                      (fun right_kvs ->
+                        (match
+                          Arith.equal_nata (List.size_list right_kvs)
+                            (Util.rev_apply cs Prelude.min_leaf_size)
+                          with true ->
+                            leaf_merge_right cs store_ops p kvs right_kvs
+                          | false ->
+                            Util.rev_apply
+                              (leaf_steal_right store_ops p kvs right_kvs)
+                              (Monad.fmap (fun a -> D_updated_subtree a))))))
+            | D_small_node (ks, rs) ->
+              (match
+                Util.is_Nil (Util.rev_apply p Searching_and_splitting.r_ks2)
+                with true ->
+                  let ks1 = Util.rev_apply p Searching_and_splitting.r_ks1 in
+                  let _ =
+                    Util.check_true
+                      (fun _ -> (match ks1 with [] -> false | _ :: _ -> true))
+                    in
+                  let r =
+                    List.hd (Util.rev_apply p Searching_and_splitting.r_ts1) in
+                  Util.rev_apply
+                    (Util.rev_apply (Util.rev_apply r read)
+                      (Monad.fmap Disk_node.dest_Disk_node))
+                    (Monad.bind
+                      (fun (l_ks, l_rs) ->
+                        (match
+                          Arith.equal_nata (List.size_list l_ks)
+                            (Util.rev_apply cs Prelude.min_node_keys)
+                          with true ->
+                            node_merge_left cs store_ops p (l_ks, l_rs) (ks, rs)
+                          | false ->
+                            Util.rev_apply
+                              (node_steal_left store_ops p (l_ks, l_rs)
+                                (ks, rs))
+                              (Monad.fmap (fun a -> D_updated_subtree a)))))
+                | false ->
+                  let r =
+                    List.hd (Util.rev_apply p Searching_and_splitting.r_ts2) in
+                  Util.rev_apply
+                    (Util.rev_apply (Util.rev_apply r read)
+                      (Monad.fmap Disk_node.dest_Disk_node))
+                    (Monad.bind
+                      (fun (r_ks, r_rs) ->
+                        (match
+                          Arith.equal_nata (List.size_list r_ks)
+                            (Util.rev_apply cs Prelude.min_node_keys)
+                          with true ->
+                            node_merge_right cs store_ops p (ks, rs)
+                              (r_ks, r_rs)
+                          | false ->
+                            Util.rev_apply
+                              (node_steal_right store_ops p (ks, rs)
+                                (r_ks, r_rs))
+                              (Monad.fmap (fun a -> D_updated_subtree a))))))
+            | D_updated_subtree r ->
+              Util.rev_apply
+                (Util.rev_apply
+                  (Util.rev_apply
+                    (Searching_and_splitting.unsplit_node
+                      (Searching_and_splitting.r_t_update (fun _ -> r) p))
+                    Disk_node.mk_Disk_node)
+                  alloc)
+                (Monad.fmap (fun a -> D_updated_subtree a)))
+          (Monad.fmap (fun y -> (y, stka))));;
+
+let rec delete_step
+  ps1 s =
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
+    let alloc = Util.rev_apply store_ops Params.store_alloc in
+    (match s
+      with D_down (f, r0) ->
+        (match Find.dest_f_finished f
+          with None ->
+            Util.rev_apply (Find.find_step ps1 f)
+              (Monad.fmap (fun fa -> D_down (fa, r0)))
+          | Some (r0a, (k, (_, (kvs, stk)))) ->
+            Util.rev_apply
+              (Util.rev_apply store_ops Params.store_free
+                (r0a :: Tree_stack.r_stk_to_rs stk))
+              (Monad.bind
+                (fun _ ->
+                  (match
+                    List.list_ex
+                      (fun x ->
+                        Key_value.key_eq (Util.rev_apply ps1 Params.dot_cmp) x
+                          k)
+                      (Util.rev_apply kvs (List.map Product_Type.fst))
+                    with true ->
+                      let kvsa =
+                        Util.rev_apply kvs
+                          (List.filter
+                            (fun x ->
+                              not (Key_value.key_eq
+                                    (Util.rev_apply ps1 Params.dot_cmp)
+                                    (Product_Type.fst x) k)))
+                        in
+                      (match
+                        Arith.less_nat (List.size_list kvsa)
+                          (Util.rev_apply
+                            (Util.rev_apply ps1 Params.dot_constants)
+                            Prelude.min_leaf_size)
+                        with true ->
+                          Monad.return (D_up (D_small_leaf kvsa, (stk, r0a)))
+                        | false ->
+                          Util.rev_apply
+                            (Util.rev_apply (Disk_node.Disk_leaf kvsa) alloc)
+                            (Monad.fmap
+                              (fun r ->
+                                D_up (D_updated_subtree r, (stk, r0a)))))
+                    | false -> Monad.return (D_finished r0a)))))
+      | D_up (f, (stk, r0)) ->
+        (match Util.is_Nil stk
+          with true ->
+            (match f
+              with D_small_leaf kvs ->
+                Util.rev_apply (Util.rev_apply (Disk_node.Disk_leaf kvs) alloc)
+                  (Monad.fmap (fun a -> D_finished a))
+              | D_small_node (ks, rs) ->
+                Util.rev_apply
+                  (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs)) alloc)
+                  (Monad.fmap (fun a -> D_finished a))
+              | D_updated_subtree r -> Monad.return (D_finished r))
+          | false ->
+            Util.rev_apply (step_up ps1 (f, stk))
+              (Monad.fmap (fun (fa, stka) -> D_up (fa, (stka, r0)))))
+      | D_finished _ -> Monad.return s);;
+
+let rec dest_d_finished
+  x = (match x with D_down _ -> None | D_up _ -> None
+        | D_finished a -> Some a);;
+
+let rec mk_delete_state k r = D_down (Find.mk_find_state k r, r);;
+
+let rec wellformed_delete_state
+  constants k_ord r2t t0 s k ds =
+    Util.assert_true
+      (match ds with D_down a -> wf_d k_ord r2t t0 s a
+        | D_up (fo, (stk, r)) ->
+          wf_u constants k_ord r2t t0 s k (fo, stk) &&
+            (match r2t s r with None -> false | Some t -> Tree.tree_equal t t0)
+        | D_finished a -> wf_f constants k_ord r2t t0 s k a);;
+
+end;; (*struct Delete2*)
 
 module Insert_many : sig
   type ('a, 'b, 'c) fo = I1 of ('c * ('a * 'b) list) |
     I2 of (('c * ('a * 'c)) * ('a * 'b) list)
   type ('a, 'b, 'c) ist =
     I_down of (('a, 'b, 'c) Find.find_state * ('b * ('a * 'b) list)) |
-    I_up of (('a, 'b, 'c) fo * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-    I_finished of ('c * ('a * 'b) list)
+    I_up of
+      (('a, 'b, 'c) fo *
+        ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
+    | I_finished of ('c * ('a * 'b) list)
   val insert_step :
     ('a, 'b, 'c, 'd) Params.ps1 ->
       ('a, 'b, 'c) ist -> 'd -> 'd * ('a, 'b, 'c) ist Util.res
@@ -1739,52 +2105,58 @@ type ('a, 'b, 'c) fo = I1 of ('c * ('a * 'b) list) |
 
 type ('a, 'b, 'c) ist =
   I_down of (('a, 'b, 'c) Find.find_state * ('b * ('a * 'b) list)) |
-  I_up of (('a, 'b, 'c) fo * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  I_finished of ('c * ('a * 'b) list);;
+  I_up of
+    (('a, 'b, 'c) fo *
+      ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
+  | I_finished of ('c * ('a * 'b) list);;
 
 let rec step_up
   ps1 u =
     let (cs, _) =
-      (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+      (Util.rev_apply ps1 Params.dot_constants,
+        Util.rev_apply ps1 Params.dot_cmp)
+      in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match u with (_, []) -> Util.impossible1 "insert, step_up"
-      | (fo, x :: stk) ->
-        let a = Tree_stack.dest_ts_frame x in
-        let (aa, b) = a in
-        let (ks1, rs1) = aa in
-        (fun (_, (ks2, rs2)) ->
-          (match fo
-            with I1 (r, kvs0) ->
-              Util.rev_apply
-                (Util.rev_apply (Frame.Node_frame (ks1 @ ks2, rs1 @ [r] @ rs2))
-                  (Util.rev_apply store_ops Params.store_alloc))
-                (Monad.fmap (fun ra -> (I1 (ra, kvs0), stk)))
-            | I2 ((r1, (k, r2)), kvs0) ->
-              let ks = ks1 @ [k] @ ks2 in
-              let rs = rs1 @ [r1; r2] @ rs2 in
-              (match
-                Arith.less_eq_nat (List.size_list ks)
-                  (Util.rev_apply cs Prelude.max_node_keys)
-                with true ->
+      | (I1 (r, kvs0), x :: stk) ->
+        let (ks, rs) =
+          Searching_and_splitting.unsplit_node
+            (Searching_and_splitting.r_t_update (fun _ -> r) x)
+          in
+        Util.rev_apply
+          (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs))
+            (Util.rev_apply store_ops Params.store_alloc))
+          (Monad.fmap (fun ra -> (I1 (ra, kvs0), stk)))
+      | (I2 ((r1, (k, r2)), kvs0), x :: stk) ->
+        let (ks2, rs2) =
+          (Util.rev_apply x Searching_and_splitting.r_ks2,
+            Util.rev_apply x Searching_and_splitting.r_ts2)
+          in
+        let (ks, rs) =
+          Searching_and_splitting.unsplit_node
+            (Searching_and_splitting.r_ts2_update (fun _ -> [r1; r2] @ rs2)
+              (Searching_and_splitting.r_ks2_update (fun _ -> k :: ks2) x))
+          in
+        (match
+          Arith.less_eq_nat (List.size_list ks)
+            (Util.rev_apply cs Prelude.max_node_keys)
+          with true ->
+            Util.rev_apply
+              (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs))
+                (Util.rev_apply store_ops Params.store_alloc))
+              (Monad.fmap (fun r -> (I1 (r, kvs0), stk)))
+          | false ->
+            let (ks_rs1, (ka, ks_rs2)) = Pre_insert.split_node cs (ks, rs) in
+            Util.rev_apply
+              (Util.rev_apply (Disk_node.mk_Disk_node ks_rs1)
+                (Util.rev_apply store_ops Params.store_alloc))
+              (Monad.bind
+                (fun r1a ->
                   Util.rev_apply
-                    (Util.rev_apply (Frame.Node_frame (ks, rs))
+                    (Util.rev_apply (Disk_node.mk_Disk_node ks_rs2)
                       (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.fmap (fun r -> (I1 (r, kvs0), stk)))
-                | false ->
-                  let (ks_rs1, (ka, ks_rs2)) = Key_value.split_node cs (ks, rs)
-                    in
-                  Util.rev_apply
-                    (Util.rev_apply (Frame.Node_frame ks_rs1)
-                      (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.bind
-                      (fun r1a ->
-                        Util.rev_apply
-                          (Util.rev_apply (Frame.Node_frame ks_rs2)
-                            (Util.rev_apply store_ops Params.store_alloc))
-                          (Monad.fmap
-                            (fun r2a ->
-                              (I2 ((r1a, (ka, r2a)), kvs0), stk))))))))
-          b);;
+                    (Monad.fmap
+                      (fun r2a -> (I2 ((r1a, (ka, r2a)), kvs0), stk)))))));;
 
 let rec step_down
   ps1 d =
@@ -1810,15 +2182,14 @@ let rec split_leaf
     (l, (k, r));;
 
 let rec kvs_insert_2
-  ps0 u kv newa existing =
-    let (cs, k_ord) =
-      (Util.rev_apply ps0 Params.ps0_cs, Util.rev_apply ps0 Params.ps0_cmp_k) in
+  cs k_ord u kv newa existing =
+    let csa = cs in
     let step =
       (fun (acc, newb) ->
         (match
           Arith.less_eq_nat
             (Arith.times_nat (Arith.nat_of_integer (Big_int.big_int_of_int 2))
-              (Util.rev_apply cs Prelude.max_leaf_size))
+              (Util.rev_apply csa Prelude.max_leaf_size))
             (List.size_list acc)
           with true -> None
           | false ->
@@ -1838,9 +2209,11 @@ let rec kvs_insert_2
 
 let rec step_bottom
   ps1 d =
-    let (cs, _) =
-      (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k) in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    let (cs, k_ord) =
+      (Util.rev_apply ps1 Params.dot_constants,
+        Util.rev_apply ps1 Params.dot_cmp)
+      in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     let (fs, (v, kvs0)) = d in
     (match Find.dest_f_finished fs
       with None -> Util.impossible1 "insert, step_bottom"
@@ -1850,29 +2223,26 @@ let rec step_bottom
             (r0 :: Tree_stack.r_stk_to_rs stk))
           (Monad.bind
             (fun _ ->
-              let (_, u) = Tree_stack.stack_to_lu_of_child stk in
-              let (kvsa, kvs0a) =
-                kvs_insert_2 (Util.rev_apply ps1 Params.ps1_ps0) u (k, v) kvs0
-                  kvs
-                in
+              let (_, u) = Tree_stack.rstack_get_bounds stk in
+              let (kvsa, kvs0a) = kvs_insert_2 cs k_ord u (k, v) kvs0 kvs in
               let fo =
                 (match
                   Arith.less_eq_nat (List.size_list kvsa)
                     (Util.rev_apply cs Prelude.max_leaf_size)
                   with true ->
                     Util.rev_apply
-                      (Util.rev_apply (Frame.Leaf_frame kvsa)
+                      (Util.rev_apply (Disk_node.Disk_leaf kvsa)
                         (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.fmap (fun r -> I1 (r, kvs0a)))
                   | false ->
                     let (kvs1, (ka, kvs2)) = split_leaf cs kvsa in
                     Util.rev_apply
-                      (Util.rev_apply (Frame.Leaf_frame kvs1)
+                      (Util.rev_apply (Disk_node.Disk_leaf kvs1)
                         (Util.rev_apply store_ops Params.store_alloc))
                       (Monad.bind
                         (fun r1 ->
                           Util.rev_apply
-                            (Util.rev_apply (Frame.Leaf_frame kvs2)
+                            (Util.rev_apply (Disk_node.Disk_leaf kvs2)
                               (Util.rev_apply store_ops Params.store_alloc))
                             (Monad.fmap
                               (fun r2 -> I2 ((r1, (ka, r2)), kvs0a))))))
@@ -1881,9 +2251,11 @@ let rec step_bottom
 
 let rec insert_step
   ps1 s =
-    let (_, _) = (Util.rev_apply ps1 Params.cs, Util.rev_apply ps1 Params.cmp_k)
+    let (_, _) =
+      (Util.rev_apply ps1 Params.dot_constants,
+        Util.rev_apply ps1 Params.dot_cmp)
       in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match s
       with I_down d ->
         let (fs, (_, _)) = d in
@@ -1896,7 +2268,7 @@ let rec insert_step
         (match u with (I1 (r, kvs0), []) -> Monad.return (I_finished (r, kvs0))
           | (I2 ((r1, (k, r2)), kvs0), []) ->
             Util.rev_apply
-              (Util.rev_apply (Frame.Node_frame ([k], [r1; r2]))
+              (Util.rev_apply (Disk_node.mk_Disk_node ([k], [r1; r2]))
                 (Util.rev_apply store_ops Params.store_alloc))
               (Monad.fmap (fun r -> I_finished (r, kvs0)))
           | (_, _ :: _) ->
@@ -1922,26 +2294,24 @@ module Leaf_stream : sig
 end = struct
 
 type ('a, 'b, 'c) ls_state =
-  LS_down of ('c * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  LS_leaf of (('a * 'b) list * ('a, 'c, unit) Tree_stack.ts_frame_ext list) |
-  LS_up of ('a, 'c, unit) Tree_stack.ts_frame_ext list;;
+  LS_down of ('c * ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
+  | LS_leaf of
+      (('a * 'b) list *
+        ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list)
+  | LS_up of ('a, 'c, unit) Searching_and_splitting.rsplit_node_ext list;;
 
 let rec step_up
   fs = let _ = Util.check_true (fun _ -> not (List.null fs)) in
        (match fs with [] -> Util.failwitha "impossible: Leaf_stream.step_up"
          | f :: fsa ->
-           let a = Util.rev_apply f Tree_stack.dest_ts_frame in
-           let (aa, b) = a in
-           let (ks1, rs1) = aa in
-           (fun ab ->
-             (match ab with (_, (_, [])) -> LS_up fsa
-               | (r, (ks2, ra :: rs)) ->
-                 let fa =
-                   Tree_stack.Ts_frame_ext
-                     (ks1 @ [List.hd ks2], rs1 @ [r], ra, List.tl ks2, rs, ())
-                   in
-                 LS_down (ra, fa :: fsa)))
-             b);;
+           (match Util.rev_apply f Searching_and_splitting.dest_rsplit_node
+             with (_, (_, (_, (_, [])))) -> LS_up fsa
+             | (ks1, (rs1, (r, (ks2, ra :: rs)))) ->
+               let fa =
+                 Searching_and_splitting.Rsplit_node_ext
+                   (List.hd ks2 :: ks1, r :: rs1, ra, List.tl ks2, rs, ())
+                 in
+               LS_down (ra, fa :: fsa)));;
 
 let rec step_leaf r = let a = r in
                       let (_, aa) = a in
@@ -1950,17 +2320,20 @@ let rec step_leaf r = let a = r in
 let rec step_down
   ps1 rfs =
     let (r, fs) = rfs in
-    let store_ops = Util.rev_apply ps1 Params.ps1_store_ops in
+    let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     Util.rev_apply (Util.rev_apply store_ops Params.store_read r)
       (Monad.fmap
         (fun a ->
           (match a
-            with Frame.Node_frame (ks, rs) ->
+            with Disk_node.Disk_node (ks, rs) ->
               let ra = List.hd rs in
               let rsa = List.tl rs in
-              let frm = Tree_stack.Ts_frame_ext ([], [], ra, ks, rsa, ()) in
+              let frm =
+                Searching_and_splitting.Rsplit_node_ext
+                  ([], [], ra, ks, rsa, ())
+                in
               LS_down (ra, frm :: fs)
-            | Frame.Leaf_frame kvs -> LS_leaf (kvs, fs))));;
+            | Disk_node.Disk_leaf kvs -> LS_leaf (kvs, fs))));;
 
 let rec lss_step
   ps1 lss =
