@@ -99,7 +99,7 @@ let from_file ~fn ~create ~init ~ps =
   | true -> (
       (* now need to write the initial frame *)
       let _ = 
-        let frm = Leaf_frame [] in
+        let frm = Disk_leaf [] in
         let p = frm|>frame_to_page ps blk_sz in
         Disk_on_fd.write fd blk_sz 1 p 
       in

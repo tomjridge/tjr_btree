@@ -102,7 +102,7 @@ type range_t = int list[@@deriving yojson]
 let (init_store,init_r) = Mem_store.(
     { 
       free=1; 
-      map=(Map_int.empty |> Map_int.add 0 (Frame.Leaf_frame[])) 
+      map=(Map_int.empty |> Map_int.add 0 (Frame.Disk_leaf[])) 
     }
     |> (fun s -> (s,0)))
 

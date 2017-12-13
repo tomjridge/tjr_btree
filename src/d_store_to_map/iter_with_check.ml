@@ -257,7 +257,7 @@ let delete' ~cmp ~constants ~store_ops ~k ~r = (
           tree |> Tree.tree_to_yojson k2j v2j |> Yojson.Safe.pretty_to_string);
       log (fun _ -> 
           s.op_state 
-          |> Isa_export.Delete.delete_state_to_yojson k2j v2j r2j 
+          |> Isa_export.Delete2.delete_state_to_yojson k2j v2j r2j 
           |> Yojson.Safe.pretty_to_string);
       test (fun _ -> 
           assert (X.wellformed_delete_state ~r2t ~cmp ~constants tree s.store k s.op_state));

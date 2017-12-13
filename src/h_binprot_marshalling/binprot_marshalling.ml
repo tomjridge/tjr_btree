@@ -16,13 +16,13 @@ type ('k,'v) binprot_tree  =
 
 let f2bp frm = (
   match frm with
-  | Node_frame (ks,rs) -> N (ks,rs)
-  | Leaf_frame kvs -> L kvs)
+  | Disk_node (ks,rs) -> N (ks,rs)
+  | Disk_leaf kvs -> L kvs)
 
 let bp2f iis = (
   match iis with
-  | N (ks,rs) -> Node_frame(ks,rs)
-  | L kvs -> Leaf_frame kvs)
+  | N (ks,rs) -> Disk_node(ks,rs)
+  | L kvs -> Disk_leaf kvs)
 
 open Bigarray
 type buf = BP.Common.buf

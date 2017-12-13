@@ -22,7 +22,7 @@ module O = struct
   type ('k,'v,'r) find_state = ('k,'v,'r) Find.find_state
   type ('k,'v,'r) insert_state = ('k,'v,'r) Insert.insert_state
   type ('k,'v,'r) im_state = ('k,'v,'r) Insert_many.ist
-  type ('k,'v,'r) delete_state = ('k,'v,'r) Delete.delete_state
+  type ('k,'v,'r) delete_state = ('k,'v,'r) Delete2.delete_state
 end
 
 include O
@@ -99,17 +99,17 @@ let wellformed_find_state ~r2t ~cmp : 'tree -> 't -> ('k,'v,'r) find_state -> bo
 
 (** Similar functionality to [mk_find_state] *)
 let mk_delete_state: 'k -> 'r -> ('k,'v,'r) delete_state = 
-  Delete.mk_delete_state
+  Delete2.mk_delete_state
 
 let delete_step ~constants ~cmp ~store_ops : 'ds -> ('ds,'t) m = 
-  (fun ds -> Delete.delete_step (X.x_ps1 ~constants ~cmp ~store_ops) ds)
+  (fun ds -> Delete2.delete_step (X.x_ps1 ~constants ~cmp ~store_ops) ds)
 
 (** The result is a reference to the updated B-tree *)
-let dest_d_finished: ('k,'v,'r) delete_state->'r option = Delete.dest_d_finished
+let dest_d_finished: ('k,'v,'r) delete_state->'r option = Delete2.dest_d_finished
 
 let wellformed_delete_state ~cmp ~constants ~r2t : 'tree->'t->'k->('k,'v,'r) delete_state->bool = (
   fun t s k ds -> 
-    Delete.wellformed_delete_state 
+    Delete2.wellformed_delete_state 
       (X.x_constants constants) (X.x_cmp cmp)
       r2t t s k ds)
   

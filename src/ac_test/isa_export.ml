@@ -934,6 +934,7 @@ let rec wellformed_tree
 end;; (*struct Tree*)
 
 module Tree_stack : sig
+  type ('k,'a) rstack = ('k,'a,unit) Searching_and_splitting.rsplit_node_ext list
   val rstack_map :
     ('a -> 'b) ->
       ('c, 'a, unit) Searching_and_splitting.rsplit_node_ext list ->
@@ -962,6 +963,7 @@ module Tree_stack : sig
               ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list ->
                 ('a, 'b, unit) Searching_and_splitting.rsplit_node_ext list * 'b
 end = struct
+  type ('k,'a) rstack = ('k,'a,unit) Searching_and_splitting.rsplit_node_ext list
 
 let rec rstack_map
   f stk =
