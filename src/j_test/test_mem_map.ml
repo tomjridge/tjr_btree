@@ -29,8 +29,8 @@ end
 open T
 
 let constants = Constants.{
-    max_leaf_size = 5;
-    max_node_keys = 5;
+    max_leaf_size = 4;
+    max_node_keys = 4;
     min_leaf_size = 2;
     min_node_keys = 2;
   }
@@ -115,14 +115,18 @@ let step range (t:global_state) = (
   let r1 = (
     range|>List.map (
       fun x -> 
-        action:=Insert x; 
-        insert x x|>(fun f -> f t)))
+        action:=Insert x;
+        insert x x|>(fun f -> 
+            Test.log (fun _ -> __LOC__^": inserting "^(string_of_int x));
+            f t)))
   in
   let r2 = (
     range|>List.map (
       fun x -> 
         action:=Delete x; 
-        delete x|>(fun f -> f t)))
+        delete x|>(fun f -> 
+            Test.log (fun _ -> __LOC__^": deleting "^(string_of_int x));           
+            f t)))
   in
   r1@r2 |> List.map (
     fun (t',res) -> 

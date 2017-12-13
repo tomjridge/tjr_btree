@@ -61,24 +61,31 @@ let run_test t = (
       test t.params
     ))
 
-let _ = try (
-  match Array.to_list Sys.argv |> List.tl with
-  (* run tests based on json config file *)
-  | [n] -> (
-      let s = File_util.read_file n in
-      let Ok tests = s|>Yojson.Safe.from_string|>tests_of_yojson in
-      List.iter (fun t -> run_test t) tests
+let _ = 
+(* FIXME we seem to have to comment out the try if we want to get decent backtraces *)
+(* FIXME add printing as an exit hook *)
+(*  try ( *)
+    match Array.to_list Sys.argv |> List.tl with
+    (* run tests based on json config file *)
+    | [n] -> (
+        let s = File_util.read_file n in
+        let Ok tests = s|>Yojson.Safe.from_string|>tests_of_yojson in
+        List.iter (fun t -> run_test t) tests
+      )
+(*  ) with e -> (
+      Test.print_logs ();
+      Base_types.flush_out();
+      print_endline "(";
+      ignore(e|>Printexc.to_string|>print_endline);
+      print_endline ")";
+      Base_types.flush_out();
+      print_endline "(";
+      ignore(Printexc.get_backtrace () |>print_endline);
+      print_endline ")";
+      Base_types.flush_out();
+      raise e
     )
-) with e -> (
-    Test.print_logs ();
-    Base_types.flush_out();
-    ignore(e|>Printexc.to_string|>print_endline);
-    Base_types.flush_out();
-    ignore(Printexc.get_backtrace () |>print_endline);
-    Base_types.flush_out();
-    raise e
-  )
-
+*)
 
 
 

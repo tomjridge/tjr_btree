@@ -23,7 +23,7 @@ let log s = (log_messages:=s::!log_messages)
 (** Print most recent (upto 20) log messages. Typically we only print
    when an exception occurs. Independent of enable/disable *)
 let print_logs () = (
-  ignore(print_endline "Logs: ");
+  ignore(print_endline "Logs (in chronological order): ");
   ignore (
     !log_messages
     |>Extlib.ExtList.List.take 20 |> List.rev 

@@ -317,7 +317,7 @@ let rec rev_apply x f = f x;;
 
 let rec failwitha x = failwith x
 
-let rec check_true f = if !check_flag then f () else true;;
+let rec check_true f = if !check_flag then (let b = f () in assert(b);b) else true;;
 
 let rec split_at
   n xs =
@@ -1037,7 +1037,7 @@ let rec check_length_ks_rs
 
 let rec mk_Disk_node
   ks_rs =
-    let _ = Util.check_true (fun _ -> check_length_ks_rs ks_rs) in
+(*    let _ = Util.check_true (fun _ -> check_length_ks_rs ks_rs) in *)
     Disk_node ks_rs;;
 
 let rec dest_Disk_leaf
@@ -1414,24 +1414,25 @@ let rec step_up
       in
     let store_ops = Util.rev_apply ps1 Params.dot_store_ops in
     (match u with (_, []) -> Util.impossible1 "insert, step_up"
-      | (I1 r, x :: stk) ->
+      | (I1 r, p :: stk) ->
         let (ks, rs) =
           Searching_and_splitting.unsplit_node
-            (Searching_and_splitting.r_t_update (fun _ -> r) x)
+            (Searching_and_splitting.r_t_update (fun _ -> r) p)
           in
         Util.rev_apply
           (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs))
             (Util.rev_apply store_ops Params.store_alloc))
           (Monad.fmap (fun ra -> (I1 ra, stk)))
-      | (I2 (r1, (k, r2)), x :: stk) ->
+      | (I2 (r1, (k, r2)), p :: stk) ->
         let (ks2, rs2) =
-          (Util.rev_apply x Searching_and_splitting.r_ks2,
-            Util.rev_apply x Searching_and_splitting.r_ts2)
+          (Util.rev_apply p Searching_and_splitting.r_ks2,
+            Util.rev_apply p Searching_and_splitting.r_ts2)
           in
         let (ks, rs) =
           Searching_and_splitting.unsplit_node
-            (Searching_and_splitting.r_ts2_update (fun _ -> [r1; r2] @ rs2)
-              (Searching_and_splitting.r_ks2_update (fun _ -> k :: ks2) x))
+            (Searching_and_splitting.r_ts2_update (fun _ -> r2 :: rs2)
+              (Searching_and_splitting.r_ks2_update (fun _ -> k :: ks2)
+                (Searching_and_splitting.r_t_update (fun _ -> r1) p)))
           in
         (match
           Arith.less_eq_nat (List.size_list ks)
