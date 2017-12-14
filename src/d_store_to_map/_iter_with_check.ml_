@@ -3,7 +3,12 @@
     [insert], [insert_many] and [delete] (together with the leaf stream
     big-step operations). *)
 
-(* FIXME this module a bit horrible *)
+(* used by store_to_map *)
+
+(* FIXME this module a bit horrible; with_check and without_check are stupid *)
+
+
+(* FIXME separate out wellformedness checking *)
 
 (* iterate operations till finished ---------------------------------------- *)
 
@@ -193,6 +198,7 @@ let insert ~ps ~store_ops ~k ~v ~r = (
       |> fun f -> f ~r2t:(r2t ps') ~k2j:(k2j ps') ~v2j:(v2j ps') ~r2j:(r2j ps'))
 )
 
+(* FIXME case splitting on dbg_ps is horrible *)
 
 
 (* insert many ---------------------------------------- *)

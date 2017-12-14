@@ -5,27 +5,21 @@ open Frame
 open Monad
 
 
+type ('k,'v,'r,'t) store_ops = {
+  store_free: 'r list -> (unit,'t) m;
+  store_read: 'r -> (('k, 'v,'r) frame,'t) m;
+  store_alloc: ('k, 'v,'r) frame -> ('r,'t) m;
+}
+
 (* store ------------------------------------------------------------ *)
 
-let wf_store_ops
-    ~(store_free: 'r list -> (unit,'t) m)
-    ~(store_read: 'r -> (('k, 'v,'r) frame,'t) m)  (* FIXME option? *)
-    ~(store_alloc: ('k, 'v,'r) frame -> ('r,'t) m)
-  =
-  true
-
-
 let mk_store_ops ~store_free ~store_read ~store_alloc =
-  assert(wf_store_ops ~store_free ~store_read ~store_alloc);
-  `Store_ops(store_free,store_read,store_alloc)
+  {store_free; store_read; store_alloc }
 
 
-let dest_store_ops (`Store_ops(store_free,store_read,store_alloc)) =
-  assert(wf_store_ops ~store_free ~store_read ~store_alloc);
+let dest_store_ops r =
+  let store_free,store_read,store_alloc = r.store_free,r.store_read,r.store_alloc in
   fun k -> k ~store_free ~store_read ~store_alloc
-
-
-let _ = wf_store_ops
 
 let _ = dest_store_ops
 

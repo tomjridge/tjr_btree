@@ -13,7 +13,7 @@ type 't free_ops = (int,'t) mref
 Convert a disk to a store using pickling and a free counter; assume
 page size and block size are the same.
  *)
-let disk_to_store ~ps ~disk_ops ~free_ops : [<`Store_ops of 'a] =
+let disk_to_store ~ps ~disk_ops ~free_ops =
   dest_disk_ops disk_ops @@ fun ~blk_sz ~read ~write ->
   let page_size = page_size ps in
   let f2p = frame_to_page ps page_size in

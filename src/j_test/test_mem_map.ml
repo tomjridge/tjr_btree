@@ -28,12 +28,56 @@ module T = struct
 end
 open T
 
+(* min possible?
 let constants = Constants.{
-    max_leaf_size = 4;
-    max_node_keys = 4;
-    min_leaf_size = 2;
-    min_node_keys = 2;
+    min_leaf_size = 1;
+    max_leaf_size = 1;
+    min_node_keys = 1;
+    max_node_keys = 2;
   }
+*)
+
+(* ~OK FIXME these should be part of test config *)
+let constants = Constants.{
+    min_leaf_size = 2;
+    max_leaf_size = 3;
+    min_node_keys = 1;
+    max_node_keys = 2;
+  }
+
+(* ~OK wf_ks_rs *)
+let constants = Constants.{
+    min_leaf_size = 1;
+    max_leaf_size = 1;
+    min_node_keys = 2;
+    max_node_keys = 4;
+  }
+
+(* ~OK wf_ks_rs *)
+let constants = Constants.{
+    min_leaf_size = 1;
+    max_leaf_size = 2;
+    min_node_keys = 2;
+    max_node_keys = 4;
+  }
+
+(* OK with size 10; ~OK with size 12 wf_ks_rs *)
+let constants = Constants.{
+    min_leaf_size = 2;
+    max_leaf_size = 3;
+    min_node_keys = 2;
+    max_node_keys = 4;
+  }
+
+(* OK with size 10; ~OK with size 12 wf_ks_rs *)
+let constants = Constants.{
+    min_leaf_size = 2;
+    max_leaf_size = 4;
+    min_node_keys = 2;
+    max_node_keys = 4;
+  }
+
+
 
 let page_ref_ops = Monad.{
     get=(fun () -> fun t -> (t,Ok t.r));

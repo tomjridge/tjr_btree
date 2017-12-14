@@ -64,6 +64,10 @@ let run_test t = (
 let _ = 
 (* FIXME we seem to have to comment out the try if we want to get decent backtraces *)
 (* FIXME add printing as an exit hook *)
+  Pervasives.at_exit (
+    fun () -> 
+      print_endline (__LOC__ ^ ": running exit hooks");
+      Test.run_exit_hooks ());
 (*  try ( *)
     match Array.to_list Sys.argv |> List.tl with
     (* run tests based on json config file *)

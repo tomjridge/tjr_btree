@@ -15,6 +15,8 @@ let err e = fun s -> (s,Error e)
 
 let run s = fun m -> m s
 
+let fmap f x = x |> bind (fun r -> return (f r))
+
 
 (** Monadic reference operations *)
 type ('a,'s) mref = {

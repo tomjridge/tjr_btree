@@ -1,14 +1,12 @@
 (** A leaf stream is a linear sequence of the leaves in a B-tree, used
-   for iterating over all the bindings in the tree. Leaf stream
-   operations: make a leaf stream; get the list of (key,value) pairs
-   associated to the state of the leaf stream; step to the next
-   leaf. *)
+    for iterating over all the bindings in the tree. Leaf stream
+    operations: make a leaf stream; get the list of (key,value) pairs
+    associated to "current" leaf; step to the next leaf. *)
 
 open Monad
 open Ls_state
 
 (* leaf stream ------------------------------------------------------ *)
-
 
 (* we only reveal lss when it points to a leaf *)
 

@@ -9,7 +9,7 @@ type ('k,'v) mem = {free:int; map:('k,'v)frame Map_int.t}
 
 type ('k,'v,'t) mem_ops = (('k,'v) mem,'t) mref
 
-let mk_store_ops (mem_ops:('k,'v,'t)mem_ops) : [<`Store_ops of 'a] =
+let mk_store_ops (mem_ops:('k,'v,'t)mem_ops) =
   let store_free rs : (unit,'t) m = return () in (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     mem_ops.get () |> bind @@ fun s -> 

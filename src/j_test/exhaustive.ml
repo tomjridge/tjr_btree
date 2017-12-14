@@ -1,6 +1,63 @@
 (** Exhaustive state-space exploration for testing *)
 
-(* we factor out the common code *)
+(* test config ------------------------------------------------------ *)
+
+let fields = [
+  "range_min";
+  "range_max";
+  "range_step";
+  "min_leaf_size";
+  "max_leaf_size";
+  "min_node_keys";
+  "max_node_keys"
+]
+
+
+type config = (string * int) list [@@deriving yojson]
+
+
+let get (c:config) (f:string) =
+  List.assoc f c  (* throw exception if not found *)
+
+
+let wf_config c =
+  fields|>List.iter (fun f -> ignore(get c f));
+  true
+
+
+
+  
+
+(* note --------------------------------------------------------- *)
+
+(*
+
+The aim is to test the operations at the ADT level. For this, we need
+to instantiate ('k,'v,'r,'t) store_ops with appropriate 'r and 't. 
+
+Previous testing (mem_store) used 
+
+type ('k,'v) mem = {free:int; map:('k,'v)frame Map_int.t}  
+
+We instead choose 'r = ('k,'v) tree and 't = ().
+
+
+---
+
+Starting with the empty tree, we apply every insert/delete action
+possible. We check invariants before and after the action. We also
+check intermediate states. The aim is to identify:
+
+- a particular wellformed state
+- an action
+- the sequence of small steps involved in executing the action (we can log all small steps)
+- a resulting malformed state
+- the clause of a wellformedness property which is broken (implemented via exception line number)
+
+We then pretty-print these states.
+
+*)
+
 
 open Base_types
 

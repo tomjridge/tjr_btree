@@ -21,25 +21,25 @@ let log_messages: (unit -> string) list ref = ref [fun _ -> "initial log message
 let log s = (log_messages:=s::!log_messages)
 
 (** Print most recent (upto 20) log messages. Typically we only print
-   when an exception occurs. Independent of enable/disable *)
-let print_logs () = (
-  ignore(print_endline "Logs (in chronological order): ");
+    when an exception occurs. Independent of enable/disable *)
+let print_logs () = 
+  print_endline "Logs (in chronological order): ";
   ignore (
     !log_messages
-    |>Extlib.ExtList.List.take 20 |> List.rev 
+    |> Extlib.ExtList.List.take 20 |> List.rev 
     |> List.iter (fun f -> f()|>print_endline));
-  print_string "// end Logs\n\n")
+  print_string "// end Logs\n\n"
 
 
 (* warn ------------------------------------------------------------- *)
 
 (** Warn with a string; warnings are always printed, and added to
-   logs. The intention is that warning should never appear. *)
-let warn s = (
+    logs. The intention is that warning should never appear. *)
+let warn s = 
   print_endline ("WARNING: "^s);
   flush_all();
   log (fun _ -> s)
-)
+
 
 
 

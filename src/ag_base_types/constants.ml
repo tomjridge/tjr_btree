@@ -7,7 +7,7 @@ type t = {
   max_leaf_size: int;
   min_node_keys: int;
   max_node_keys: int
-}
+}  [@@deriving yojson]
 
 (** Construct constants given the block/page size, and the details of
    the on-disk format. Here we assume the strategy implemented in

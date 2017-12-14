@@ -62,7 +62,7 @@ let make_map_ops' (type k v r t) pre_map_ops page_ref_ops =
 
 (** Make [map_ops], given a [page_ref_ops]. *)
 let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] = 
-  Iter_with_check.make_pre_map_ops ~ps ~store_ops
+  Big_step.make_pre_map_ops ~ps ~store_ops
   |> fun pre_map_ops -> make_map_ops' pre_map_ops page_ref_ops
 
 
