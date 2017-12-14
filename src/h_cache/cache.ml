@@ -15,6 +15,8 @@ module Queue = Map_int
 (* following needs polymorphic map - 
    batteries? no, only Pervasives.compare
    extlib? yes, allows parameterization by compare 
+
+FIXME can also use first class modules to produce polymorphic ops
 *)
 
 module Pmap = struct 

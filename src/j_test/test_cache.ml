@@ -80,7 +80,7 @@ module S (* : Exhaustive.S *)= struct
     dest_map_ops cached_map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
     (find,insert,delete)
 
-  let step op t = (
+  let step t op = (
     match op with
     | Find k -> (find k |> (fun f -> f t) |> function (t',Ok _) -> t')
     | Insert (k,v) -> (
@@ -131,7 +131,7 @@ let test range = (
     |> List.concat)
   in
   Printf.printf "%s: " __MODULE__;
-  E_.test ops (E_.STS.singleton initial_state);
+  E_.test ops [initial_state];
   print_string "\n\n";
 )
 
