@@ -1,3 +1,5 @@
+(* FIXME
+
 (* testing cache ---------------------------------------- *)
 
 open Base_types
@@ -193,3 +195,4 @@ let _ = run (Cache_.insert 12 12)
 
 
 
+*)

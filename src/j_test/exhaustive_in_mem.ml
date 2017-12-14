@@ -116,79 +116,89 @@ include struct
   }
 end
 
-let map_ops = failwith "" 
 
-let find,insert,delete = 
-  Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
-  (find,insert,delete)
+open Exhaustive
 
+module Set_ops = Make_set_ops(
+  struct type t = tree let compare (x:t) (y:t) = Pervasives.compare x y end)
 
+let set_ops = Set_ops.set_ops
 
+(* test_ops depend on min/max size etc *)
 
-module S (* : Exhaustive.S *) = struct
-  module State = State
-  include Op
-  let step t op = 
-    Test.log(fun _ -> 
-        t |> tree_to_yojson |> Yojson.Safe.pretty_to_string |> fun t ->
-        Printf.sprintf "%s: about to perform action on %s" __LOC__ t);
-    match op with
-    | Insert i -> 
-      Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
-      insert i i |> Monad.run t
-    | Delete i ->
-      Test.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
-      delete i |> Monad.run t
+(* FIXME need to add wellformedness checks on the following *)
 
-  (* step should return a list of next states *)
-  let step t op = step t op |> fun (t,Ok ()) -> [t]
-
-  let check_invariants t = ()
-
-  let check_step_invariants t1 t2 = ()              
-
-end
-
-
-(*
-module S (* : Exhaustive.S *) = struct
-  module State = State
-  include Op
-  let step t op = 
-    Test.log(fun _ -> 
-        t |> tree_to_yojson |> Yojson.Safe.pretty_to_string |> fun t ->
-        Printf.sprintf "%s: about to perform action on %s" __LOC__ t);
-    match op with
-    | Insert i -> 
-      Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
-      insert i i |> Monad.run t
-    | Delete i ->
-      Test.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
-      delete i |> Monad.run t
-
-  (* step should return a list of next states *)
-  let step t op = step t op |> fun (t,Ok ()) -> [t]
-
-  let check_invariants t = ()
-
-  let check_step_invariants t1 t2 = ()              
-
-end
-*)
-
-
-module E = Exhaustive.Make(S)
-open E
-
-
-let main ~range_min ~range_max ~range_step = 
-  let range = 
-    let min,max,step = range_min,range_max,range_step in
-    Range.mk_range ~min ~max ~step
+let execute_tests ~map_ops ~ops ~init_trees = 
+  let find,insert,delete = 
+    Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+    (find,insert,delete)
   in
+
+  let step t op = 
+    Test.log(fun _ -> 
+        t |> tree_to_yojson |> Yojson.Safe.pretty_to_string |> fun t ->
+        Printf.sprintf "%s: about to perform action on %s" __LOC__ t);
+    match op with
+    | Insert i -> 
+      Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
+      insert i i |> Monad.run t
+    | Delete i ->
+      Test.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
+      delete i |> Monad.run t
+  in
+
+  (* step should return a list of next states *)
+  let step t op = step t op |> fun (t,Ok ()) -> [t] in
+
+  let check_state t = () in
+
+  let check_step t1 t2 = () in
+
+  let test_ops = { step; check_state; check_step } in
+  
+  let test = Exhaustive.test ~set_ops ~test_ops in
+  test ops init_trees
+
+let _ = execute_tests
+
+let page_ref_ops = Monad.{
+    get=(fun () -> fun t -> (t,Ok t));
+    set=(fun r -> fun t -> (t,Ok ()))
+  }
+
+
+let main ~min ~max ~step ~constants = 
+  let range = Range.mk_range ~min ~max ~step in
   let ops = 
     range|>List.map (fun x -> Insert x) |> fun xs ->
     range|>List.map (fun x -> Delete x) |> fun ys -> xs@ys
   in
-  E.test ops [empty_tree]
+  let ps = 
+    object
+      method cmp=Int_.compare
+      method constants=constants
+    end
+  in
+  let map_ops = Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
+  execute_tests ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
+
+let _ = main 
+
+
+let main c = 
+  let [min;max;step;l;l';m;m'] = List.map (fun f -> get c f) [
+      "range_min";
+      "range_max";
+      "range_step";
+      "min_leaf_size";
+      "max_leaf_size";
+      "min_node_keys";
+      "max_node_keys"
+    ]
+  in
+  let constants = Constants.{
+      min_leaf_size=l; max_leaf_size=l';
+      min_node_keys=m; max_node_keys=m' }
+  in
+  main ~min ~max ~step ~constants
 

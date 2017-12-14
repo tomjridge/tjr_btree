@@ -29,7 +29,7 @@ module Tjr_set = struct
   }
 
   (* reuse OCaml's sets *)
-  module Make = functor (Ord : Set.OrderedType) -> struct
+  module Make_set_ops = functor (Ord : Set.OrderedType) -> struct
     module Set_ = Set.Make(Ord)
 
     let set_ops = Set_.{
