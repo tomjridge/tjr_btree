@@ -9,6 +9,36 @@ type t = {
   max_node_keys: int
 }  [@@deriving yojson]
 
+
+let cs2s c = c |> to_yojson |> Yojson.Safe.pretty_to_string
+
+(* l'>=2l-1; m' >= 2m *)
+
+(* some typical examples *)
+
+let mk_cs l l' m m' = {
+  min_leaf_size=l;
+  max_leaf_size=l';
+  min_node_keys=m;
+  max_node_keys=m'
+}
+
+let cs1112 = mk_cs 1 1 1 2
+let cs1124 = mk_cs 1 1 2 4
+let cs1136 = mk_cs 1 1 3 6
+
+let cs2312 = mk_cs 2 3 1 2
+let cs2324 = mk_cs 2 3 2 4
+let cs2336 = mk_cs 2 3 3 5
+
+
+let cs3512 = mk_cs 3 5 1 2
+let cs3524 = mk_cs 3 5 2 4
+let cs3536 = mk_cs 3 5 3 6
+
+
+
+
 (** Construct constants given the block/page size, and the details of
    the on-disk format. Here we assume the strategy implemented in
    Btree_with_pickle, and so we must also provide details of the

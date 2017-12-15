@@ -13,7 +13,9 @@ all: _links _depend
 	$$ocamlopt -c $$mls
 	mk_cma
 	mk_cmxa
-	$(MAKE) $$natives $$bytes
+	$(MAKE) exhaustive_in_mem_main.native
+#	$(MAKE) $$natives $$bytes
+
 
 
 _links:

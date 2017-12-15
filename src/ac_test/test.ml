@@ -20,13 +20,16 @@ let log_messages: (unit -> string) list ref = ref [fun _ -> "initial log message
 (** Log a thunk of type [unit -> string]. *)
 let log s = (log_messages:=s::!log_messages)
 
-(** Print most recent (upto 20) log messages. Typically we only print
+
+let log_take_length = ref 100
+
+(** Print most recent log messages. Typically we only print
     when an exception occurs. Independent of enable/disable *)
 let print_logs () = 
   print_endline "Logs (in chronological order): ";
   ignore (
     !log_messages
-    |> Extlib.ExtList.List.take 20 |> List.rev 
+    |> Extlib.ExtList.List.take (!log_take_length) |> List.rev 
     |> List.iter (fun f -> f()|>print_endline));
   print_string "// end Logs\n\n"
 

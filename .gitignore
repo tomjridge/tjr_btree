@@ -112,3 +112,5 @@ src/small_step.ml
 /src/exhaustive_in_mem.ml
 /src/range.ml
 /src/tjr_set.ml
+/src/insert_delete_ops.ml
+/src/tree_store.ml

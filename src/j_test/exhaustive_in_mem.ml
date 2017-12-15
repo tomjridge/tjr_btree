@@ -69,62 +69,15 @@ Note that OCaml maps require Map.equal for comparison
 *)
 
 
-(* instantiate exhaustive to in-mem case ----------- *)
-
-type key = int  [@@deriving yojson]
-type value = int  [@@deriving yojson]
-
-
-type tree = (key,value)Tree.tree [@@deriving yojson]
-type r = tree
-type frame = (key,value,r)Frame.frame
-
-
-module State = struct
-  type t = tree
-  let compare (x:t) (y:t) = Pervasives.compare x y
-end
-
-
-module Op = struct
-  type op = Insert of int | Delete of int
-end
-open Op
-
+open Insert_delete_ops
 
 (* because of the min/max parameters, the step function is really a
    runtime thing, so the functorization isn't helping here *)
 
-include struct
-  open Monad
-  open Store_ops 
-  open Frame
-  open Tree
-  let store_ops = {
-    store_free=(fun rs -> return ());
-    store_read=(fun r -> 
-        (* r is a tree, but we need to return a frame *)
-        return @@
-        match r with
-        | Node(ks,ts) -> Disk_node(ks,ts)
-        | Leaf(kvs) -> Disk_leaf(kvs));                     
-    store_alloc=(fun frm -> 
-        return @@ 
-        match frm with
-        | Disk_node(ks,ts) -> Node(ks,ts)
-        | Disk_leaf(kvs) -> Leaf(kvs));
-  }
-end
-
-
-open Exhaustive
-
-module Set_ops = Make_set_ops(
-  struct type t = tree let compare (x:t) (y:t) = Pervasives.compare x y end)
+open Tree_store
 
 let set_ops = Set_ops.set_ops
 
-(* test_ops depend on min/max size etc *)
 
 (* FIXME need to add wellformedness checks on the following *)
 
@@ -135,9 +88,9 @@ let execute_tests ~map_ops ~ops ~init_trees =
   in
 
   let step t op = 
-    Test.log(fun _ -> 
-        t |> tree_to_yojson |> Yojson.Safe.pretty_to_string |> fun t ->
-        Printf.sprintf "%s: about to perform action on %s" __LOC__ t);
+    (* print_endline __LOC__; *)
+    Test.log(fun _ -> Printf.sprintf "%s: about to perform action %s on %s" 
+                __LOC__ (op2s op) (t2s t));
     match op with
     | Insert i -> 
       Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
@@ -148,13 +101,18 @@ let execute_tests ~map_ops ~ops ~init_trees =
   in
 
   (* step should return a list of next states *)
-  let step t op = step t op |> fun (t,Ok ()) -> [t] in
+  let step t op = 
+    step t op |> fun (t,Ok ()) -> 
+    Test.log (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
+                 __LOC__ (op2s op) (t2s t));
+    [t]
+  in
 
-  let check_state t = () in
+  let check_state t = assert(Tree.wellformed_tree) in
 
   let check_step t1 t2 = () in
 
-  let test_ops = { step; check_state; check_step } in
+  let test_ops = Exhaustive.{ step; check_state; check_step } in
   
   let test = Exhaustive.test ~set_ops ~test_ops in
   test ops init_trees
@@ -163,11 +121,11 @@ let _ = execute_tests
 
 let page_ref_ops = Monad.{
     get=(fun () -> fun t -> (t,Ok t));
-    set=(fun r -> fun t -> (t,Ok ()))
+    set=(fun r -> fun t -> (r,Ok ()))  (* NOTE r not t!!! *)
   }
 
 
-let main ~min ~max ~step ~constants = 
+let main' ~min ~max ~step ~constants = 
   let range = Range.mk_range ~min ~max ~step in
   let ops = 
     range|>List.map (fun x -> Insert x) |> fun xs ->
@@ -182,7 +140,7 @@ let main ~min ~max ~step ~constants =
   let map_ops = Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
   execute_tests ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
 
-let _ = main 
+let _ = main'
 
 
 let main c = 
@@ -200,5 +158,6 @@ let main c =
       min_leaf_size=l; max_leaf_size=l';
       min_node_keys=m; max_node_keys=m' }
   in
-  main ~min ~max ~step ~constants
+  main' ~min ~max ~step ~constants
+
 

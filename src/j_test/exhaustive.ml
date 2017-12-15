@@ -44,13 +44,15 @@ type 'set test_state = { todo:'set; done_: 'set }
 
 
 let test ~set_ops ~test_ops = (
+  print_endline __LOC__;
   let reps = ref 0 in
 
   let card = set_ops.cardinal in
 
   let step ops ts = 
+    (* print_endline __LOC__; *)
     reps:=!reps+1;
-    begin  (* visual feedback something that is happening *)
+    begin  (* visual feedback that something is happening *)
       match () with
       | _ when (!reps) mod 10000 = 0 ->
         Printf.printf "\ntodo: %d; done: %d " (card ts.todo) (card ts.done_)

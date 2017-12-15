@@ -40,18 +40,21 @@ let ts = ref []
 
 let log p = (ts := (p,now())::!ts; true)
 
-let print_logs () = P.(
+let print_logs () = 
+  let open P in
+  match () with
+  | _ when (!ts=[]) -> true
+  | _ ->
     let f last prev = (
-        let (p2,t2) = last in
-        let (p1,t1) = prev in
-        let d = t2 - t1 in
-        let s = Printf.sprintf "(%s,%s) %d" (p1|>p_to_string) (p2|>p_to_string) d in
-        let _ = print_endline s in
-        prev)
+      let (p2,t2) = last in
+      let (p1,t1) = prev in
+      let d = t2 - t1 in
+      let s = Printf.sprintf "(%s,%s) %d" (p1|>p_to_string) (p2|>p_to_string) d in
+      let _ = print_endline s in
+      prev)
     in
     let _ = List.fold_left f (List.hd !ts) !ts in
-    true)
-
+    true
 
 
 let _ = Test.add_exit_hook (fun () -> assert(print_logs ()))
