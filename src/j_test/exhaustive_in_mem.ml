@@ -81,7 +81,7 @@ let set_ops = Set_ops.set_ops
 
 (* FIXME need to add wellformedness checks on the following *)
 
-let execute_tests ~map_ops ~ops ~init_trees = 
+let execute_tests ~constants ~map_ops ~ops ~init_trees = 
   let find,insert,delete = 
     Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
     (find,insert,delete)
@@ -108,7 +108,13 @@ let execute_tests ~map_ops ~ops ~init_trees =
     [t]
   in
 
-  let check_state t = assert(Tree.wellformed_tree) in
+  let check_state t = assert(
+    (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
+    Tree.wellformed_tree ~constants 
+      ~maybe_small:(Some Isa_export.Prelude.Small_root_node_or_leaf)
+      ~cmp:Int_.compare
+      t) 
+  in
 
   let check_step t1 t2 = () in
 
@@ -138,7 +144,7 @@ let main' ~min ~max ~step ~constants =
     end
   in
   let map_ops = Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
-  execute_tests ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
+  execute_tests ~constants ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
 
 let _ = main'
 

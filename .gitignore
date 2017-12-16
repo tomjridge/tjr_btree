@@ -114,3 +114,6 @@ src/small_step.ml
 /src/tjr_set.ml
 /src/insert_delete_ops.ml
 /src/tree_store.ml
+*.cmi
+*.cmx
+*.o

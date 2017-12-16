@@ -59,3 +59,24 @@ let make_constants ~page_size ~tag_len ~k_len ~v_len = (
   { min_leaf_size; max_leaf_size; min_node_keys; max_node_keys}
 )
 *)
+
+
+module Isabelle_conversions' = struct
+  open Isa_export
+
+  let int_to_nat x = Isa_export.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
+  let int_to_int x = Isa_export.(
+      x |>Big_int.big_int_of_int|>(fun x -> Arith.Int_of_integer x))
+
+  let x_cmp cmp x y = cmp x y |> int_to_int
+  (*  let x_ps0 ~constants ~cmp : 'k IE.Params.ps0 = (
+    Ps0(constants|>x_constants, cmp|>x_cmp)) *)
+
+  let x_constants cs0 : unit Prelude.constants_ext = Prelude.Constants_ext(
+      cs0.min_leaf_size|>int_to_nat,
+      cs0.max_leaf_size|>int_to_nat,
+      cs0.min_node_keys|>int_to_nat,
+      cs0.max_node_keys|>int_to_nat,
+      ())
+end
+include Isabelle_conversions'

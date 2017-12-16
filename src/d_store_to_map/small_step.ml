@@ -31,35 +31,7 @@ open Store_ops
 open Ls_state
 
 (** Translations between Isabelle types and OCaml native types. *)
-module X = struct
-  module IE = Isa_export
-  let int_to_nat x = Isa_export.(x |>Big_int.big_int_of_int|>Arith.nat_of_integer)
-  let int_to_int x = Isa_export.(
-      x |>Big_int.big_int_of_int|>(fun x -> Arith.Int_of_integer x))
-
-  open Constants
-  let x_constants cs0 : unit IE.Prelude.constants_ext = IE.Prelude.Constants_ext(
-      cs0.min_leaf_size|>int_to_nat,
-      cs0.max_leaf_size|>int_to_nat,
-      cs0.min_node_keys|>int_to_nat,
-      cs0.max_node_keys|>int_to_nat,
-      ())
-
-  open IE.Params
-  let x_cmp cmp x y = cmp x y |> int_to_int
-(*  let x_ps0 ~constants ~cmp : 'k IE.Params.ps0 = (
-    Ps0(constants|>x_constants, cmp|>x_cmp)) *)
-
-  let x_store_ops store_ops : ('k,'v,'r,'t,unit) IE.Params.store_ops_ext = (
-    Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
-    Store_ops_ext(
-      store_read,
-      store_alloc,
-      store_free,()))
-
-  let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) IE.Params.ps1 = IE.Params.(
-      Ps1(x_constants constants, (x_cmp cmp, x_store_ops store_ops)))
-end
+module X = Isabelle_conversions
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
