@@ -100,21 +100,25 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
       delete i |> Monad.run t
   in
 
-  (* step should return a list of next states *)
-  let step t op = 
-    step t op |> fun (t,Ok ()) -> 
-    Test.log (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
-                 __LOC__ (op2s op) (t2s t));
-    [t]
-  in
-
   let check_state t = assert(
+    Test.log(fun _ -> Printf.sprintf "%s: checking invariants on %s" 
+                __LOC__ (t2s t));    
     (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
     Tree.wellformed_tree ~constants 
       ~maybe_small:(Some Isa_export.Prelude.Small_root_node_or_leaf)
       ~cmp:Int_.compare
       t) 
   in
+
+  (* step should return a list of next states *)
+  let step t op = 
+    step t op |> fun (t,Ok ()) -> 
+    Test.log (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
+                 __LOC__ (op2s op) (t2s t));
+    check_state t;
+    [t]
+  in
+  (* FIXME remove check from exhaustive - just do it in the step phase *)
 
   let check_step t1 t2 = () in
 

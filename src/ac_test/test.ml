@@ -21,7 +21,7 @@ let log_messages: (unit -> string) list ref = ref [fun _ -> "initial log message
 let log s = (log_messages:=s::!log_messages)
 
 
-let log_take_length = ref 100
+let log_take_length = ref 10
 
 (** Print most recent log messages. Typically we only print
     when an exception occurs. Independent of enable/disable *)

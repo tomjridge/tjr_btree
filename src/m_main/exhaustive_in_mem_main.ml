@@ -8,7 +8,7 @@ let _ =
 
 
 let _ = 
-  let main' = Exhaustive_in_mem.main' ~min:1000 ~max:1020 ~step:2 in
+  let main' = Exhaustive_in_mem.main' ~min:1000 ~max:1024 ~step:2 in
   Constants.[cs2312; cs2324; cs2336; cs1112] |> List.iter (fun cs ->
       Printf.sprintf "%s: constants:%s\n" __LOC__ (cs2s cs)|>print_endline;
       main' ~constants:cs)

@@ -1681,32 +1681,11 @@ let rec node_steal_right
                     (Util.rev_apply store_ops Params.store_alloc))
                   (Monad.bind Monad.return)))));;
 
-let rec maybe_fixup_empty_parent_after_merge
-  cs store_ops krs fo =
-    let (ks, rs) = krs in
-    let n = List.size_list ks in
-    let na =
-      (if Arith.equal_nata n Arith.zero_nat then Arith.zero_nat
-        else (if Arith.less_nat n (Util.rev_apply cs Prelude.min_node_keys)
-               then Arith.one_nat
-               else Arith.nat_of_integer (Big_int.big_int_of_int 2)))
-      in
-    (if Arith.equal_nata na Arith.zero_nat then Monad.return fo
-      else (if Arith.equal_nata (Arith.minus_nat na Arith.one_nat)
-                 Arith.zero_nat
-             then Monad.return (D_small_node (ks, rs))
-             else Util.rev_apply
-                    (Util.rev_apply
-                      (Util.rev_apply (ks, rs) Disk_node.mk_Disk_node)
-                      (Util.rev_apply store_ops Params.store_alloc))
-                    (Monad.bind
-                      (fun r -> Monad.return (D_updated_subtree r)))));;
-
 let rec node_merge_right
   cs store_ops p c1 c2 =
     let (ks1, rs1) = c1 in
-    let (_, rs2) = c2 in
-    let (k2 :: ks2, _ :: p_rs2) =
+    let (ks2, rs2) = c2 in
+    let (k2 :: p_ks2, _ :: p_rs2) =
       (Util.rev_apply p Searching_and_splitting.r_ks2,
         Util.rev_apply p Searching_and_splitting.r_ts2)
       in
@@ -1719,12 +1698,10 @@ let rec node_merge_right
           Util.rev_apply
             (Util.rev_apply
               (Searching_and_splitting.r_ts2_update (fun _ -> p_rs2)
-                (Searching_and_splitting.r_ks2_update (fun _ -> ks2)
+                (Searching_and_splitting.r_ks2_update (fun _ -> p_ks2)
                   (Searching_and_splitting.r_t_update (fun _ -> r4) p)))
               Searching_and_splitting.unsplit_node)
-            (fun (ks, rs) ->
-              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
-                (D_updated_subtree r4))));;
+            (fun (ks, rs) -> Monad.return (ks, rs))));;
 
 let rec leaf_steal_right
   store_ops p c1 c2 =
@@ -1778,9 +1755,7 @@ let rec leaf_merge_right
                 (Searching_and_splitting.r_ks2_update (fun _ -> ks2)
                   (Searching_and_splitting.r_t_update (fun _ -> r1) p)))
               Searching_and_splitting.unsplit_node)
-            (fun (ks, rs) ->
-              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
-                (D_updated_subtree r1))));;
+            (fun (ks, rs) -> Monad.return (ks, rs))));;
 
 let rec node_steal_left
   store_ops p c1 c2 =
@@ -1819,9 +1794,9 @@ let rec node_steal_left
 
 let rec node_merge_left
   cs store_ops p c1 c2 =
-    let (_, rs1) = c1 in
+    let (ks1, rs1) = c1 in
     let (ks2, rs2) = c2 in
-    let (k2 :: ks1, _ :: p_rs1) =
+    let (k2 :: p_ks1, _ :: p_rs1) =
       (Util.rev_apply p Searching_and_splitting.r_ks1,
         Util.rev_apply p Searching_and_splitting.r_ts1)
       in
@@ -1834,12 +1809,10 @@ let rec node_merge_left
           Util.rev_apply
             (Util.rev_apply
               (Searching_and_splitting.r_ts1_update (fun _ -> p_rs1)
-                (Searching_and_splitting.r_ks1_update (fun _ -> ks1)
+                (Searching_and_splitting.r_ks1_update (fun _ -> p_ks1)
                   (Searching_and_splitting.r_t_update (fun _ -> r4) p)))
               Searching_and_splitting.unsplit_node)
-            (fun (ks, rs) ->
-              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
-                (D_updated_subtree r4))));;
+            (fun (ks, rs) -> Monad.return (ks, rs))));;
 
 let rec leaf_steal_left
   store_ops p c1 c2 =
@@ -1893,9 +1866,20 @@ let rec leaf_merge_left
                 (Searching_and_splitting.r_ks1_update (fun _ -> ks1)
                   (Searching_and_splitting.r_t_update (fun _ -> r1) p)))
               Searching_and_splitting.unsplit_node)
-            (fun (ks, rs) ->
-              maybe_fixup_empty_parent_after_merge cs store_ops (ks, rs)
-                (D_updated_subtree r1))));;
+            (fun (ks, rs) -> Monad.return (ks, rs))));;
+
+let rec post_merge
+  cs store_ops krs =
+    let (ks, rs) = krs in
+    (match
+      Arith.less_nat (List.size_list ks)
+        (Util.rev_apply cs Prelude.min_node_keys)
+      with true -> Monad.return (D_small_node (ks, rs))
+      | false ->
+        Util.rev_apply
+          (Util.rev_apply (Util.rev_apply (ks, rs) Disk_node.mk_Disk_node)
+            (Util.rev_apply store_ops Params.store_alloc))
+          (Monad.bind (fun r -> Monad.return (D_updated_subtree r))));;
 
 let rec step_up
   ps1 du =
@@ -1906,6 +1890,7 @@ let rec step_up
         Util.rev_apply store_ops Params.store_read)
       in
     let cs = Util.rev_apply ps1 Params.dot_constants in
+    let post_mergea = post_merge cs store_ops in
     (match stk with [] -> Util.impossible1 "delete, step_up"
       | p :: stka ->
         Util.rev_apply
@@ -1930,7 +1915,9 @@ let rec step_up
                           Arith.equal_nata (List.size_list left_kvs)
                             (Util.rev_apply cs Prelude.min_leaf_size)
                           with true ->
-                            leaf_merge_left cs store_ops p left_kvs kvs
+                            Util.rev_apply
+                              (leaf_merge_left cs store_ops p left_kvs kvs)
+                              (Monad.bind post_mergea)
                           | false ->
                             Util.rev_apply
                               (leaf_steal_left store_ops p left_kvs kvs)
@@ -1947,7 +1934,9 @@ let rec step_up
                           Arith.equal_nata (List.size_list right_kvs)
                             (Util.rev_apply cs Prelude.min_leaf_size)
                           with true ->
-                            leaf_merge_right cs store_ops p kvs right_kvs
+                            Util.rev_apply
+                              (leaf_merge_right cs store_ops p kvs right_kvs)
+                              (Monad.bind post_mergea)
                           | false ->
                             Util.rev_apply
                               (leaf_steal_right store_ops p kvs right_kvs)
@@ -1972,7 +1961,10 @@ let rec step_up
                           Arith.equal_nata (List.size_list l_ks)
                             (Util.rev_apply cs Prelude.min_node_keys)
                           with true ->
-                            node_merge_left cs store_ops p (l_ks, l_rs) (ks, rs)
+                            Util.rev_apply
+                              (node_merge_left cs store_ops p (l_ks, l_rs)
+                                (ks, rs))
+                              (Monad.bind post_mergea)
                           | false ->
                             Util.rev_apply
                               (node_steal_left store_ops p (l_ks, l_rs)
@@ -1990,8 +1982,10 @@ let rec step_up
                           Arith.equal_nata (List.size_list r_ks)
                             (Util.rev_apply cs Prelude.min_node_keys)
                           with true ->
-                            node_merge_right cs store_ops p (ks, rs)
-                              (r_ks, r_rs)
+                            Util.rev_apply
+                              (node_merge_right cs store_ops p (ks, rs)
+                                (r_ks, r_rs))
+                              (Monad.bind post_mergea)
                           | false ->
                             Util.rev_apply
                               (node_steal_right store_ops p (ks, rs)
@@ -2061,9 +2055,12 @@ let rec delete_step
                 Util.rev_apply (Util.rev_apply (Disk_node.Disk_leaf kvs) alloc)
                   (Monad.fmap (fun a -> D_finished a))
               | D_small_node (ks, rs) ->
-                Util.rev_apply
-                  (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs)) alloc)
-                  (Monad.fmap (fun a -> D_finished a))
+                (match Arith.equal_nata (List.size_list ks) Arith.zero_nat
+                  with true -> Monad.return (D_finished (List.hd rs))
+                  | false ->
+                    Util.rev_apply
+                      (Util.rev_apply (Disk_node.mk_Disk_node (ks, rs)) alloc)
+                      (Monad.fmap (fun a -> D_finished a)))
               | D_updated_subtree r -> Monad.return (D_finished r))
           | false ->
             Util.rev_apply (step_up ps1 (f, stk))

@@ -117,3 +117,4 @@ src/small_step.ml
 *.cmi
 *.cmx
 *.o
+/src/isabelle_conversions.ml
