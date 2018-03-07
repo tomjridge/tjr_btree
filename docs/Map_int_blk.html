@@ -12,30 +12,23 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
-<link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Test" rel="Chapter" href="Test.html">
-<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Block" rel="Chapter" href="Block.html">
 <link title="Constants" rel="Chapter" href="Constants.html">
-<link title="File_util" rel="Chapter" href="File_util.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
-<link title="Map_int" rel="Chapter" href="Map_int.html">
-<link title="Map_string" rel="Chapter" href="Map_string.html">
-<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
 <link title="Rstk" rel="Chapter" href="Rstk.html">
-<link title="Set_int" rel="Chapter" href="Set_int.html">
 <link title="String_" rel="Chapter" href="String_.html">
 <link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
-<link title="Block" rel="Chapter" href="Block.html">
-<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Params" rel="Chapter" href="Params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Disk_ops" rel="Chapter" href="Disk_ops.html">
 <link title="Leaf_stream_ops" rel="Chapter" href="Leaf_stream_ops.html">
 <link title="Leaf_stream_util" rel="Chapter" href="Leaf_stream_util.html">
@@ -43,9 +36,10 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
 <link title="Small_step" rel="Chapter" href="Small_step.html">
-<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
 <link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
 <link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
@@ -57,7 +51,6 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
-<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -67,6 +60,8 @@
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
+<link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
@@ -74,7 +69,10 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_int_blk</title>
+<link title="Tree_store" rel="Chapter" href="Tree_store.html">
+<link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
+<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Map_int_blk</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Digest_.html" title="Digest_">Previous</a>
@@ -94,11 +92,11 @@ A map from blk index to blk, implemented as a map from index to blkid<br>
 <pre><span id="TYPEv1"><span class="keyword">type</span> <code class="type"></code>v1</span> = <code class="type">Block.blk_id</code> </pre>
 
 
-<pre><span id="VALstore_ops_to_map_ops"><span class="keyword">val</span> store_ops_to_map_ops</span> : <code class="type">ps:< constants : <a href="Constants.html#TYPEt">Constants.t</a>; .. > -><br>       page_ref_ops:('a, 'b) <a href="Monad.html#TYPEmref">Monad.mref</a> -><br>       store_ops:[< `Store_ops of<br>                      ('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      ('a -> ((<a href="Int_.html#TYPEt">Int_.t</a>, 'c, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      ((<a href="Int_.html#TYPEt">Int_.t</a>, 'c, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) &<br>                      ('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      ('a -> ((<a href="Int_.html#TYPEt">Int_.t</a>, 'd, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      ((<a href="Int_.html#TYPEt">Int_.t</a>, 'd, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) &<br>                      ('e list -> (unit, 'f) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      ('e -> (('g, 'h, 'e) Frame.frame, 'f) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                      (('g, 'h, 'e) Frame.frame -> ('e, 'f) <a href="Monad.html#TYPEm">Monad.m</a>) ] -><br>       [ `Map_ops of<br>           (<a href="Int_.html#TYPEt">Int_.t</a> -> ('c option, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           (<a href="Int_.html#TYPEt">Int_.t</a> -> 'c -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) * (<a href="Int_.html#TYPEt">Int_.t</a> -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           (<a href="Int_.html#TYPEt">Int_.t</a> -> 'c -> (<a href="Int_.html#TYPEt">Int_.t</a> * 'c) list -> ((<a href="Int_.html#TYPEt">Int_.t</a> * 'c) list, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) ]</code></pre>
+<pre><span id="VALstore_ops_to_map_ops"><span class="keyword">val</span> store_ops_to_map_ops</span> : <code class="type">ps:< constants : <a href="Constants.html#TYPEt">Constants.t</a>; .. > -><br>       page_ref_ops:('a, 'b) Monad.mref -><br>       store_ops:(Int_.t, 'c, 'a, 'b) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       [ `Map_ops of<br>           (Int_.t -> ('c option, 'b) Monad.m) *<br>           (Int_.t -> 'c -> (unit, 'b) Monad.m) * (Int_.t -> (unit, 'b) Monad.m) *<br>           (Int_.t -> 'c -> (Int_.t * 'c) list -> ((Int_.t * 'c) list, 'b) Monad.m) ]</code></pre>
 <pre><span id="TYPEk2"><span class="keyword">type</span> <code class="type"></code>k2</span> = <code class="type"><a href="Map_int_blk.html#TYPEk1">k1</a></code> </pre>
 
 
 <pre><span id="TYPEv2"><span class="keyword">type</span> <code class="type"></code>v2</span> = <code class="type">Block.blk</code> </pre>
 
 
-<pre><span id="VALmk_int_blk_map"><span class="keyword">val</span> mk_int_blk_map</span> : <code class="type">write_blk:(Block.blk -> (Block.blk_id, 't) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       read_blk:(Block.blk_id -> (Block.blk option, 't) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       map_ops:[< `Map_ops of<br>                    ('k -> (Block.blk_id option, 't) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                    ('k -> Block.blk_id -> (unit, 't) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                    ('k -> (unit, 't) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>                    ('k -><br>                     Block.blk_id -><br>                     ('k * Block.blk_id) list -><br>                     (('k * Block.blk_id) list, 't) <a href="Monad.html#TYPEm">Monad.m</a>) ] -><br>       [ `Map_ops of<br>           ('k -> (Block.blk option, 't) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           ('k -> Block.blk -> (unit, 't) <a href="Monad.html#TYPEm">Monad.m</a>) * ('k -> (unit, 't) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           ('k -><br>            Block.blk -><br>            ('k * Block.blk) list -> (('k * Block.blk) list, 't) <a href="Monad.html#TYPEm">Monad.m</a>) ]</code></pre></body></html>
+<pre><span id="VALmk_int_blk_map"><span class="keyword">val</span> mk_int_blk_map</span> : <code class="type">write_blk:(Block.blk -> (Block.blk_id, 't) Monad.m) -><br>       read_blk:(Block.blk_id -> (Block.blk option, 't) Monad.m) -><br>       map_ops:[< `Map_ops of<br>                    ('k -> (Block.blk_id option, 't) Monad.m) *<br>                    ('k -> Block.blk_id -> (unit, 't) Monad.m) *<br>                    ('k -> (unit, 't) Monad.m) *<br>                    ('k -><br>                     Block.blk_id -><br>                     ('k * Block.blk_id) list -><br>                     (('k * Block.blk_id) list, 't) Monad.m) ] -><br>       [ `Map_ops of<br>           ('k -> (Block.blk option, 't) Monad.m) *<br>           ('k -> Block.blk -> (unit, 't) Monad.m) * ('k -> (unit, 't) Monad.m) *<br>           ('k -><br>            Block.blk -><br>            ('k * Block.blk) list -> (('k * Block.blk) list, 't) Monad.m) ]</code></pre></body></html>

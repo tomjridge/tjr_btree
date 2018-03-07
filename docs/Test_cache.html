@@ -12,30 +12,23 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
-<link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Test" rel="Chapter" href="Test.html">
-<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Block" rel="Chapter" href="Block.html">
 <link title="Constants" rel="Chapter" href="Constants.html">
-<link title="File_util" rel="Chapter" href="File_util.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
-<link title="Map_int" rel="Chapter" href="Map_int.html">
-<link title="Map_string" rel="Chapter" href="Map_string.html">
-<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
 <link title="Rstk" rel="Chapter" href="Rstk.html">
-<link title="Set_int" rel="Chapter" href="Set_int.html">
 <link title="String_" rel="Chapter" href="String_.html">
 <link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
-<link title="Block" rel="Chapter" href="Block.html">
-<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Params" rel="Chapter" href="Params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Disk_ops" rel="Chapter" href="Disk_ops.html">
 <link title="Leaf_stream_ops" rel="Chapter" href="Leaf_stream_ops.html">
 <link title="Leaf_stream_util" rel="Chapter" href="Leaf_stream_util.html">
@@ -43,9 +36,10 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
 <link title="Small_step" rel="Chapter" href="Small_step.html">
-<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
 <link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
 <link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
@@ -57,7 +51,6 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
-<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -67,6 +60,8 @@
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
+<link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
@@ -74,7 +69,10 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Test_cache</title>
+<link title="Tree_store" rel="Chapter" href="Tree_store.html">
+<link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
+<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Test_cache</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Test_bytestore.html" title="Test_bytestore">Previous</a>
@@ -84,17 +82,4 @@
 <h1>Module <a href="type_Test_cache.html">Test_cache</a></h1>
 
 <pre><span class="keyword">module</span> Test_cache: <code class="code">sig</code> <a href="Test_cache.html">..</a> <code class="code">end</code></pre><hr width="100%">
-
-<pre><span class="keyword">module</span> <a href="Test_cache.O.html">O</a>: <code class="code">sig</code> <a href="Test_cache.O.html">..</a> <code class="code">end</code></pre>
-<pre><span id="VALthen_"><span class="keyword">val</span> then_</span> : <code class="type">(unit -> int) -> int -> int</code></pre>
-<pre><span id="VALcompare"><span class="keyword">val</span> compare</span> : <code class="type"><a href="Test_cache.O.html#TYPEts">O.ts</a> -> <a href="Test_cache.O.html#TYPEts">O.ts</a> -> int</code></pre>
-<pre><span id="VALinit_cache"><span class="keyword">val</span> init_cache</span> : <code class="type">(<a href="Int_.html#TYPEt">Int_.t</a>, <a href="Test_cache.O.html#TYPEvalue">O.value</a>) <a href="Cache.html#TYPEcache_state">Cache.cache_state</a></code></pre>
-<pre><span id="VALinit_base_map"><span class="keyword">val</span> init_base_map</span> : <code class="type">'a Map_int.t</code></pre>
-<pre><span id="VALinit_spec"><span class="keyword">val</span> init_spec</span> : <code class="type">'a Map_int.t</code></pre>
-<pre><span id="VALinitial_state"><span class="keyword">val</span> initial_state</span> : <code class="type"><a href="Test_cache.O.html#TYPEts">O.ts</a></code></pre>
-<pre><span id="VALbase_map_ops"><span class="keyword">val</span> base_map_ops</span> : <code class="type">[ `Map_ops of<br>           (Map_int.key -> (int option, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           (Map_int.key -> int -> (unit, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           (Map_int.key -> (unit, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>           (Map_int.key -><br>            int -><br>            (Map_int.key * int) list -><br>            ((Map_int.key * int) list, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) ]</code></pre>
-<pre><span id="VALcache_ops"><span class="keyword">val</span> cache_ops</span> : <code class="type">((<a href="Test_cache.O.html#TYPEkey">O.key</a>, <a href="Test_cache.O.html#TYPEvalue">O.value</a>) <a href="Cache.html#TYPEcache_state">Cache.cache_state</a>, <a href="Test_cache.O.html#TYPEts">O.ts</a>)<br>       <a href="Monad.html#TYPEmref">Monad.mref</a></code></pre>
-<pre><span id="VALcached_map_ops"><span class="keyword">val</span> cached_map_ops</span> : <code class="type">[> `Map_ops of<br>            (Map_int.key -> (<a href="Test_cache.O.html#TYPEvalue">O.value</a> option, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            (Map_int.key -> <a href="Test_cache.O.html#TYPEvalue">O.value</a> -> (unit, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            (Map_int.key -> (unit, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            (Map_int.key -><br>             <a href="Test_cache.O.html#TYPEvalue">O.value</a> -><br>             (Map_int.key * <a href="Test_cache.O.html#TYPEvalue">O.value</a>) list -><br>             ((Map_int.key * <a href="Test_cache.O.html#TYPEvalue">O.value</a>) list, <a href="Test_cache.O.html#TYPEts">O.ts</a>) <a href="Monad.html#TYPEm">Monad.m</a>) ]</code></pre>
-<pre><span class="keyword">module</span> <a href="Test_cache.S.html">S</a>: <code class="code">sig</code> <a href="Test_cache.S.html">..</a> <code class="code">end</code></pre>
-<pre><span class="keyword">module</span> <a href="Test_cache.E_.html">E_</a>: <code class="type"><a href="Exhaustive.Make.html">Exhaustive.Make</a></code><code class="code">(</code><code class="type"><a href="Test_cache.S.html">S</a></code><code class="code">)</code></pre>
-<pre><span id="VALtest"><span class="keyword">val</span> test</span> : <code class="type"><a href="Test_cache.O.html#TYPEkey">O.key</a> list -> unit</code></pre></body></html>
+</body></html>

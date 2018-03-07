@@ -132,6 +132,8 @@ function mk_codetags() {
 
 function mk_doc() {
     ocamlfind ocamldoc $PKGS $WARN -html -intro n_doc/intro.odoc `cat _depend/*`
+    # FIXME assume package built and installed
+    $ocamlc -package tjr_btree -i tjr_btree_recap.ml >tjr_btree_recap.mli
 }
 
 

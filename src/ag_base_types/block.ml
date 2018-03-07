@@ -1,13 +1,18 @@
 (** Basic block implementation. *)
 
+
+module type Blk_types = sig
+  type blk
+  type blk_id = int 
+end
+
 type blk_sz = int  (* in bytes *)
 
 (** Basic implementation of a block. Blocks are represented by
    strings. Blocks have a particular length, although we do not
    capture this in the type. *)
 module BlkN : sig
-  type blk
-  type blk_id = int 
+  include Blk_types 
   val of_string: blk_sz -> string -> blk
   val to_string: blk -> string
   val compare_blk_id: blk_id -> blk_id -> int 

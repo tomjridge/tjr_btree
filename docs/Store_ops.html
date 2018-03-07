@@ -6,36 +6,29 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Pre_map_ops.html">
-<link rel="next" href="Small_step.html">
+<link rel="next" href="Isabelle_conversions.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
-<link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Test" rel="Chapter" href="Test.html">
-<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Block" rel="Chapter" href="Block.html">
 <link title="Constants" rel="Chapter" href="Constants.html">
-<link title="File_util" rel="Chapter" href="File_util.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Int_" rel="Chapter" href="Int_.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
-<link title="Map_int" rel="Chapter" href="Map_int.html">
-<link title="Map_string" rel="Chapter" href="Map_string.html">
-<link title="Monad" rel="Chapter" href="Monad.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
 <link title="Rstk" rel="Chapter" href="Rstk.html">
-<link title="Set_int" rel="Chapter" href="Set_int.html">
 <link title="String_" rel="Chapter" href="String_.html">
 <link title="Tree" rel="Chapter" href="Tree.html">
 <link title="R2t" rel="Chapter" href="R2t.html">
-<link title="Block" rel="Chapter" href="Block.html">
-<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Params" rel="Chapter" href="Params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
 <link title="Disk_ops" rel="Chapter" href="Disk_ops.html">
 <link title="Leaf_stream_ops" rel="Chapter" href="Leaf_stream_ops.html">
 <link title="Leaf_stream_util" rel="Chapter" href="Leaf_stream_util.html">
@@ -43,9 +36,10 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
 <link title="Small_step" rel="Chapter" href="Small_step.html">
-<link title="Iter_with_check" rel="Chapter" href="Iter_with_check.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
 <link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
 <link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
@@ -57,7 +51,6 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
-<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -67,6 +60,8 @@
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
 <link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
+<link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
 <link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
@@ -74,12 +69,15 @@
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
 <link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Store_ops</title>
+<link title="Tree_store" rel="Chapter" href="Tree_store.html">
+<link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
+<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Store_ops</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Pre_map_ops.html" title="Pre_map_ops">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
-&nbsp;<a class="post" href="Small_step.html" title="Small_step">Next</a>
+&nbsp;<a class="post" href="Isabelle_conversions.html" title="Isabelle_conversions">Next</a>
 </div>
 <h1>Module <a href="type_Store_ops.html">Store_ops</a></h1>
 
@@ -89,6 +87,33 @@ Store operations: alloc, free and read. The store is a level above
 </div>
 <hr width="100%">
 
-<pre><span id="VALwf_store_ops"><span class="keyword">val</span> wf_store_ops</span> : <code class="type">store_free:('r list -> (unit, 't) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       store_read:('r -> (('k, 'v, 'r) Frame.frame, 't) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       store_alloc:(('k, 'v, 'r) Frame.frame -> ('r, 't) <a href="Monad.html#TYPEm">Monad.m</a>) -> bool</code></pre>
-<pre><span id="VALmk_store_ops"><span class="keyword">val</span> mk_store_ops</span> : <code class="type">store_free:('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       store_read:('a -> (('c, 'd, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       store_alloc:(('c, 'd, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>       [> `Store_ops of<br>            ('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            ('a -> (('c, 'd, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            (('c, 'd, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) ]</code></pre>
-<pre><span id="VALdest_store_ops"><span class="keyword">val</span> dest_store_ops</span> : <code class="type">[< `Store_ops of<br>            ('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            ('a -> (('c, 'd, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) *<br>            (('c, 'd, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) ] -><br>       (store_free:('a list -> (unit, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>        store_read:('a -> (('c, 'd, 'a) Frame.frame, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -><br>        store_alloc:(('c, 'd, 'a) Frame.frame -> ('a, 'b) <a href="Monad.html#TYPEm">Monad.m</a>) -> 'e) -><br>       'e</code></pre></body></html>
+<pre><code><span id="TYPEstore_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 'r, 't)</code> store_ops</span> = {</code></pre><table class="typetable">
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstore_ops.store_free">store_free</span>&nbsp;: <code class="type">'r list -> (unit, 't) Monad.m</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstore_ops.store_read">store_read</span>&nbsp;: <code class="type">'r -> (('k, 'v, 'r) <a href="Frame.html#TYPEframe">Frame.frame</a>, 't) Monad.m</code>;</code></td>
+
+</tr>
+<tr>
+<td align="left" valign="top" >
+<code>&nbsp;&nbsp;</code></td>
+<td align="left" valign="top" >
+<code><span id="TYPEELTstore_ops.store_alloc">store_alloc</span>&nbsp;: <code class="type">('k, 'v, 'r) <a href="Frame.html#TYPEframe">Frame.frame</a> -> ('r, 't) Monad.m</code>;</code></td>
+
+</tr></table>
+}
+
+
+
+<pre><span id="VALmk_store_ops"><span class="keyword">val</span> mk_store_ops</span> : <code class="type">store_free:('a list -> (unit, 'b) Monad.m) -><br>       store_read:('a -> (('c, 'd, 'a) <a href="Frame.html#TYPEframe">Frame.frame</a>, 'b) Monad.m) -><br>       store_alloc:(('c, 'd, 'a) <a href="Frame.html#TYPEframe">Frame.frame</a> -> ('a, 'b) Monad.m) -><br>       ('c, 'd, 'a, 'b) <a href="Store_ops.html#TYPEstore_ops">store_ops</a></code></pre>
+<pre><span id="VALdest_store_ops"><span class="keyword">val</span> dest_store_ops</span> : <code class="type">('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">store_ops</a> -><br>       (store_free:('c list -> (unit, 'd) Monad.m) -><br>        store_read:('c -> (('a, 'b, 'c) <a href="Frame.html#TYPEframe">Frame.frame</a>, 'd) Monad.m) -><br>        store_alloc:(('a, 'b, 'c) <a href="Frame.html#TYPEframe">Frame.frame</a> -> ('c, 'd) Monad.m) -> 'e) -><br>       'e</code></pre>
+<pre><span id="VALx_store_ops"><span class="keyword">val</span> x_store_ops</span> : <code class="type">('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">store_ops</a> -><br>       ('k, 'v, 'r, 't, unit) <a href="Isa_export.Params.html#TYPEstore_ops_ext">Isa_export.Params.store_ops_ext</a></code></pre>
+<pre><span id="VALx_ps1"><span class="keyword">val</span> x_ps1</span> : <code class="type">constants:<a href="Constants.html#TYPEt">Constants.t</a> -><br>       cmp:('k -> 'k -> int) -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">store_ops</a> -><br>       ('k, 'v, 'r, 't) <a href="Isa_export.Params.html#TYPEps1">Isa_export.Params.ps1</a></code></pre></body></html>
