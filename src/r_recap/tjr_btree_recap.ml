@@ -3,12 +3,11 @@
 
 (* base_types ------------------------------------------------------- *)
 
-open Block
-module BlkN = struct include BlkN end
+module type Blk_types = sig include Block.Blk_types end
 
-module Constants = struct include Constants end  (* FIXME just t, not defs *)
+module Constants_type = struct include Constants.Constants_type end 
 
-module Frame = struct include Frame end
+module Frame_type = struct include Frame.Frame_type end
 
 module Ls_state = struct include Ls_state end
 
@@ -24,7 +23,7 @@ module R2t = struct include R2t end
 
 module Rstk = struct include Rstk end
 
-module Tree = struct include Tree end
+module Tree_type = struct include Tree.Tree_type end
 
 
 (* api -------------------------------------------------------------- *)

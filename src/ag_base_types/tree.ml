@@ -2,6 +2,11 @@
 
 include Isa_export.Tree
 
+(* pull this out for recap *)
+module Tree_type = struct
+  type ('a,'b) tree = ('a,'b) Isa_export.Tree.tree
+end
+
 (* save *)
 let wellformed_tree' = wellformed_tree
 

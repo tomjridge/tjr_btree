@@ -58,6 +58,10 @@ _doc:
 	mk_doc
 	cp *.html *.css ../docs
 
+
+tjr_btree_recap.mli: FORCE
+	ocamlfind ocamlc -thread -package tjr_btree -i r_recap/tjr_btree_recap.ml >/tmp/tjr_btree_recap.mli
+
 # ----------------------------------------
 
 %.native: m_main/%.ml $(libname).cmxa FORCE
@@ -69,6 +73,7 @@ _doc:
 clean:
 	clean
 	rm -f *.html
+	rm -f tjr_btree_recap.mli
 
 real_clean: clean
 	rm_links

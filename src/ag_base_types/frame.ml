@@ -2,5 +2,8 @@
    type. 'r is the type of pointers to blocks. *)
 include Isa_export.Disk_node
 
-type ('k,'v,'r) frame = ('k,'v,'r) dnode
 
+module Frame_type = struct
+type ('k,'v,'r) frame = ('k,'v,'r) Isa_export.Disk_node.dnode
+end
+include Frame_type
