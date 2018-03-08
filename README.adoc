@@ -65,3 +65,7 @@ https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html[overview]
 and the 
 https://tomjridge.github.io/tjr_btree/[ocamldoc]
 
+Please also see the recap of the main types in
+`src/r_recap/recap_edited.mli` (there is a `.html` version in the same
+directory for easy reference). This is a "high-level, formal" document
+that gives the main types, but leaves out almost all operations.

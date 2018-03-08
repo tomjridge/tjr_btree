@@ -4,7 +4,8 @@ include Isa_export.Tree
 
 (* pull this out for recap *)
 module Tree_type = struct
-  type ('a,'b) tree = ('a,'b) Isa_export.Tree.tree
+  type ('a,'b) tree = ('a,'b) Isa_export.Tree.tree = Node of ('a list * ('a, 'b) tree list) |
+    Leaf of ('a * 'b) list [@@deriving yojson]
 end
 
 (* save *)

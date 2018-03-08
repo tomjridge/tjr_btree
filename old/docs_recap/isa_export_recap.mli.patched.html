@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN"
+"http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>isa_export_recap.mli.patched</title>
+<meta name="generator" content="emacs 25.3.1; htmlfontify 0.21" />
+<style type="text/css"><!-- 
+body { font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  color: #000000;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.default   { font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  color: #000000;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.default a { font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  color: #000000;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.merlin-compilation-error-face-0002   { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.merlin-compilation-error-face-0002 a { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.function-name   { color: #0000ff;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.function-name a { color: #0000ff;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.keyword   { color: #a020f0;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.keyword a { color: #a020f0;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.constructor   { font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  color: #000000;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.constructor a { font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  color: #000000;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.merlin-compilation-error-face-0001   { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.merlin-compilation-error-face-0001 a { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.merlin-compilation-error-face-0000   { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.merlin-compilation-error-face-0000 a { color: #ff0000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.type   { color: #228b22;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.type a { color: #228b22;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.operator   { color: #a52a2a;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.operator a { color: #a52a2a;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.module   { color: #228b22;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.module a { color: #228b22;  font-family: Ubuntu Mono;  font-stretch: normal;  font-weight: 500;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+span.governing   { color: #000000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: none; }
+span.governing a { color: #000000;  font-weight: 700;  font-family: Ubuntu Mono;  font-stretch: normal;  font-style: normal;  background: #ffffff;  font-size: 10pt;  text-decoration: underline; }
+ --></style>
+
+    <script type="text/javascript"><!--
+  // this function is needed to work around
+  // a bug in IE related to element attributes
+  function hasClass(obj)
+  {
+      var result = false;
+      if (obj.getAttributeNode("class") != null)
+      {
+          result = obj.getAttributeNode("class").value;
+      }
+      return result;
+  }
+
+  function stripe(id)
+  {
+      // the flag we'll use to keep track of
+      // whether the current row is odd or even
+      var even = false;
+
+      // if arguments are provided to specify the colors
+      // of the even & odd rows, then use the them;
+      // otherwise use the following defaults:
+      var evenColor = arguments[1] ? arguments[1] : "#fff";
+      var oddColor  = arguments[2] ? arguments[2] : "#ddd";
+
+      // obtain a reference to the desired table
+      // if no such table exists, abort
+      var table = document.getElementById(id);
+      if (! table) { return; }
+
+      // by definition, tables can have more than one tbody
+      // element, so we'll have to get the list of child
+      // &lt;tbody&gt;s
+      var tbodies = table.getElementsByTagName("tbody");
+
+      // and iterate through them...
+      for (var h = 0; h < tbodies.length; h++)
+      {
+          // find all the &lt;tr&gt; elements...
+          var trs = tbodies[h].getElementsByTagName("tr");
+
+          // ... and iterate through them
+          for (var i = 0; i < trs.length; i++)
+          {
+              // avoid rows that have a class attribute
+              // or backgroundColor style
+              if (! hasClass(trs[i]) &&
+                  ! trs[i].style.backgroundColor)
+              {
+                  // get all the cells in this row...
+                  var tds = trs[i].getElementsByTagName("td");
+
+                  // and iterate through them...
+                  for (var j = 0; j < tds.length; j++)
+                  {
+                      var mytd = tds[j];
+
+                      // avoid cells that have a class attribute
+                      // or backgroundColor style
+                      if (! hasClass(mytd) &&
+                          ! mytd.style.backgroundColor)
+                      {
+                          mytd.style.backgroundColor =
+                            even ? evenColor : oddColor;
+                      }
+                  }
+              }
+              // flip from odd to even, or vice-versa
+              even =  ! even;
+          }
+      }
+  }
+
+  function toggle_invis( name )
+  {
+      var filter =
+        { acceptNode:
+          function( node )
+          { var classname = node.id;
+            if( classname )
+            { var classbase = classname.substr( 0, name.length );
+              if( classbase == name ) { return NodeFilter.FILTER_ACCEPT; } }
+            return NodeFilter.FILTER_SKIP; } };
+      var walker = document.createTreeWalker( document.body           ,
+                                              NodeFilter.SHOW_ELEMENT ,
+                                              filter                  ,
+                                              false                   );
+      while( walker.nextNode() )
+      {
+          var e = walker.currentNode;
+          if( e.style.display == "none" ) { e.style.display = "inline"; }
+          else                            { e.style.display = "none";   }
+      }
+  }
+--> </script>
+  </head>
+  <body onload="stripe('index'); return true;">
+
+<pre><span class="governing">module</span> <span class="module">Prelude</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="type">min_size_t</span> <span class="operator">=</span>
+      <span class="merlin-compilation-error-face-0000">Tjr_btree.Isa_export.Prelude.</span><span class="merlin-compilation-error-face-0001">min_size_t</span> <span class="operator">=</span>
+        <span class="constructor">Small_root_node_or_leaf</span>
+      <span class="operator">|</span> <span class="constructor">Small_node</span>
+      <span class="operator">|</span> <span class="constructor">Small_leaf</span>
+    <span class="governing">type</span> <span class="type">'a constants_ext</span> <span class="operator">=</span>
+      'a <span class="module">Tjr_btree.Isa_export.Prelude.</span>constants_ext <span class="operator">=</span>
+        <span class="constructor">Constants_ext</span> <span class="keyword">of</span> <span class="merlin-compilation-error-face-0000">Tjr_btree.Isa_export.Arith.</span><span class="merlin-compilation-error-face-0001">nat</span> <span class="operator">*</span>
+          <span class="module">Tjr_btree.Isa_export.Arith.</span>nat <span class="operator">*</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>nat <span class="operator">*</span>
+          <span class="module">Tjr_btree.Isa_export.Arith.</span>nat <span class="operator">*</span> 'a
+    <span class="governing">val</span> <span class="function-name">max_leaf_size</span> <span class="operator">:</span> <span class="merlin-compilation-error-face-0001">'a constants_ext</span> <span class="operator">-&gt;</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>nat
+    <span class="merlin-compilation-error-face-0002">..</span><span class="operator">.</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Tree</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">)</span><span class="type"> tree</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Tree.</span>tree <span class="operator">=</span>
+        <span class="constructor">Node</span> <span class="keyword">of</span> <span class="operator">(</span>'a list <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">)</span> tree list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">Leaf</span> <span class="keyword">of</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list
+    <span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Tree_stack</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'k</span><span class="operator">,</span><span class="type"> 'a</span><span class="operator">)</span><span class="type"> rstack</span> <span class="operator">=</span>
+        <span class="operator">(</span>'k<span class="operator">,</span> 'a<span class="operator">,</span> unit<span class="operator">)</span>
+        <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list
+    <span class="governing">val</span> <span class="function-name">rstack_map</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a <span class="operator">-&gt;</span> 'b<span class="operator">)</span> <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'c<span class="operator">,</span> 'a<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'c<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list
+    <span class="governing">val</span> <span class="function-name">no_focus</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b option<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list
+    <span class="governing">val</span> <span class="function-name">r_stk_to_rs</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      'b list
+    <span class="governing">val</span> <span class="function-name">rstack_equal</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      bool
+    <span class="governing">val</span> <span class="function-name">tree_to_rstack</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a <span class="operator">-&gt;</span> 'a <span class="operator">-&gt;</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>int<span class="operator">)</span> <span class="operator">-&gt;</span>
+      'a <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Tree.</span>tree <span class="operator">-&gt;</span>
+      <span class="module">Tjr_btree.Isa_export.Arith.</span>nat <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Tree.</span>tree <span class="operator">*</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Tree.</span>tree<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list
+    <span class="governing">val</span> <span class="function-name">rstack_get_bounds</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      'a option <span class="operator">*</span> 'a option
+    <span class="governing">val</span> <span class="function-name">add_new_stack_frame</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a <span class="operator">-&gt;</span> 'a <span class="operator">-&gt;</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>int<span class="operator">)</span> <span class="operator">-&gt;</span>
+      'a <span class="operator">-&gt;</span>
+      'a list <span class="operator">*</span> 'b list <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> unit<span class="operator">)</span>
+      <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">*</span> 'b
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Disk_node</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> dnode</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Disk_node.</span>dnode <span class="operator">=</span>
+        <span class="constructor">Disk_node</span> <span class="keyword">of</span> <span class="operator">(</span>'a list <span class="operator">*</span> 'c list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">Disk_leaf</span> <span class="keyword">of</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list
+    <span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Params</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">,</span><span class="type"> 'd</span><span class="operator">,</span><span class="type"> 'e</span><span class="operator">)</span><span class="type"> store_ops_ext</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> 'e<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>store_ops_ext <span class="operator">=</span>
+        <span class="constructor">Store_ops_ext</span> <span class="keyword">of</span>
+          <span class="operator">(</span>'c <span class="operator">-&gt;</span>
+           'd <span class="operator">-&gt;</span>
+           'd <span class="operator">*</span>
+           <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Disk_node.</span>dnode
+           <span class="module">Tjr_btree.Isa_export.Util.</span>res<span class="operator">)</span> <span class="operator">*</span>
+          <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Disk_node.</span>dnode <span class="operator">-&gt;</span>
+           'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> 'c <span class="module">Tjr_btree.Isa_export.Util.</span>res<span class="operator">)</span> <span class="operator">*</span>
+          <span class="operator">(</span>'c list <span class="operator">-&gt;</span> 'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> unit <span class="module">Tjr_btree.Isa_export.Util.</span>res<span class="operator">)</span> <span class="operator">*</span> 'e
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">,</span><span class="type"> 'd</span><span class="operator">)</span><span class="type"> ps1</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">=</span>
+        <span class="constructor">Ps1</span> <span class="keyword">of</span>
+          <span class="operator">(</span>unit <span class="module">Tjr_btree.Isa_export.Prelude.</span>constants_ext <span class="operator">*</span>
+           <span class="operator">((</span>'a <span class="operator">-&gt;</span> 'a <span class="operator">-&gt;</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>int<span class="operator">)</span> <span class="operator">*</span>
+            <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> unit<span class="operator">)</span> store_ops_ext<span class="operator">))</span>
+    <span class="governing">val</span> <span class="function-name">dummy</span> <span class="operator">:</span> unit
+    <span class="governing">val</span> <span class="function-name">dot_cmp</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> ps1 <span class="operator">-&gt;</span> 'a <span class="operator">-&gt;</span> 'a <span class="operator">-&gt;</span> <span class="module">Tjr_btree.Isa_export.Arith.</span>int
+    <span class="governing">val</span> <span class="function-name">dot_constants</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> ps1 <span class="operator">-&gt;</span> unit <span class="module">Tjr_btree.Isa_export.Prelude.</span>constants_ext
+    <span class="governing">val</span> <span class="function-name">dot_store_ops</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> ps1 <span class="operator">-&gt;</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> unit<span class="operator">)</span> store_ops_ext
+    <span class="governing">val</span> <span class="function-name">store_free</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> 'e<span class="operator">)</span> store_ops_ext <span class="operator">-&gt;</span>
+      'c list <span class="operator">-&gt;</span> 'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> unit <span class="module">Tjr_btree.Isa_export.Util.</span>res
+    <span class="governing">val</span> <span class="function-name">store_read</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> 'e<span class="operator">)</span> store_ops_ext <span class="operator">-&gt;</span>
+      'c <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span>
+      'd <span class="operator">*</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Disk_node.</span>dnode
+      <span class="module">Tjr_btree.Isa_export.Util.</span>res
+    <span class="governing">val</span> <span class="function-name">store_alloc</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">,</span> 'e<span class="operator">)</span> store_ops_ext <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Disk_node.</span>dnode <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> 'c <span class="module">Tjr_btree.Isa_export.Util.</span>res
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Find</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> find_state</span> <span class="operator">=</span>
+        <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Find.</span>find_state
+    <span class="governing">val</span> <span class="function-name">find_step</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> find_state <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> find_state <span class="module">Tjr_btree.Isa_export.Util.</span>res
+    <span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Pre_insert</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">val</span> <span class="function-name">split_leaf</span> <span class="operator">:</span>
+      unit <span class="module">Tjr_btree.Isa_export.Prelude.</span>constants_ext <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list <span class="operator">-&gt;</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list<span class="operator">)</span>
+    <span class="governing">val</span> <span class="function-name">split_node</span> <span class="operator">:</span>
+      unit <span class="module">Tjr_btree.Isa_export.Prelude.</span>constants_ext <span class="operator">-&gt;</span>
+      'a list <span class="operator">*</span> 'b list <span class="operator">-&gt;</span> <span class="operator">(</span>'a list <span class="operator">*</span> 'b list<span class="operator">)</span> <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> <span class="operator">(</span>'a list <span class="operator">*</span> 'b list<span class="operator">))</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Insert</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> i12_t</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Insert.</span>i12_t <span class="operator">=</span>
+        <span class="constructor">I1</span> <span class="keyword">of</span> 'c
+      <span class="operator">|</span> <span class="constructor">I2</span> <span class="keyword">of</span> <span class="operator">(</span>'c <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'c<span class="operator">))</span>
+<span class="operator">...</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> insert_state</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Insert.</span>insert_state <span class="operator">=</span>
+        <span class="constructor">I_down</span> <span class="keyword">of</span> <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Find.</span>find_state <span class="operator">*</span> 'b<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">I_up</span> <span class="keyword">of</span>
+          <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> i12_t <span class="operator">*</span>
+           <span class="operator">(</span>'a<span class="operator">,</span> 'c<span class="operator">,</span> unit<span class="operator">)</span>
+           <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">I_finished</span> <span class="keyword">of</span> 'c
+    <span class="governing">val</span> <span class="function-name">insert_step</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> insert_state <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> insert_state <span class="module">Tjr_btree.Isa_export.Util.</span>res
+<span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Delete2</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> del_t</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Delete2.</span>del_t <span class="operator">=</span>
+        <span class="constructor">D_small_leaf</span> <span class="keyword">of</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list
+      <span class="operator">|</span> <span class="constructor">D_small_node</span> <span class="keyword">of</span> <span class="operator">(</span>'a list <span class="operator">*</span> 'c list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">D_updated_subtree</span> <span class="keyword">of</span> 'c
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> delete_state</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Delete2.</span>delete_state <span class="operator">=</span>
+        <span class="constructor">D_down</span> <span class="keyword">of</span> <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Find.</span>find_state <span class="operator">*</span> 'c<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">D_up</span> <span class="keyword">of</span>
+          <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> del_t <span class="operator">*</span>
+           <span class="operator">((</span>'a<span class="operator">,</span> 'c<span class="operator">,</span> unit<span class="operator">)</span>
+            <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list <span class="operator">*</span>
+            'c<span class="operator">))</span>
+      <span class="operator">|</span> <span class="constructor">D_finished</span> <span class="keyword">of</span> 'c
+<span class="operator">...</span>
+    <span class="governing">val</span> <span class="function-name">delete_step</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> delete_state <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> delete_state <span class="module">Tjr_btree.Isa_export.Util.</span>res
+<span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Insert_many</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> fo</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Insert_many.</span>fo <span class="operator">=</span>
+        <span class="constructor">I1</span> <span class="keyword">of</span> <span class="operator">(</span>'c <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">I2</span> <span class="keyword">of</span> <span class="operator">((</span>'c <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'c<span class="operator">))</span> <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list<span class="operator">)</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> ist</span> <span class="operator">=</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Insert_many.</span>ist <span class="operator">=</span>
+        <span class="constructor">I_down</span> <span class="keyword">of</span>
+          <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Find.</span>find_state <span class="operator">*</span>
+           <span class="operator">(</span>'b <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list<span class="operator">))</span>
+      <span class="operator">|</span> <span class="constructor">I_up</span> <span class="keyword">of</span>
+          <span class="operator">((</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> fo <span class="operator">*</span>
+           <span class="operator">(</span>'a<span class="operator">,</span> 'c<span class="operator">,</span> unit<span class="operator">)</span>
+           <span class="module">Tjr_btree.Isa_export.Searching_and_splitting.</span>rsplit_node_ext list<span class="operator">)</span>
+      <span class="operator">|</span> <span class="constructor">I_finished</span> <span class="keyword">of</span> <span class="operator">(</span>'c <span class="operator">*</span> <span class="operator">(</span>'a <span class="operator">*</span> 'b<span class="operator">)</span> list<span class="operator">)</span>
+    <span class="governing">val</span> <span class="function-name">insert_step</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> ist <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> ist <span class="module">Tjr_btree.Isa_export.Util.</span>res
+<span class="operator">...</span>
+  <span class="governing">end</span>
+<span class="governing">module</span> <span class="module">Leaf_stream</span> <span class="operator">:</span>
+  <span class="governing">sig</span>
+    <span class="governing">type</span> <span class="operator">(</span><span class="type">'a</span><span class="operator">,</span><span class="type"> 'b</span><span class="operator">,</span><span class="type"> 'c</span><span class="operator">)</span><span class="type"> ls_state</span> <span class="operator">=</span>
+        <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Leaf_stream.</span>ls_state
+    <span class="governing">val</span> <span class="function-name">lss_step</span> <span class="operator">:</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">,</span> 'd<span class="operator">)</span> <span class="module">Tjr_btree.Isa_export.Params.</span>ps1 <span class="operator">-&gt;</span>
+      <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> ls_state <span class="operator">-&gt;</span>
+      'd <span class="operator">-&gt;</span> 'd <span class="operator">*</span> <span class="operator">(</span>'a<span class="operator">,</span> 'b<span class="operator">,</span> 'c<span class="operator">)</span> ls_state <span class="module">Tjr_btree.Isa_export.Util.</span>res
+<span class="operator">...</span>
+  <span class="governing">end</span>
+</pre>
+
+ </body>
+</html>

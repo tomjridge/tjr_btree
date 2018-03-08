@@ -21,6 +21,17 @@ open Monad
 
 (* map ------------------------------------------------------------ *)
 
+module Map_ops_type = struct
+  type ('k,'v,'t) map_ops = {
+    find: 'k -> ('v option,'t) m;
+    insert: 'k -> 'v -> (unit,'t) m;
+    delete: 'k -> (unit,'t) m;
+    insert_many: 'k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m
+  }
+end
+include Map_ops_type
+
+
 (* NOTE insert_many not standard map op *)
 let wf_map_ops
     ~(find: 'k -> ('v option,'t) m)
@@ -33,10 +44,10 @@ let wf_map_ops
 
 let mk_map_ops ~find ~insert ~delete ~insert_many =
   assert(wf_map_ops ~find ~insert ~delete ~insert_many);
-  `Map_ops(find,insert,delete,insert_many)
+  { find;insert;delete;insert_many }
 
 
-let dest_map_ops (`Map_ops(find,insert,delete,insert_many)) =
+let dest_map_ops { find;insert;delete;insert_many } =
   assert(wf_map_ops ~find ~insert ~delete ~insert_many);
   fun k -> k ~find ~insert ~delete ~insert_many
 

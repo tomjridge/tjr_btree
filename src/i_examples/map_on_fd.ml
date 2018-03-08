@@ -57,7 +57,7 @@ let mk_store_ops ~ps ~ops =
 
 (* FIXME these aren't doing much; also, constants can be computed *)
 
-let mk_map_ops ~ps ~ops : [<`Map_ops of 'a] = 
+let mk_map_ops ~ps ~ops : ('k,'v,'t) map_ops = 
   mk_store_ops ~ps ~ops |> fun store_ops -> 
   S2M.store_ops_to_map_ops ~ps ~page_ref_ops:(page_ref_ops ops) ~store_ops
 

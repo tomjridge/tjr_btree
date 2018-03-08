@@ -13,7 +13,7 @@ type k1 = int  (* index *)
 (* location of underlying block that corresponds to this index *)
 type v1 = blk_id  
 
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] =
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : ('k,'v,'t) map_ops =
   let cmp=Int_.compare in
   let dbg_ps=None in
   let cs = constants ps in
@@ -33,7 +33,8 @@ let mk_int_blk_map
     ~(write_blk:blk->(blk_id,'t)m)  (* write blk in data *)
     ~(read_blk:blk_id->(blk option,'t)m)
     ~map_ops
-  : [< `Map_ops of 'a ]  (* (k2,v2,'t) map_ops *) = 
+  : ('k,'v,'t) map_ops 
+  =
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)

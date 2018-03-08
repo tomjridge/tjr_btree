@@ -20,7 +20,7 @@ module Mk = functor (
 
   open X
 
-  let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] = 
+  let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : ('k,'v,'t) map_ops = 
     let cmp=(Block.compare_blk_id) in
     let dbg_ps=None in
     let ps = object

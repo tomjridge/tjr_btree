@@ -1,3 +1,4 @@
+open Tjr_btree
 (* Pick out the main modules, functors etc *)
 
 
@@ -9,6 +10,8 @@ module Constants_type = struct include Constants.Constants_type end
 
 module Frame_type = struct include Frame.Frame_type end
 
+
+(* NOTE ls_state is abstract in isa_export *)
 module Ls_state = struct include Ls_state end
 
 (* FIXME params should probably be real types rather than object

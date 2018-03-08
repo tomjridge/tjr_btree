@@ -61,7 +61,7 @@ let make_map_ops' (type k v r t) pre_map_ops page_ref_ops =
 (* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
 
 (** Make [map_ops], given a [page_ref_ops]. *)
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : [<`Map_ops of 'a] = 
+let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : ('k,'v,'t) Map_ops.map_ops = 
   Big_step.make_pre_map_ops ~ps ~store_ops
   |> fun pre_map_ops -> make_map_ops' pre_map_ops page_ref_ops
 
@@ -70,7 +70,7 @@ let ils_mk = Iter_leaf_stream.ils_mk
 
 (** Make [ls_ops], given a [page_ref_ops]. We only read from
     page_ref_ops. TODO ditto *)
-let make_ls_ops ~ps ~store_ops ~page_ref_ops : [<`Ls_ops of 'a] =
+let make_ls_ops ~ps ~store_ops ~page_ref_ops : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops =
   ils_mk ~ps ~store_ops @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
   let mk_leaf_stream = fun () ->
     page_ref_ops.get () |> bind @@ fun r -> 

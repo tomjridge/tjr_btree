@@ -7,6 +7,16 @@ open Block
 
 (* block device ---------------------------------------- *)
 
+module Block_device_type = struct
+  type 't block_device = {
+    blk_sz:blk_sz;
+    read:blk_id -> (blk,'t) m;
+    write:blk_id -> blk -> (unit,'t) m
+  }
+end
+include Block_device_type
+
+
 let wf_disk_ops 
     ~(blk_sz:blk_sz) 
     ~(read:blk_id -> (blk,'t) m) 
@@ -15,10 +25,11 @@ let wf_disk_ops
 
 
 let mk_disk_ops ~blk_sz ~read ~write =
-  `Disk_ops(blk_sz,read,write)
+  {blk_sz; read; write}  (* `Disk_ops(blk_sz,read,write) *)
 
 
-let dest_disk_ops (`Disk_ops(blk_sz,read,write)) = 
+let dest_disk_ops ops = 
+  let blk_sz,read,write = ops.blk_sz,ops.read,ops.write in
   assert(wf_disk_ops ~blk_sz ~read ~write);
   fun k -> k ~blk_sz ~read ~write
 
@@ -30,6 +41,8 @@ let wf_imperative_disk_ops
   = true
 
 
+(* FIXME? leave imperative disk ops as a polymorphic variant for the
+   time being *)
 let disk_ops_to_imperative ~blk_sz ~read ~write = 
   assert(wf_disk_ops ~blk_sz ~read ~write);
   fun ~_ref -> 

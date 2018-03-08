@@ -29,6 +29,6 @@ let mk_r2f get_store s r : ('k,'v)frame option =
   with Not_found -> None
 
 
-(* param *)
+(* param FIXME move *)
 let mem_ops x = x#mem_ops
 

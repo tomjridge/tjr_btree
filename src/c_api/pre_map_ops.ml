@@ -5,16 +5,21 @@
 open Base_types
 open Rstk
 
-type ('k,'v,'r,'t) pre_map_ops = {
+module Pre_map_ops_type = struct
+
+  type ('k,'v,'r,'t) pre_map_ops = {
     (** NOTE the return value includes a reference to a leaf, not a
         reference to the updated B-tree... find does not alter the B-tree
     *)
-  find_leaf: 'k -> 'r -> ('r*('k*'v)list*('k,'r)rstk,'t) m;
-  find: 'k -> 'r -> ('r * ('k*'v)list,'t) m;
-  insert: 'k -> 'v -> 'r -> ('r,'t) m;
-  insert_many: 'k -> 'v -> ('k*'v)list -> 'r -> ('r * ('k*'v)list,'t) m;
-  delete: 'k -> 'r -> ('r,'t) m;
-}
+    find_leaf: 'k -> 'r -> ('r*('k*'v)list*('k,'r)rstk,'t) m;
+    find: 'k -> 'r -> ('r * ('k*'v)list,'t) m;
+    insert: 'k -> 'v -> 'r -> ('r,'t) m;
+    insert_many: 'k -> 'v -> ('k*'v)list -> 'r -> ('r * ('k*'v)list,'t) m;
+    delete: 'k -> 'r -> ('r,'t) m;
+  }
+
+end
+include Pre_map_ops_type
 
 
 let mk_pre_map_ops ~find_leaf ~find ~insert ~insert_many ~delete =

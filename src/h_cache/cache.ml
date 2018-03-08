@@ -120,6 +120,7 @@ exception E_
 
 open Monad
 
+(* FIXME document the following more *)
 (* flush evictees, assuming already removed from c; map_ops is the ops
    of the underlying layer; exposed so can call when we want to flush
    the entire cache *)
@@ -159,7 +160,7 @@ let sync map_ops cache_ops =
   sync_evictees map_ops (Pmap.bindings c) |> bind @@ fun () ->
   mark_all_clean cache_ops
 
-
+(* FIXME document why we need evict_hook... testing? *)
 let make_cached_map ~map_ops ~cache_ops =
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let evict_hook : (unit -> unit) ref = ref (fun () -> ()) in
