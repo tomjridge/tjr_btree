@@ -50,6 +50,13 @@ ImpFS is a project to build an advanced high-performance filesystem.
 
 == Installation
 
+There is a Dockerfile that describes the required steps here:
+
+
+
+First you need to install `tjr_fs_shared`, from
+https://github.com/tomjridge/tjr_fs_shared.
+
 Type `make && make install` to make the library and install it using
 `ocamlfind`. You need various libraries from opam (see `bash_env.sh`
 for details).
