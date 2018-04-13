@@ -8,6 +8,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -47,6 +48,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -67,8 +69,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Index of modules</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Index of modules</title>
 </head>
 <body>
 <div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
@@ -111,8 +112,6 @@ Marshal frames to blocks using binprot
 </td></tr>
 <tr><td><a href="Block.Blk4096.html">Blk4096</a> [<a href="Block.html">Block</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.BlkN.html">BlkN</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Binprot_marshalling.BlkN.html">BlkN</a> [<a href="Binprot_marshalling.html">Binprot_marshalling</a>]</td>
 <td></td></tr>
 <tr><td><a href="Block.BlkN.html">BlkN</a> [<a href="Block.html">Block</a>]</td>
@@ -125,24 +124,28 @@ Basic implementation of a block.
 Basic block implementation.
 </div>
 </td></tr>
+<tr><td><a href="Disk_ops.Block_device_type.html">Block_device_type</a> [<a href="Disk_ops.html">Disk_ops</a>]</td>
+<td></td></tr>
 <tr><td><a href="Bytestore.html">Bytestore</a> </td>
 <td></td></tr>
 <tr><td align="left"><br>C</td></tr>
-<tr><td><a href="Tjr_btree_recap.Cache.html">Cache</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Cache.html">Cache</a> </td>
 <td><div class="info">
 An LRU cache on top of a map.
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Constants.html">Constants</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Constants.html">Constants</a> </td>
 <td><div class="info">
 B-tree constants: minimum leaf size etc.
 </div>
 </td></tr>
+<tr><td><a href="Constants.Constants_type.html">Constants_type</a> [<a href="Constants.html">Constants</a>]</td>
+<td></td></tr>
 <tr><td align="left"><br>D</td></tr>
+<tr><td><a href="Map_on_fd.D.html">D</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<td></td></tr>
+<tr><td><a href="Map_on_fd.D2S.html">D2S</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<td></td></tr>
 <tr><td><a href="Digest_.O.DIG.html">DIG</a> [<a href="Digest_.O.html">Digest_.O</a>]</td>
 <td></td></tr>
 <tr><td><a href="Default_filename.html">Default_filename</a> </td>
@@ -150,6 +153,8 @@ B-tree constants: minimum leaf size etc.
 Default filename for testing.
 </div>
 </td></tr>
+<tr><td><a href="Map_on_fd.Default_implementation.html">Default_implementation</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<td></td></tr>
 <tr><td><a href="Isa_export.Delete2.html">Delete2</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td><a href="Digest_.Digest.html">Digest</a> [<a href="Digest_.html">Digest_</a>]</td>
@@ -163,22 +168,16 @@ A digest/hash of a string, for implementing maps from string,
 </td></tr>
 <tr><td><a href="Isa_export.Disk_node.html">Disk_node</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Disk_on_fd.html">Disk_on_fd</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Disk_on_fd.html">Disk_on_fd</a> </td>
 <td><div class="info">
 Implement disk operations backed by a file-descriptor
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Disk_ops.html">Disk_ops</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Disk_ops.html">Disk_ops</a> </td>
 <td><div class="info">
 Disk block operations: read, write
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Disk_to_store.html">Disk_to_store</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Disk_to_store.html">Disk_to_store</a> </td>
 <td><div class="info">
 We maintain a free counter in the global state in order to
@@ -201,13 +200,13 @@ Exhaustive state-space exploration for testing
 <tr><td align="left"><br>F</td></tr>
 <tr><td><a href="Isa_export.Find.html">Find</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Frame.html">Frame</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Frame.html">Frame</a> </td>
 <td><div class="info">
 A frame is a node in a B-tree.
 </div>
 </td></tr>
+<tr><td><a href="Frame.Frame_type.html">Frame_type</a> [<a href="Frame.html">Frame</a>]</td>
+<td></td></tr>
 <tr><td><a href="Isa_export.Fun.html">Fun</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>H</td></tr>
@@ -246,22 +245,20 @@ Wrap the small-step leaf-stream operations.
 <tr><td align="left"><br>L</td></tr>
 <tr><td><a href="Isa_export.Leaf_stream.html">Leaf_stream</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Leaf_stream_ops.html">Leaf_stream_ops</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Leaf_stream_ops.html">Leaf_stream_ops</a> </td>
 <td><div class="info">
 A leaf stream is a linear sequence of the leaves in a B-tree, used
     for iterating over all the bindings in the tree.
 </div>
 </td></tr>
+<tr><td><a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_types</a> [<a href="Leaf_stream_ops.html">Leaf_stream_ops</a>]</td>
+<td></td></tr>
 <tr><td><a href="Leaf_stream_util.html">Leaf_stream_util</a> </td>
 <td><div class="info">
 Get all (key,value) pairs from a leaf stream.
 </div>
 </td></tr>
 <tr><td><a href="Isa_export.List.html">List</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Ls_state.html">Ls_state</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
 <td></td></tr>
 <tr><td><a href="Ls_state.html">Ls_state</a> </td>
 <td><div class="info">
@@ -283,20 +280,23 @@ Map from int to partial blk, implemented as a map from blkid to blkid*sz
 </td></tr>
 <tr><td><a href="Map_int_int.html">Map_int_int</a> </td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Map_ops.html">Map_ops</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
+<tr><td><a href="Map_on_fd.html">Map_on_fd</a> </td>
+<td><div class="info">
+A generic map, backed by a file descriptor
+</div>
+</td></tr>
 <tr><td><a href="Map_ops.html">Map_ops</a> </td>
 <td><div class="info">
 Map operations: find, insert, <code class="code">insert_many</code> and delete.
 </div>
 </td></tr>
+<tr><td><a href="Map_ops.Map_ops_type.html">Map_ops_type</a> [<a href="Map_ops.html">Map_ops</a>]</td>
+<td></td></tr>
 <tr><td><a href="Mem_map.html">Mem_map</a> </td>
 <td><div class="info">
 Generic in-memory map
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Mem_store.html">Mem_store</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Mem_store.html">Mem_store</a> </td>
 <td><div class="info">
 Simple in-memory store implementation, mainly for testing
@@ -331,8 +331,6 @@ Ordering over a type
 Fix page_ref type as int; also shadow frame type with more specific type.
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Params.html">Params</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Params.html">Params</a> </td>
 <td><div class="info">
 Various common parameters to functions.
@@ -344,14 +342,14 @@ Various common parameters to functions.
 <td></td></tr>
 <tr><td><a href="Isa_export.Pre_insert.html">Pre_insert</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Pre_map_ops.html">Pre_map_ops</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Pre_map_ops.html">Pre_map_ops</a> </td>
 <td><div class="info">
 A pre-map is like a map, but functions take an additional reference (to the
    root of the B-tree), and return (the updated state and) an updated reference.
 </div>
 </td></tr>
+<tr><td><a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops_type</a> [<a href="Pre_map_ops.html">Pre_map_ops</a>]</td>
+<td></td></tr>
 <tr><td><a href="Isa_export.Pre_params.html">Pre_params</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Prelude.html">Prelude</a> [<a href="Isa_export.html">Isa_export</a>]</td>
@@ -364,20 +362,18 @@ A pre-map is like a map, but functions take an additional reference (to the
 <tr><td><a href="Cache.Queue.html">Queue</a> [<a href="Cache.html">Cache</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>R</td></tr>
-<tr><td><a href="Tjr_btree_recap.R2f.html">R2f</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="R2f.html">R2f</a> </td>
 <td><div class="info">
 Block ref to frame option
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.R2t.html">R2t</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="R2t.html">R2t</a> </td>
 <td><div class="info">
 The r2t type represents a pure view of a given system state.
 </div>
 </td></tr>
+<tr><td><a href="Map_on_fd.RS.html">RS</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<td></td></tr>
 <tr><td><a href="Range.html">Range</a> </td>
 <td></td></tr>
 <tr><td><a href="Recycling_store.html">Recycling_store</a> </td>
@@ -388,11 +384,11 @@ A store that attempts to recycle freed blocks, and thereby avoid
 </td></tr>
 <tr><td><a href="Isa_export.Res.html">Res</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Rstk.html">Rstk</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Rstk.html">Rstk</a> </td>
 <td></td></tr>
 <tr><td align="left"><br>S</td></tr>
+<tr><td><a href="Map_on_fd.S2M.html">S2M</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
+<td></td></tr>
 <tr><td><a href="Small_string.SS.html">SS</a> [<a href="Small_string.html">Small_string</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Searching_and_splitting.html">Searching_and_splitting</a> [<a href="Isa_export.html">Isa_export</a>]</td>
@@ -408,8 +404,6 @@ A store that attempts to recycle freed blocks, and thereby avoid
 Wrapper functions round functions exported from Isabelle.
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Small_step_types.html">Small_step_types</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Small_string.html">Small_string</a> </td>
 <td><div class="info">
 Strings with &lt;= 256 bytes, used as keys in maps
@@ -426,15 +420,11 @@ A map from small string to int, backed by file descriptor
 <td></td></tr>
 <tr><td><a href="Tree_store.State.html">State</a> [<a href="Tree_store.html">Tree_store</a>]</td>
 <td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Store_ops.html">Store_ops</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Store_ops.html">Store_ops</a> </td>
 <td><div class="info">
 Store operations: alloc, free and read.
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.Store_to_map.html">Store_to_map</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
-<td></td></tr>
 <tr><td><a href="Store_to_map.html">Store_to_map</a> </td>
 <td><div class="info">
 The essential B-tree functionality: implement a map on top of a store.
@@ -476,11 +466,7 @@ Support for logging and testing.
 Main documentation entry point
 </div>
 </td></tr>
-<tr><td><a href="Tjr_btree_recap.html">Tjr_btree_recap</a> </td>
-<td></td></tr>
 <tr><td><a href="Exhaustive.Tjr_set.html">Tjr_set</a> [<a href="Exhaustive.html">Exhaustive</a>]</td>
-<td></td></tr>
-<tr><td><a href="Tjr_btree_recap.Tree.html">Tree</a> [<a href="Tjr_btree_recap.html">Tjr_btree_recap</a>]</td>
 <td></td></tr>
 <tr><td><a href="Tree.html">Tree</a> </td>
 <td><div class="info">
@@ -492,6 +478,8 @@ The B-tree tree type.
 <tr><td><a href="Isa_export.Tree_stack.html">Tree_stack</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td><a href="Tree_store.html">Tree_store</a> </td>
+<td></td></tr>
+<tr><td><a href="Tree.Tree_type.html">Tree_type</a> [<a href="Tree.html">Tree</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>U</td></tr>
 <tr><td><a href="Isa_export.Util.html">Util</a> [<a href="Isa_export.html">Isa_export</a>]</td>

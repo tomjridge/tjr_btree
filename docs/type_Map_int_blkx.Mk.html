@@ -7,6 +7,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -46,6 +47,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -66,8 +68,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Map_int_blkx.Mk</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_int_blkx.Mk</title>
 </head>
 <body>
 <code class="code"><span class="keyword">functor</span><br>
@@ -79,25 +80,14 @@
 &nbsp;&nbsp;<span class="keyword">sig</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;store_ops_to_map_ops&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;ps:&lt;&nbsp;constants&nbsp;:&nbsp;<span class="constructor">Constants</span>.t;&nbsp;..&nbsp;&gt;&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_ref_ops:(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Monad</span>.mref&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;store_ops:(<span class="constructor">Block</span>.blk_id,&nbsp;<span class="keywordsign">'</span>c,&nbsp;<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Store_ops</span>.store_ops&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[&nbsp;<span class="keywordsign">`</span><span class="constructor">Map_ops</span>&nbsp;<span class="keyword">of</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>c&nbsp;option,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>c&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>c&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id&nbsp;*&nbsp;<span class="keywordsign">'</span>c)&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;((<span class="constructor">Block</span>.blk_id&nbsp;*&nbsp;<span class="keywordsign">'</span>c)&nbsp;list,&nbsp;<span class="keywordsign">'</span>b)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;]<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_ref_ops:(<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.mref&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;store_ops:(<span class="constructor">Block</span>.blk_id,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>a,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Store_ops</span>.store_ops&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Block</span>.blk_id,&nbsp;<span class="keywordsign">'</span>v,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Map_ops</span>.map_ops<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">type</span>&nbsp;k&nbsp;=&nbsp;<span class="constructor">Block</span>.blk_id<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;mk_blk_id_blk_map&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;write_blk:(<span class="constructor">Block</span>.blk&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Block</span>.blk_id,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;read_blk:(<span class="constructor">Block</span>.blk_id&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Block</span>.blk&nbsp;option,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;map_ops:[&lt;&nbsp;<span class="keywordsign">`</span><span class="constructor">Map_ops</span>&nbsp;<span class="keyword">of</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">X</span>.v&nbsp;option,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">X</span>.v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;*<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span><br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">X</span>.v&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="keywordsign">'</span>k&nbsp;*&nbsp;<span class="constructor">X</span>.v)&nbsp;list&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;((<span class="keywordsign">'</span>k&nbsp;*&nbsp;<span class="constructor">X</span>.v)&nbsp;list,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;]&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;map_ops:(<span class="keywordsign">'</span>k,&nbsp;<span class="constructor">X</span>.v,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Map_ops</span>.map_ops&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;(find:(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(<span class="constructor">Block</span>.blk&nbsp;option,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;insert:(<span class="keywordsign">'</span>k&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Block</span>.blk&nbsp;*&nbsp;int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;(unit,&nbsp;<span class="keywordsign">'</span>t)&nbsp;<span class="constructor">Monad</span>.m)&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="keywordsign">'</span>a)&nbsp;<span class="keywordsign">-&gt;</span><br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="keywordsign">'</span>a<br>

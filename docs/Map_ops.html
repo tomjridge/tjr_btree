@@ -12,6 +12,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -51,6 +52,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -71,8 +73,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Map_ops</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_ops</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Leaf_stream_util.html" title="Leaf_stream_util">Previous</a>
@@ -104,13 +105,16 @@ The operations typically execute in the <code class="code">Base_types.Monad</cod
 </div>
 <hr width="100%">
 
+<pre><span class="keyword">module</span> <a href="Map_ops.Map_ops_type.html">Map_ops_type</a>: <code class="code">sig</code> <a href="Map_ops.Map_ops_type.html">..</a> <code class="code">end</code></pre>
+<pre><span class="keyword">include</span> Map_ops_type</pre>
+
 <pre><span id="VALwf_map_ops"><span class="keyword">val</span> wf_map_ops</span> : <code class="type">find:('k -> ('v option, 't) Monad.m) -><br>       insert:('k -> 'v -> (unit, 't) Monad.m) -><br>       delete:('k -> (unit, 't) Monad.m) -><br>       insert_many:('k -> 'v -> ('k * 'v) list -> (('k * 'v) list, 't) Monad.m) -><br>       bool</code></pre>
-<pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">find:('a -> ('b option, 'c) Monad.m) -><br>       insert:('a -> 'b -> (unit, 'c) Monad.m) -><br>       delete:('a -> (unit, 'c) Monad.m) -><br>       insert_many:('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) -><br>       [> `Map_ops of<br>            ('a -> ('b option, 'c) Monad.m) * ('a -> 'b -> (unit, 'c) Monad.m) *<br>            ('a -> (unit, 'c) Monad.m) *<br>            ('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) ]</code></pre>
-<pre><span id="VALdest_map_ops"><span class="keyword">val</span> dest_map_ops</span> : <code class="type">[< `Map_ops of<br>            ('a -> ('b option, 'c) Monad.m) * ('a -> 'b -> (unit, 'c) Monad.m) *<br>            ('a -> (unit, 'c) Monad.m) *<br>            ('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) ] -><br>       (find:('a -> ('b option, 'c) Monad.m) -><br>        insert:('a -> 'b -> (unit, 'c) Monad.m) -><br>        delete:('a -> (unit, 'c) Monad.m) -><br>        insert_many:('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) -><br>        'd) -><br>       'd</code></pre>
+<pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">find:('a -> ('b option, 'c) Monad.m) -><br>       insert:('a -> 'b -> (unit, 'c) Monad.m) -><br>       delete:('a -> (unit, 'c) Monad.m) -><br>       insert_many:('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) -><br>       ('a, 'b, 'c) map_ops</code></pre>
+<pre><span id="VALdest_map_ops"><span class="keyword">val</span> dest_map_ops</span> : <code class="type">('a, 'b, 'c) map_ops -><br>       (find:('a -> ('b option, 'c) Monad.m) -><br>        insert:('a -> 'b -> (unit, 'c) Monad.m) -><br>        delete:('a -> (unit, 'c) Monad.m) -><br>        insert_many:('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) -><br>        'd) -><br>       'd</code></pre>
 <pre><span id="VALinsert_all"><span class="keyword">val</span> insert_all</span> : <code class="type">('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) -><br>       'a -> 'b -> ('a * 'b) list -> (unit, 'c) Monad.m</code></pre><div class="info ">
 Utility: call <code class="code">insert_many</code> in a loop.<br>
 </div>
 
 <pre><span id="VALwf_imperative_map_ops"><span class="keyword">val</span> wf_imperative_map_ops</span> : <code class="type">find:('k -> 'v option) -><br>       insert:('k -> 'v -> unit) -> delete:('k -> unit) -> bool</code></pre>
-<pre><span id="VALmap_ops_to_imperative"><span class="keyword">val</span> map_ops_to_imperative</span> : <code class="type">[< `Map_ops of<br>            ('a -> ('b option, 'c) Monad.m) * ('a -> 'b -> (unit, 'c) Monad.m) *<br>            ('a -> (unit, 'c) Monad.m) *<br>            ('a -> 'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Monad.m) ] -><br>       s_ref:'c Pervasives.ref -><br>       [> `Imperative_map_ops of<br>            ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ]</code></pre>
+<pre><span id="VALmap_ops_to_imperative"><span class="keyword">val</span> map_ops_to_imperative</span> : <code class="type">('a, 'b, 'c) map_ops -><br>       s_ref:'c Pervasives.ref -><br>       [> `Imperative_map_ops of<br>            ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ]</code></pre>
 <pre><span id="VALdest_imperative_map_ops"><span class="keyword">val</span> dest_imperative_map_ops</span> : <code class="type">[< `Imperative_map_ops of<br>            ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ] -><br>       (find:('a -> 'b option) -><br>        insert:('a -> 'b -> unit) -> delete:('a -> unit) -> 'c) -><br>       'c</code></pre></body></html>

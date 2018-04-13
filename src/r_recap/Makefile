@@ -1,3 +1,8 @@
+# This builds .mli from .ml files. NOTE the generated .mli are placed
+# in /tmp
+
+DST:=/tmp
+
 SHELL:=bash
 
 all:
@@ -19,6 +24,6 @@ all:
 	-e "s/Tree[.]//g" \
 	-e "s/Store_ops[.]store_ops/store_ops/g" \
 	-e "s/Page_ref_int[.]page_ref/page_ref_int/g" \
-	-e "s/Tjr_btree[.]//g" >/tmp/$*.mli
+	-e "s/Tjr_btree[.]//g" >$(DST)/$*.mli
 
 FORCE:

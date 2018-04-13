@@ -12,6 +12,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -51,6 +52,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -71,8 +73,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Pre_map_ops</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Pre_map_ops</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Page_ref_int.html" title="Page_ref_int">Previous</a>
@@ -87,45 +88,8 @@ A pre-map is like a map, but functions take an additional reference (to the
 </div>
 <hr width="100%">
 
-<pre><code><span id="TYPEpre_map_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 'r, 't)</code> pre_map_ops</span> = {</code></pre><table class="typetable">
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpre_map_ops.find_leaf">find_leaf</span>&nbsp;: <code class="type">'k -> 'r -> ('r * ('k * 'v) list * ('k, 'r) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 't) Base_types.m</code>;</code></td>
+<pre><span class="keyword">module</span> <a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops_type</a>: <code class="code">sig</code> <a href="Pre_map_ops.Pre_map_ops_type.html">..</a> <code class="code">end</code></pre>
+<pre><span class="keyword">include</span> Pre_map_ops_type</pre>
 
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpre_map_ops.find">find</span>&nbsp;: <code class="type">'k -> 'r -> ('r * ('k * 'v) list, 't) Base_types.m</code>;</code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpre_map_ops.insert">insert</span>&nbsp;: <code class="type">'k -> 'v -> 'r -> ('r, 't) Base_types.m</code>;</code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpre_map_ops.insert_many">insert_many</span>&nbsp;: <code class="type">'k -> 'v -> ('k * 'v) list -> 'r -> ('r * ('k * 'v) list, 't) Base_types.m</code>;</code></td>
-
-</tr>
-<tr>
-<td align="left" valign="top" >
-<code>&nbsp;&nbsp;</code></td>
-<td align="left" valign="top" >
-<code><span id="TYPEELTpre_map_ops.delete">delete</span>&nbsp;: <code class="type">'k -> 'r -> ('r, 't) Base_types.m</code>;</code></td>
-
-</tr></table>
-}
-
-
-
-<pre><span id="VALmk_pre_map_ops"><span class="keyword">val</span> mk_pre_map_ops</span> : <code class="type">find_leaf:('a -><br>                  'b -> ('b * ('a * 'c) list * ('a, 'b) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Base_types.m) -><br>       find:('a -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       insert:('a -> 'c -> 'b -> ('b, 'd) Base_types.m) -><br>       insert_many:('a -><br>                    'c -><br>                    ('a * 'c) list -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       delete:('a -> 'b -> ('b, 'd) Base_types.m) -><br>       ('a, 'c, 'b, 'd) <a href="Pre_map_ops.html#TYPEpre_map_ops">pre_map_ops</a></code></pre>
-<pre><span id="VALdest_pre_map_ops"><span class="keyword">val</span> dest_pre_map_ops</span> : <code class="type">('a, 'b, 'c, 'd) <a href="Pre_map_ops.html#TYPEpre_map_ops">pre_map_ops</a> -><br>       (find_leaf:('a -><br>                   'c -> ('c * ('a * 'b) list * ('a, 'c) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Base_types.m) -><br>        find:('a -> 'c -> ('c * ('a * 'b) list, 'd) Base_types.m) -><br>        insert:('a -> 'b -> 'c -> ('c, 'd) Base_types.m) -><br>        insert_many:('a -><br>                     'b -><br>                     ('a * 'b) list -> 'c -> ('c * ('a * 'b) list, 'd) Base_types.m) -><br>        delete:('a -> 'c -> ('c, 'd) Base_types.m) -> 'e) -><br>       'e</code></pre></body></html>
+<pre><span id="VALmk_pre_map_ops"><span class="keyword">val</span> mk_pre_map_ops</span> : <code class="type">find_leaf:('a -><br>                  'b -> ('b * ('a * 'c) list * ('a, 'b) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Base_types.m) -><br>       find:('a -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       insert:('a -> 'c -> 'b -> ('b, 'd) Base_types.m) -><br>       insert_many:('a -><br>                    'c -><br>                    ('a * 'c) list -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       delete:('a -> 'b -> ('b, 'd) Base_types.m) -> ('a, 'c, 'b, 'd) pre_map_ops</code></pre>
+<pre><span id="VALdest_pre_map_ops"><span class="keyword">val</span> dest_pre_map_ops</span> : <code class="type">('a, 'b, 'c, 'd) pre_map_ops -><br>       (find_leaf:('a -><br>                   'c -> ('c * ('a * 'b) list * ('a, 'c) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Base_types.m) -><br>        find:('a -> 'c -> ('c * ('a * 'b) list, 'd) Base_types.m) -><br>        insert:('a -> 'b -> 'c -> ('c, 'd) Base_types.m) -><br>        insert_many:('a -><br>                     'b -><br>                     ('a * 'b) list -> 'c -> ('c * ('a * 'b) list, 'd) Base_types.m) -><br>        delete:('a -> 'c -> ('c, 'd) Base_types.m) -> 'e) -><br>       'e</code></pre></body></html>

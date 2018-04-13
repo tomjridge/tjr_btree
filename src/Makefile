@@ -8,7 +8,7 @@ libname:=$(shell source bash_env.sh && echo $${libname})#
 
 # ----------------------------------------
 
-all: _links _depend
+all: links _depend
 	$$ocamlc -c $$mls
 	$$ocamlopt -c $$mls
 	mk_cma
@@ -18,17 +18,17 @@ all: _links _depend
 
 
 
-_links:
+links:
 	mk_links
 	touch $@
 
-_test:
+test:
 	OCAMLRUNPARAM=b ./test_main.native ./default_tests.json
 
-_generated: 
+generated: 
 	$(MAKE) -C b_from_isa
 
-_mlis: 
+mlis: 
 	mk_mlis
 
 install:
@@ -36,10 +36,10 @@ install:
 	-remove
 	install
 
-_remove: 
+remove: 
 	remove
 
-_reinstall: 
+reinstall: 
 	remove
 	install
 
@@ -50,10 +50,10 @@ _depend:
 	mkdir -p _depend
 	mk_depend
 
-_codetags:
+codetags:
 	mk_codetags
 
-_doc:
+doc:
 	echo Make sure to build first
 	mk_doc
 	cp *.html *.css ../docs
@@ -71,10 +71,9 @@ clean:
 	clean
 	rm -f *.html
 	rm -f tjr_btree_recap.mli
-
-real_clean: clean
+	echo	# following was in real_clean
 	rm_links
-	rm -rf _links _depend
+	rm -rf links _depend
 
 FORCE:
 

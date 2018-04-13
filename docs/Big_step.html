@@ -1,0 +1,132 @@
+<!DOCTYPE HTML PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+<link rel="stylesheet" href="style.css" type="text/css">
+<meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<link rel="Start" href="index.html">
+<link rel="previous" href="Iter_leaf_stream.html">
+<link rel="next" href="Store_to_map.html">
+<link rel="Up" href="index.html">
+<link title="Index of types" rel=Appendix href="index_types.html">
+<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
+<link title="Index of values" rel=Appendix href="index_values.html">
+<link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
+<link title="Isa_export" rel="Chapter" href="Isa_export.html">
+<link title="Isa_test" rel="Chapter" href="Isa_test.html">
+<link title="Test" rel="Chapter" href="Test.html">
+<link title="Profile" rel="Chapter" href="Profile.html">
+<link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
+<link title="Block" rel="Chapter" href="Block.html">
+<link title="Constants" rel="Chapter" href="Constants.html">
+<link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Ls_state" rel="Chapter" href="Ls_state.html">
+<link title="Ord" rel="Chapter" href="Ord.html">
+<link title="R2f" rel="Chapter" href="R2f.html">
+<link title="Rstk" rel="Chapter" href="Rstk.html">
+<link title="String_" rel="Chapter" href="String_.html">
+<link title="Tree" rel="Chapter" href="Tree.html">
+<link title="R2t" rel="Chapter" href="R2t.html">
+<link title="Params" rel="Chapter" href="Params.html">
+<link title="Base_types" rel="Chapter" href="Base_types.html">
+<link title="Disk_ops" rel="Chapter" href="Disk_ops.html">
+<link title="Leaf_stream_ops" rel="Chapter" href="Leaf_stream_ops.html">
+<link title="Leaf_stream_util" rel="Chapter" href="Leaf_stream_util.html">
+<link title="Map_ops" rel="Chapter" href="Map_ops.html">
+<link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
+<link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
+<link title="Store_ops" rel="Chapter" href="Store_ops.html">
+<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
+<link title="Small_step" rel="Chapter" href="Small_step.html">
+<link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
+<link title="Big_step" rel="Chapter" href="Big_step.html">
+<link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
+<link title="Disk_on_fd" rel="Chapter" href="Disk_on_fd.html">
+<link title="Disk_to_store" rel="Chapter" href="Disk_to_store.html">
+<link title="Mem_store" rel="Chapter" href="Mem_store.html">
+<link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
+<link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
+<link title="Cache" rel="Chapter" href="Cache.html">
+<link title="Bytestore" rel="Chapter" href="Bytestore.html">
+<link title="Digest_" rel="Chapter" href="Digest_.html">
+<link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
+<link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
+<link title="Mem_map" rel="Chapter" href="Mem_map.html">
+<link title="Small_string" rel="Chapter" href="Small_string.html">
+<link title="Examples_common" rel="Chapter" href="Examples_common.html">
+<link title="Bin_prot_util" rel="Chapter" href="Bin_prot_util.html">
+<link title="Map_int_int" rel="Chapter" href="Map_int_int.html">
+<link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
+<link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
+<link title="Default_filename" rel="Chapter" href="Default_filename.html">
+<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
+<link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
+<link title="Range" rel="Chapter" href="Range.html">
+<link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
+<link title="Test_cache" rel="Chapter" href="Test_cache.html">
+<link title="Test_common" rel="Chapter" href="Test_common.html">
+<link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
+<link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
+<link title="Test_sh" rel="Chapter" href="Test_sh.html">
+<link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
+<link title="Tree_store" rel="Chapter" href="Tree_store.html">
+<link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Big_step</title>
+</head>
+<body>
+<div class="navbar"><a class="pre" href="Iter_leaf_stream.html" title="Iter_leaf_stream">Previous</a>
+&nbsp;<a class="up" href="index.html" title="Index">Up</a>
+&nbsp;<a class="post" href="Store_to_map.html" title="Store_to_map">Next</a>
+</div>
+<h1>Module <a href="type_Big_step.html">Big_step</a></h1>
+
+<pre><span class="keyword">module</span> Big_step: <code class="code">sig</code> <a href="Big_step.html">..</a> <code class="code">end</code></pre><div class="info module top">
+Iterate small-step map operations to provide big-step map
+    operations. The important functions in this module are <code class="code">find</code>,
+    <code class="code">insert</code>, <code class="code">insert_many</code> and <code class="code">delete</code> (together with the leaf stream
+    big-step operations).<br>
+</div>
+<hr width="100%">
+
+<pre><span class="keyword">module</span> <a href="Big_step.X.html">X</a>: <code class="type"><a href="Small_step.html">Small_step</a></code></pre>
+<pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type">small_step:('a -> ('a, 'b) Monad.m) -><br>       dest:('a -> 'c option) -> 'a -> ('c, 'b) Monad.m</code></pre>
+<pre><span id="VALfind_leaf'"><span class="keyword">val</span> find_leaf'</span> : <code class="type">cmp:('a -> 'a -> int) -><br>       constants:Constants.t -><br>       store_ops:('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'a -><br>       r:'c -> ('c * 'a * 'c * ('a * 'b) list * ('a, 'c) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Monad.m</code></pre>
+<pre><span id="VALfind_leaf"><span class="keyword">val</span> find_leaf</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'a, 'r, 'b) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'k -> r:'r -> ('r * ('k * 'a) list * ('k, 'r) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'b) Monad.m</code></pre>
+<pre><span id="VALfind'"><span class="keyword">val</span> find'</span> : <code class="type">cmp:('k -> 'k -> int) -><br>       constants:Constants.t -><br>       store_ops:('k, 'a, 'r, 'b) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'k -><br>       r:'r -> ('r * 'k * 'r * ('k * 'a) list * ('k, 'r) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'b) Monad.m</code></pre>
+<pre><span id="VALfind"><span class="keyword">val</span> find</span> : <code class="type">ps:< cmp : 'a -> 'a -> int; constants : Constants.t; .. > -><br>       store_ops:('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'a -> r:'c -> ('c * ('a * 'b) list, 'd) Monad.m</code></pre><div class="info ">
+Find. Take a key, a pointer to the root of a B-tree, and the
+    global state. Return the updated state, a reference to the leaf of
+    the B-tree that possibly contains the key (or alternatively return
+    an error).<br>
+</div>
+
+<pre><span id="VALinsert'"><span class="keyword">val</span> insert'</span> : <code class="type">cmp:('a -> 'a -> int) -><br>       constants:Constants.t -><br>       store_ops:('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'a -> v:'b -> r:'c -> ('c, 'd) Monad.m</code></pre>
+<pre><span id="VALinsert"><span class="keyword">val</span> insert</span> : <code class="type">ps:< cmp : 'a -> 'a -> int; constants : Constants.t; .. > -><br>       store_ops:('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'a -> v:'b -> r:'c -> ('c, 'd) Monad.m</code></pre><div class="info ">
+Insert. Take a key, a value, a reference (to the B-tree root) and
+    a state and return an updated state, with a new reference to the
+    root of the updated B-tree.<br>
+</div>
+
+<pre><span id="VALim'"><span class="keyword">val</span> im'</span> : <code class="type">cmp:('a -> 'a -> int) -><br>       constants:Constants.t -><br>       store_ops:('a, 'b, 'c, 'd) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'a -><br>       v:'b -> kvs:('a * 'b) list -> r:'c -> ('c * ('a * 'b) list, 'd) Monad.m</code></pre>
+<pre><span id="VALinsert_many"><span class="keyword">val</span> insert_many</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'v, 'r, 'a) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'k -><br>       v:'v -> kvs:('k * 'v) list -> r:'r -> ('r * ('k * 'v) list, 'a) Monad.m</code></pre><div class="info ">
+Insert many. Take a key, value, and list of further key/values, a
+    pointer to the B-tree root and a global state. Return the updated
+    state, a new pointer to a B-tree root, and a list of key/values
+    which could not be inserted into the same leaf as the first
+    key/value. Typically this function is called in a loop till all kvs
+    have been inserted. It is assumed faster than multiple inserts,
+    although caching may invalidate this assumption.<br>
+</div>
+
+<pre><span id="VALdelete'"><span class="keyword">val</span> delete'</span> : <code class="type">cmp:('k -> 'k -> int) -><br>       constants:Constants.t -><br>       store_ops:('k, 'a, 'r, 'b) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'k -> r:'r -> ('r, 'b) Monad.m</code></pre>
+<pre><span id="VALdelete"><span class="keyword">val</span> delete</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'a, 'r, 'b) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       k:'k -> r:'r -> ('r, 'b) Monad.m</code></pre><div class="info ">
+Delete. Take a key and a reference to a B-tree root, and a global
+    state. Return the updated state and a reference to the new root.<br>
+</div>
+
+<pre><span id="VALmake_pre_map_ops"><span class="keyword">val</span> make_pre_map_ops</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'v, 'r, 'a) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('k, 'v, 'r, 'a) Pre_map_ops.pre_map_ops</code></pre><div class="info ">
+Construct <code class="code">pre_map_ops</code> using functions above. Takes a "parameters" object ps.<br>
+</div>
+</body></html>

@@ -8,6 +8,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -47,6 +48,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -67,8 +69,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Index of types</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Index of types</title>
 </head>
 <body>
 <div class="navbar">&nbsp;<a class="up" href="index.html" title="Index">Up</a>
@@ -81,11 +82,17 @@
 <tr><td align="left"><br>B</td></tr>
 <tr><td><a href="Binprot_marshalling.html#TYPEbinprot_tree">binprot_tree</a> [<a href="Binprot_marshalling.html">Binprot_marshalling</a>]</td>
 <td></td></tr>
+<tr><td><a href="Block.Blk_types.html#TYPEblk">blk</a> [<a href="Block.Blk_types.html">Block.Blk_types</a>]</td>
+<td></td></tr>
 <tr><td><a href="Block.BlkN.html#TYPEblk">blk</a> [<a href="Block.BlkN.html">Block.BlkN</a>]</td>
+<td></td></tr>
+<tr><td><a href="Block.Blk_types.html#TYPEblk_id">blk_id</a> [<a href="Block.Blk_types.html">Block.Blk_types</a>]</td>
 <td></td></tr>
 <tr><td><a href="Block.BlkN.html#TYPEblk_id">blk_id</a> [<a href="Block.BlkN.html">Block.BlkN</a>]</td>
 <td></td></tr>
 <tr><td><a href="Block.html#TYPEblk_sz">blk_sz</a> [<a href="Block.html">Block</a>]</td>
+<td></td></tr>
+<tr><td><a href="Disk_ops.Block_device_type.html#TYPEblock_device">block_device</a> [<a href="Disk_ops.Block_device_type.html">Disk_ops.Block_device_type</a>]</td>
 <td></td></tr>
 <tr><td><a href="Binprot_marshalling.html#TYPEbuf">buf</a> [<a href="Binprot_marshalling.html">Binprot_marshalling</a>]</td>
 <td></td></tr>
@@ -138,7 +145,7 @@
 <td></td></tr>
 <tr><td><a href="Page_ref_int.html#TYPEframe">frame</a> [<a href="Page_ref_int.html">Page_ref_int</a>]</td>
 <td></td></tr>
-<tr><td><a href="Frame.html#TYPEframe">frame</a> [<a href="Frame.html">Frame</a>]</td>
+<tr><td><a href="Frame.Frame_type.html#TYPEframe">frame</a> [<a href="Frame.Frame_type.html">Frame.Frame_type</a>]</td>
 <td></td></tr>
 <tr><td><a href="Disk_to_store.html#TYPEfree_ops">free_ops</a> [<a href="Disk_to_store.html">Disk_to_store</a>]</td>
 <td><div class="info">
@@ -148,6 +155,8 @@ We maintain a free counter in the global state in order to
 </td></tr>
 <tr><td align="left"><br>G</td></tr>
 <tr><td><a href="Test_mem_map.T.html#TYPEglobal_state">global_state</a> [<a href="Test_mem_map.T.html">Test_mem_map.T</a>]</td>
+<td></td></tr>
+<tr><td><a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> [<a href="Map_on_fd.Default_implementation.html">Map_on_fd.Default_implementation</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>I</td></tr>
 <tr><td><a href="Isa_export.Insert.html#TYPEi12_t">i12_t</a> [<a href="Isa_export.Insert.html">Isa_export.Insert</a>]</td>
@@ -174,16 +183,22 @@ We maintain a free counter in the global state in order to
 <tr><td><a href="Test_mem_map.html#TYPEkey">key</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
 <tr><td align="left"><br>L</td></tr>
-<tr><td><a href="Ls_state.html#TYPEls_state">ls_state</a> [<a href="Ls_state.html">Ls_state</a>]</td>
+<tr><td><a href="Leaf_stream_ops.Leaf_stream_types.html#TYPEleaf_stream_ops">leaf_stream_ops</a> [<a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_ops.Leaf_stream_types</a>]</td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Leaf_stream.html#TYPEls_state">ls_state</a> [<a href="Isa_export.Leaf_stream.html">Isa_export.Leaf_stream</a>]</td>
-<td></td></tr>
-<tr><td><a href="Leaf_stream_ops.html#TYPElss">lss</a> [<a href="Leaf_stream_ops.html">Leaf_stream_ops</a>]</td>
+<tr><td><a href="Leaf_stream_ops.Leaf_stream_types.html#TYPEleaf_stream_state">leaf_stream_state</a> [<a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_ops.Leaf_stream_types</a>]</td>
 <td><div class="info">
 Leaf stream representation.
 </div>
 </td></tr>
+<tr><td><a href="Ls_state.html#TYPEls_state">ls_state</a> [<a href="Ls_state.html">Ls_state</a>]</td>
+<td></td></tr>
+<tr><td><a href="Isa_export.Leaf_stream.html#TYPEls_state">ls_state</a> [<a href="Isa_export.Leaf_stream.html">Isa_export.Leaf_stream</a>]</td>
+<td></td></tr>
+<tr><td><a href="Leaf_stream_ops.Leaf_stream_types.html#TYPElss">lss</a> [<a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_ops.Leaf_stream_types</a>]</td>
+<td></td></tr>
 <tr><td align="left"><br>M</td></tr>
+<tr><td><a href="Map_ops.Map_ops_type.html#TYPEmap_ops">map_ops</a> [<a href="Map_ops.Map_ops_type.html">Map_ops.Map_ops_type</a>]</td>
+<td></td></tr>
 <tr><td><a href="Mem_store.html#TYPEmem">mem</a> [<a href="Mem_store.html">Mem_store</a>]</td>
 <td></td></tr>
 <tr><td><a href="Mem_store.html#TYPEmem_ops">mem_ops</a> [<a href="Mem_store.html">Mem_store</a>]</td>
@@ -216,7 +231,7 @@ The B-tree code exports a <code class="code">pre_map_ops</code> version of a map
    explicit passing of the reference to the root of the B-tree.
 </div>
 </td></tr>
-<tr><td><a href="Pre_map_ops.html#TYPEpre_map_ops">pre_map_ops</a> [<a href="Pre_map_ops.html">Pre_map_ops</a>]</td>
+<tr><td><a href="Pre_map_ops.Pre_map_ops_type.html#TYPEpre_map_ops">pre_map_ops</a> [<a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops.Pre_map_ops_type</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Params.html#TYPEps1">ps1</a> [<a href="Isa_export.Params.html">Isa_export.Params</a>]</td>
 <td></td></tr>
@@ -268,14 +283,19 @@ The result type.
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEt">t</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
+<tr><td><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> [<a href="Map_on_fd.Default_implementation.html">Map_on_fd.Default_implementation</a>]</td>
+<td></td></tr>
 <tr><td><a href="Digest_.Digest.html#TYPEt">t</a> [<a href="Digest_.Digest.html">Digest_.Digest</a>]</td>
 <td></td></tr>
 <tr><td><a href="Cache.Pmap.html#TYPEt">t</a> [<a href="Cache.Pmap.html">Cache.Pmap</a>]</td>
 <td></td></tr>
 <tr><td><a href="String_.Span.html#TYPEt">t</a> [<a href="String_.Span.html">String_.Span</a>]</td>
 <td></td></tr>
-<tr><td><a href="Constants.html#TYPEt">t</a> [<a href="Constants.html">Constants</a>]</td>
-<td></td></tr>
+<tr><td><a href="Constants.Constants_type.html#TYPEt">t</a> [<a href="Constants.Constants_type.html">Constants.Constants_type</a>]</td>
+<td><div class="info">
+B-tree constants: minimum leaf size etc.
+</div>
+</td></tr>
 <tr><td><a href="Exhaustive.html#TYPEtest_ops">test_ops</a> [<a href="Exhaustive.html">Exhaustive</a>]</td>
 <td></td></tr>
 <tr><td><a href="Exhaustive.html#TYPEtest_state">test_state</a> [<a href="Exhaustive.html">Exhaustive</a>]</td>
@@ -285,6 +305,8 @@ The result type.
 <tr><td><a href="Tree_store.html#TYPEtree">tree</a> [<a href="Tree_store.html">Tree_store</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEtree">tree</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
+<td></td></tr>
+<tr><td><a href="Tree.Tree_type.html#TYPEtree">tree</a> [<a href="Tree.Tree_type.html">Tree.Tree_type</a>]</td>
 <td></td></tr>
 <tr><td><a href="Isa_export.Tree.html#TYPEtree">tree</a> [<a href="Isa_export.Tree.html">Isa_export.Tree</a>]</td>
 <td></td></tr>

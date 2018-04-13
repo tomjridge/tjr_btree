@@ -6,12 +6,12 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link rel="previous" href="Exhaustive_in_mem.html">
-<link rel="next" href="Tjr_btree_recap.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -51,6 +51,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -71,14 +72,12 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Tjr_btree_doc</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Tjr_btree_doc</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Exhaustive_in_mem.html" title="Exhaustive_in_mem">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
-&nbsp;<a class="post" href="Tjr_btree_recap.html" title="Tjr_btree_recap">Next</a>
-</div>
+&nbsp;</div>
 <h1>Module <a href="type_Tjr_btree_doc.html">Tjr_btree_doc</a></h1>
 
 <pre><span class="keyword">module</span> Tjr_btree_doc: <code class="code">sig</code> <a href="Tjr_btree_doc.html">..</a> <code class="code">end</code></pre><div class="info module top">
@@ -143,18 +142,23 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
    This package contains basic B-tree related types:
 <p>
 <ul>
+<li><a href="Base_types.html"><code class="code">Base_types</code></a> includes most of the other modules in this package</li>
+<li><a href="Base_types_pervasives.html"><code class="code">Base_types_pervasives</code></a> which includes utility functions assumed by the other modules</li>
 <li><a href="Block.html"><code class="code">Block</code></a> for blocks on disk</li>
 <li><a href="Constants.html"><code class="code">Constants</code></a> which give size constraints on B-tree nodes</li>
 <li><a href="Frame.html"><code class="code">Frame</code></a> which imports the Isabelle frame type</li>
 <li><a href="Ls_state.html"><code class="code">Ls_state</code></a> for the leaf stream state</li>
-<li><code class="code">Monad</code> for the state and error monad</li>
+<li><a href="Ord.html"><code class="code">Ord</code></a> for orderings (typically over keys)</li>
+<li><a href="Params.html"><code class="code">Params</code></a> for various projection functions from a "parameters" object</li>
 <li><a href="R2f.html"><code class="code">R2f</code></a> and <a href="R2t.html"><code class="code">R2t</code></a> for internal types used in testing</li>
 <li><a href="Rstk.html"><code class="code">Rstk</code></a> for the type of framestacks</li>
+<li><a href="String_.html"><code class="code">String_</code></a> for various string utility functions</li>
 <li><a href="Tree.html"><code class="code">Tree</code></a> for the tree type imported from Isabelle</li>
 </ul>
 
-   The <code class="code">Monad</code> is a state-passing monad with error; this
-   monad shows up in most of the interfaces.
+   The <code class="code">Monad</code> is a state-passing monad with error; this monad shows
+   up in most of the interfaces. This is now in the `tjr_fs_shared`
+   library.
 <p>
 
    The <a href="Tree.html"><code class="code">Tree</code></a> module describes a B-tree as an algebraic
@@ -171,11 +175,12 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <p>
 <ul>
 <li><a href="Disk_ops.html"><code class="code">Disk_ops</code></a> for low-level block interface</li>
-<li><a href="Store_ops.html"><code class="code">Store_ops</code></a> for a layer just above <a href="Disk_ops.html"><code class="code">Disk_ops</code></a></li>
-<li><a href="Leaf_stream_ops.html"><code class="code">Leaf_stream_ops</code></a> for leaf streams</li>
+<li><a href="Isabelle_conversions.html"><code class="code">Isabelle_conversions</code></a> for conversions from Isabelle types (eg num) to OCaml types</li>
+<li><a href="Leaf_stream_ops.html"><code class="code">Leaf_stream_ops</code></a> and <a href="Leaf_stream_util.html"><code class="code">Leaf_stream_util</code></a> for leaf streams</li>
 <li><a href="Map_ops.html"><code class="code">Map_ops</code></a> for map operations, find etc.</li>
 <li><a href="Page_ref_int.html"><code class="code">Page_ref_int</code></a> utility to fix page ref as an integer</li>
 <li><a href="Pre_map_ops.html"><code class="code">Pre_map_ops</code></a> like <a href="Map_ops.html"><code class="code">Map_ops</code></a> but with explicit state passing</li>
+<li><a href="Store_ops.html"><code class="code">Store_ops</code></a> for a layer just above <a href="Disk_ops.html"><code class="code">Disk_ops</code></a></li>
 </ul>
 
    In addition, the leaf stream interface allows to iterate over the
@@ -184,38 +189,32 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
    <a href="Map_ops.html"><code class="code">Map_ops</code></a>).
 <p>
 
-   <b>Important note on style</b> Interfaces are essentially
-   groups of polymorphic functions. We wrap each tuple of functions in
-   a polymorphic variant constructor to group them together, and this
-   also makes the types easier to read. 
+   <b>Important note on style</b> Interfaces are essentially groups of
+   polymorphic functions, collected together and named using a record
+   type.
 <p>
 
-   For example, map operations are something of the form <code class="code">`Map_ops
-   ...</code>. To get a handle on the components of such a thing we provide
-   functions such as <a href="Map_ops.html#VALdest_map_ops"><code class="code">Map_ops.dest_map_ops</code></a> which takes a set of map
-   operations and a "continuation" function and calls the function with the
-   components of the set. Example code should make this clearer eg see
-   <code class="code">ii_example.ml</code> which includes the following use of 
-   <code class="code">dest_imperative_map_ops</code> together with the continuation function 
-   which binds the <code class="code">find</code>, <code class="code">insert</code> and <code class="code">delete</code> functions.
+   For example, map operations are something of the form <code class="code">('k,'v,'t)
+   map_ops</code>. To get a handle on the components of such a thing we
+   provide functions such as <a href="Map_ops.html#VALdest_map_ops"><code class="code">Map_ops.dest_map_ops</code></a> which takes a set
+   of map operations and a "continuation" function and calls the
+   function with the components of the record. Example code should make
+   this clearer eg see <code class="code">ii_example.ml</code> which includes the following
+   use of <code class="code">dest_imperative_map_ops</code> together with the continuation
+   function which binds the <code class="code">find</code>, <code class="code">insert</code> and <code class="code">delete</code> functions.
 <p>
 
    FIXME following code extract does not preserve line breaking; 
    ocamldoc should support raw html frags?
 <p>
 
-<code class="code">
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete -&gt;
-  (* write values *)
+   <code class="code">
+   dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete -&gt;
+   (* write values *)
   for x=1 to max do
     insert (k x) (v x);
   done;
 </code>
-<p>
-
-   This style is rather unusual, for which apologies. Unfortunately
-   functors were not working for me (although I can see that they
-   would be very useful eg for OCaml's <code class="code">Set</code> and <code class="code">Map</code> modules).
 <p>
 
    <h2 id="2_Storetomap">Store to map</h2>
@@ -270,7 +269,7 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
    string.
 <p>
 
-   <a href="Map_int_int.html"><code class="code">Map_int_int</code></a> and <a href="Ss_int_map_on_fd.html"><code class="code">Ss_int_map_on_fd</code></a> are similar. <code class="code">Map_on_fd</code> is
+   <a href="Map_int_int.html"><code class="code">Map_int_int</code></a> and <a href="Ss_int_map_on_fd.html"><code class="code">Ss_int_map_on_fd</code></a> are similar. <a href="Map_on_fd.html"><code class="code">Map_on_fd</code></a> is
    the generic version and <a href="Mem_map.html"><code class="code">Mem_map</code></a> is a map on top of the
    <a href="Mem_store.html"><code class="code">Mem_store</code></a>. 
 <p>
@@ -291,6 +290,7 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
    <code class="code">xxx.native</code>. 
 <p>
 <ul>
+<li><code class="code">exhaustive_in_mem_main.native</code> does some fairly exhaustive testing with various branching factors for the B-tree</li>
 <li><code class="code">ii_example.native</code> is the <code class="code">int -&gt; int</code> example</li>
 <li><code class="code">main.native</code> is used by the <code class="code">kv_main.sh</code> example</li>
 <li><code class="code">simple_example.native</code> is the <code class="code">string-&gt;string</code> kv example</li>

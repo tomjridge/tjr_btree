@@ -50,16 +50,17 @@ ImpFS is a project to build an advanced high-performance filesystem.
 
 == Installation
 
-There is a Dockerfile that describes the required steps here:
+There is a Dockerfile that builds all my filesystem-related
+repositories here:
 
-
+https://github.com/tomjridge/dockertest/blob/master/2018q2_impfs/Dockerfile
 
 First you need to install `tjr_fs_shared`, from
 https://github.com/tomjridge/tjr_fs_shared.
 
-Type `make && make install` to make the library and install it using
-`ocamlfind`. You need various libraries from opam (see `bash_env.sh`
-for details).
+Then in this directory type `make && make install` to make the library
+and install it using `ocamlfind`. You need various libraries from opam
+(see `src/bash_env.sh` for details).
 
 FIXME not working currently; To build with nix, type `cd
 .nix/tjr_btree; nix-build`. The result is in `./result`.

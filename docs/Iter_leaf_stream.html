@@ -12,6 +12,7 @@
 <link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
+<link title="Index of module types" rel=Appendix href="index_module_types.html">
 <link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
@@ -51,6 +52,7 @@
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
 <link title="Map_int_blkx" rel="Chapter" href="Map_int_blkx.html">
+<link title="Map_on_fd" rel="Chapter" href="Map_on_fd.html">
 <link title="Mem_map" rel="Chapter" href="Mem_map.html">
 <link title="Small_string" rel="Chapter" href="Small_string.html">
 <link title="Examples_common" rel="Chapter" href="Examples_common.html">
@@ -71,8 +73,7 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html">
-<link title="Tjr_btree_recap" rel="Chapter" href="Tjr_btree_recap.html"><title>Iter_leaf_stream</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Iter_leaf_stream</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Small_step.html" title="Small_step">Previous</a>
@@ -86,4 +87,4 @@ Wrap the small-step leaf-stream operations.<br>
 </div>
 <hr width="100%">
 
-<pre><span id="VALils_mk"><span class="keyword">val</span> ils_mk</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : <a href="Constants.html#TYPEt">Constants.t</a>; .. > -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       (mk_leaf_stream:('r -> (('k, 'v, 'r) <a href="Leaf_stream_ops.html#TYPElss">Leaf_stream_ops.lss</a>, 't) Monad.m) -><br>        ls_kvs:(('k, 'v, 'a) <a href="Leaf_stream_ops.html#TYPElss">Leaf_stream_ops.lss</a> -> ('k * 'v) list) -><br>        ls_step:(('k, 'v, 'r) <a href="Leaf_stream_ops.html#TYPElss">Leaf_stream_ops.lss</a> -><br>                 (('k, 'v, 'r) <a href="Leaf_stream_ops.html#TYPElss">Leaf_stream_ops.lss</a> option, 't) Monad.m) -><br>        'b) -><br>       'b</code></pre></body></html>
+<pre><span id="VALils_mk"><span class="keyword">val</span> ils_mk</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       (mk_leaf_stream:('r -> (('k, 'v, 'r) Leaf_stream_ops.lss, 't) Monad.m) -><br>        ls_kvs:(('k, 'v, 'a) Leaf_stream_ops.leaf_stream_state -> ('k * 'v) list) -><br>        ls_step:(('k, 'v, 'r) Leaf_stream_ops.leaf_stream_state -><br>                 (('k, 'v, 'r) Leaf_stream_ops.lss option, 't) Monad.m) -><br>        'b) -><br>       'b</code></pre></body></html>
