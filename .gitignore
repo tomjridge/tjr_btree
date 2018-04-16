@@ -118,3 +118,4 @@ src/small_step.ml
 *.cmx
 *.o
 /src/isabelle_conversions.ml
+/src/links
