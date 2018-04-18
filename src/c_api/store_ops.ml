@@ -2,7 +2,7 @@
    the raw disk block device, on which we build the B-tree. *)
 
 open Frame
-open Monad
+open Tjr_step_monad
 
 
 type ('k,'v,'r,'t) store_ops = {
@@ -25,11 +25,24 @@ let _ = dest_store_ops
 
 open Isa_export.Params
 
+let x_store_read ~run store_read = 
+  fun rs s -> 
+    run s (store_read rs) |> fun (s,x) -> 
+    (s,Ok x)
+
+let x_store_alloc ~run store_alloc = 
+  fun f s -> 
+    run s (store_alloc f) |> fun (s,x) -> 
+    (s,Ok x)
+
+FIXME we can make a single lift to the isa monad
+
+
 let x_store_ops store_ops : ('k,'v,'r,'t,unit) store_ops_ext = (
   dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
   Store_ops_ext(
-    store_read,
-    store_alloc,
+    (x_store_read ~run:(failwith "FIXME") store_read),
+    (x_store_alloc ~run:(failwith "FIXME") store_alloc),
     store_free,()))
 
 let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) ps1 = Isa_export.Params.(

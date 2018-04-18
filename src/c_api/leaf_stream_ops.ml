@@ -3,7 +3,7 @@
     operations: make a leaf stream; get the list of (key,value) pairs
     associated to "current" leaf; step to the next leaf. *)
 
-open Monad
+open Tjr_step_monad
 open Ls_state
 
 (* leaf stream ------------------------------------------------------ *)

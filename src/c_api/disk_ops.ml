@@ -43,16 +43,19 @@ let wf_imperative_disk_ops
 
 (* FIXME? leave imperative disk ops as a polymorphic variant for the
    time being *)
+(* NOTE this assumes that the block device never halts; maybe we need
+   to also supply a ~halt function, and use
+   Tjr_step_monad.Extra.run_with_halt *)
 let disk_ops_to_imperative ~blk_sz ~read ~write = 
   assert(wf_disk_ops ~blk_sz ~read ~write);
   fun ~_ref -> 
     let read r = 
-      read r |> Monad.run !_ref |> fun (t',Ok blk) -> 
+      read r |> Tjr_step_monad.Extra.run !_ref |> fun (t',blk) -> 
       _ref:=t';
       blk
     in
     let write r blk =
-      write r blk |> Monad.run !_ref |> fun (t',Ok ()) ->
+      write r blk |> Tjr_step_monad.Extra.run !_ref |> fun (t',()) ->
       _ref:=t';
       ()
     in

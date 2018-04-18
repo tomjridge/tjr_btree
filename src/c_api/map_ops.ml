@@ -17,7 +17,7 @@ The operations typically execute in the {!Base_types.Monad}.
 *)
 
 
-open Monad
+open Tjr_step_monad
 
 (* map ------------------------------------------------------------ *)
 
@@ -53,7 +53,7 @@ let dest_map_ops { find;insert;delete;insert_many } =
 
     
 (** Utility: call [insert_many] in a loop. *)
-let rec insert_all insert_many k v kvs = Monad.(
+let rec insert_all insert_many k v kvs = (
     insert_many k v kvs |> bind (fun kvs' -> 
         match kvs' with
         | [] -> return ()
@@ -68,6 +68,8 @@ let wf_imperative_map_ops
   true
 
 
+let run = Tjr_step_monad.Extra.run
+
 (* TODO insert_many *)
 let map_ops_to_imperative map_ops = 
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
@@ -75,15 +77,15 @@ let map_ops_to_imperative map_ops =
   fun ~s_ref ->
     let find k = 
       find k |> run (!s_ref) 
-      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+      |> function (s',res) -> (s_ref:=s'; res) 
     in
     let insert k v = 
       insert k v |> run (!s_ref) 
-      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+      |> function (s',res) -> (s_ref:=s'; res) 
     in
     let delete k = 
       delete k |> run (!s_ref) 
-      |> function (s',Ok res) -> (s_ref:=s'; res) | (_,Error e) -> failwith e 
+      |> function (s',res) -> (s_ref:=s'; res)
     in
     assert(wf_imperative_map_ops ~find ~insert ~delete);
     `Imperative_map_ops(find,insert,delete)
