@@ -9,7 +9,8 @@ open Base_types
 open Rstk
 (** Sub-modules called O are safe to open in other modules. This
    module contains types which are often used in the rest of the
-   code. *)
+   code. *) 
+(* FIXME this O is horrible; remove *)
 module O = struct
   (*
   include Store_ops
@@ -34,6 +35,62 @@ open Ls_state
 module X = Isabelle_conversions
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
+
+
+(* isa store_ops conversion ------------------------------------------ *)
+
+
+open Isa_export.Params
+
+(* tjr_btree store_ops conversion to isa format *)
+
+(* 
+
+Our store ops do not explicit return errors; this differs from
+Isabelle's definitions where errors are always explicit (but
+everything is defined as small step anyway)
+
+In Isabelle, every operation may potentially fail with an "unexpected"
+error. Expected errors are captured by using a result type.
+
+In OCaml, unexpected errors are handled in a different way e.g. by
+throwing an exception, or setting some flag in the world state.
+
+Thus, given an OCaml store_ops, we need to produce a single-step (!)
+function for isa_m... FIXME maybe better to treat the isabelle monad
+abstractly, and map it to the step monad? What operations do we need
+in the isabelle world?
+
+*)
+
+
+(*
+
+let x_store_read ~run store_read = 
+  fun rs s -> 
+    run s (store_read rs) |> fun (s,x) -> 
+    (s,Ok x)
+
+let x_store_alloc ~run store_alloc = 
+  fun f s -> 
+    run s (store_alloc f) |> fun (s,x) -> 
+    (s,Ok x)
+
+
+let x_store_ops store_ops : ('k,'v,'r,'t,unit) store_ops_ext = (
+  dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  Store_ops_ext(
+    (x_store_read ~run:(failwith "FIXME") store_read),
+    (x_store_alloc ~run:(failwith "FIXME") store_alloc),
+    store_free,()))
+
+let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) ps1 = Isa_export.Params.(
+    Ps1(Constants.x_constants constants, (Constants.Isabelle_conversions'.x_cmp cmp, x_store_ops store_ops)))
+
+
+*)
+
+
 
 
 (* find ---------------------------------------- *)

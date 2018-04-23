@@ -119,3 +119,5 @@ src/small_step.ml
 *.o
 /src/isabelle_conversions.ml
 /src/links
+/src/aa_from_isa/isa_export.ml.rej
+/src/isa_monad_conversion.ml
