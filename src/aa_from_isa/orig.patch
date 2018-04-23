@@ -1,5 +1,5 @@
 --- orig.ml	2018-04-23 17:05:01.765231679 +0100
-+++ patched.ml	2018-04-23 17:06:28.494341886 +0100
++++ patched.ml	2018-04-23 17:10:19.461334857 +0100
 @@ -1,3 +1,14 @@
 +(** This file is exported from Isabelle, and lightly patched (eg to
 +   include this comment!). The OCaml interfaces wrap this basic
@@ -132,6 +132,22 @@
  
  let rec check_length_ks_rs
    ks_rs =
+@@ -1041,13 +1054,13 @@ let rec dest_Disk_node
+ end;; (*struct Disk_node*)
+ 
+ module Monad : sig
+-  type ('a, 'b) mm
++  type ('a, 'b) mm = ('a,'b) Tjr_step_monad.m
+   val bind : ('a -> ('b, 'c) mm) -> ('a, 'c) mm -> ('b, 'c) mm
+   val fmap : ('a -> 'b) -> ('a, 'c) mm -> ('b, 'c) mm
+   val return : 'a -> ('a, 'b) mm
+ end = struct
+ 
+-type ('a, 'b) mm = EMPTY__;;
++type ('a, 'b) mm = ('a,'b) Tjr_step_monad.m
+ 
+ let rec bind b a = failwith "undefined";;
+ 
 @@ -1116,7 +1129,7 @@ let rec store_alloc
  end;; (*struct Params*)
  

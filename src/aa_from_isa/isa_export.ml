@@ -1054,13 +1054,13 @@ let rec dest_Disk_node
 end;; (*struct Disk_node*)
 
 module Monad : sig
-  type ('a, 'b) mm
+  type ('a, 'b) mm = ('a,'b) Tjr_step_monad.m
   val bind : ('a -> ('b, 'c) mm) -> ('a, 'c) mm -> ('b, 'c) mm
   val fmap : ('a -> 'b) -> ('a, 'c) mm -> ('b, 'c) mm
   val return : 'a -> ('a, 'b) mm
 end = struct
 
-type ('a, 'b) mm = EMPTY__;;
+type ('a, 'b) mm = ('a,'b) Tjr_step_monad.m
 
 let rec bind b a = failwith "undefined";;
 

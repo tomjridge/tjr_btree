@@ -32,7 +32,7 @@ open Store_ops
 open Ls_state
 
 (** Translations between Isabelle types and OCaml native types. *)
-module X = Isabelle_conversions
+(* module X = Isabelle_conversions *)
 
 let x5 (x,(y,(z,(w,u)))) = (x,y,z,w,u)
 
