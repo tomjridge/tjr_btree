@@ -1,6 +1,6 @@
 (** Implement disk operations backed by a file-descriptor *)
 
-open Monad
+open Base_types
 open Block
 open Test
 open Disk_ops
@@ -36,11 +36,14 @@ let write ~fd ~blk_sz ~blk_id ~blk =
 (* in the monad ----------------------------------------------------- *)
 
 (* don't want to clobber any other "safely" *)
-let safely_ : string -> ('a,'t) m -> ('a,'t) m = (
+(* FIXME fixup for step monad *)
+let safely_ : string -> ('a,'t) m -> ('a,'t) m = fun s -> failwith "FIXME"
+
+(* (
   fun msg m ->
   fun s -> 
     try m s 
-    with e -> (s,Error (msg ^ (Printexc.to_string e))))
+    with e -> (s,Error (msg ^ (Printexc.to_string e)))) *)
 
 
 (** Construct [disk_ops] *)

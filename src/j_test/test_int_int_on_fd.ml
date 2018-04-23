@@ -2,10 +2,10 @@
 
 (* this is for performance testing *)
 
+open Base_types
 open Map_int_int  
 open Block.Blk4096
 open Default_filename
-open Monad
 open Map_ops
 
 (* test uncached ---------------------------------------- *)
@@ -39,7 +39,7 @@ let test_uncached range = (
       let x = List.hd !xs in
       ignore (insert x (2*x) 
               |> run !s 
-              |> function (s',Ok()) -> s:=s');
+              |> function (s',()) -> s:=s');
       xs:=List.tl !xs;
     done);
   print_newline ();

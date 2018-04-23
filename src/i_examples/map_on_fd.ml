@@ -127,20 +127,24 @@ module Default_implementation = struct
   }        
   type t = global_state
 
-  let fd_ops = D.{
-      get=(fun () -> (fun t -> (t,Ok t.fd)));
-      set=(fun fd -> (fun t -> ({t with fd},Ok ())));
+  include struct
+    open Tjr_step_monad.Step_monad_implementation
+    let fd_ops = D.{
+        get=(fun () -> with_world (fun w -> (w.fd,w)));
+        set=(fun fd -> with_world (fun w -> ((),{w with fd}))); 
+      }
+
+    let free_ops = D2S.{
+        get=(fun () -> with_world (fun t -> (t.free,t)));
+        set=(fun free -> with_world (fun t -> ((),{t with free})));
+      }
+
+    let page_ref_ops = {
+      get=(fun () -> with_world (fun t -> (t.root,t)));
+      set=(fun root -> with_world (fun t -> ((),{t with root})));
     }
 
-  let free_ops = D2S.{
-      get=(fun () -> (fun t -> (t,Ok t.free)));
-      set=(fun free -> (fun t -> ({t with free}, Ok ())));
-    }
-
-  let page_ref_ops = {
-    get=(fun () -> (fun t -> (t,Ok t.root)));
-    set=(fun root -> (fun t -> ({t with root},Ok ())));
-  }
+  end
 
   let ops = 
     object

@@ -1,5 +1,5 @@
+open Base_types
 open Page_ref_int (* FIXME generalize *)
-open Monad
 open Params
 open Disk_ops
 
@@ -19,7 +19,7 @@ let disk_to_store ~ps ~disk_ops ~free_ops =
   let f2p = frame_to_page ps page_size in
   let p2f = page_to_frame ps in
   Test.test(fun _ -> assert (blk_sz = page_size));
-  let store_free rs = (fun t -> (t,Ok())) in  (* no-op *)
+  let store_free rs = return () in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f |> f2p |> fun p -> 
     free_ops.get () |> bind @@ fun free -> 

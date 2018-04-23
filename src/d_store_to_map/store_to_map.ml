@@ -8,6 +8,7 @@
 
 open Base_types
 open Page_ref_int  (* TODO generalize? *)
+open Tjr_step_monad
 
 (** The B-tree code exports a [pre_map_ops] version of a map, with
    explicit passing of the reference to the root of the B-tree. In
@@ -17,7 +18,6 @@ open Page_ref_int  (* TODO generalize? *)
    write this reference in the global state. *)
 type 't page_ref_ops = (page_ref,'t) mref
 
-open Monad
 open Pre_map_ops
 open Map_ops
 

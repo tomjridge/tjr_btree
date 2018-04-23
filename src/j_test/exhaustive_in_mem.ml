@@ -1,3 +1,5 @@
+open Base_types
+
 (* test config ------------------------------------------------------ *)
 
 let fields = [
@@ -81,6 +83,8 @@ let set_ops = Set_ops.set_ops
 
 (* FIXME need to add wellformedness checks on the following *)
 
+let run = Tjr_step_monad.Extra.run
+
 let execute_tests ~constants ~map_ops ~ops ~init_trees = 
   let find,insert,delete = 
     Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
@@ -94,10 +98,10 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
     match op with
     | Insert i -> 
       Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
-      insert i i |> Monad.run t
+      insert i i |> run t
     | Delete i ->
       Test.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
-      delete i |> Monad.run t
+      delete i |> run t
   in
 
   let check_state t = assert(
@@ -112,7 +116,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
   (* step should return a list of next states *)
   let step t op = 
-    step t op |> fun (t,Ok ()) -> 
+    step t op |> fun (t,()) -> 
     Test.log (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
                  __LOC__ (op2s op) (t2s t));
     check_state t;
@@ -129,9 +133,9 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
 let _ = execute_tests
 
-let page_ref_ops = Monad.{
-    get=(fun () -> fun t -> (t,Ok t));
-    set=(fun r -> fun t -> (r,Ok ()))  (* NOTE r not t!!! *)
+let page_ref_ops = Tjr_step_monad.Step_monad_implementation.{
+    get=(fun () -> with_world (fun t -> (t,t)));
+    set=(fun r -> with_world (fun t -> ((),t)));
   }
 
 

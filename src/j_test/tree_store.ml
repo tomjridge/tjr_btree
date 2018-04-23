@@ -18,7 +18,7 @@ module State = struct
 end
 
 include struct
-  open Monad
+  open Base_types
   open Store_ops 
   open Frame
   open Tree

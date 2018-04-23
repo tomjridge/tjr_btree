@@ -10,7 +10,7 @@
 (* iterate small-step operations till finished ---------------------- *)
 
 open Base_types
-open Monad
+open Tjr_step_monad
 open Test
 
 module X = Small_step

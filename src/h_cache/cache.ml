@@ -52,8 +52,6 @@ type ('k,'v) cache_state = {
 
 type ('k,'v,'t) cache_ops = ( ('k,'v)cache_state,'t) mref
 
-open Monad 
-
 
 (* for testing, we typically need to normalize wrt. time *)
 let normalize c =
@@ -117,8 +115,6 @@ let wf c =
 exception E_
 
 (* FIXME correctness of following not clear *)
-
-open Monad
 
 (* FIXME document the following more *)
 (* flush evictees, assuming already removed from c; map_ops is the ops

@@ -1,4 +1,4 @@
-open Monad
+open Base_types
 open Page_ref_int
 open Block.Blk4096
 open Small_string
@@ -41,7 +41,7 @@ let test () =
           Test.log (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
           ignore (insert (SS.of_string k) v 
                   |> run !s 
-                  |> (function (s',Ok ()) -> s:=s'));
+                  |> (function (s',()) -> s:=s'));
           m:=(Map_string.add k v !m);
           c:=!c+1;
           xs:=(List.tl !xs);
@@ -53,7 +53,7 @@ let test () =
             let _ = 
               find (SS.of_string k)
               |> run !s 
-              |> fun (_,Ok res) -> 
+              |> fun (_,res) -> 
               Test.log (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
               if res = Some v then () else (
                 print_endline (Printf.sprintf "%s: key:%s expected %s, got %s" 
@@ -69,7 +69,7 @@ let test () =
               Test.log (fun _ -> Printf.sprintf "deleting key %s" k);
               delete (SS.of_string k) 
               |> run !s 
-              |> fun (s',Ok ()) -> s:=s'
+              |> fun (s',()) -> s:=s'
             in
             ()))
     end

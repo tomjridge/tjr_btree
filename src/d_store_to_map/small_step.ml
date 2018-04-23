@@ -90,8 +90,19 @@ let x_ps1 ~constants ~cmp ~store_ops : ('k,'v,'r,'t) ps1 = Isa_export.Params.(
 
 *)
 
+module X = struct
+  include Constants.Isabelle_conversions'
 
+  let x_store_ops store_ops : ('k,'v,'r,'t,unit) store_ops_ext = (
+    dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+    Store_ops_ext(
+      store_read,
+      store_alloc,
+      store_free,()))
 
+  let x_ps1 ~constants ~cmp ~store_ops = Isa_export.Params.(
+      Ps1(Constants.x_constants constants, (Constants.Isabelle_conversions'.x_cmp cmp, x_store_ops store_ops)))
+end
 
 (* find ---------------------------------------- *)
 
@@ -184,8 +195,10 @@ let mk_ls_state : 'r -> ('k,'v,'r) ls_state = Leaf_stream.mk_ls_state
    stream unchanged. So in the loop you need to check whether you have
    finished using [ls_is_finished]. FIXME here and elsewhere, staging *)
 let ls_step ~constants ~cmp ~store_ops ls 
-  : 't -> 't * ('k,'v,'r) ls_state res = 
+  : (('k,'v,'r) ls_state,'t) m = 
   Leaf_stream.lss_step (X.x_ps1 ~constants ~cmp ~store_ops) ls
+
+let _ = ls_step
 
 (** Return the (key,value) list at the current leaf in the stream. *)
 let ls_dest_leaf ls = Leaf_stream.dest_LS_leaf ls

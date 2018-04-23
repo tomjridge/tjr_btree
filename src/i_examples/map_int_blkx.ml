@@ -3,7 +3,6 @@
 (* used by bytestore2 *)
 
 open Base_types
-open Monad
 open Params
 open Block
 open Map_ops

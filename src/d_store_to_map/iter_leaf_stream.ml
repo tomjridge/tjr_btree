@@ -6,7 +6,7 @@
 
 open Base_types
 open Small_step
-open Monad
+open Tjr_step_monad
 open Params
 open Leaf_stream_ops
 

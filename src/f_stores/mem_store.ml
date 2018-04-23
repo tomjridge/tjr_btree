@@ -1,7 +1,7 @@
 (** Simple in-memory store implementation, mainly for testing *)
 
+open Base_types
 open Page_ref_int
-open Monad
 
 
 (* in mem store *)

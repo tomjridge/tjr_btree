@@ -1,11 +1,12 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
 open Base_types
-open Monad
 open Mem_store
 open Page_ref_int
 open Mem_store
 open Map_ops
+
+let run = Tjr_step_monad.Extra.run
 
 (* we concentrate on relatively small parameters *)
 
@@ -78,16 +79,21 @@ let constants = Constants.{
   }
 
 
+include struct
 
-let page_ref_ops = Monad.{
-    get=(fun () -> fun t -> (t,Ok t.r));
-    set=(fun r -> fun t -> ({t with r},Ok ()))
+  open Tjr_step_monad.Step_monad_implementation
+
+  let page_ref_ops = {
+    get=(fun () -> with_world (fun t -> (t.r,t)));
+    set=(fun r -> with_world (fun t -> ((),{t with r})));
   }
 
-let mem_ops : ('k,'v,T.t) mem_ops = {
-  get=(fun () -> fun t -> (t,Ok t.s));
-  set=(fun s -> fun t -> ({t with s},Ok ()));
-}
+  let mem_ops : ('k,'v,T.t) mem_ops = {
+    get=(fun () -> with_world (fun t -> (t.s,t)));
+    set=(fun s -> with_world (fun t -> ((),{t with s})));
+  }
+
+end
 
 let ops =
   object
@@ -160,9 +166,9 @@ let step range (t:global_state) = (
     range|>List.map (
       fun x -> 
         action:=Insert x;
-        insert x x|>(fun f -> 
+        insert x x|> fun f -> 
             Test.log (fun _ -> __LOC__^": inserting "^(string_of_int x));
-            f t)))
+            run t f))
   in
   let r2 = (
     range|>List.map (
@@ -170,13 +176,11 @@ let step range (t:global_state) = (
         action:=Delete x; 
         delete x|>(fun f -> 
             Test.log (fun _ -> __LOC__^": deleting "^(string_of_int x));           
-            f t)))
+            run t f )))
   in
   r1@r2 |> List.map (
-    fun (t',res) -> 
-      match res with
-      | Ok () -> {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r }
-      | Error e -> (failwith (__LOC__^e)))
+    fun (t',()) -> 
+      {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r })
   |> TSET.of_list)
 
 let test_exhaustive range = TSET.(
@@ -221,7 +225,7 @@ let test_insert range = (
     let x = List.hd !xs in
     ignore(
       insert x (2*x) |> run !s0
-      |> (fun (s',Ok ()) -> s0:=s'));
+      |> (fun (s',()) -> s0:=s'));
     c:=!c+1;
     xs:=List.tl !xs;
   done;
