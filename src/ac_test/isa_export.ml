@@ -1062,11 +1062,11 @@ end = struct
 
 type ('a, 'b) mm = ('a,'b) Tjr_step_monad.m
 
-let rec bind b a = failwith "undefined";;
+let rec bind b a = Tjr_step_monad.bind b a
 
-let rec fmap x y = failwith "undefined";;
+let rec fmap x y = Tjr_step_monad.fmap x y
 
-let rec return x = failwith "undefined";;
+let rec return x = Tjr_step_monad.return x
 
 end;; (*struct Monad*)
 
