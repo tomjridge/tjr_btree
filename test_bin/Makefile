@@ -13,11 +13,17 @@ all: links _depend
 	$$ocamlopt -c $$mls
 	mk_cma
 	mk_cmxa
+	$(MAKE) exhaustive_in_mem_main.native
+#	$(MAKE) $$natives $$bytes
+
 
 
 links:
 	mk_links
 	touch $@
+
+test:
+	OCAMLRUNPARAM=b ./test_main.native ./default_tests.json
 
 generated: 
 	$(MAKE) -C b_from_isa
@@ -55,10 +61,17 @@ doc:
 
 # ----------------------------------------
 
+%.native: m_main/%.ml $(libname).cmxa FORCE
+	$$ocamlopt -g -linkpkg -open $$Libname -o $*.native $$libname.cmxa $<
+
+%.byte: m_main/%.ml $(libname).cma FORCE
+	$$ocamlc -g -linkpkg -open $$Libname -o $*.byte $$libname.cma $<
+
 clean:
 	clean
 	rm -f *.html
 	rm -f tjr_btree_recap.mli
+	echo	# following was in real_clean
 	rm_links
 	rm -rf links _depend
 
