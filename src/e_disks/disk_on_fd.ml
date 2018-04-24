@@ -35,6 +35,13 @@ let write ~fd ~blk_sz ~blk_id ~blk =
 
 (* in the monad ----------------------------------------------------- *)
 
+
+(* NOTE there is the question of what to do if either read or write
+   fails. Previously we used to return this explicitly in the monad. Now
+   we just raise an exception (probably to top level). *)
+
+
+(*
 (* don't want to clobber any other "safely" *)
 (* FIXME fixup for step monad *)
 let safely_ : string -> ('a,'t) m -> ('a,'t) m = fun s -> failwith "FIXME"
@@ -60,3 +67,17 @@ let make_disk ~blk_sz ~fd_ops =
   in
   Disk_ops.mk_disk_ops ~blk_sz ~read ~write
 
+*)
+
+
+(** Construct [disk_ops] *)
+let make_disk ~blk_sz ~fd_ops = 
+  let read: blk_id -> (blk,'t) m = fun r ->
+    fd_ops.get () |> bind @@ fun fd ->
+    return (read fd blk_sz r)
+  in
+  let write: blk_id -> blk -> (unit,'t) m = fun r buf -> 
+    fd_ops.get () |> bind @@ fun fd ->           
+    return (write fd blk_sz r buf)
+  in
+  Disk_ops.mk_disk_ops ~blk_sz ~read ~write
