@@ -2,7 +2,7 @@
 
 open Base_types
 
-
+(* FIXME move to tjr_lib? *)
 
 (* generic testing -------------------------------------------------- *)
 
@@ -43,7 +43,7 @@ include Tjr_set
 type 'set test_state = { todo:'set; done_: 'set }
 
 
-let test ~set_ops ~test_ops = (
+let test ~set_ops ~test_ops =
   print_endline __LOC__;
   let reps = ref 0 in
 
@@ -78,4 +78,4 @@ let test ~set_ops ~test_ops = (
     done
   in
 
-  test)
+  test
