@@ -135,7 +135,7 @@ let _ = execute_tests
 
 let page_ref_ops = Tjr_step_monad.Step_monad_implementation.{
     get=(fun () -> with_world (fun t -> (t,t)));
-    set=(fun r -> with_world (fun t -> ((),t)));
+    set=(fun r -> with_world (fun t -> ((),r)));
   }
 
 
