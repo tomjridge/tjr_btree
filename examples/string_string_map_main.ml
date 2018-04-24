@@ -1,7 +1,12 @@
+open Tjr_btree
+open Small_string
+open Ss_ss_map_on_fd
+
 let run = Tjr_step_monad.Extra.run
 
 let main args = 
   (* turn off wf checking *)
+  Isa_test.disable_isa_checks();
   Test.disable ();
   Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   match args with
@@ -29,6 +34,9 @@ let main args =
             ()));                
       print_endline "list ok")
   | _ -> (
-      failwith ("Unrecognized args: "^(String_.concat_strings " " args)^ 
-                __LOC__))
+      failwith @@ (
+        "Unrecognized args: "^
+        String_.concat_strings " " args^
+        __LOC__))
 
+let _ = main (Sys.argv |> Array.to_list |> List.tl)

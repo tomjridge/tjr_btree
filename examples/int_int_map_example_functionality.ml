@@ -1,5 +1,6 @@
 (** A simple example of a kv store. *)
 
+open Tjr_btree
 open Default_filename
 open Block.Blk4096
 open Map_ops

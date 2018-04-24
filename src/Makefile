@@ -13,7 +13,7 @@ all: links _depend
 	$$ocamlopt -c $$mls
 	mk_cma
 	mk_cmxa
-
+	$(MAKE) install
 
 links:
 	mk_links

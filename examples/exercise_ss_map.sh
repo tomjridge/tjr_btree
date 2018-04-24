@@ -5,23 +5,23 @@ set +x
 # execute various commands on a store
 
 STORE=./btree.store
-MAIN=main.native
+MAIN=string_string_map_main.native
 
 rm -f $STORE
-./$MAIN kv init $STORE
+./$MAIN init $STORE
 echo
-./$MAIN kv insert $STORE k1 v1
+./$MAIN insert $STORE k1 v1
 echo
-./$MAIN kv list $STORE
+./$MAIN list $STORE
 echo
-./$MAIN kv insert $STORE k2 v2 
+./$MAIN insert $STORE k2 v2 
 echo
-./$MAIN kv insert $STORE k3 v3 
+./$MAIN insert $STORE k3 v3 
 echo
-./$MAIN kv list $STORE
+./$MAIN list $STORE
 
 for i in `seq 4 1000`; do
-    ./$MAIN kv insert $STORE k$i v$i
+    ./$MAIN insert $STORE k$i v$i
 done
 
 ./$MAIN kv list $STORE

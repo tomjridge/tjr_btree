@@ -1,5 +1,7 @@
 (** A simple example of a kv store; k=string, v=string. *)
 
+open Tjr_btree
+
 open Map_ops 
 open Small_string
 open Ss_ss_map_on_fd

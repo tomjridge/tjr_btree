@@ -1,10 +1,13 @@
 (* a map from int to int, backed by file ------------------------------- *)
 
+open Tjr_btree
 open Map_int_int
 
+let run = Tjr_step_monad.Extra.run
 
-let main args = (
+let main args =
   (* turn off wf checking *)
+  Isa_test.disable_isa_checks();
   Test.disable ();
   Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   match args with
@@ -36,4 +39,7 @@ let main args = (
       failwith (
         "Unrecognized args: "^
         (String_.concat_strings " " args)^ 
-        __LOC__)) )
+        __LOC__))
+
+let _ = main (Sys.argv |> Array.to_list |> List.tl)
+
