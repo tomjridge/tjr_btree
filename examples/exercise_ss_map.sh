@@ -24,7 +24,7 @@ for i in `seq 4 1000`; do
     ./$MAIN insert $STORE k$i v$i
 done
 
-./$MAIN kv list $STORE
+./$MAIN list $STORE
 
 # for 1000 inserts, with syncing after each insert
 # real	0m11.880s
@@ -49,3 +49,7 @@ done
 # real	0m0.021s
 # user	0m0.008s
 # sys	0m0.012s
+
+
+# FIXME 2018-04-24 performance seems poor eg when running the exercise
+# scripts, or even listing
