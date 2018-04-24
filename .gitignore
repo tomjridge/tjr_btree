@@ -122,3 +122,4 @@ src/small_step.ml
 /src/aa_from_isa/isa_export.ml.rej
 /src/isa_monad_conversion.ml
 /examples/btree.store
+/test_bin/btree.store

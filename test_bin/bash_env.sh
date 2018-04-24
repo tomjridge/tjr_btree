@@ -10,7 +10,7 @@ PKGS="-package $required_packages"
 FLGS="-g -thread -bin-annot" 
 FOR_PACK=""
 INLINE="-inline 0" # inline 0 for debugging native
-WARN=""
+WARN="-w -8-11"
 
     # these include syntax, so should work on all files; may be
     # overridden in ocamlc.sh; FIXME don't need -bin-annot twice

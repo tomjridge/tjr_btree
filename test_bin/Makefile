@@ -10,7 +10,7 @@ all:
 
 run_tests:
 	./exhaustive_in_mem_main.native
-
+	./test_main.native default_tests.json
 
 %.native: %.ml FORCE
 	$$ocamlopt -g -linkpkg -o $*.native $<
