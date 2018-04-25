@@ -23,7 +23,7 @@ test_startup_time:
 
 clean:
 	clean
-	rm btree.store
+	rm -f btree.store
 
 FORCE:
 
