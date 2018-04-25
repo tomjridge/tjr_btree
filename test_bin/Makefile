@@ -17,6 +17,7 @@ run_tests:
 
 clean:
 	clean
+	rm -f btree.store
 
 FORCE:
 
