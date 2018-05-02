@@ -123,3 +123,7 @@ src/small_step.ml
 /src/isa_monad_conversion.ml
 /examples/btree.store
 /test_bin/btree.store
+*.cmo
+*.a
+*.cma
+*.cmxa
