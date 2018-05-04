@@ -6,7 +6,7 @@
 
 DST=..
 
-for f in tjr_step_monad tjr_fs_shared path_resolution; do
+for f in tjr_monad tjr_fs_shared path_resolution; do
     make -C $DST/$f clean
     make -C $DST/$f 
 done
