@@ -17,7 +17,7 @@ The operations typically execute in the {!Base_types.Monad}.
 *)
 
 
-open Tjr_step_monad
+open Tjr_monad.Monad
 
 (* map ------------------------------------------------------------ *)
 
@@ -53,11 +53,16 @@ let dest_map_ops { find;insert;delete;insert_many } =
 
     
 (** Utility: call [insert_many] in a loop. *)
-let rec insert_all insert_many k v kvs = (
-    insert_many k v kvs |> bind (fun kvs' -> 
+let insert_all ~monad_ops =
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
+  fun insert_many ->
+    let rec loop k v kvs =
+    insert_many k v kvs >>= (fun kvs' -> 
         match kvs' with
         | [] -> return ()
-        | (k,v)::kvs -> insert_all insert_many k v kvs))
+        | (k,v)::kvs -> loop k v kvs)
+    in loop
 
 
 let wf_imperative_map_ops
@@ -68,6 +73,7 @@ let wf_imperative_map_ops
   true
 
 
+(* FIXME imperative 
 let run = Tjr_step_monad.Extra.run
 
 (* TODO insert_many *)
@@ -96,3 +102,4 @@ let dest_imperative_map_ops (`Imperative_map_ops(find,insert,delete)) =
   fun k -> k ~find ~insert ~delete
 
 
+*)

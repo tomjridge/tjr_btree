@@ -4,7 +4,7 @@ include Base_types_pervasives
 include Tree
 include Frame
 include R2t
-include Tjr_step_monad
+include Tjr_monad.Monad
 
 
 (** Monadic reference operations *)

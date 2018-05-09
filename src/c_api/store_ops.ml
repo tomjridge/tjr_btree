@@ -2,7 +2,7 @@
    the raw disk block device, on which we build the B-tree. *)
 
 open Frame
-open Tjr_step_monad
+open Tjr_monad.Monad
 
 
 type ('k,'v,'r,'t) store_ops = {

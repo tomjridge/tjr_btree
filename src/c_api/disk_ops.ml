@@ -46,6 +46,9 @@ let wf_imperative_disk_ops
 (* NOTE this assumes that the block device never halts; maybe we need
    to also supply a ~halt function, and use
    Tjr_step_monad.Extra.run_with_halt *)
+
+(* FIXME this needs to be put somewhere else when we have particular monad instantiations *)
+(*
 let disk_ops_to_imperative ~blk_sz ~read ~write = 
   assert(wf_disk_ops ~blk_sz ~read ~write);
   fun ~_ref -> 
@@ -63,3 +66,4 @@ let disk_ops_to_imperative ~blk_sz ~read ~write =
     `Imperative_disk_ops(blk_sz,read,write)
 
 
+*)

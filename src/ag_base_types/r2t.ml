@@ -21,6 +21,6 @@ let mk_r2t r2f = Isa_export.Pre_params.mk_r2t r2f (int_to_nat 1000)
 
 (* let store_ops_to_r2t store_read = mk_r2t (mk_r2f ~store_read) *)
 
-let store_read_to_r2t store_read = mk_r2t (R2f.mk_r2f ~store_read)
+let store_read_to_r2t ~run ~store_read = mk_r2t (R2f.mk_r2f ~run ~store_read)
 
 let _ = store_read_to_r2t
