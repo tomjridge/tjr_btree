@@ -8,7 +8,6 @@
 
 open Base_types
 open Page_ref_int  (* TODO generalize? *)
-open Tjr_step_monad
 
 (** The B-tree code exports a [pre_map_ops] version of a map, with
    explicit passing of the reference to the root of the B-tree. In
@@ -22,60 +21,67 @@ open Pre_map_ops
 open Map_ops
 
 (* produce a map, with page_ref state set/get via monad_ops *)
-let make_map_ops' (type k v r t) pre_map_ops page_ref_ops = 
+let make_map_ops' (type k v r t) ~monad_ops ~pre_map_ops ~page_ref_ops = 
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   dest_pre_map_ops pre_map_ops @@ 
   fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
   let find_leaf = fun k ->
-    page_ref_ops.get () |> bind @@ fun r ->
-    find_leaf k r |> bind @@ fun kvs ->               
+    page_ref_ops.get () >>= fun r ->
+    find_leaf k r >>= fun kvs ->               
     return kvs
   in
   let find = fun k ->
-    page_ref_ops.get () |> bind @@ fun r ->
-    find k r |> bind @@ fun (r',kvs) -> 
-    (* page_ref_ops.set_page_ref r' |> bind (fun () -> 
+    page_ref_ops.get () >>= fun r ->
+    find k r >>= fun (r',kvs) -> 
+    (* page_ref_ops.set_page_ref r' >>= (fun () -> 
        NO! the r is the pointer to the leaf *)
     return (try Some(List.assoc k kvs) with _ -> None)
   in
   let insert = fun k v ->
-    page_ref_ops.get () |> bind @@ fun r ->
-    insert k v r |> bind @@ fun r' -> 
+    page_ref_ops.get () >>= fun r ->
+    insert k v r >>= fun r' -> 
     page_ref_ops.set r'
   in
   let insert_many = fun k v kvs -> 
-    page_ref_ops.get () |> bind @@ fun r ->
-    insert_many k v kvs r |> bind @@ fun (r',kvs') ->
-    page_ref_ops.set r' |> bind @@ fun () ->
+    page_ref_ops.get () >>= fun r ->
+    insert_many k v kvs r >>= fun (r',kvs') ->
+    page_ref_ops.set r' >>= fun () ->
     return kvs'
   in
   let delete = fun k ->
-    page_ref_ops.get () |> bind @@ fun r -> 
-    delete k r |> bind @@ fun r' ->
+    page_ref_ops.get () >>= fun r -> 
+    delete k r >>= fun r' ->
     page_ref_ops.set r'
   in
   assert(wf_map_ops ~find ~insert ~delete ~insert_many);
   mk_map_ops ~find ~insert ~delete ~insert_many
 
 
-(* TODO make store_ops explicit in arguments to this function *)
-(* TODO use store_ops_to_map_ops; in isabelle, pass store_ops as extra param? *)
-
 (** Make [map_ops], given a [page_ref_ops]. *)
-let store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops : ('k,'v,'t) Map_ops.map_ops = 
-  Big_step.make_pre_map_ops ~ps ~store_ops
-  |> fun pre_map_ops -> make_map_ops' pre_map_ops page_ref_ops
+let store_ops_to_map_ops 
+    ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops 
+  : ('k,'v,'t) Map_ops.map_ops
+  =
+  Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
+  fun ~pre_map_ops ~ils_mk -> 
+  make_map_ops' ~monad_ops ~pre_map_ops ~page_ref_ops
 
+(*
 
 let ils_mk = Iter_leaf_stream.ils_mk
 
 (** Make [ls_ops], given a [page_ref_ops]. We only read from
     page_ref_ops. TODO ditto *)
-let make_ls_ops ~ps ~store_ops ~page_ref_ops : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops =
-  ils_mk ~ps ~store_ops @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+let make_ls_ops ~constants ~cmp ~monad_ops ~store_ops ~page_ref_ops ~ls_step : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops =
+  ils_mk ~constants ~cmp ~monad_ops ~store_ops ~ls_step @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   let mk_leaf_stream = fun () ->
-    page_ref_ops.get () |> bind @@ fun r -> 
+    page_ref_ops.get () >>= fun r -> 
     mk_leaf_stream r
   in
   Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs
 
 let _ = make_ls_ops
+*)

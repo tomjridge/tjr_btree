@@ -120,9 +120,11 @@ exception E_
 (* flush evictees, assuming already removed from c; map_ops is the ops
    of the underlying layer; exposed so can call when we want to flush
    the entire cache *)
-let sync_evictees map_ops evictees =
+let sync_evictees ~monad_ops ~map_ops =
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
-  let rec loop es = (
+  let rec loop es =
     match es with
     | [] -> return ()
     | e::es -> (
@@ -133,31 +135,35 @@ let sync_evictees map_ops evictees =
             | false -> loop es
             | true -> (
                 (* need to delete *)
-                delete k |> bind (fun () -> loop es) ))
+                delete k >>= (fun () -> loop es) ))
         | Some v -> (
             match dirty with
             | false -> loop es
             | true -> (
                 (* write out and continue *)
-                insert k v |> bind (fun () -> loop es) ))))
+                insert k v >>= (fun () -> loop es) )))
   in
-  loop evictees
+  fun evictees -> loop evictees
 
 (* if we flush all entries, we can mark cache as clean *)
-let mark_all_clean cache_ops = 
-  cache_ops.get () |> bind @@ fun c ->
+let mark_all_clean ~monad_ops ~cache_ops = 
+  let ( >>= ) = monad_ops.bind in
+  cache_ops.get () >>= fun c ->
   let dirty = false in
   let c' = Pmap.map (fun (v,t,d) -> (v,t,dirty)) c in
   cache_ops.set c'
 
 
-let sync map_ops cache_ops =
-  cache_ops.get () |> bind @@ fun c ->
-  sync_evictees map_ops (Pmap.bindings c) |> bind @@ fun () ->
-  mark_all_clean cache_ops
+let sync ~monad_ops ~map_ops ~cache_ops =
+  let ( >>= ) = monad_ops.bind in
+  cache_ops.get () >>= fun c ->
+  sync_evictees ~monad_ops ~map_ops (Pmap.bindings c) >>= fun () ->
+  mark_all_clean ~monad_ops ~cache_ops
 
 (* FIXME document why we need evict_hook... testing? *)
-let make_cached_map ~map_ops ~cache_ops =
+let make_cached_map ~monad_ops ~map_ops ~cache_ops =
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   let evict_hook : (unit -> unit) ref = ref (fun () -> ()) in
   (* update time on each put *)
@@ -193,13 +199,13 @@ let make_cached_map ~map_ops ~cache_ops =
           with E_ -> ()
         end;
         (* now we have evictees, new queue, and new map *)
-        (sync_evictees map_ops !evictees) |> bind @@ fun () ->
+        (sync_evictees ~monad_ops ~map_ops !evictees) >>= fun () ->
         let c' = {c with map=(!map); queue=(!queue)} in
         put_cache c' ))
   in
 
   let find k = (
-    cache_ops.get () |> bind @@ fun c ->
+    cache_ops.get () >>= fun c ->
     (* try to find in cache *)
     try (
       let (v,time,dirty) = Pmap.find k c.map in          
@@ -211,21 +217,21 @@ let make_cached_map ~map_ops ~cache_ops =
       (* add new entry *)
       let c = {c with queue=(Queue.add time' k c.queue) } in
       (* update cache *)
-      put_cache c |> bind (fun () -> return v))
+      put_cache c >>= (fun () -> return v))
     with Not_found -> (
         (* retrieve from lower level *)
-        find k |> bind @@ fun v -> 
+        find k >>= fun v -> 
         (* update cache *)
         let time = c.current in
         let dirty = false in
         let c = {c with map=(Pmap.add k (v,time,dirty) c.map) } in
         (* update queue *)
         let c = {c with queue=(Queue.add time k c.queue) } in
-        maybe_flush_evictees c |> bind (fun () -> return v)))
+        maybe_flush_evictees c >>= (fun () -> return v)))
   in
 
   let insert k v = (
-    cache_ops.get () |> bind @@ fun c -> 
+    cache_ops.get () >>= fun c -> 
     try (
       let (v_,time,dirty) = Pmap.find k c.map in          
       (* update time *)
@@ -249,10 +255,10 @@ let make_cached_map ~map_ops ~cache_ops =
   in
 
   (* TODO make insert_many more efficient *)
-  let insert_many k v kvs = insert k v |> bind (fun () -> return kvs) in
+  let insert_many k v kvs = insert k v >>= (fun () -> return kvs) in
 
   let delete k = (
-    cache_ops.get () |> bind @@ fun c -> 
+    cache_ops.get () >>= fun c -> 
     try (
       let (v_,time,dirty) = Pmap.find k c.map in          
       (* update time *)

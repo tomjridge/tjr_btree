@@ -2,23 +2,25 @@
 
 (* we need to repeatedly step the leaf state to the point that we hit
    a leaf and dest_LS_leaf <> None; INVARIANT every ls_state
-   constructed or exposed here has dest_LS_leaf <> None *)
+   constructed or exposed here has dest_LS_leaf <> None; FIXME do we
+   want to introduce a new type for this? *)
 
 open Base_types
-open Small_step
-open Tjr_step_monad
 open Params
+open Isa_btree
 open Leaf_stream_ops
 
-let ils_mk ~ps ~store_ops = (
+let ils_mk ~monad_ops ~constants ~cmp ~store_ops ~ls_step =
+
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
 
   let rec next_leaf lss : (('k,'v,'r) lss option,'t) m = (
     match (ls_is_finished lss.ls) with
     | true -> return None
     | false -> (
         lss.ls 
-        |> ls_step ~constants:(constants ps) ~cmp:(cmp ps) ~store_ops 
-        |> bind @@ fun ls' ->
+        |> ls_step ~constants ~cmp ~store_ops >>= fun ls' ->
         match (ls_dest_leaf ls') with
         | None -> next_leaf {lss with ls=ls'}
         | Some kvs -> return (Some {kvs;ls=ls'})))
@@ -29,7 +31,7 @@ let ils_mk ~ps ~store_ops = (
     match (ls_dest_leaf ls) with
     | None -> (
         (* at root, which is not a leaf; there must be some leaf *)
-        next_leaf {kvs=[];ls} |> bind (fun lss' -> return (dest_Some lss')))
+        next_leaf {kvs=[];ls} >>= (fun lss' -> return (dest_Some lss')))
     | Some kvs -> return {kvs; ls})
   in
 
@@ -37,5 +39,5 @@ let ils_mk ~ps ~store_ops = (
 
   let ls_step ls = next_leaf ls in
 
-  fun k -> k ~mk_leaf_stream ~ls_kvs ~ls_step)
+  fun k -> k ~mk_leaf_stream ~ls_kvs ~ls_step
 

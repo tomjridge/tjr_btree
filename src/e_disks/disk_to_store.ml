@@ -13,7 +13,9 @@ type 't free_ops = (int,'t) mref
 Convert a disk to a store using pickling and a free counter; assume
 page size and block size are the same.
  *)
-let disk_to_store ~ps ~disk_ops ~free_ops =
+let disk_to_store ~monad_ops ~ps ~disk_ops ~free_ops =
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   dest_disk_ops disk_ops @@ fun ~blk_sz ~read ~write ->
   let page_size = page_size ps in
   let f2p = frame_to_page ps page_size in
@@ -22,13 +24,13 @@ let disk_to_store ~ps ~disk_ops ~free_ops =
   let store_free rs = return () in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f |> f2p |> fun p -> 
-    free_ops.get () |> bind @@ fun free -> 
-    write free p |> bind @@ fun () -> 
-    free_ops.set (free+1) |> bind @@ fun () ->
+    free_ops.get () >>= fun free -> 
+    write free p >>= fun () -> 
+    free_ops.set (free+1) >>= fun () ->
     return free
   in
   let store_read r : (('k,'v)frame,'t) m = 
-    read r |> bind @@ fun blk ->
+    read r >>= fun blk ->
     blk |> p2f |> return
   in
   Store_ops.mk_store_ops ~store_free ~store_read ~store_alloc

@@ -15,10 +15,12 @@ module Leaf_stream_types = struct
       shouldn't need to access components. *)
   type ('k,'v,'r) leaf_stream_state = { kvs: ('k*'v) list; ls: ('k,'v,'r)ls_state }
 
+
+  (* FIXME mk_leaf_stream should surely start with a page ref? *)
   type ('k,'v,'r) lss = ('k,'v,'r) leaf_stream_state
 
   type ('k,'v,'r,'t) leaf_stream_ops = {
-    mk_leaf_stream: unit -> (('k,'v,'r) lss,'t) m;
+    mk_leaf_stream: 'r -> (('k,'v,'r) lss,'t) m;
     ls_step: ('k,'v,'r) lss -> (('k,'v,'r) lss option,'t) m;
     ls_kvs: ('k,'v,'r) lss -> ('k*'v) list;
   }
@@ -28,7 +30,7 @@ include Leaf_stream_types
 
 
 let wf_ls_ops 
-    ~(mk_leaf_stream: unit -> (('k,'v,'r) lss,'t) m)
+    ~(mk_leaf_stream: 'r -> (('k,'v,'r) lss,'t) m)
     ~(ls_step: ('k,'v,'r) lss -> (('k,'v,'r) lss option,'t) m)
     ~(ls_kvs: ('k,'v,'r) lss -> ('k*'v) list)
   =
@@ -38,6 +40,7 @@ let mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs =
   assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);
   { mk_leaf_stream; ls_step; ls_kvs }
 
+let _ = mk_ls_ops
 
 let dest_ls_ops { mk_leaf_stream;ls_step; ls_kvs} = 
   assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);

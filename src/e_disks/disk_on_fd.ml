@@ -71,13 +71,15 @@ let make_disk ~blk_sz ~fd_ops =
 
 
 (** Construct [disk_ops] *)
-let make_disk ~blk_sz ~fd_ops = 
+let make_disk ~monad_ops ~blk_sz ~fd_ops = 
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
   let read: blk_id -> (blk,'t) m = fun r ->
-    fd_ops.get () |> bind @@ fun fd ->
+    fd_ops.get () >>= fun fd ->
     return (read fd blk_sz r)
   in
   let write: blk_id -> blk -> (unit,'t) m = fun r buf -> 
-    fd_ops.get () |> bind @@ fun fd ->           
+    fd_ops.get () >>= fun fd ->           
     return (write fd blk_sz r buf)
   in
   Disk_ops.mk_disk_ops ~blk_sz ~read ~write
