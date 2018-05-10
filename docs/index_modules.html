@@ -9,14 +9,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -33,8 +32,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -65,7 +62,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -76,9 +72,6 @@
 &nbsp;</div>
 <h1>Index of modules</h1>
 <table>
-<tr><td align="left"><br>A</td></tr>
-<tr><td><a href="Isa_export.Arith.html">Arith</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>B</td></tr>
 <tr><td><a href="Bin_prot_util.BP.html">BP</a> [<a href="Bin_prot_util.html">Bin_prot_util</a>]</td>
 <td></td></tr>
@@ -134,13 +127,6 @@ Basic block implementation.
 An LRU cache on top of a map.
 </div>
 </td></tr>
-<tr><td><a href="Constants.html">Constants</a> </td>
-<td><div class="info">
-B-tree constants: minimum leaf size etc.
-</div>
-</td></tr>
-<tr><td><a href="Constants.Constants_type.html">Constants_type</a> [<a href="Constants.html">Constants</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>D</td></tr>
 <tr><td><a href="Map_on_fd.D.html">D</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
 <td></td></tr>
@@ -155,8 +141,6 @@ Default filename for testing.
 </td></tr>
 <tr><td><a href="Map_on_fd.Default_implementation.html">Default_implementation</a> [<a href="Map_on_fd.html">Map_on_fd</a>]</td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Delete2.html">Delete2</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Digest_.Digest.html">Digest</a> [<a href="Digest_.html">Digest_</a>]</td>
 <td></td></tr>
 <tr><td><a href="Digest_.html">Digest_</a> </td>
@@ -166,8 +150,6 @@ A digest/hash of a string, for implementing maps from string,
    hash.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.Disk_node.html">Disk_node</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Disk_on_fd.html">Disk_on_fd</a> </td>
 <td><div class="info">
 Implement disk operations backed by a file-descriptor
@@ -198,8 +180,6 @@ Exhaustive state-space exploration for testing
 <tr><td><a href="Exhaustive_in_mem.html">Exhaustive_in_mem</a> </td>
 <td></td></tr>
 <tr><td align="left"><br>F</td></tr>
-<tr><td><a href="Isa_export.Find.html">Find</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Frame.html">Frame</a> </td>
 <td><div class="info">
 A frame is a node in a B-tree.
@@ -207,44 +187,22 @@ A frame is a node in a B-tree.
 </td></tr>
 <tr><td><a href="Frame.Frame_type.html">Frame_type</a> [<a href="Frame.html">Frame</a>]</td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Fun.html">Fun</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td align="left"><br>H</td></tr>
-<tr><td><a href="Isa_export.HOL.html">HOL</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>I</td></tr>
-<tr><td><a href="Isa_export.Insert.html">Insert</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Insert_delete_ops.html">Insert_delete_ops</a> </td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Insert_many.html">Insert_many</a> [<a href="Isa_export.html">Isa_export</a>]</td>
+<tr><td><a href="Isa_monad_conversion.html">Isa_monad_conversion</a> </td>
 <td></td></tr>
-<tr><td><a href="Isa_export.html">Isa_export</a> </td>
-<td><div class="info">
-This file is exported from Isabelle, and lightly patched (eg to
-   include this comment!).
-</div>
-</td></tr>
 <tr><td><a href="Isa_test.html">Isa_test</a> </td>
 <td><div class="info">
 Control isabelle inessential checks via flag
 </div>
 </td></tr>
-<tr><td><a href="Isabelle_conversions.html">Isabelle_conversions</a> </td>
-<td></td></tr>
-<tr><td><a href="Constants.Isabelle_conversions'.html">Isabelle_conversions'</a> [<a href="Constants.html">Constants</a>]</td>
-<td></td></tr>
 <tr><td><a href="Iter_leaf_stream.html">Iter_leaf_stream</a> </td>
 <td><div class="info">
 Wrap the small-step leaf-stream operations.
 </div>
 </td></tr>
-<tr><td align="left"><br>K</td></tr>
-<tr><td><a href="Isa_export.Key_value.html">Key_value</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>L</td></tr>
-<tr><td><a href="Isa_export.Leaf_stream.html">Leaf_stream</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Leaf_stream_ops.html">Leaf_stream_ops</a> </td>
 <td><div class="info">
 A leaf stream is a linear sequence of the leaves in a B-tree, used
@@ -258,8 +216,6 @@ A leaf stream is a linear sequence of the leaves in a B-tree, used
 Get all (key,value) pairs from a leaf stream.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.List.html">List</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Ls_state.html">Ls_state</a> </td>
 <td><div class="info">
 Leaf stream state.
@@ -304,25 +260,16 @@ Simple in-memory store implementation, mainly for testing
 </td></tr>
 <tr><td><a href="Map_int_blkx.Mk.html">Mk</a> [<a href="Map_int_blkx.html">Map_int_blkx</a>]</td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Monad.html">Monad</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>O</td></tr>
 <tr><td><a href="Digest_.O.html">O</a> [<a href="Digest_.html">Digest_</a>]</td>
 <td></td></tr>
-<tr><td><a href="Small_step.O.html">O</a> [<a href="Small_step.html">Small_step</a>]</td>
-<td><div class="info">
-Sub-modules called O are safe to open in other modules.
-</div>
-</td></tr>
-<tr><td><a href="Isa_export.Option.html">Option</a> [<a href="Isa_export.html">Isa_export</a>]</td>
+<tr><td><a href="Test_cache.Ord.html">Ord</a> [<a href="Test_cache.html">Test_cache</a>]</td>
 <td></td></tr>
 <tr><td><a href="Ord.html">Ord</a> </td>
 <td><div class="info">
 Ordering over a type
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.Orderings.html">Orderings</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>P</td></tr>
 <tr><td><a href="Profile.P.html">P</a> [<a href="Profile.html">Profile</a>]</td>
 <td></td></tr>
@@ -336,11 +283,7 @@ Fix page_ref type as int; also shadow frame type with more specific type.
 Various common parameters to functions.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.Params.html">Params</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Cache.Pmap.html">Pmap</a> [<a href="Cache.html">Cache</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Pre_insert.html">Pre_insert</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td><a href="Pre_map_ops.html">Pre_map_ops</a> </td>
 <td><div class="info">
@@ -349,12 +292,6 @@ A pre-map is like a map, but functions take an additional reference (to the
 </div>
 </td></tr>
 <tr><td><a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops_type</a> [<a href="Pre_map_ops.html">Pre_map_ops</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Pre_params.html">Pre_params</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Prelude.html">Prelude</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Product_Type.html">Product_Type</a> [<a href="Isa_export.html">Isa_export</a>]</td>
 <td></td></tr>
 <tr><td><a href="Profile.html">Profile</a> </td>
 <td></td></tr>
@@ -382,8 +319,6 @@ A store that attempts to recycle freed blocks, and thereby avoid
    excessive writing.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.Res.html">Res</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Rstk.html">Rstk</a> </td>
 <td></td></tr>
 <tr><td align="left"><br>S</td></tr>
@@ -391,19 +326,12 @@ A store that attempts to recycle freed blocks, and thereby avoid
 <td></td></tr>
 <tr><td><a href="Small_string.SS.html">SS</a> [<a href="Small_string.html">Small_string</a>]</td>
 <td></td></tr>
-<tr><td><a href="Isa_export.Searching_and_splitting.html">Searching_and_splitting</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Set.html">Set</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Exhaustive.Tjr_set.Make_set_ops.Set_.html">Set_</a> [<a href="Exhaustive.Tjr_set.Make_set_ops.html">Exhaustive.Tjr_set.Make_set_ops</a>]</td>
 <td></td></tr>
 <tr><td><a href="Tree_store.Set_ops.html">Set_ops</a> [<a href="Tree_store.html">Tree_store</a>]</td>
 <td></td></tr>
-<tr><td><a href="Small_step.html">Small_step</a> </td>
-<td><div class="info">
-Wrapper functions round functions exported from Isabelle.
-</div>
-</td></tr>
+<tr><td><a href="Test_cache.Set_ops.html">Set_ops</a> [<a href="Test_cache.html">Test_cache</a>]</td>
+<td></td></tr>
 <tr><td><a href="Small_string.html">Small_string</a> </td>
 <td><div class="info">
 Strings with &lt;= 256 bytes, used as keys in maps
@@ -430,8 +358,6 @@ Store operations: alloc, free and read.
 The essential B-tree functionality: implement a map on top of a store.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.String.html">String</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="String_.html">String_</a> </td>
 <td><div class="info">
 Ignore this module.
@@ -457,7 +383,7 @@ Support for logging and testing.
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html">Test_mem_map</a> </td>
 <td></td></tr>
-<tr><td><a href="Test_sh.html">Test_sh</a> </td>
+<tr><td><a href="Test_cache.Test_state.html">Test_state</a> [<a href="Test_cache.html">Test_cache</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_string_int_on_fd.html">Test_string_int_on_fd</a> </td>
 <td></td></tr>
@@ -473,25 +399,11 @@ Main documentation entry point
 The B-tree tree type.
 </div>
 </td></tr>
-<tr><td><a href="Isa_export.Tree.html">Tree</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
-<tr><td><a href="Isa_export.Tree_stack.html">Tree_stack</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td><a href="Tree_store.html">Tree_store</a> </td>
 <td></td></tr>
 <tr><td><a href="Tree.Tree_type.html">Tree_type</a> [<a href="Tree.html">Tree</a>]</td>
 <td></td></tr>
-<tr><td align="left"><br>U</td></tr>
-<tr><td><a href="Isa_export.Util.html">Util</a> [<a href="Isa_export.html">Isa_export</a>]</td>
-<td></td></tr>
 <tr><td align="left"><br>X</td></tr>
-<tr><td><a href="Big_step.X.html">X</a> [<a href="Big_step.html">Big_step</a>]</td>
-<td></td></tr>
-<tr><td><a href="Small_step.X.html">X</a> [<a href="Small_step.html">Small_step</a>]</td>
-<td><div class="info">
-Translations between Isabelle types and OCaml native types.
-</div>
-</td></tr>
 <tr><td><a href="String_.X_list.html">X_list</a> [<a href="String_.html">String_</a>]</td>
 <td></td></tr>
 </table>

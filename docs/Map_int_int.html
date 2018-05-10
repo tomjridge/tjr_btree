@@ -13,14 +13,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -37,8 +36,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -69,7 +66,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -89,9 +85,8 @@
 <pre><span id="VALsz"><span class="keyword">val</span> sz</span> : <code class="type">int</code></pre>
 <pre><span id="VALps'"><span class="keyword">val</span> ps'</span> : <code class="type">blk_sz:int -><br>       < blk_sz : int; cmp : Int_.t -> Int_.t -> int; constants : Constants.t;<br>         dbg_ps : 'a option;<br>         frame_to_page : <a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>                         (int, int) <a href="Page_ref_int.html#TYPEframe">Page_ref_int.frame</a> -><br>                         Binprot_marshalling.BlkN.blk;<br>         page_to_frame : Binprot_marshalling.BlkN.blk -><br>                         (int, int, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>) Frame.frame ></code></pre>
 <pre><span id="VALps"><span class="keyword">val</span> ps</span> : <code class="type">< blk_sz : int; cmp : Int_.t -> Int_.t -> int; constants : Constants.t;<br>         dbg_ps : 'a option;<br>         frame_to_page : <a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>                         (int, int) <a href="Page_ref_int.html#TYPEframe">Page_ref_int.frame</a> -><br>                         Binprot_marshalling.BlkN.blk;<br>         page_to_frame : Binprot_marshalling.BlkN.blk -><br>                         (int, int, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>) Frame.frame ></code></pre>
-<pre><span id="VALx"><span class="keyword">val</span> x</span> : <code class="type">< close : <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a> -> unit;<br>         disk_ops : <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a><br>                    Disk_ops.block_device;<br>         from_file : fn:string -><br>                     create:bool -><br>                     init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>;<br>         imperative_map_ops : s_ref:<a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a><br>                                    Pervasives.ref -><br>                              [> `Imperative_map_ops of<br>                                   (Int_.t -> int option) *<br>                                   (Int_.t -> int -> unit) * (Int_.t -> unit) ];<br>         ls_ops : (Int_.t, int, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>)<br>                  Leaf_stream_ops.leaf_stream_ops;<br>         map_ops : (Int_.t, int, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>)<br>                   Map_ops.map_ops;<br>         store_ops : (Int_.t, int, Block.blk_id,<br>                      <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> ></code></pre>
+<pre><span id="VALx"><span class="keyword">val</span> x</span> : <code class="type">< close : <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a> -> unit;<br>         disk_ops : <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing<br>                    Disk_ops.block_device;<br>         from_file : fn:string -><br>                     create:bool -><br>                     init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>;<br>         ls_ops : (Int_.t, int, Block.blk_id,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                  Leaf_stream_ops.leaf_stream_ops;<br>         map_ops : (Int_.t, int,<br>                    <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                   Map_ops.map_ops;<br>         store_ops : (Int_.t, int, Block.blk_id,<br>                      <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> ></code></pre>
 <pre><span id="VALfrom_file"><span class="keyword">val</span> from_file</span> : <code class="type">fn:string -><br>       create:bool -> init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a></code></pre>
-<pre><span id="VALmap_ops"><span class="keyword">val</span> map_ops</span> : <code class="type">(Int_.t, int, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>) Map_ops.map_ops</code></pre>
+<pre><span id="VALmap_ops"><span class="keyword">val</span> map_ops</span> : <code class="type">(Int_.t, int, <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>       Map_ops.map_ops</code></pre>
 <pre><span id="VALclose"><span class="keyword">val</span> close</span> : <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a> -> unit</code></pre>
-<pre><span id="VALls_ops"><span class="keyword">val</span> ls_ops</span> : <code class="type">(Int_.t, int, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>)<br>       Leaf_stream_ops.leaf_stream_ops</code></pre>
-<pre><span id="VALmain"><span class="keyword">val</span> main</span> : <code class="type">string list -> unit</code></pre></body></html>
+<pre><span id="VALls_ops"><span class="keyword">val</span> ls_ops</span> : <code class="type">(Int_.t, int, Block.blk_id,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>       Leaf_stream_ops.leaf_stream_ops</code></pre></body></html>

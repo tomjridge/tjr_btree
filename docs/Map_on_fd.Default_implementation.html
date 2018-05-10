@@ -12,14 +12,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -36,8 +35,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -68,7 +65,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -111,9 +107,10 @@
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a></code> </pre>
 
 
-<pre><span id="VALfd_ops"><span class="keyword">val</span> fd_ops</span> : <code class="type">(<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>       Base_types.mref</code></pre>
-<pre><span id="VALfree_ops"><span class="keyword">val</span> free_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>       Base_types.mref</code></pre>
-<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>       Base_types.mref</code></pre>
-<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< fd_ops : (<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>, <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>                  Base_types.mref;<br>         free_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                     <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>                    Base_types.mref;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a>)<br>                        Base_types.mref ></code></pre>
+<pre><span id="VALmonad_ops"><span class="keyword">val</span> monad_ops</span> : <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> Tjr_monad.state_passing<br>       Base_types.monad_ops</code></pre>
+<pre><span id="VALfd_ops"><span class="keyword">val</span> fd_ops</span> : <code class="type">(<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       <a href="Base_types.html#TYPEmref">Base_types.mref</a></code></pre>
+<pre><span id="VALfree_ops"><span class="keyword">val</span> free_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       <a href="Base_types.html#TYPEmref">Base_types.mref</a></code></pre>
+<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       <a href="Base_types.html#TYPEmref">Base_types.mref</a></code></pre>
+<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< fd_ops : (<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                   Tjr_monad.state_passing)<br>                  <a href="Base_types.html#TYPEmref">Base_types.mref</a>;<br>         free_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                     <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                     Tjr_monad.state_passing)<br>                    <a href="Base_types.html#TYPEmref">Base_types.mref</a>;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                         Tjr_monad.state_passing)<br>                        <a href="Base_types.html#TYPEmref">Base_types.mref</a> ></code></pre>
 <pre><span id="VALfrom_file"><span class="keyword">val</span> from_file</span> : <code class="type">fn:string -><br>       create:bool -><br>       init:bool -><br>       ps:< blk_sz : int;<br>            frame_to_page : int -> ('a, 'b, 'c) Frame.frame -> Block.blk; .. > -><br>       <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a></code></pre>
 <pre><span id="VALclose"><span class="keyword">val</span> close</span> : <code class="type">blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> -> unit</code></pre></body></html>

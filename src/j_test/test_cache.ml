@@ -49,8 +49,10 @@ let initial_state = { spec=init_spec; cache=init_cache; base_map=init_base_map }
 
 
 (* base uncached map ------------------------------------------------ *)
+open Tjr_monad
 
-let with_state = Tjr_step_monad.Extra.with_state
+let monad_ops : t state_passing monad_ops = Tjr_monad.State_passing_instance.monad_ops () 
+let with_state = Tjr_monad.State_passing_instance.with_world
 
 (* FIXME why is find defined in the following, but others are not? *)
 let base_map_ops : ('k,'v,'t) map_ops = 
@@ -73,7 +75,7 @@ let cache_ops = {
 }
 
 let cached_map_ops = 
-  Cache.make_cached_map ~map_ops:base_map_ops ~cache_ops @@
+  Cache.make_cached_map ~monad_ops ~map_ops:base_map_ops ~cache_ops @@
   fun ~cached_map_ops ~evict_hook -> cached_map_ops
 
 let _ = cached_map_ops
@@ -89,19 +91,20 @@ let (find,insert,delete) =
 
 open Exhaustive
 
-let run = Tjr_step_monad.Extra.run
+let run ~init_state a = 
+  Tjr_monad.State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
 
 let step t op =
   begin
     match op with
-    | Find k -> find k |> run t |> (fun (t',_) -> t')
+    | Find k -> find k |> run ~init_state:t |> (fun (t',_) -> t')
     | Insert (k,v) -> 
       insert k v 
-      |> run t
+      |> run ~init_state:t
       |> (fun (t',_) -> {t' with spec=Map_int.add k v t'.spec})
     | Delete k -> 
       delete k
-      |> run t
+      |> run ~init_state:t
       |> (fun (t',_) -> {t' with spec=Map_int.remove k t'.spec})
   end                   
   |> (fun x -> [{ x with cache=Cache.normalize x.cache}])

@@ -12,14 +12,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -36,8 +35,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -68,7 +65,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -126,7 +122,7 @@ To understand the interfaces, we need to introduce the following:
 
 Exported code is in the <code class="code">from_isa</code> package. There is some patching of
    the Isabelle-exported code before it is copied to <code class="code">base_types</code> in
-   module <a href="Isa_export.html"><code class="code">Isa_export</code></a>. Hopefully this code is relatively stable. It
+   module <code class="code">Isa_export</code>. Hopefully this code is relatively stable. It
    certainly isn't readable.
 <p>
 
@@ -145,7 +141,7 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <li><a href="Base_types.html"><code class="code">Base_types</code></a> includes most of the other modules in this package</li>
 <li><a href="Base_types_pervasives.html"><code class="code">Base_types_pervasives</code></a> which includes utility functions assumed by the other modules</li>
 <li><a href="Block.html"><code class="code">Block</code></a> for blocks on disk</li>
-<li><a href="Constants.html"><code class="code">Constants</code></a> which give size constraints on B-tree nodes</li>
+<li><code class="code">Constants</code> which give size constraints on B-tree nodes</li>
 <li><a href="Frame.html"><code class="code">Frame</code></a> which imports the Isabelle frame type</li>
 <li><a href="Ls_state.html"><code class="code">Ls_state</code></a> for the leaf stream state</li>
 <li><a href="Ord.html"><code class="code">Ord</code></a> for orderings (typically over keys)</li>
@@ -175,7 +171,7 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <p>
 <ul>
 <li><a href="Disk_ops.html"><code class="code">Disk_ops</code></a> for low-level block interface</li>
-<li><a href="Isabelle_conversions.html"><code class="code">Isabelle_conversions</code></a> for conversions from Isabelle types (eg num) to OCaml types</li>
+<li><code class="code">Isabelle_conversions</code> for conversions from Isabelle types (eg num) to OCaml types</li>
 <li><a href="Leaf_stream_ops.html"><code class="code">Leaf_stream_ops</code></a> and <a href="Leaf_stream_util.html"><code class="code">Leaf_stream_util</code></a> for leaf streams</li>
 <li><a href="Map_ops.html"><code class="code">Map_ops</code></a> for map operations, find etc.</li>
 <li><a href="Page_ref_int.html"><code class="code">Page_ref_int</code></a> utility to fix page ref as an integer</li>

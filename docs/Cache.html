@@ -13,14 +13,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -37,8 +36,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -69,7 +66,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -135,7 +131,7 @@ An LRU cache on top of a map.<br>
 
 
 
-<pre><span id="TYPEcache_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> cache_ops</span> = <code class="type">(('k, 'v) <a href="Cache.html#TYPEcache_state">cache_state</a>, 't) Base_types.mref</code> </pre>
+<pre><span id="TYPEcache_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> cache_ops</span> = <code class="type">(('k, 'v) <a href="Cache.html#TYPEcache_state">cache_state</a>, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
 
 
 <pre><span id="VALnormalize"><span class="keyword">val</span> normalize</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre>
@@ -145,7 +141,7 @@ An LRU cache on top of a map.<br>
 <pre><span id="VALwf"><span class="keyword">val</span> wf</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> unit</code></pre>
 <pre><span id="EXCEPTIONE_"><span class="keyword">exception</span> E_</span></pre>
 
-<pre><span id="VALsync_evictees"><span class="keyword">val</span> sync_evictees</span> : <code class="type">('a, 'b, 'c) Map_ops.map_ops -><br>       ('a * ('b option * 'd * bool)) list -> (unit, 'c) Monad.m</code></pre>
-<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">(('a, 'b * 'c * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'd) Monad.mref -> (unit, 'd) Monad.m</code></pre>
-<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">('a, 'b, 'c) Map_ops.map_ops -><br>       (('a, 'b option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'c) Monad.mref -><br>       (unit, 'c) Monad.m</code></pre>
-<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">map_ops:('a, 'b, 'c) Map_ops.map_ops -><br>       cache_ops:(('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'c) Monad.mref -><br>       (cached_map_ops:('a, 'b, 'c) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre></body></html>
+<pre><span id="VALsync_evictees"><span class="keyword">val</span> sync_evictees</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       ('b * ('c option * 'd * bool)) list -> (unit, 'a) Base_types.m</code></pre>
+<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       cache_ops:(('b, 'c * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (unit, 'a) Base_types.m</code></pre>
+<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (unit, 'a) Base_types.m</code></pre>
+<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre></body></html>

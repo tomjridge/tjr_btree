@@ -22,6 +22,16 @@ let (find,insert,delete) =
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
   (find,insert,delete)
 
+include struct
+  open Tjr_monad
+  let run ~init_state a = 
+    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+
+  let monad_ops : Map_on_fd.Default_implementation.t state_passing monad_ops = 
+    Tjr_monad.State_passing_instance.monad_ops ()
+end
+
+
 (* TODO use exhaustive; use imap_ops *)
 let test () = 
   Printf.printf "%s: " __MODULE__;
@@ -40,7 +50,7 @@ let test () =
           Test.log (fun _ -> __LOC__);
           Test.log (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
           ignore (insert (SS.of_string k) v 
-                  |> run !s 
+                  |> run ~init_state:!s 
                   |> (function (s',()) -> s:=s'));
           m:=(Map_string.add k v !m);
           c:=!c+1;
@@ -52,7 +62,7 @@ let test () =
         !m|>Map_string.bindings|>List.iter (fun (k,v) ->
             let _ = 
               find (SS.of_string k)
-              |> run !s 
+              |> run ~init_state:!s 
               |> fun (_,res) -> 
               Test.log (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
               if res = Some v then () else (
@@ -68,7 +78,7 @@ let test () =
             let _ = 
               Test.log (fun _ -> Printf.sprintf "deleting key %s" k);
               delete (SS.of_string k) 
-              |> run !s 
+              |> run ~init_state:!s 
               |> fun (s',()) -> s:=s'
             in
             ()))

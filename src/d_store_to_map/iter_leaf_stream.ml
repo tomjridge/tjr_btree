@@ -10,7 +10,7 @@ open Params
 open Isa_btree
 open Leaf_stream_ops
 
-let ils_mk ~monad_ops ~constants ~cmp ~store_ops ~ls_step =
+let store_ops_to_ls_ops ~monad_ops ~constants ~cmp ~store_ops ~ls_step =
 
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
@@ -39,5 +39,5 @@ let ils_mk ~monad_ops ~constants ~cmp ~store_ops ~ls_step =
 
   let ls_step ls = next_leaf ls in
 
-  fun k -> k ~mk_leaf_stream ~ls_kvs ~ls_step
+  mk_ls_ops ~mk_leaf_stream ~ls_kvs ~ls_step
 

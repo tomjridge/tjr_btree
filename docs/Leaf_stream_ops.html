@@ -13,14 +13,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -37,8 +36,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -69,7 +66,6 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
@@ -93,6 +89,6 @@ A leaf stream is a linear sequence of the leaves in a B-tree, used
 <pre><span class="keyword">module</span> <a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_types</a>: <code class="code">sig</code> <a href="Leaf_stream_ops.Leaf_stream_types.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Leaf_stream_types</pre>
 
-<pre><span id="VALwf_ls_ops"><span class="keyword">val</span> wf_ls_ops</span> : <code class="type">mk_leaf_stream:(unit -> (('k, 'v, 'r) lss, 't) Monad.m) -><br>       ls_step:(('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Monad.m) -><br>       ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool</code></pre>
-<pre><span id="VALmk_ls_ops"><span class="keyword">val</span> mk_ls_ops</span> : <code class="type">mk_leaf_stream:(unit -> (('a, 'b, 'c) lss, 'd) Monad.m) -><br>       ls_step:(('a, 'b, 'c) lss -> (('a, 'b, 'c) lss option, 'd) Monad.m) -><br>       ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -><br>       ('a, 'b, 'c, 'd) leaf_stream_ops</code></pre>
-<pre><span id="VALdest_ls_ops"><span class="keyword">val</span> dest_ls_ops</span> : <code class="type">('a, 'b, 'c, 'd) leaf_stream_ops -><br>       (mk_leaf_stream:(unit -> (('a, 'b, 'c) lss, 'd) Monad.m) -><br>        ls_step:(('a, 'b, 'c) lss -> (('a, 'b, 'c) lss option, 'd) Monad.m) -><br>        ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -> 'e) -><br>       'e</code></pre></body></html>
+<pre><span id="VALwf_ls_ops"><span class="keyword">val</span> wf_ls_ops</span> : <code class="type">mk_leaf_stream:('r -> (('k, 'v, 'r) lss, 't) Tjr_monad.Monad.m) -><br>       ls_step:(('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Tjr_monad.Monad.m) -><br>       ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool</code></pre>
+<pre><span id="VALmk_ls_ops"><span class="keyword">val</span> mk_ls_ops</span> : <code class="type">mk_leaf_stream:('a -> (('b, 'c, 'a) lss, 'd) Tjr_monad.Monad.m) -><br>       ls_step:(('b, 'c, 'a) lss -> (('b, 'c, 'a) lss option, 'd) Tjr_monad.Monad.m) -><br>       ls_kvs:(('b, 'c, 'a) lss -> ('b * 'c) list) -><br>       ('b, 'c, 'a, 'd) leaf_stream_ops</code></pre>
+<pre><span id="VALdest_ls_ops"><span class="keyword">val</span> dest_ls_ops</span> : <code class="type">('a, 'b, 'c, 'd) leaf_stream_ops -><br>       (mk_leaf_stream:('c -> (('a, 'b, 'c) lss, 'd) Tjr_monad.Monad.m) -><br>        ls_step:(('a, 'b, 'c) lss -> (('a, 'b, 'c) lss option, 'd) Tjr_monad.Monad.m) -><br>        ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -> 'e) -><br>       'e</code></pre></body></html>

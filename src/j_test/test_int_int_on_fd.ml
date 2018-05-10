@@ -25,6 +25,9 @@ let (find,insert,delete) =
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   (find,insert,delete)
 
+let run ~init_state a = 
+  Tjr_monad.State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+
 let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
     __MODULE__ 
@@ -38,7 +41,7 @@ let test_uncached range = (
       print_string "."; Base_types.flush_out();
       let x = List.hd !xs in
       ignore (insert x (2*x) 
-              |> run !s 
+              |> run ~init_state:!s 
               |> function (s',()) -> s:=s');
       xs:=List.tl !xs;
     done);

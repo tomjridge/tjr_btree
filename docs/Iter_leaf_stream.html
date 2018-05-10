@@ -5,7 +5,7 @@
 <meta content="text/html; charset=iso-8859-1" http-equiv="Content-Type">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
-<link rel="previous" href="Small_step.html">
+<link rel="previous" href="Store_ops.html">
 <link rel="next" href="Big_step.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
@@ -13,14 +13,13 @@
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
-<link title="Isa_export" rel="Chapter" href="Isa_export.html">
 <link title="Isa_test" rel="Chapter" href="Isa_test.html">
 <link title="Test" rel="Chapter" href="Test.html">
 <link title="Profile" rel="Chapter" href="Profile.html">
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
-<link title="Constants" rel="Chapter" href="Constants.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
+<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -37,8 +36,6 @@
 <link title="Page_ref_int" rel="Chapter" href="Page_ref_int.html">
 <link title="Pre_map_ops" rel="Chapter" href="Pre_map_ops.html">
 <link title="Store_ops" rel="Chapter" href="Store_ops.html">
-<link title="Isabelle_conversions" rel="Chapter" href="Isabelle_conversions.html">
-<link title="Small_step" rel="Chapter" href="Small_step.html">
 <link title="Iter_leaf_stream" rel="Chapter" href="Iter_leaf_stream.html">
 <link title="Big_step" rel="Chapter" href="Big_step.html">
 <link title="Store_to_map" rel="Chapter" href="Store_to_map.html">
@@ -69,14 +66,13 @@
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
-<link title="Test_sh" rel="Chapter" href="Test_sh.html">
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
 <link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Iter_leaf_stream</title>
 </head>
 <body>
-<div class="navbar"><a class="pre" href="Small_step.html" title="Small_step">Previous</a>
+<div class="navbar"><a class="pre" href="Store_ops.html" title="Store_ops">Previous</a>
 &nbsp;<a class="up" href="index.html" title="Index">Up</a>
 &nbsp;<a class="post" href="Big_step.html" title="Big_step">Next</a>
 </div>
@@ -87,4 +83,4 @@ Wrap the small-step leaf-stream operations.<br>
 </div>
 <hr width="100%">
 
-<pre><span id="VALils_mk"><span class="keyword">val</span> ils_mk</span> : <code class="type">ps:< cmp : 'k -> 'k -> int; constants : Constants.t; .. > -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       (mk_leaf_stream:('r -> (('k, 'v, 'r) Leaf_stream_ops.lss, 't) Monad.m) -><br>        ls_kvs:(('k, 'v, 'a) Leaf_stream_ops.leaf_stream_state -> ('k * 'v) list) -><br>        ls_step:(('k, 'v, 'r) Leaf_stream_ops.leaf_stream_state -><br>                 (('k, 'v, 'r) Leaf_stream_ops.lss option, 't) Monad.m) -><br>        'b) -><br>       'b</code></pre></body></html>
+<pre><span id="VALstore_ops_to_ls_ops"><span class="keyword">val</span> store_ops_to_ls_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:'a -><br>       cmp:'b -><br>       store_ops:'c -><br>       ls_step:(constants:'a -><br>                cmp:'b -><br>                store_ops:'c -><br>                ('k, 'v, 'r) <a href="Ls_state.html#TYPEls_state">Ls_state.ls_state</a> -><br>                (('k, 'v, 'r) Isa_btree.ls_state, 't) Base_types.m) -><br>       ('k, 'v, 'r, 't) Leaf_stream_ops.leaf_stream_ops</code></pre></body></html>

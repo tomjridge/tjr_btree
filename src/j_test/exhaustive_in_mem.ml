@@ -83,7 +83,14 @@ let set_ops = Set_ops.set_ops
 
 (* FIXME need to add wellformedness checks on the following *)
 
-let run = Tjr_step_monad.Extra.run
+include struct
+  open Tjr_monad
+  let run ~init_state a = 
+    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+
+  let monad_ops : Tree_store.tree state_passing monad_ops = 
+    Tjr_monad.State_passing_instance.monad_ops ()
+end
 
 let execute_tests ~constants ~map_ops ~ops ~init_trees = 
   let find,insert,delete = 
@@ -98,10 +105,10 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
     match op with
     | Insert i -> 
       Test.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
-      insert i i |> run t
+      insert i i |> run ~init_state:t
     | Delete i ->
       Test.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
-      delete i |> run t
+      delete i |> run ~init_state:t
   in
 
   let check_state t = assert(
@@ -133,7 +140,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
 let _ = execute_tests
 
-let page_ref_ops = Tjr_step_monad.Step_monad_implementation.{
+let page_ref_ops = Tjr_monad.State_passing_instance.{
     get=(fun () -> with_world (fun t -> (t,t)));
     set=(fun r -> with_world (fun t -> ((),r)));
   }
@@ -145,13 +152,8 @@ let main' ~min ~max ~step ~constants =
     range|>List.map (fun x -> Insert x) |> fun xs ->
     range|>List.map (fun x -> Delete x) |> fun ys -> xs@ys
   in
-  let ps = 
-    object
-      method cmp=Int_.compare
-      method constants=constants
-    end
-  in
-  let map_ops = Store_to_map.store_ops_to_map_ops ~ps ~page_ref_ops ~store_ops in
+  let cmp = Int_.compare in
+  let map_ops = Store_to_map.store_ops_to_map_ops ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops in
   execute_tests ~constants ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
 
 let _ = main'

@@ -1,4 +1,5 @@
 open Tjr_monad.Monad
+open Base_types
 open Isa_btree
 
 (** Iterate small-step map operations to provide big-step map
@@ -16,7 +17,9 @@ open Isa_btree
 (* FIXME in the following find_step etc should be wrt the generic monad  *)
 
 let make_pre_map_ops (type k v r t) 
-    ~(monad_ops:t monad_ops) ~store_ops ~constants ~cmp 
+    ~(monad_ops:t monad_ops) 
+    ~(store_ops:(k,v,r,t)Store_ops.store_ops)
+    ~(constants:Constants.t) ~(cmp:k -> k -> int) 
 
 (*    ~find_step ~dest_f_finished 
     ~insert_step ~dest_i_finished
@@ -25,6 +28,10 @@ let make_pre_map_ops (type k v r t)
   = 
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
+
+  let store_ops = 
+    (store_ops.store_read,(store_ops.store_alloc,store_ops.store_free)) 
+  in
 
   let module Monad = struct
     type ('a,'t) mm = ('a,t) Tjr_monad.Monad.m  (* FIXME *)
@@ -140,8 +147,24 @@ let make_pre_map_ops (type k v r t)
 
   (* leaf stream ---------------------------------------------------- *)
 
-  let ils_mk = 
-    Iter_leaf_stream.ils_mk ~monad_ops ~constants ~cmp ~store_ops ~ls_step in
+  let ls_ops = 
+    Iter_leaf_stream.store_ops_to_ls_ops 
+      ~monad_ops ~constants ~cmp ~store_ops ~ls_step
+  in
+
+  (* NOTE following is not needed because we now give the page ref explicitly
+  (** Make [ls_ops], given a [page_ref_ops]. We only read from
+      page_ref_ops. TODO ditto *)
+  let make_ls_ops ~page_ref_ops ~ls_step : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops =
+    ils_mk @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
+    let ( >>= ) = monad_ops.bind in
+    let return = monad_ops.return in
+    let mk_leaf_stream = fun () ->
+      page_ref_ops.get () >>= fun r -> 
+      mk_leaf_stream r
+    in
+    Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs
+  *)
 
   (* make pre_map_ops ---------------------------------------- *)
 
@@ -157,7 +180,7 @@ let make_pre_map_ops (type k v r t)
     pre_map_ops
   in
 
-  fun f -> f ~pre_map_ops ~ils_mk
+  fun f -> f ~pre_map_ops ~ls_ops
 
 (*
 

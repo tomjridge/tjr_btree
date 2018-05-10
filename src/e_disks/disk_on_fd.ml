@@ -10,6 +10,9 @@ type fd = Unix.file_descr
 
 
 (** [fd_ops] identifies a filedescriptor in the global state *)
+(* FIXME why use mref? why not have all operations parameterized by
+   fd? because we want a uniform interface to disks, and in general they
+   are not identified by fd *)
 type 't fd_ops = (fd,'t) mref
 
 

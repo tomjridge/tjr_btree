@@ -18,6 +18,15 @@ module State = struct
 end
 
 include struct
+  open Tjr_monad
+  open Tjr_monad.Monad
+  let monad_ops : State.t state_passing monad_ops = 
+    Tjr_monad.State_passing_instance.monad_ops ()
+end
+
+let return = monad_ops.return
+
+include struct
   open Base_types
   open Store_ops 
   open Frame

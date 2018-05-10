@@ -60,28 +60,27 @@ let make_map_ops' (type k v r t) ~monad_ops ~pre_map_ops ~page_ref_ops =
 
 (** Make [map_ops], given a [page_ref_ops]. *)
 let store_ops_to_map_ops 
-    ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops 
+    ~monad_ops ~constants ~cmp ~page_ref_ops ~(store_ops:('k,'v,'r,'t)Store_ops.store_ops)
   : ('k,'v,'t) Map_ops.map_ops
   =
   Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
-  fun ~pre_map_ops ~ils_mk -> 
-  make_map_ops' ~monad_ops ~pre_map_ops ~page_ref_ops
+  fun ~pre_map_ops ~ls_ops -> 
+  let map_ops = make_map_ops' ~monad_ops ~pre_map_ops ~page_ref_ops in
+  map_ops
+
+(** Make [ls_ops], given a [page_ref_ops]. *)
+let store_ops_to_ls_ops 
+    ~monad_ops ~constants ~cmp ~(store_ops:('k,'v,'r,'t)Store_ops.store_ops)
+    : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops
+  =
+  Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
+  fun ~pre_map_ops ~ls_ops -> 
+  ls_ops
+
 
 (*
 
 let ils_mk = Iter_leaf_stream.ils_mk
-
-(** Make [ls_ops], given a [page_ref_ops]. We only read from
-    page_ref_ops. TODO ditto *)
-let make_ls_ops ~constants ~cmp ~monad_ops ~store_ops ~page_ref_ops ~ls_step : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops =
-  ils_mk ~constants ~cmp ~monad_ops ~store_ops ~ls_step @@ fun ~mk_leaf_stream ~ls_kvs ~ls_step ->
-  let ( >>= ) = monad_ops.bind in
-  let return = monad_ops.return in
-  let mk_leaf_stream = fun () ->
-    page_ref_ops.get () >>= fun r -> 
-    mk_leaf_stream r
-  in
-  Leaf_stream_ops.mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs
 
 let _ = make_ls_ops
 *)

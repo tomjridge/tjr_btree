@@ -44,29 +44,31 @@ open Block
 
 (* layers: disk_ops and store_ops --------------------------------- *)
 
-let mk_disk_ops ~ps ~fd_ops = D.make_disk ~blk_sz:(blk_sz ps) ~fd_ops
+let mk_disk_ops ~monad_ops ~ps ~fd_ops = 
+  D.make_disk ~monad_ops ~blk_sz:(blk_sz ps) ~fd_ops
 
-let mk_store_ops ~ps ~ops = 
-  D2S.disk_to_store
-    ps
-    (mk_disk_ops ~ps ~fd_ops:(fd_ops ops))
-    (free_ops ops)
+let mk_store_ops ~monad_ops ~ps ~ops = 
+  D2S.disk_to_store ~monad_ops
+    ~ps
+    ~disk_ops:(mk_disk_ops ~monad_ops ~ps ~fd_ops:(fd_ops ops))
+    ~free_ops:(free_ops ops)
 
 
 (* create --------------------------------------------------------- *)
 
 (* FIXME these aren't doing much; also, constants can be computed *)
 
-let mk_map_ops ~ps ~ops : ('k,'v,'t) map_ops = 
-  mk_store_ops ~ps ~ops |> fun store_ops -> 
-  S2M.store_ops_to_map_ops ~ps ~page_ref_ops:(page_ref_ops ops) ~store_ops
+let mk_map_ops ~monad_ops ~ps ~ops : ('k,'v,'t) map_ops = 
+  mk_store_ops ~monad_ops ~ps ~ops |> fun store_ops -> 
+  S2M.store_ops_to_map_ops ~monad_ops ~constants:(constants ps) ~cmp:(cmp ps) ~page_ref_ops:(page_ref_ops ops) ~store_ops
 
-let mk_ls_ops ~ps ~page_ref_ops ~store_ops = 
-  S2M.make_ls_ops ~ps ~page_ref_ops ~store_ops
+(*
+let mk_ls_ops ~monad_ops ~ps ~page_ref_ops ~store_ops = 
+  Iter_leaf_stream.store_ops_to_ls_ops S2M.make_ls_ops ~ps ~page_ref_ops ~store_ops
 
 let mk_imperative_map_ops ~ps ~ops = 
   mk_map_ops ~ps ~ops |> fun map_ops -> map_ops_to_imperative map_ops
-
+*)
 
 (* root block ---------------------------------------- *)
 
@@ -81,6 +83,7 @@ let marshal_to_string x = Marshal.to_string x []
 let marshal_from_string s = Marshal.from_string s 0
 
 let root_blk_id = 0
+
 
 let write_root_block ~fd ~blk_sz ~free ~root = 
   (free,root) |> marshal_to_string |> Block.of_string blk_sz 
@@ -117,6 +120,7 @@ let close ~blk_sz ~fd ~free ~root =
   Unix.close fd
 
 
+
 module Default_implementation = struct
 
   (* the global state *)
@@ -127,24 +131,29 @@ module Default_implementation = struct
   }        
   type t = global_state
 
-  include struct
-    open Tjr_step_monad.Step_monad_implementation
-    let fd_ops = D.{
-        get=(fun () -> with_world (fun w -> (w.fd,w)));
-        set=(fun fd -> with_world (fun w -> ((),{w with fd}))); 
-      }
+  (* at this point we can use a state-passing monad t -> t *)
 
-    let free_ops = D2S.{
-        get=(fun () -> with_world (fun t -> (t.free,t)));
-        set=(fun free -> with_world (fun t -> ((),{t with free})));
-      }
+  open Tjr_monad
 
-    let page_ref_ops = {
-      get=(fun () -> with_world (fun t -> (t.root,t)));
-      set=(fun root -> with_world (fun t -> ((),{t with root})));
+  let monad_ops : t state_passing monad_ops = Tjr_monad.State_passing_instance.monad_ops ()
+
+  open Tjr_monad.State_passing_instance
+
+  let fd_ops = D.{
+      get=(fun () -> with_world (fun w -> (w.fd,w)));
+      set=(fun fd -> with_world (fun w -> ((),{w with fd}))); 
     }
 
-  end
+  let free_ops = D2S.{
+      get=(fun () -> with_world (fun t -> (t.free,t)));
+      set=(fun free -> with_world (fun t -> ((),{t with free})));
+    }
+
+  let page_ref_ops = {
+    get=(fun () -> with_world (fun t -> (t.root,t)));
+    set=(fun root -> with_world (fun t -> ((),{t with root})));
+  }
+
 
   let ops = 
     object
@@ -162,6 +171,7 @@ module Default_implementation = struct
 
 
 end
+
 
 
 (* TODO a high-level cache over Insert_many -------------------------------------- *)

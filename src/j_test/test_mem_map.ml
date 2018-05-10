@@ -6,8 +6,6 @@ open Page_ref_int
 open Mem_store
 open Map_ops
 
-let run = Tjr_step_monad.Extra.run
-
 (* we concentrate on relatively small parameters *)
 
 type key = int  [@@deriving yojson]
@@ -28,6 +26,18 @@ module T = struct
   let compare (x:t) (y:t) = (Pervasives.compare (x.t) (y.t))
 end
 open T
+
+include struct
+  open Tjr_monad
+  let run ~init_state a = 
+    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+
+  let monad_ops : t state_passing monad_ops = 
+    Tjr_monad.State_passing_instance.monad_ops ()
+end
+
+
+
 
 (* min possible?
 let constants = Constants.{
@@ -81,14 +91,15 @@ let constants = Constants.{
 
 include struct
 
-  open Tjr_step_monad.Step_monad_implementation
+  open Tjr_monad
+  open Tjr_monad.State_passing_instance
 
   let page_ref_ops = {
     get=(fun () -> with_world (fun t -> (t.r,t)));
     set=(fun r -> with_world (fun t -> ((),{t with r})));
   }
 
-  let mem_ops : ('k,'v,T.t) mem_ops = {
+  let mem_ops : ('k,'v,T.t state_passing) mem_ops = {
     get=(fun () -> with_world (fun t -> (t.s,t)));
     set=(fun s -> with_world (fun t -> ((),{t with s})));
   }
@@ -101,15 +112,22 @@ let ops =
     method mem_ops=mem_ops
   end
 
-let store_ops = Mem_store.mk_store_ops mem_ops
+let store_ops : ('k,'v,'r,'t) Store_ops.store_ops = 
+  Mem_store.mk_store_ops ~monad_ops ~mem_ops
 
 let r2t : ('k,'v,'r,'t)r2t = 
   Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
-  store_read_to_r2t store_read
+  store_read_to_r2t
+    ~store_read
+    ~run:(fun t a -> run ~init_state:t a)
+
+let _ = r2t
+
+let cmp = Int_.compare
 
 let ps = 
   object
-    method cmp=Int_.compare
+    method cmp=cmp
     method constants=constants
     method dbg_ps= Some(
       object
@@ -121,7 +139,9 @@ let ps =
   end
 
 
-let map_ops = Mem_map.mk_map_ops ~ps ~ops 
+(* FIXME we want to try with lots of different values of constants *)
+let map_ops = Mem_map.mk_map_ops 
+    ~monad_ops ~constants ~cmp ~ops 
 
 (* for maintaing a set of states *)
 module TSET = Set.Make(T)
@@ -224,7 +244,7 @@ let test_insert range = (
     if (!c) mod 100 = 0 then (Printf.printf "."; flush_out ()) else ();
     let x = List.hd !xs in
     ignore(
-      insert x (2*x) |> run !s0
+      insert x (2*x) |> run ~init_state:!s0
       |> (fun (s',()) -> s0:=s'));
     c:=!c+1;
     xs:=List.tl !xs;
