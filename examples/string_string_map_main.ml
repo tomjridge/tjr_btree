@@ -2,7 +2,9 @@ open Tjr_btree
 open Small_string
 open Ss_ss_map_on_fd
 
-let run = Tjr_step_monad.Extra.run
+let run = Tjr_monad.State_passing_instance.run
+
+let monad_ops = Tjr_monad.State_passing_instance.monad_ops ()
 
 let main args = 
   (* turn off wf checking *)
@@ -15,18 +17,18 @@ let main args =
       print_endline "init ok")
   | ["insert";fn;k;v] -> (
       from_file ~fn ~create:false ~init:false |> fun s -> 
-      insert (SS.of_string k) (SS.of_string v) |> run s |> fun (t, _) -> 
+      insert (SS.of_string k) (SS.of_string v) |> run ~init_state:s |> fun (_,t) -> 
       close t)
   | ["delete";fn;k] -> (
       from_file ~fn ~create:false ~init:false |> fun s ->
       delete (SS.of_string k) 
-      |> run s
-      |> function (t,_) -> close t)
+      |> run ~init_state:s
+      |> function (_,t) -> close t)
   | ["list";fn] -> (
       from_file ~fn  ~create:false ~init:false |> fun s -> 
-      Leaf_stream_util.all_kvs ~ls_ops 
-      |> run s 
-      |> (function (s',kvs) -> (
+      Leaf_stream_util.all_kvs ~monad_ops ~ls_ops ~r:s.Map_on_fd.Default_implementation.root
+      |> run ~init_state:s 
+      |> (function (kvs,s') -> (
             (List.iter (fun (k,v) -> 
                  Printf.printf "%s -> %s\n" (SS.to_string k) 
                    (SS.to_string v)) kvs);

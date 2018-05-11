@@ -111,4 +111,7 @@ The operations typically execute in the <code class="code">Base_types.Monad</cod
 Utility: call <code class="code">insert_many</code> in a loop.<br>
 </div>
 
-<pre><span id="VALwf_imperative_map_ops"><span class="keyword">val</span> wf_imperative_map_ops</span> : <code class="type">find:('k -> 'v option) -><br>       insert:('k -> 'v -> unit) -> delete:('k -> unit) -> bool</code></pre></body></html>
+<pre><span id="VALwf_imperative_map_ops"><span class="keyword">val</span> wf_imperative_map_ops</span> : <code class="type">find:('k -> 'v option) -><br>       insert:('k -> 'v -> unit) -> delete:('k -> unit) -> bool</code></pre>
+<pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">init_state:'a -><br>       ('b, 'a Tjr_monad.state_passing) Tjr_monad.Monad.m -> 'b * 'a</code></pre>
+<pre><span id="VALstate_passing_map_ops_to_imperative"><span class="keyword">val</span> state_passing_map_ops_to_imperative</span> : <code class="type">('a, 'b, 'c Tjr_monad.state_passing) map_ops -><br>       s_ref:'c Pervasives.ref -><br>       [> `Imperative_map_ops of<br>            ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ]</code></pre>
+<pre><span id="VALdest_imperative_map_ops"><span class="keyword">val</span> dest_imperative_map_ops</span> : <code class="type">[< `Imperative_map_ops of<br>            ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ] -><br>       (find:('a -> 'b option) -><br>        insert:('a -> 'b -> unit) -> delete:('a -> unit) -> 'c) -><br>       'c</code></pre></body></html>

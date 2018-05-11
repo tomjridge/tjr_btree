@@ -34,7 +34,7 @@ let do_write () =
   (* create and initialize *)
   let s = ref (from_file ~fn ~create:true ~init:true) in
   (* get map operations *)
-  let map_ops = imperative_map_ops s in
+  let map_ops = imperative_map_ops ~s_ref:s in
   dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
   (* write values *)
   for x=1 to max do

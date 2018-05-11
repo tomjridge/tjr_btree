@@ -73,25 +73,24 @@ let wf_imperative_map_ops
   true
 
 
-(* FIXME imperative 
-let run = Tjr_step_monad.Extra.run
+let run = Tjr_monad.State_passing_instance.run
 
 (* TODO insert_many *)
-let map_ops_to_imperative map_ops = 
+let state_passing_map_ops_to_imperative map_ops = 
   dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
   assert(wf_map_ops ~find ~insert ~delete ~insert_many);
   fun ~s_ref ->
     let find k = 
-      find k |> run (!s_ref) 
-      |> function (s',res) -> (s_ref:=s'; res) 
+      find k |> run ~init_state:!s_ref
+      |> function (res,s') -> (s_ref:=s'; res) 
     in
     let insert k v = 
-      insert k v |> run (!s_ref) 
-      |> function (s',res) -> (s_ref:=s'; res) 
+      insert k v |> run ~init_state:!s_ref
+      |> function (res,s') -> (s_ref:=s'; res) 
     in
     let delete k = 
-      delete k |> run (!s_ref) 
-      |> function (s',res) -> (s_ref:=s'; res)
+      delete k |> run ~init_state:!s_ref
+      |> function (res,s') -> (s_ref:=s'; res)
     in
     assert(wf_imperative_map_ops ~find ~insert ~delete);
     `Imperative_map_ops(find,insert,delete)
@@ -101,5 +100,3 @@ let dest_imperative_map_ops (`Imperative_map_ops(find,insert,delete)) =
   assert(wf_imperative_map_ops ~find ~insert ~delete);
   fun k -> k ~find ~insert ~delete
 
-
-*)

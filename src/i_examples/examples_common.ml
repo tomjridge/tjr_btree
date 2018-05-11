@@ -11,6 +11,7 @@ let mk_example_on_fd ~ps =
   let map_ops = Store_to_map.store_ops_to_map_ops 
       ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops 
   in
+  let imperative_map_ops = Map_ops.state_passing_map_ops_to_imperative map_ops in
   let ls_ops = 
     Store_to_map.store_ops_to_ls_ops ~monad_ops ~constants ~cmp ~store_ops 
   in
@@ -20,6 +21,7 @@ let mk_example_on_fd ~ps =
     method disk_ops=disk_ops
     method store_ops=store_ops
     method map_ops=map_ops
+    method imperative_map_ops=imperative_map_ops
     method ls_ops=ls_ops
     method from_file=from_file
     method close=close
@@ -29,6 +31,7 @@ let mk_example_on_fd ~ps =
 (* specific params ------------------------------------------------ *)
 
 let map_ops x = x#map_ops
+let imperative_map_ops x = x#imperative_map_ops
 let ls_ops x = x#ls_ops
 let from_file x = x#from_file
 let close x = x#close

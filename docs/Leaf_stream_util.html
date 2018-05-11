@@ -83,7 +83,7 @@ Get all (key,value) pairs from a leaf stream. Debugging only.<br>
 </div>
 <hr width="100%">
 
-<pre><span id="VALall_kvs"><span class="keyword">val</span> all_kvs</span> : <code class="type">monad_ops:'t Tjr_monad.Monad.monad_ops -><br>       ls_ops:('k, 'v, unit, 't) Leaf_stream_ops.leaf_stream_ops -><br>       (('k * 'v) list, 't) Tjr_monad.Monad.m</code></pre><div class="info ">
+<pre><span id="VALall_kvs"><span class="keyword">val</span> all_kvs</span> : <code class="type">monad_ops:'t Tjr_monad.Monad.monad_ops -><br>       ls_ops:('k, 'v, 'a, 't) Leaf_stream_ops.leaf_stream_ops -><br>       r:'a -> (('k * 'v) list, 't) Tjr_monad.Monad.m</code></pre><div class="info ">
 Get all (key,value) pairs from a leaf stream. Debugging only.<br>
 </div>
 </body></html>

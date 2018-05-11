@@ -89,6 +89,8 @@ Utility module to fix page_ref as int<br>
 </div>
 
 
+<pre><span id="VALpage_ref_to_yojson"><span class="keyword">val</span> page_ref_to_yojson</span> : <code class="type"><a href="Page_ref_int.html#TYPEpage_ref">page_ref</a> -> Yojson.Safe.json</code></pre>
+<pre><span id="VALpage_ref_of_yojson"><span class="keyword">val</span> page_ref_of_yojson</span> : <code class="type">Yojson.Safe.json -><br>       <a href="Page_ref_int.html#TYPEpage_ref">page_ref</a> Ppx_deriving_yojson_runtime.error_or</code></pre>
 <pre><span id="VALbin_shape_page_ref"><span class="keyword">val</span> bin_shape_page_ref</span> : <code class="type">Bin_prot.Shape.t</code></pre>
 <pre><span id="VALbin_size_page_ref"><span class="keyword">val</span> bin_size_page_ref</span> : <code class="type">int Bin_prot.Std.sizer</code></pre>
 <pre><span id="VALbin_write_page_ref"><span class="keyword">val</span> bin_write_page_ref</span> : <code class="type">int Bin_prot.Write.writer</code></pre>
@@ -97,8 +99,6 @@ Utility module to fix page_ref as int<br>
 <pre><span id="VALbin_read_page_ref"><span class="keyword">val</span> bin_read_page_ref</span> : <code class="type">int Bin_prot.Read.reader</code></pre>
 <pre><span id="VALbin_reader_page_ref"><span class="keyword">val</span> bin_reader_page_ref</span> : <code class="type">int Bin_prot.Type_class.reader</code></pre>
 <pre><span id="VALbin_page_ref"><span class="keyword">val</span> bin_page_ref</span> : <code class="type">int Bin_prot.Type_class.t</code></pre>
-<pre><span id="VALpage_ref_to_yojson"><span class="keyword">val</span> page_ref_to_yojson</span> : <code class="type"><a href="Page_ref_int.html#TYPEpage_ref">page_ref</a> -> Yojson.Safe.json</code></pre>
-<pre><span id="VALpage_ref_of_yojson"><span class="keyword">val</span> page_ref_of_yojson</span> : <code class="type">Yojson.Safe.json -><br>       <a href="Page_ref_int.html#TYPEpage_ref">page_ref</a> Ppx_deriving_yojson_runtime.error_or</code></pre>
 <pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type">('k, 'v)</code> frame</span> = <code class="type">('k, 'v, <a href="Page_ref_int.html#TYPEpage_ref">page_ref</a>) Frame.frame</code> </pre>
 
 </body></html>
