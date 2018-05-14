@@ -69,9 +69,6 @@
 <body>
 <code class="code"><span class="keyword">sig</span><br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;ss<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ss_to_yojson&nbsp;:&nbsp;ss&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json<br>
-&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ss_of_yojson&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ss&nbsp;<span class="constructor">Ppx_deriving_yojson_runtime</span>.error_or<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;bin_ss&nbsp;:&nbsp;ss&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Type_class</span>.t<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;bin_read_ss&nbsp;:&nbsp;ss&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Read</span>.reader<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;__bin_read_ss__&nbsp;:&nbsp;(int&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;ss)&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Read</span>.reader<br>
@@ -80,6 +77,10 @@
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;bin_write_ss&nbsp;:&nbsp;ss&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Write</span>.writer<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;bin_writer_ss&nbsp;:&nbsp;ss&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Type_class</span>.writer<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;bin_shape_ss&nbsp;:&nbsp;<span class="constructor">Bin_prot</span>.<span class="constructor">Shape</span>.t<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ss_to_yojson&nbsp;:&nbsp;<span class="constructor">Small_string</span>.<span class="keywordsign">??.</span>ss&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json<br>
+&nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ss_of_yojson&nbsp;:<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Yojson</span>.<span class="constructor">Safe</span>.json&nbsp;<span class="keywordsign">-&gt;</span><br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Small_string</span>.<span class="keywordsign">??.</span>ss&nbsp;<span class="constructor">Ppx_deriving_yojson_runtime</span>.error_or<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;max_length&nbsp;:&nbsp;int<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;to_string&nbsp;:&nbsp;<span class="constructor">Small_string</span>.<span class="keywordsign">??.</span>ss&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;string<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;of_string&nbsp;:&nbsp;string&nbsp;<span class="keywordsign">-&gt;</span>&nbsp;<span class="constructor">Small_string</span>.<span class="keywordsign">??.</span>ss<br>
