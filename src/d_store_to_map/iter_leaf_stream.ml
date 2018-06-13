@@ -10,6 +10,7 @@ open Params
 open Isa_btree
 open Leaf_stream_ops
 
+(* FIXME there is a similarly named function in store_to_map - rename this one *)
 let store_ops_to_ls_ops ~monad_ops ~constants ~cmp ~store_ops ~ls_step =
 
   let ( >>= ) = monad_ops.bind in
