@@ -55,10 +55,12 @@ doc:
 
 # ----------------------------------------
 
-clean:
+clean: FORCE
 	clean
 	rm -f *.html
 	rm -f tjr_btree_recap.mli
+
+real_clean: clean
 	rm_links
 	rm -rf links _depend
 
