@@ -9,15 +9,21 @@ RUN opam list
 RUN opam update
 RUN opam install batteries extunix
 RUN opam install ppx_deriving_yojson extlib core ppx_bin_prot ocaml-compiler-libs lwt
+# for tjr_lib
+RUN opam install core_kernel ppx_deriving_yojson rresult bos fileutils omd
 RUN opam list
 RUN ocamlfind list
 
+RUN echo build from here .
 
 RUN git clone https://github.com/tomjridge/isa_btree.git 
 RUN eval `opam config env` && make -C isa_btree
 
 RUN git clone https://github.com/tomjridge/tjr_monad.git 
 RUN eval `opam config env` && make -C tjr_monad
+
+RUN git clone https://github.com/tomjridge/tjr_lib.git 
+RUN eval `opam config env` && make -C tjr_lib && make -C tjr_lib install
 
 RUN git clone https://github.com/tomjridge/tjr_fs_shared.git 
 RUN eval `opam config env` && make -C tjr_fs_shared
