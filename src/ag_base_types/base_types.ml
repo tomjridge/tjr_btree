@@ -7,8 +7,4 @@ include R2t
 include Tjr_monad.Monad
 
 
-(** Monadic reference operations *)
-type ('a,'s) mref = {
-  get: unit -> ('a,'s) m;
-  set: 'a -> (unit,'s) m
-}
+include Tjr_monad.Mref

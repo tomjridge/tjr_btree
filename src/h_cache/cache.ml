@@ -120,6 +120,8 @@ exception E_
 (* flush evictees, assuming already removed from c; map_ops is the ops
    of the underlying layer; exposed so can call when we want to flush
    the entire cache *)
+(* FIXME the following targets only insert and delete in the lower
+   map; but we want to target insert_many probably *)
 let sync_evictees ~monad_ops ~map_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
