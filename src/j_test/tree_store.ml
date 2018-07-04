@@ -51,7 +51,7 @@ end
 
 (* sets of trees *)
 
-module Set_ops = Exhaustive.Make_set_ops(
+module Set_ops = Tjr_set.Make(
   struct type t = tree let compare (x:t) (y:t) = Pervasives.compare x y end)
 
 

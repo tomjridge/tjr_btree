@@ -89,7 +89,7 @@ let (find,insert,delete) =
 
 (* we use module Exhaustive *)
 
-open Exhaustive
+open Tjr_exhaustive_testing
 
 let run ~init_state a = 
   Tjr_monad.State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
@@ -141,7 +141,7 @@ module Ord = struct
   let compare (x:t) (y:t) = Test_state.compare x y
 end
 
-module Set_ops = Tjr_set.Make_set_ops(Ord)
+module Set_ops = Tjr_set.Make(Ord)
 
 let set_ops = Set_ops.set_ops
 
@@ -158,7 +158,7 @@ let test range =
     |> List.concat
   in
   Printf.printf "%s: " __MODULE__;
-  test ~set_ops ~test_ops ops [initial_state];
+  test ~set_ops ~test_ops ~ops ~init_states:[initial_state];
   print_string "\n\n";
 
 

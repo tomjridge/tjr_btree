@@ -133,9 +133,9 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
   let check_step t1 t2 = () in
 
-  let test_ops = Exhaustive.{ step; check_state; check_step } in
+  let test_ops = Tjr_exhaustive_testing.{ step; check_state; check_step } in
   
-  let test = Exhaustive.test ~set_ops ~test_ops in
+  let test = Tjr_exhaustive_testing.test ~set_ops ~test_ops in
   test ops init_trees
 
 let _ = execute_tests
