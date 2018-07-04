@@ -131,7 +131,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
   in
   (* FIXME remove check from exhaustive - just do it in the step phase *)
 
-  let check_step t1 t2 = () in
+  let check_step t1 op t2 = () in
 
   let test_ops = Tjr_exhaustive_testing.{ step; check_state; check_step } in
   

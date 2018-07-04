@@ -129,7 +129,7 @@ let step t op =
 *)
 
 let check_state x = () (* FIXME TODO *)
-let check_step x y = () (* FIXME TODO *)
+let check_step x op y = () (* FIXME TODO *)
 
 let test_ops = { step; check_state; check_step }
 
