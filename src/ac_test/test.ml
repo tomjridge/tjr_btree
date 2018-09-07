@@ -29,7 +29,7 @@ let print_logs () =
   print_endline "Logs (in chronological order): ";
   ignore (
     !log_messages
-    |> Extlib.ExtList.List.take (!log_take_length) |> List.rev 
+    |> Tjr_list.take (!log_take_length) |> List.rev 
     |> List.iter (fun f -> f()|>print_endline));
   print_string "// end Logs\n\n"
 

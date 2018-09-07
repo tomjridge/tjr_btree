@@ -1,31 +1,28 @@
-= `tjr_btree`: a COW B-tree library
-:toc: right
-:icons: font
-:nofooter:
+~tjr_btree~, a CoW B-tree library
 
-== Description
+* Description
 
-`tjr_btree` is a B-tree library written in OCaml. The examples include
+~tjr_btree~ is a B-tree library written in OCaml. The examples include
 a simple on-disk key-value store.
 
 
-== Example
+* Example
 
-See link:src/m_main/simple_example.ml[]. 
+See =src/m_main/simple_example.ml=
 
 
-== Introduction
+* Introduction
 
 The core code is written in Isabelle/HOL and exported to OCaml
 (although it could easily be implemented in any language because the
 routines are very "concrete"). Further routines are written in OCaml.
 
-The B-tree is a simple COW B-tree. All sync-ed states are persistent
+The B-tree is a simple CoW B-tree. All sync-ed states are persistent
 on disk (imagine that blocks are written once and then never mutated),
 so operations such as "snapshot" are almost trivial.
 
-The B-tree supports the usual operations: `find`, `insert`, `delete`.
-In addition, there is an `insert_many` operation for inserting
+The B-tree supports the usual operations: find, insert, delete.
+In addition, there is an ~insert_many~ operation for inserting
 multiple key-value pairs at once. This operation is more efficient
 than repeatedly inserting. It is typically used when higher-level
 operations are cached and then flushed all at once.
@@ -42,31 +39,28 @@ individual steps of each operation (where multiple operations execute
 on different B-trees).
 
 
-== Relation to ImpFS
+* Relation to ImpFS
 
 ImpFS is a project to build an advanced high-performance filesystem.
-`tjr_btree` is the core library used by ImpFS.
+~tjr_btree~ is the core library used by ImpFS.
 
 
-== Installation
+* Installation
 
 There is a Dockerfile that builds all my filesystem-related
 repositories here:
 
-https://github.com/tomjridge/dockertest/blob/master/2018q2_impfs/Dockerfile
+https://github.com/tomjridge/impfs_base_docker_image
 
-First you need to install `tjr_fs_shared`, from
-https://github.com/tomjridge/tjr_fs_shared.
+You need to install the dependencies ~isa_btree~, ~tjr_monad~ and
+~tjr_fs_shared~ first (all available from https://github.com/tomjridge)
 
 Then in this directory type `make && make install` to make the library
 and install it using `ocamlfind`. You need various libraries from opam
-(see `src/bash_env.sh` for details).
-
-FIXME not working currently; To build with nix, type `cd
-.nix/tjr_btree; nix-build`. The result is in `./result`.
+(see ~opam_depends~ for details).
 
 
-== Documentation
+* Documentation
 
 Please read the
 https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html[overview]
@@ -74,6 +68,28 @@ and the
 https://tomjridge.github.io/tjr_btree/[ocamldoc]
 
 Please also see the recap of the main types in
-`src/r_recap/recap_edited.mli` (there is a `.html` version in the same
+=src/r_recap/recap_edited.mli= (there is a =.html= version in the same
 directory for easy reference). This is a "high-level, formal" document
 that gives the main types, but leaves out almost all operations.
+
+
+* Dependencies
+
+opam:
+
+| yojson ppx_deriving_yojson |              |
+| core                       | timestamping |
+| ppx_bin_prot               | marshalling  |
+| extlib                     | pmap         |
+
+
+other:
+| isa_btree     | Base OCaml defns extracted from Isabelle |
+| tjr_monad     | Generic monad                            |
+| tjr_fs_shared | Shared library for all fs stuff          |
+
+
+old?:
+| ocaml-compiler-libs |
+| extunix,extlib      |
+|                     |

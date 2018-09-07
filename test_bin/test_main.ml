@@ -1,6 +1,6 @@
 open Tjr_btree
 
-let from_to l h : int list = Batteries.(l -- h |> List.of_enum)
+let from_to l h : int list = Tjr_list.from_to l h
 
 let (--) = from_to
 

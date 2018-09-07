@@ -254,8 +254,6 @@ let test_insert range = (
 
 (* TODO testing leaf_stream ---------------------------------------- *)
 
-open Extlib.ExtList.List
-
 type t = int list [@@deriving yojson]
 
 (*
