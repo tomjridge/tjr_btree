@@ -8,7 +8,7 @@ a simple on-disk key-value store.
 
 * Example
 
-See =src/m_main/simple_example.ml=
+See ./src/m_main/simple_example.ml
 
 
 * Introduction
