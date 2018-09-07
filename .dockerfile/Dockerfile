@@ -1,6 +1,6 @@
 FROM impfs_base_docker_image
 
-RUN echo build from here ....
+RUN echo build from here ......
 
 RUN git clone https://github.com/tomjridge/tjr_lib.git 
 RUN eval `opam config env` && make -C tjr_lib && make -C tjr_lib install
