@@ -6,9 +6,9 @@
 a simple on-disk key-value store.
 
 
-* Example
+* Examples
 
-See ./src/m_main/simple_example.ml
+See ./examples e.g. ./examples/int_int_map_example_functionality.ml
 
 
 * Introduction

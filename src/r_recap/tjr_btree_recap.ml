@@ -52,7 +52,7 @@ end
 
 module Store_ops = struct include Store_ops end
 
-module Small_step_types = struct include Small_step.O end  (* FIXME naming *)
+(* module Small_step_types = struct include Small_step. end  (* FIXME naming *) *)
 
 (* FIXME in recap we also want to include main functions eg store_to_map *)
 
