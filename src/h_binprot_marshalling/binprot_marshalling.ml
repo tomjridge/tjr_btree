@@ -36,7 +36,7 @@ let frm_to_pg ~write_k ~write_v ~blk_sz =
     let pos' = frm |> f2bp |> bin_writer'.write buf ~pos:0 in
     let s = Bytes.create blk_sz in
     let () = BP.Common.blit_buf_string buf s pos' in
-    s |> BlkN.of_string blk_sz
+    s |> BlkN.of_bytes blk_sz
 
 let mk_binprot_ps ~blk_sz = (
 

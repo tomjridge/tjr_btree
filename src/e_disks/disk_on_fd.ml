@@ -25,12 +25,12 @@ let read ~fd ~blk_sz ~blk_id =
   (* assert (n=blk_sz); we allow the file to expand automatically, so
      no reason to read any bytes since file could be empty *)
   test(fun _ -> assert(n=0 || n=blk_sz));
-  Block.of_string blk_sz buf
+  Block.of_bytes blk_sz buf
 
 
 let write ~fd ~blk_sz ~blk_id ~blk = 
   ignore (Unix.lseek fd (blk_id * blk_sz) SEEK_SET);
-  let buf = Block.to_string blk in
+  let buf = Block.to_bytes blk in
   let n = Unix.single_write fd buf 0 blk_sz in
   test(fun _ -> assert (n=blk_sz));
   ()
