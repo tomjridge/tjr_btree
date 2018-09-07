@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,10 +77,12 @@
 </div>
 <h1>Module <a href="type_Test.html">Test</a></h1>
 
-<pre><span class="keyword">module</span> Test: <code class="code">sig</code> <a href="Test.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Support for logging and testing. Testing can be
+<pre><span id="MODULETest"><span class="keyword">module</span> Test</span>: <code class="code">sig</code> <a href="Test.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Support for logging and testing. Testing can be
    enabled/disabled. Also includes <code class="code">log</code> and <code class="code">warn</code> logging
-   support.<br>
+   support.</p>
+</div>
 </div>
 <hr width="100%">
 
@@ -91,18 +92,24 @@ Support for logging and testing. Testing can be
 <pre><span id="VALdisable"><span class="keyword">val</span> disable</span> : <code class="type">unit -> unit</code></pre>
 <pre><span id="VALlog_messages"><span class="keyword">val</span> log_messages</span> : <code class="type">(unit -> string) list Pervasives.ref</code></pre>
 <pre><span id="VALlog"><span class="keyword">val</span> log</span> : <code class="type">(unit -> string) -> unit</code></pre><div class="info ">
-Log a thunk of type <code class="code">unit -&gt; string</code>.<br>
+<div class="info-desc">
+<p>Log a thunk of type <code class="code">unit -&gt; string</code>.</p>
+</div>
 </div>
 
 <pre><span id="VALlog_take_length"><span class="keyword">val</span> log_take_length</span> : <code class="type">int Pervasives.ref</code></pre>
 <pre><span id="VALprint_logs"><span class="keyword">val</span> print_logs</span> : <code class="type">unit -> unit</code></pre><div class="info ">
-Print most recent log messages. Typically we only print
-    when an exception occurs. Independent of enable/disable<br>
+<div class="info-desc">
+<p>Print most recent log messages. Typically we only print
+    when an exception occurs. Independent of enable/disable</p>
+</div>
 </div>
 
 <pre><span id="VALwarn"><span class="keyword">val</span> warn</span> : <code class="type">string -> unit</code></pre><div class="info ">
-Warn with a string; warnings are always printed, and added to
-    logs. The intention is that warning should never appear.<br>
+<div class="info-desc">
+<p>Warn with a string; warnings are always printed, and added to
+    logs. The intention is that warning should never appear.</p>
+</div>
 </div>
 
 <pre><span id="VALexit_hooks"><span class="keyword">val</span> exit_hooks</span> : <code class="type">(unit -> unit) list Pervasives.ref</code></pre>

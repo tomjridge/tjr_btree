@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,14 +77,16 @@
 </div>
 <h1>Module <a href="type_Frame.html">Frame</a></h1>
 
-<pre><span class="keyword">module</span> Frame: <code class="code">sig</code> <a href="Frame.html">..</a> <code class="code">end</code></pre><div class="info module top">
-A frame is a node in a B-tree. 'k is the key type. 'v is the value
-   type. 'r is the type of pointers to blocks.<br>
+<pre><span id="MODULEFrame"><span class="keyword">module</span> Frame</span>: <code class="code">sig</code> <a href="Frame.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>A frame is a node in a B-tree. 'k is the key type. 'v is the value
+   type. 'r is the type of pointers to blocks.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span class="keyword">include</span> Isa_export.Disk_node</pre>
 
-<pre><span class="keyword">module</span> <a href="Frame.Frame_type.html">Frame_type</a>: <code class="code">sig</code> <a href="Frame.Frame_type.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEFrame_type"><span class="keyword">module</span> <a href="Frame.Frame_type.html">Frame_type</a></span>: <code class="code">sig</code> <a href="Frame.Frame_type.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Frame_type</pre>
 </body></html>

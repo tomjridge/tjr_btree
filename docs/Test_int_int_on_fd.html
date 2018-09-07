@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,7 +77,7 @@
 </div>
 <h1>Module <a href="type_Test_int_int_on_fd.html">Test_int_int_on_fd</a></h1>
 
-<pre><span class="keyword">module</span> Test_int_int_on_fd: <code class="code">sig</code> <a href="Test_int_int_on_fd.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULETest_int_int_on_fd"><span class="keyword">module</span> Test_int_int_on_fd</span>: <code class="code">sig</code> <a href="Test_int_int_on_fd.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALx"><span class="keyword">val</span> x</span> : <code class="type">< close : <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a> -> unit;<br>         disk_ops : <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing<br>                    Disk_ops.block_device;<br>         from_file : fn:string -><br>                     create:bool -><br>                     init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>;<br>         imperative_map_ops : s_ref:<a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a><br>                                    Pervasives.ref -><br>                              [> `Imperative_map_ops of<br>                                   (Int_.t -> int option) *<br>                                   (Int_.t -> int -> unit) * (Int_.t -> unit) ];<br>         ls_ops : (Int_.t, int, Block.blk_id,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                  Leaf_stream_ops.leaf_stream_ops;<br>         map_ops : (Int_.t, int,<br>                    <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                   Map_ops.map_ops;<br>         store_ops : (Int_.t, int, Block.blk_id,<br>                      <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> ></code></pre>
 <pre><span id="VALfrom_file"><span class="keyword">val</span> from_file</span> : <code class="type">fn:string -><br>       create:bool -> init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a></code></pre>

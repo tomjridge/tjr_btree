@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,13 +77,15 @@
 </div>
 <h1>Module <a href="type_Tree.html">Tree</a></h1>
 
-<pre><span class="keyword">module</span> Tree: <code class="code">sig</code> <a href="Tree.html">..</a> <code class="code">end</code></pre><div class="info module top">
-The B-tree tree type.<br>
+<pre><span id="MODULETree"><span class="keyword">module</span> Tree</span>: <code class="code">sig</code> <a href="Tree.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>The B-tree tree type.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span class="keyword">include</span> Isa_export.Tree</pre>
 
-<pre><span class="keyword">module</span> <a href="Tree.Tree_type.html">Tree_type</a>: <code class="code">sig</code> <a href="Tree.Tree_type.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULETree_type"><span class="keyword">module</span> <a href="Tree.Tree_type.html">Tree_type</a></span>: <code class="code">sig</code> <a href="Tree.Tree_type.html">..</a> <code class="code">end</code></pre>
 <pre><span id="VALwellformed_tree'"><span class="keyword">val</span> wellformed_tree'</span> : <code class="type">unit Isa_export.Prelude.constants_ext -><br>       Isa_export.Prelude.min_size_t option -><br>       ('a -> 'a -> Isa_export.Arith.int) -> ('a, 'b) tree -> bool</code></pre>
 <pre><span id="VALwellformed_tree"><span class="keyword">val</span> wellformed_tree</span> : <code class="type">constants:Constants.t -><br>       maybe_small:Isa_export.Prelude.min_size_t option -><br>       cmp:('a -> 'a -> int) -> ('a, 'b) tree -> bool</code></pre></body></html>

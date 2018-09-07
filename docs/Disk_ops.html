@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,12 +77,14 @@
 </div>
 <h1>Module <a href="type_Disk_ops.html">Disk_ops</a></h1>
 
-<pre><span class="keyword">module</span> Disk_ops: <code class="code">sig</code> <a href="Disk_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Disk block operations: read, write<br>
+<pre><span id="MODULEDisk_ops"><span class="keyword">module</span> Disk_ops</span>: <code class="code">sig</code> <a href="Disk_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Disk block operations: read, write</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module</span> <a href="Disk_ops.Block_device_type.html">Block_device_type</a>: <code class="code">sig</code> <a href="Disk_ops.Block_device_type.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEBlock_device_type"><span class="keyword">module</span> <a href="Disk_ops.Block_device_type.html">Block_device_type</a></span>: <code class="code">sig</code> <a href="Disk_ops.Block_device_type.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Block_device_type</pre>
 
 <pre><span id="VALwf_disk_ops"><span class="keyword">val</span> wf_disk_ops</span> : <code class="type">blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>       read:(Block.blk_id -> (Block.blk, 't) Base_types.m) -><br>       write:(Block.blk_id -> Block.blk -> (unit, 't) Base_types.m) -> bool</code></pre>

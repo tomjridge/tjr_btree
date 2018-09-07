@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,7 +77,7 @@
 </div>
 <h1>Module <a href="type_Tree_store.html">Tree_store</a></h1>
 
-<pre><span class="keyword">module</span> Tree_store: <code class="code">sig</code> <a href="Tree_store.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULETree_store"><span class="keyword">module</span> Tree_store</span>: <code class="code">sig</code> <a href="Tree_store.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="TYPEkey"><span class="keyword">type</span> <code class="type"></code>key</span> = <code class="type">int</code> </pre>
 
@@ -102,13 +101,13 @@
 
 
 <pre><span id="VALt2s"><span class="keyword">val</span> t2s</span> : <code class="type"><a href="Tree_store.html#TYPEtree">tree</a> -> string</code></pre>
-<pre><span class="keyword">module</span> <a href="Tree_store.State.html">State</a>: <code class="code">sig</code> <a href="Tree_store.State.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEState"><span class="keyword">module</span> <a href="Tree_store.State.html">State</a></span>: <code class="code">sig</code> <a href="Tree_store.State.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
 <pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -> ('a, <a href="Tree_store.State.html#TYPEt">State.t</a> Tjr_monad.state_passing) Tjr_monad.Monad.m</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
-<pre><span class="keyword">module</span> <a href="Tree_store.Set_ops.html">Set_ops</a>: <code class="type">Exhaustive.Make_set_ops</code><code class="code">(</code><code class="code">sig</code></pre><div class="sig_block">
+<pre><span id="MODULESet_ops"><span class="keyword">module</span> <a href="Tree_store.Set_ops.html">Set_ops</a></span>: <code class="type">Tjr_set.Make</code><code class="code">(</code><code class="code">sig</code></pre><div class="sig_block">
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Tree_store.html#TYPEtree">Tree_store.tree</a></code> </pre>
 
 

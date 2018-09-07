@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,7 +77,7 @@
 </div>
 <h1>Module <a href="type_Test_cache.html">Test_cache</a></h1>
 
-<pre><span class="keyword">module</span> Test_cache: <code class="code">sig</code> <a href="Test_cache.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULETest_cache"><span class="keyword">module</span> Test_cache</span>: <code class="code">sig</code> <a href="Test_cache.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="TYPEkey"><span class="keyword">type</span> <code class="type"></code>key</span> = <code class="type">int</code> </pre>
 
@@ -111,7 +110,7 @@
 
 
 
-<pre><span class="keyword">module</span> <a href="Test_cache.Test_state.html">Test_state</a>: <code class="code">sig</code> <a href="Test_cache.Test_state.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULETest_state"><span class="keyword">module</span> <a href="Test_cache.Test_state.html">Test_state</a></span>: <code class="code">sig</code> <a href="Test_cache.Test_state.html">..</a> <code class="code">end</code></pre>
 <pre><span id="VALinit_cache"><span class="keyword">val</span> init_cache</span> : <code class="type">(Int_.t, <a href="Test_cache.html#TYPEvalue">value</a>) <a href="Cache.html#TYPEcache_state">Cache.cache_state</a></code></pre>
 <pre><span id="VALinit_base_map"><span class="keyword">val</span> init_base_map</span> : <code class="type">'a Map_int.t</code></pre>
 <pre><span id="VALinit_spec"><span class="keyword">val</span> init_spec</span> : <code class="type">'a Map_int.t</code></pre>
@@ -119,14 +118,14 @@
 <pre><span id="VALmonad_ops"><span class="keyword">val</span> monad_ops</span> : <code class="type"><a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> Tjr_monad.state_passing Base_types.monad_ops</code></pre>
 <pre><span id="VALwith_state"><span class="keyword">val</span> with_state</span> : <code class="type">('a -> 'b * 'a) -> ('b, 'a Tjr_monad.state_passing) Tjr_monad.Monad.m</code></pre>
 <pre><span id="VALbase_map_ops"><span class="keyword">val</span> base_map_ops</span> : <code class="type">(Map_int.key, int, <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> Tjr_monad.state_passing)<br>       Map_ops.map_ops</code></pre>
-<pre><span id="VALcache_ops"><span class="keyword">val</span> cache_ops</span> : <code class="type">((<a href="Test_cache.html#TYPEkey">key</a>, <a href="Test_cache.html#TYPEvalue">value</a>) <a href="Cache.html#TYPEcache_state">Cache.cache_state</a>,<br>        <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> Tjr_monad.state_passing)<br>       <a href="Base_types.html#TYPEmref">Base_types.mref</a></code></pre>
+<pre><span id="VALcache_ops"><span class="keyword">val</span> cache_ops</span> : <code class="type">((<a href="Test_cache.html#TYPEkey">key</a>, <a href="Test_cache.html#TYPEvalue">value</a>) <a href="Cache.html#TYPEcache_state">Cache.cache_state</a>,<br>        <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> Tjr_monad.state_passing)<br>       Base_types.mref</code></pre>
 <pre><span id="VALcached_map_ops"><span class="keyword">val</span> cached_map_ops</span> : <code class="type">(Map_int.key, <a href="Test_cache.html#TYPEvalue">value</a>,<br>        <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> Tjr_monad.state_passing)<br>       Map_ops.map_ops</code></pre>
 <pre><span id="VALrun"><span class="keyword">val</span> run</span> : <code class="type">init_state:'a -><br>       ('b, 'a Tjr_monad.state_passing) Tjr_monad.Monad.m -> 'a * 'b</code></pre>
 <pre><span id="VALstep"><span class="keyword">val</span> step</span> : <code class="type"><a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> -> <a href="Test_cache.html#TYPEop">op</a> -> <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a> list</code></pre>
 <pre><span id="VALcheck_state"><span class="keyword">val</span> check_state</span> : <code class="type">'a -> unit</code></pre>
-<pre><span id="VALcheck_step"><span class="keyword">val</span> check_step</span> : <code class="type">'a -> 'b -> unit</code></pre>
-<pre><span id="VALtest_ops"><span class="keyword">val</span> test_ops</span> : <code class="type">(<a href="Test_cache.html#TYPEop">op</a>, <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a>) <a href="Exhaustive.html#TYPEtest_ops">Exhaustive.test_ops</a></code></pre>
-<pre><span class="keyword">module</span> <a href="Test_cache.Ord.html">Ord</a>: <code class="code">sig</code> <a href="Test_cache.Ord.html">..</a> <code class="code">end</code></pre>
-<pre><span class="keyword">module</span> <a href="Test_cache.Set_ops.html">Set_ops</a>: <code class="type"><a href="Exhaustive.Tjr_set.Make_set_ops.html">Exhaustive.Tjr_set.Make_set_ops</a></code><code class="code">(</code><code class="type"><a href="Test_cache.Ord.html">Ord</a></code><code class="code">)</code></pre>
-<pre><span id="VALset_ops"><span class="keyword">val</span> set_ops</span> : <code class="type">(Set_ops.Set_.elt, Set_ops.Set_.t)<br>       <a href="Exhaustive.Tjr_set.html#TYPEset_ops">Exhaustive.Tjr_set.set_ops</a></code></pre>
+<pre><span id="VALcheck_step"><span class="keyword">val</span> check_step</span> : <code class="type">'a -> 'b -> 'c -> unit</code></pre>
+<pre><span id="VALtest_ops"><span class="keyword">val</span> test_ops</span> : <code class="type">(<a href="Test_cache.html#TYPEop">op</a>, <a href="Test_cache.Test_state.html#TYPEt">Test_state.t</a>) Tjr_exhaustive_testing.test_ops</code></pre>
+<pre><span id="MODULEOrd"><span class="keyword">module</span> <a href="Test_cache.Ord.html">Ord</a></span>: <code class="code">sig</code> <a href="Test_cache.Ord.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULESet_ops"><span class="keyword">module</span> <a href="Test_cache.Set_ops.html">Set_ops</a></span>: <code class="type">Tjr_set.Make</code><code class="code">(</code><code class="type"><a href="Test_cache.Ord.html">Ord</a></code><code class="code">)</code></pre>
+<pre><span id="VALset_ops"><span class="keyword">val</span> set_ops</span> : <code class="type">(Set_ops.Set_.elt, Set_ops.Set_.t) Tjr_set.set_ops</code></pre>
 <pre><span id="VALtest"><span class="keyword">val</span> test</span> : <code class="type"><a href="Test_cache.html#TYPEkey">key</a> list -> unit</code></pre></body></html>

@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,24 +77,23 @@
 </div>
 <h1>Module <a href="type_Disk_to_store.html">Disk_to_store</a></h1>
 
-<pre><span class="keyword">module</span> Disk_to_store: <code class="code">sig</code> <a href="Disk_to_store.html">..</a> <code class="code">end</code></pre><div class="info module top">
-We maintain a free counter in the global state in order to
-    allocate new blocks<br>
-</div>
-<hr width="100%">
+<pre><span id="MODULEDisk_to_store"><span class="keyword">module</span> Disk_to_store</span>: <code class="code">sig</code> <a href="Disk_to_store.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
-<pre><span id="TYPEfree_ops"><span class="keyword">type</span> <code class="type">'t</code> free_ops</span> = <code class="type">(int, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
+<pre><span id="TYPEfree_ops"><span class="keyword">type</span> <code class="type">'t</code> free_ops</span> = <code class="type">(int, 't) Base_types.mref</code> </pre>
 <div class="info ">
-We maintain a free counter in the global state in order to
-    allocate new blocks<br>
+<div class="info-desc">
+<p>We maintain a free counter in the global state in order to
+    allocate new blocks</p>
+</div>
 </div>
 
 
-<pre><span id="VALdisk_to_store"><span class="keyword">val</span> disk_to_store</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       ps:< blk_sz : int;<br>            frame_to_page : int -> ('k, 'v, Block.blk_id) Frame.frame -> Block.blk;<br>            page_to_frame : Block.blk -> ('k, 'v, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>) Frame.frame;<br>            .. > -><br>       disk_ops:'t Disk_ops.block_device -><br>       free_ops:(Block.blk_id, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       ('k, 'v, Block.blk_id, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a></code></pre><div class="info ">
-Use pickling to convert a disk-like thing to a store-like thing.
-<p>
+<pre><span id="VALdisk_to_store"><span class="keyword">val</span> disk_to_store</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       ps:< blk_sz : int;<br>            frame_to_page : int -> ('k, 'v, Block.blk_id) Frame.frame -> Block.blk;<br>            page_to_frame : Block.blk -> ('k, 'v, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>) Frame.frame;<br>            .. > -><br>       disk_ops:'t Disk_ops.block_device -><br>       free_ops:(Block.blk_id, 't) Base_types.mref -><br>       ('k, 'v, Block.blk_id, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Use pickling to convert a disk-like thing to a store-like thing.</p>
 
-Convert a disk to a store using pickling and a free counter; assume
-page size and block size are the same.<br>
+<p>Convert a disk to a store using pickling and a free counter; assume
+page size and block size are the same.</p>
+</div>
 </div>
 </body></html>

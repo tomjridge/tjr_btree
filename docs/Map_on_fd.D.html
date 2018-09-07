@@ -57,7 +57,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -76,20 +75,24 @@
 </div>
 <h1>Module <a href="type_Map_on_fd.D.html">Map_on_fd.D</a></h1>
 
-<pre><span class="keyword">module</span> D: <code class="type"><a href="Disk_on_fd.html">Disk_on_fd</a></code></pre><hr width="100%">
+<pre><span id="MODULED"><span class="keyword">module</span> D</span>: <code class="type"><a href="Disk_on_fd.html">Disk_on_fd</a></code></pre><hr width="100%">
 
 <pre><span id="TYPEfd"><span class="keyword">type</span> <code class="type"></code>fd</span> = <code class="type">Unix.file_descr</code> </pre>
 
 
-<pre><span id="TYPEfd_ops"><span class="keyword">type</span> <code class="type">'t</code> fd_ops</span> = <code class="type">(<a href="Disk_on_fd.html#TYPEfd">fd</a>, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
+<pre><span id="TYPEfd_ops"><span class="keyword">type</span> <code class="type">'t</code> fd_ops</span> = <code class="type">(<a href="Disk_on_fd.html#TYPEfd">fd</a>, 't) Base_types.mref</code> </pre>
 <div class="info ">
-<code class="code">fd_ops</code> identifies a filedescriptor in the global state<br>
+<div class="info-desc">
+<p><code class="code">fd_ops</code> identifies a filedescriptor in the global state</p>
+</div>
 </div>
 
 
 <pre><span id="VALread"><span class="keyword">val</span> read</span> : <code class="type">fd:Unix.file_descr -> blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> blk_id:int -> Block.blk</code></pre>
 <pre><span id="VALwrite"><span class="keyword">val</span> write</span> : <code class="type">fd:Unix.file_descr -> blk_sz:int -> blk_id:int -> blk:Block.blk -> unit</code></pre>
-<pre><span id="VALmake_disk"><span class="keyword">val</span> make_disk</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>       fd_ops:(Unix.file_descr, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -> 't Disk_ops.block_device</code></pre><div class="info ">
-Construct <code class="code">disk_ops</code><br>
+<pre><span id="VALmake_disk"><span class="keyword">val</span> make_disk</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -><br>       fd_ops:(Unix.file_descr, 't) Base_types.mref -> 't Disk_ops.block_device</code></pre><div class="info ">
+<div class="info-desc">
+<p>Construct <code class="code">disk_ops</code></p>
+</div>
 </div>
 </body></html>

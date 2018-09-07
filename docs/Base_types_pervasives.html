@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,14 +77,18 @@
 </div>
 <h1>Module <a href="type_Base_types_pervasives.html">Base_types_pervasives</a></h1>
 
-<pre><span class="keyword">module</span> Base_types_pervasives: <code class="code">sig</code> <a href="Base_types_pervasives.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Common types and definitions.<br>
+<pre><span id="MODULEBase_types_pervasives"><span class="keyword">module</span> Base_types_pervasives</span>: <code class="code">sig</code> <a href="Base_types_pervasives.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Common types and definitions.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="TYPEres"><span class="keyword">type</span> <code class="type">'a</code> res</span> = <code class="type">'a Isa_export.Util.res</code> </pre>
 <div class="info ">
-The result type. <code class="code">'a res</code> is equal to <code class="code">Ok of 'a | Error of string</code><br>
+<div class="info-desc">
+<p>The result type. <code class="code">'a res</code> is equal to <code class="code">Ok of 'a | Error of string</code></p>
+</div>
 </div>
 
 
@@ -94,8 +97,10 @@ The result type. <code class="code">'a res</code> is equal to <code class="code"
 <pre><span id="VALis_None"><span class="keyword">val</span> is_None</span> : <code class="type">'a option -> bool</code></pre>
 <pre><span id="VALis_Some"><span class="keyword">val</span> is_Some</span> : <code class="type">'a option -> bool</code></pre>
 <pre><span id="VALimpossible"><span class="keyword">val</span> impossible</span> : <code class="type">string -> 'a</code></pre><div class="info ">
-A synonym for <code class="code">failwith</code>, used to mark supposedly impossible
-   situations. Should never be called.<br>
+<div class="info-desc">
+<p>A synonym for <code class="code">failwith</code>, used to mark supposedly impossible
+   situations. Should never be called.</p>
+</div>
 </div>
 
 <pre><span id="VALflush_out"><span class="keyword">val</span> flush_out</span> : <code class="type">unit -> unit</code></pre></body></html>

@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,13 +77,12 @@
 </div>
 <h1>Module <a href="type_Examples_common.html">Examples_common</a></h1>
 
-<pre><span class="keyword">module</span> Examples_common: <code class="code">sig</code> <a href="Examples_common.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Construct various api layers based on parameters ps<br>
-</div>
-<hr width="100%">
+<pre><span id="MODULEExamples_common"><span class="keyword">module</span> Examples_common</span>: <code class="code">sig</code> <a href="Examples_common.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALmk_example_on_fd"><span class="keyword">val</span> mk_example_on_fd</span> : <code class="type">ps:< blk_sz : int; cmp : 'a -> 'a -> int; constants : Constants.t;<br>            frame_to_page : int -> ('a, 'b, Block.blk_id) Frame.frame -> Block.blk;<br>            page_to_frame : Block.blk -> ('a, 'b, <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>) Frame.frame;<br>            .. > -><br>       < close : <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a> -> unit;<br>         disk_ops : <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing<br>                    Disk_ops.block_device;<br>         from_file : fn:string -><br>                     create:bool -><br>                     init:bool -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">Map_on_fd.Default_implementation.global_state</a>;<br>         imperative_map_ops : s_ref:<a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a><br>                                    Pervasives.ref -><br>                              [> `Imperative_map_ops of<br>                                   ('a -> 'b option) * ('a -> 'b -> unit) *<br>                                   ('a -> unit) ];<br>         ls_ops : ('a, 'b, Block.blk_id,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                  Leaf_stream_ops.leaf_stream_ops;<br>         map_ops : ('a, 'b,<br>                    <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                   Map_ops.map_ops;<br>         store_ops : ('a, 'b, Block.blk_id,<br>                      <a href="Map_on_fd.Default_implementation.html#TYPEt">Map_on_fd.Default_implementation.t</a> Tjr_monad.state_passing)<br>                     <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> ></code></pre><div class="info ">
-Construct various api layers based on parameters ps<br>
+<div class="info-desc">
+<p>Construct various api layers based on parameters ps</p>
+</div>
 </div>
 
 <pre><span id="VALmap_ops"><span class="keyword">val</span> map_ops</span> : <code class="type">< map_ops : 'a; .. > -> 'a</code></pre>

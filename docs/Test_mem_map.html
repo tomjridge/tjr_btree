@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,7 +77,7 @@
 </div>
 <h1>Module <a href="type_Test_mem_map.html">Test_mem_map</a></h1>
 
-<pre><span class="keyword">module</span> Test_mem_map: <code class="code">sig</code> <a href="Test_mem_map.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULETest_mem_map"><span class="keyword">module</span> Test_mem_map</span>: <code class="code">sig</code> <a href="Test_mem_map.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="TYPEkey"><span class="keyword">type</span> <code class="type"></code>key</span> = <code class="type">int</code> </pre>
 
@@ -99,7 +98,7 @@
 <pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type"></code>frame</span> = <code class="type">(<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>) <a href="Page_ref_int.html#TYPEframe">Page_ref_int.frame</a></code> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Test_mem_map.T.html">T</a>: <code class="code">sig</code> <a href="Test_mem_map.T.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULET"><span class="keyword">module</span> <a href="Test_mem_map.T.html">T</a></span>: <code class="code">sig</code> <a href="Test_mem_map.T.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
 <pre><span id="VALconstants"><span class="keyword">val</span> constants</span> : <code class="type">Constants.t</code></pre>
@@ -109,13 +108,13 @@
 <pre><span id="VALconstants"><span class="keyword">val</span> constants</span> : <code class="type">Constants.t</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
-<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< mem_ops : (<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>,<br>                    <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>                   <a href="Mem_store.html#TYPEmem_ops">Mem_store.mem_ops</a>;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>                        <a href="Base_types.html#TYPEmref">Base_types.mref</a> ></code></pre>
+<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< mem_ops : (<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>,<br>                    <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>                   <a href="Mem_store.html#TYPEmem_ops">Mem_store.mem_ops</a>;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>                        Base_types.mref ></code></pre>
 <pre><span id="VALstore_ops"><span class="keyword">val</span> store_ops</span> : <code class="type">(<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>, Map_int.key,<br>        <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>       <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a></code></pre>
 <pre><span id="VALr2t"><span class="keyword">val</span> r2t</span> : <code class="type">(<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>, Map_int.key, <a href="Test_mem_map.T.html#TYPEt">T.t</a>)<br>       Base_types.r2t</code></pre>
 <pre><span id="VALcmp"><span class="keyword">val</span> cmp</span> : <code class="type">Int_.t -> Int_.t -> int</code></pre>
 <pre><span id="VALps"><span class="keyword">val</span> ps</span> : <code class="type">< cmp : Int_.t -> Int_.t -> int; constants : Constants.t;<br>         dbg_ps : < k2j : <a href="Test_mem_map.html#TYPEkey">key</a> -> Yojson.Safe.json;<br>                    r2j : <a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a> -> Yojson.Safe.json;<br>                    r2t : (<a href="Test_mem_map.html#TYPEkey">key</a>, <a href="Test_mem_map.html#TYPEvalue">value</a>, Map_int.key,<br>                           <a href="Test_mem_map.T.html#TYPEt">T.t</a>)<br>                          Base_types.r2t;<br>                    v2j : <a href="Test_mem_map.html#TYPEvalue">value</a> -> Yojson.Safe.json ><br>                  option ></code></pre>
 <pre><span id="VALmap_ops"><span class="keyword">val</span> map_ops</span> : <code class="type">(Int_.t, <a href="Test_mem_map.html#TYPEvalue">value</a>, <a href="Test_mem_map.T.html#TYPEt">T.t</a> Tjr_monad.state_passing)<br>       Map_ops.map_ops</code></pre>
-<pre><span class="keyword">module</span> <a href="Test_mem_map.TSET.html">TSET</a>: <code class="type">Set.Make</code><code class="code">(</code><code class="type"><a href="Test_mem_map.T.html">T</a></code><code class="code">)</code></pre>
+<pre><span id="MODULETSET"><span class="keyword">module</span> <a href="Test_mem_map.TSET.html">TSET</a></span>: <code class="type">Set.Make</code><code class="code">(</code><code class="type"><a href="Test_mem_map.T.html">T</a></code><code class="code">)</code></pre>
 <pre><code><span id="TYPEaction"><span class="keyword">type</span> <code class="type"></code>action</span> = </code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >

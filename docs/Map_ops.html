@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,37 +77,38 @@
 </div>
 <h1>Module <a href="type_Map_ops.html">Map_ops</a></h1>
 
-<pre><span class="keyword">module</span> Map_ops: <code class="code">sig</code> <a href="Map_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Map operations: find, insert, <code class="code">insert_many</code> and delete. 
-<p>
+<pre><span id="MODULEMap_ops"><span class="keyword">module</span> Map_ops</span>: <code class="code">sig</code> <a href="Map_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Map operations: find, insert, <code class="code">insert_many</code> and delete.</p>
 
-<code class="code">insert_many</code> attempts to insert as many as possible in a
+<p><code class="code">insert_many</code> attempts to insert as many as possible in a
 single operation, and returns the remainder, and so is typically
-called in a loop. 
-<p>
+called in a loop.</p>
 
-The interfaces are heavily parameterized.  To understand the
-interfaces, we need to introduce the following:
-<p>
+<p>The interfaces are heavily parameterized.  To understand the
+interfaces, we need to introduce the following:</p>
+
 <ul>
 <li>Keys, represented by type variable <code class="code">'k</code></li>
 <li>Values, by type var <code class="code">'v</code></li>
 <li>Page/block references, <code class="code">'r</code>; vars <code class="code">blk_id</code></li>
 <li>Global state, <code class="code">'t</code></li>
 </ul>
-
-The operations typically execute in the <code class="code">Base_types.Monad</code>.<br>
+<p>The operations typically execute in the <code class="code">Base_types.Monad</code>.</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module</span> <a href="Map_ops.Map_ops_type.html">Map_ops_type</a>: <code class="code">sig</code> <a href="Map_ops.Map_ops_type.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEMap_ops_type"><span class="keyword">module</span> <a href="Map_ops.Map_ops_type.html">Map_ops_type</a></span>: <code class="code">sig</code> <a href="Map_ops.Map_ops_type.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Map_ops_type</pre>
 
 <pre><span id="VALwf_map_ops"><span class="keyword">val</span> wf_map_ops</span> : <code class="type">find:('k -> ('v option, 't) Tjr_monad.Monad.m) -><br>       insert:('k -> 'v -> (unit, 't) Tjr_monad.Monad.m) -><br>       delete:('k -> (unit, 't) Tjr_monad.Monad.m) -><br>       insert_many:('k -><br>                    'v -> ('k * 'v) list -> (('k * 'v) list, 't) Tjr_monad.Monad.m) -><br>       bool</code></pre>
 <pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">find:('a -> ('b option, 'c) Tjr_monad.Monad.m) -><br>       insert:('a -> 'b -> (unit, 'c) Tjr_monad.Monad.m) -><br>       delete:('a -> (unit, 'c) Tjr_monad.Monad.m) -><br>       insert_many:('a -><br>                    'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Tjr_monad.Monad.m) -><br>       ('a, 'b, 'c) map_ops</code></pre>
 <pre><span id="VALdest_map_ops"><span class="keyword">val</span> dest_map_ops</span> : <code class="type">('a, 'b, 'c) map_ops -><br>       (find:('a -> ('b option, 'c) Tjr_monad.Monad.m) -><br>        insert:('a -> 'b -> (unit, 'c) Tjr_monad.Monad.m) -><br>        delete:('a -> (unit, 'c) Tjr_monad.Monad.m) -><br>        insert_many:('a -><br>                     'b -> ('a * 'b) list -> (('a * 'b) list, 'c) Tjr_monad.Monad.m) -><br>        'd) -><br>       'd</code></pre>
 <pre><span id="VALinsert_all"><span class="keyword">val</span> insert_all</span> : <code class="type">monad_ops:'a Tjr_monad.Monad.monad_ops -><br>       ('b -> 'c -> ('b * 'c) list -> (('b * 'c) list, 'a) Tjr_monad.Monad.m) -><br>       'b -> 'c -> ('b * 'c) list -> (unit, 'a) Tjr_monad.Monad.m</code></pre><div class="info ">
-Utility: call <code class="code">insert_many</code> in a loop.<br>
+<div class="info-desc">
+<p>Utility: call <code class="code">insert_many</code> in a loop.</p>
+</div>
 </div>
 
 <pre><span id="VALwf_imperative_map_ops"><span class="keyword">val</span> wf_imperative_map_ops</span> : <code class="type">find:('k -> 'v option) -><br>       insert:('k -> 'v -> unit) -> delete:('k -> unit) -> bool</code></pre>

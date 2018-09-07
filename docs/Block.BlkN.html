@@ -57,7 +57,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -76,10 +75,12 @@
 </div>
 <h1>Module <a href="type_Block.BlkN.html">Block.BlkN</a></h1>
 
-<pre><span class="keyword">module</span> BlkN: <code class="code">sig</code> <a href="Block.BlkN.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Basic implementation of a block. Blocks are represented by
+<pre><span id="MODULEBlkN"><span class="keyword">module</span> BlkN</span>: <code class="code">sig</code> <a href="Block.BlkN.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Basic implementation of a block. Blocks are represented by
    strings. Blocks have a particular length, although we do not
-   capture this in the type.<br>
+   capture this in the type.</p>
+</div>
 </div>
 <hr width="100%">
 
@@ -91,4 +92,6 @@ Basic implementation of a block. Blocks are represented by
 
 <pre><span id="VALof_string"><span class="keyword">val</span> of_string</span> : <code class="type"><a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> string -> <a href="Block.BlkN.html#TYPEblk">blk</a></code></pre>
 <pre><span id="VALto_string"><span class="keyword">val</span> to_string</span> : <code class="type"><a href="Block.BlkN.html#TYPEblk">blk</a> -> string</code></pre>
-<pre><span id="VALcompare_blk_id"><span class="keyword">val</span> compare_blk_id</span> : <code class="type">Int_.t -> Int_.t -> int</code></pre></body></html>
+<pre><span id="VALcompare_blk_id"><span class="keyword">val</span> compare_blk_id</span> : <code class="type">Int_.t -> Int_.t -> int</code></pre>
+<pre><span id="VALof_bytes"><span class="keyword">val</span> of_bytes</span> : <code class="type"><a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> bytes -> <a href="Block.BlkN.html#TYPEblk">blk</a></code></pre>
+<pre><span id="VALto_bytes"><span class="keyword">val</span> to_bytes</span> : <code class="type"><a href="Block.BlkN.html#TYPEblk">blk</a> -> bytes</code></pre></body></html>

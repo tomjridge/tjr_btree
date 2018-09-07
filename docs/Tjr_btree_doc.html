@@ -57,7 +57,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -76,67 +75,51 @@
 &nbsp;</div>
 <h1>Module <a href="type_Tjr_btree_doc.html">Tjr_btree_doc</a></h1>
 
-<pre><span class="keyword">module</span> Tjr_btree_doc: <code class="code">sig</code> <a href="Tjr_btree_doc.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Main documentation entry point<br>
+<pre><span id="MODULETjr_btree_doc"><span class="keyword">module</span> Tjr_btree_doc</span>: <code class="code">sig</code> <a href="Tjr_btree_doc.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Main documentation entry point</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span id="VALdummy"><span class="keyword">val</span> dummy</span> : <code class="type">int</code></pre><div class="info ">
-General documentation and overview
-<p>
+<div class="info-desc">
+<p>General documentation and overview</p>
 
-<h1 id="1_Introduction">Introduction</h1>
-<p>
-
-This library implements a B-tree in OCaml. The source is actually
+<h2 id="1_Introduction">Introduction</h2>
+<p>This library implements a B-tree in OCaml. The source is actually
    exported from Isabelle, and then OCaml code wraps the
-   Isabelle-generated code.
-<p>
+   Isabelle-generated code.</p>
 
-The code is organized into subdirectories (subpackages), and the
+<p>The code is organized into subdirectories (subpackages), and the
    subdirectories are in a linear order (which corresponds to the
-   dependencies between modules).
-<p>
+   dependencies between modules).</p>
 
-This document gives an overview of the (sub)packages. Detailed
-   comments are included in the individual modules.
-<p>
+<p>This document gives an overview of the (sub)packages. Detailed
+   comments are included in the individual modules.</p>
 
-<h1 id="1_Guidetothecode">Guide to the code</h1>
-<p>
+<h2 id="1_Guidetothecode">Guide to the code</h2>
+<h3 id="2_Namingconventions">Naming conventions</h3>
+<p>To understand the interfaces, we need to introduce the following:</p>
 
-<h2 id="2_Namingconventions">Naming conventions</h2>
-<p>
-
-To understand the interfaces, we need to introduce the following:
-<p>
 <ul>
 <li>Keys, represented by type variable <code class="code">'k</code> </li>
 <li>Values, by type var <code class="code">'v</code> </li>
 <li>Page/block references, <code class="code">'r</code> </li>
 <li>Global state, <code class="code">'t</code></li>
 </ul>
-
-<h2 id="2_ExportedcodefromIsabelle">Exported code from Isabelle</h2>
-<p>
-
-Exported code is in the <code class="code">from_isa</code> package. There is some patching of
+<h3 id="2_ExportedcodefromIsabelle">Exported code from Isabelle</h3>
+<p>Exported code is in the <code class="code">from_isa</code> package. There is some patching of
    the Isabelle-exported code before it is copied to <code class="code">base_types</code> in
    module <code class="code">Isa_export</code>. Hopefully this code is relatively stable. It
-   certainly isn't readable.
-<p>
+   certainly isn't readable.</p>
 
-   <h2 id="2_Test">Test</h2>
-<p>
+<h3 id="2_Test">Test</h3>
+<p>Some simple testing utility functions.</p>
 
-   Some simple testing utility functions.
-<p>
+<h3 id="2_Basetypes">Base types</h3>
+<p>This package contains basic B-tree related types:</p>
 
-   <h2 id="2_Basetypes">Base types</h2>
-<p>
-
-   This package contains basic B-tree related types:
-<p>
 <ul>
 <li><a href="Base_types.html"><code class="code">Base_types</code></a> includes most of the other modules in this package</li>
 <li><a href="Base_types_pervasives.html"><code class="code">Base_types_pervasives</code></a> which includes utility functions assumed by the other modules</li>
@@ -151,24 +134,19 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <li><a href="String_.html"><code class="code">String_</code></a> for various string utility functions</li>
 <li><a href="Tree.html"><code class="code">Tree</code></a> for the tree type imported from Isabelle</li>
 </ul>
-
-   The <code class="code">Monad</code> is a state-passing monad with error; this monad shows
+<p>The <code class="code">Monad</code> is a state-passing monad with error; this monad shows
    up in most of the interfaces. This is now in the `tjr_fs_shared`
-   library.
-<p>
+   library.</p>
 
-   The <a href="Tree.html"><code class="code">Tree</code></a> module describes a B-tree as an algebraic
+<p>The <a href="Tree.html"><code class="code">Tree</code></a> module describes a B-tree as an algebraic
    datatype. The on-disk B-tree uses references between blocks i.e. a
    graph-like structure with pointers rather than a datatype. Indeed,
-   the tree datatype is used only for testing purposes.
-<p>
+   the tree datatype is used only for testing purposes.</p>
 
-   <h2 id="2_Api">Api</h2>
-<p>
+<h3 id="2_Api">Api</h3>
+<p>This package gives the main interface types, including interfaces
+   for disk, store and map (via types such as <code class="code">`Map_ops</code>).</p>
 
-   This package gives the main interface types, including interfaces
-   for disk, store and map (via types such as <code class="code">`Map_ops</code>).
-<p>
 <ul>
 <li><a href="Disk_ops.html"><code class="code">Disk_ops</code></a> for low-level block interface</li>
 <li><code class="code">Isabelle_conversions</code> for conversions from Isabelle types (eg num) to OCaml types</li>
@@ -178,113 +156,79 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <li><a href="Pre_map_ops.html"><code class="code">Pre_map_ops</code></a> like <a href="Map_ops.html"><code class="code">Map_ops</code></a> but with explicit state passing</li>
 <li><a href="Store_ops.html"><code class="code">Store_ops</code></a> for a layer just above <a href="Disk_ops.html"><code class="code">Disk_ops</code></a></li>
 </ul>
-
-   In addition, the leaf stream interface allows to iterate over the
+<p>In addition, the leaf stream interface allows to iterate over the
    leaves in a B-tree e.g. to find all the bindings in the map. This
    module also documents the type variable naming conventions (see
-   <a href="Map_ops.html"><code class="code">Map_ops</code></a>).
-<p>
+   <a href="Map_ops.html"><code class="code">Map_ops</code></a>).</p>
 
-   <b>Important note on style</b> Interfaces are essentially groups of
+<p><b>Important note on style</b> Interfaces are essentially groups of
    polymorphic functions, collected together and named using a record
-   type.
-<p>
+   type.</p>
 
-   For example, map operations are something of the form <code class="code">('k,'v,'t)
+<p>For example, map operations are something of the form <code class="code">('k,'v,'t)
    map_ops</code>. To get a handle on the components of such a thing we
    provide functions such as <a href="Map_ops.html#VALdest_map_ops"><code class="code">Map_ops.dest_map_ops</code></a> which takes a set
    of map operations and a "continuation" function and calls the
    function with the components of the record. Example code should make
    this clearer eg see <code class="code">ii_example.ml</code> which includes the following
    use of <code class="code">dest_imperative_map_ops</code> together with the continuation
-   function which binds the <code class="code">find</code>, <code class="code">insert</code> and <code class="code">delete</code> functions.
-<p>
+   function which binds the <code class="code">find</code>, <code class="code">insert</code> and <code class="code">delete</code> functions.</p>
 
-   FIXME following code extract does not preserve line breaking; 
-   ocamldoc should support raw html frags?
-<p>
+<p>FIXME following code extract does not preserve line breaking; 
+   ocamldoc should support raw html frags?</p>
 
-   <code class="code">
+<p><code class="code">
    dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete -&gt;
    (* write values *)
   for x=1 to max do
     insert (k x) (v x);
   done;
-</code>
-<p>
+</code></p>
 
-   <h2 id="2_Storetomap">Store to map</h2>
-<p>
-
-   This package, particularly the <a href="Store_to_map.html"><code class="code">Store_to_map</code></a> module, wraps the
+<h3 id="2_Storetomap">Store to map</h3>
+<p>This package, particularly the <a href="Store_to_map.html"><code class="code">Store_to_map</code></a> module, wraps the
    Isabelle routines to implement a map interface on top of a
    store. The key function is <a href="Store_to_map.html#VALstore_ops_to_map_ops"><code class="code">Store_to_map.store_ops_to_map_ops</code></a>
-   which takes a <code class="code">store_ops</code> and returns a <code class="code">map_ops</code>.
-<p>
+   which takes a <code class="code">store_ops</code> and returns a <code class="code">map_ops</code>.</p>
 
-   <h2 id="2_Disks">Disks</h2>
-<p>
+<h3 id="2_Disks">Disks</h3>
+<p><a href="Disk_on_fd.html"><code class="code">Disk_on_fd</code></a> is a persistent block device on top of a "normal" file.</p>
 
-   <a href="Disk_on_fd.html"><code class="code">Disk_on_fd</code></a> is a persistent block device on top of a "normal" file. 
-<p>
+<p><a href="Disk_to_store.html"><code class="code">Disk_to_store</code></a> includes a function that naively transforms a disk
+   to a store.</p>
 
-   <a href="Disk_to_store.html"><code class="code">Disk_to_store</code></a> includes a function that naively transforms a disk
-   to a store. 
-<p>
+<h3 id="2_Stores">Stores</h3>
+<p><a href="Mem_store.html"><code class="code">Mem_store</code></a> is an in-memory store.</p>
 
-   <h2 id="2_Stores">Stores</h2>
-<p>
+<p><a href="Recycling_store.html"><code class="code">Recycling_store</code></a> is a store that optimizes page alloc and free to
+   avoid too many unnecessary writes.</p>
 
-   <a href="Mem_store.html"><code class="code">Mem_store</code></a> is an in-memory store. 
-<p>
+<h3 id="2_Binprotmarshalling">Binprot marshalling</h3>
+<p><a href="Binprot_marshalling.html"><code class="code">Binprot_marshalling</code></a> provides on-disk marshalling courtesy of
+   <code class="code">binprot</code>. Or roll your own.</p>
 
-   <a href="Recycling_store.html"><code class="code">Recycling_store</code></a> is a store that optimizes page alloc and free to
-   avoid too many unnecessary writes.
-<p>
+<h3 id="2_Cache">Cache</h3>
+<p>A generic LRU <a href="Cache.html"><code class="code">Cache</code></a> on top of a map.</p>
 
-   <h2 id="2_Binprotmarshalling">Binprot marshalling</h2>
-<p>
+<h3 id="2_Examples">Examples</h3>
+<p>Various examples.</p>
 
-   <a href="Binprot_marshalling.html"><code class="code">Binprot_marshalling</code></a> provides on-disk marshalling courtesy of
-   <code class="code">binprot</code>. Or roll your own.
-<p>
+<p><a href="Ss_ss_map_on_fd.html"><code class="code">Ss_ss_map_on_fd</code></a> implements an on-disk map from (small) string to
+   string.</p>
 
-   <h2 id="2_Cache">Cache</h2>
-<p>
-
-   A generic LRU <a href="Cache.html"><code class="code">Cache</code></a> on top of a map.
-<p>
-
-   <h2 id="2_Examples">Examples</h2>
-<p>
-
-   Various examples. 
-<p>
-
-   <a href="Ss_ss_map_on_fd.html"><code class="code">Ss_ss_map_on_fd</code></a> implements an on-disk map from (small) string to
-   string.
-<p>
-
-   <a href="Map_int_int.html"><code class="code">Map_int_int</code></a> and <a href="Ss_int_map_on_fd.html"><code class="code">Ss_int_map_on_fd</code></a> are similar. <a href="Map_on_fd.html"><code class="code">Map_on_fd</code></a> is
+<p><a href="Map_int_int.html"><code class="code">Map_int_int</code></a> and <a href="Ss_int_map_on_fd.html"><code class="code">Ss_int_map_on_fd</code></a> are similar. <a href="Map_on_fd.html"><code class="code">Map_on_fd</code></a> is
    the generic version and <a href="Mem_map.html"><code class="code">Mem_map</code></a> is a map on top of the
-   <a href="Mem_store.html"><code class="code">Mem_store</code></a>. 
-<p>
+   <a href="Mem_store.html"><code class="code">Mem_store</code></a>.</p>
 
-   <a href="Bytestore.html"><code class="code">Bytestore</code></a> is TODO and should implement arbitrary long values.
-<p>
+<p><a href="Bytestore.html"><code class="code">Bytestore</code></a> is TODO and should implement arbitrary long values.</p>
 
-   <h2 id="2_Testing">Testing</h2>
-<p>
+<h3 id="2_Testing">Testing</h3>
+<p>Various tests.</p>
 
-   Various tests.
-<p>
+<h3 id="2_Main">Main</h3>
+<p>These <code class="code">xxx.ml</code> files get turned into executables
+   <code class="code">xxx.native</code>.</p>
 
-   <h2 id="2_Main">Main</h2>
-<p>
-
-   These <code class="code">xxx.ml</code> files get turned into executables
-   <code class="code">xxx.native</code>. 
-<p>
 <ul>
 <li><code class="code">exhaustive_in_mem_main.native</code> does some fairly exhaustive testing with various branching factors for the B-tree</li>
 <li><code class="code">ii_example.native</code> is the <code class="code">int -&gt; int</code> example</li>
@@ -292,6 +236,6 @@ Exported code is in the <code class="code">from_isa</code> package. There is som
 <li><code class="code">simple_example.native</code> is the <code class="code">string-&gt;string</code> kv example</li>
 <li><code class="code">test_main.native</code> is used for testing</li>
 </ul>
-<br>
+</div>
 </div>
 </body></html>

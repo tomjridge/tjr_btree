@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,8 +77,10 @@
 </div>
 <h1>Module <a href="type_Mem_store.html">Mem_store</a></h1>
 
-<pre><span class="keyword">module</span> Mem_store: <code class="code">sig</code> <a href="Mem_store.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Simple in-memory store implementation, mainly for testing<br>
+<pre><span id="MODULEMem_store"><span class="keyword">module</span> Mem_store</span>: <code class="code">sig</code> <a href="Mem_store.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Simple in-memory store implementation, mainly for testing</p>
+</div>
 </div>
 <hr width="100%">
 
@@ -102,7 +103,7 @@ Simple in-memory store implementation, mainly for testing<br>
 
 
 
-<pre><span id="TYPEmem_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> mem_ops</span> = <code class="type">(('k, 'v) <a href="Mem_store.html#TYPEmem">mem</a>, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
+<pre><span id="TYPEmem_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> mem_ops</span> = <code class="type">(('k, 'v) <a href="Mem_store.html#TYPEmem">mem</a>, 't) Base_types.mref</code> </pre>
 
 
 <pre><span id="VALmk_store_ops"><span class="keyword">val</span> mk_store_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       mem_ops:('k, 'v, 't) <a href="Mem_store.html#TYPEmem_ops">mem_ops</a> -><br>       ('k, 'v, Map_int.key, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a></code></pre>

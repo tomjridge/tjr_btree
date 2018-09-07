@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,31 +77,37 @@
 </div>
 <h1>Module <a href="type_Params.html">Params</a></h1>
 
-<pre><span class="keyword">module</span> Params: <code class="code">sig</code> <a href="Params.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Various common parameters to functions.<br>
+<pre><span id="MODULEParams"><span class="keyword">module</span> Params</span>: <code class="code">sig</code> <a href="Params.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Various common parameters to functions.</p>
+</div>
 </div>
 <hr width="100%">
-<br>
-The code is heavily parameterized. We don't want function
+<p>The code is heavily parameterized. We don't want function
 arguments to be too numerous. So we typically have a single
 "parameters" object ps which is more-or-less untyped. To ensure a
 parameter is always accessed using a particular name, and to
 enforce that the value of the parameter has a given type, we define
-"parameter accessor" functions below.<br>
+"parameter accessor" functions below.</p>
 
 <pre><span id="VALcmp"><span class="keyword">val</span> cmp</span> : <code class="type">< cmp : 'k -> 'k -> int; .. > -> 'k -> 'k -> int</code></pre><div class="info ">
-The order on keys. B-trees work with ordered keys.<br>
+<div class="info-desc">
+<p>The order on keys. B-trees work with ordered keys.</p>
+</div>
 </div>
 
 <pre><span id="VALconstants"><span class="keyword">val</span> constants</span> : <code class="type">< constants : Constants.t; .. > -> Constants.t</code></pre><div class="info ">
-Constants. See <code class="code">Constants</code><br>
+<div class="info-desc">
+<p>Constants. See <code class="code">Constants</code></p>
 </div>
-<br>
-Debugging parameters. Includes r2t (see <a href="R2t.html"><code class="code">R2t</code></a>) and various
-   conversions to json for keys, values and references.<br>
+</div>
+<p>Debugging parameters. Includes r2t (see <a href="R2t.html"><code class="code">R2t</code></a>) and various
+   conversions to json for keys, values and references.</p>
 
 <pre><span id="VALr2t"><span class="keyword">val</span> r2t</span> : <code class="type">< r2t : ('k, 'v, 'r, 't) <a href="R2t.html#TYPEr2t">R2t.r2t</a>; .. > -> ('k, 'v, 'r, 't) <a href="R2t.html#TYPEr2t">R2t.r2t</a></code></pre><div class="info ">
-Debugging parameters are usually optional. Use (dbg x) to get debug parameters.<br>
+<div class="info-desc">
+<p>Debugging parameters are usually optional. Use (dbg x) to get debug parameters.</p>
+</div>
 </div>
 
 <pre><span id="VALk2j"><span class="keyword">val</span> k2j</span> : <code class="type">< k2j : 'k -> Yojson.Safe.json; .. > -> 'k -> Yojson.Safe.json</code></pre>
@@ -110,12 +115,16 @@ Debugging parameters are usually optional. Use (dbg x) to get debug parameters.<
 <pre><span id="VALr2j"><span class="keyword">val</span> r2j</span> : <code class="type">< r2j : 'r -> Yojson.Safe.json; .. > -> 'r -> Yojson.Safe.json</code></pre>
 <pre><span id="VALdbg_ps"><span class="keyword">val</span> dbg_ps</span> : <code class="type">< dbg_ps : 'a; .. > -> 'a</code></pre>
 <pre><span id="VALblk_sz"><span class="keyword">val</span> blk_sz</span> : <code class="type">< blk_sz : int; .. > -> int</code></pre><div class="info ">
-Block size, i.e., the number of bytes that can be stored
-   atomically on-disk in a single block.<br>
+<div class="info-desc">
+<p>Block size, i.e., the number of bytes that can be stored
+   atomically on-disk in a single block.</p>
+</div>
 </div>
 
 <pre><span id="VALpage_size"><span class="keyword">val</span> page_size</span> : <code class="type">< blk_sz : int; .. > -> int</code></pre><div class="info ">
-Pages are blocks in memory. This parameter is a synonym for <code class="code">block_size</code>.<br>
+<div class="info-desc">
+<p>Pages are blocks in memory. This parameter is a synonym for <code class="code">block_size</code>.</p>
+</div>
 </div>
 
 <pre><span id="VALpage_to_frame"><span class="keyword">val</span> page_to_frame</span> : <code class="type">< page_to_frame : Block.blk -> ('k, 'v, 'r) Frame.frame; .. > -><br>       Block.blk -> ('k, 'v, 'r) Frame.frame</code></pre>

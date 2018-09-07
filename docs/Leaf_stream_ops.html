@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,15 +77,17 @@
 </div>
 <h1>Module <a href="type_Leaf_stream_ops.html">Leaf_stream_ops</a></h1>
 
-<pre><span class="keyword">module</span> Leaf_stream_ops: <code class="code">sig</code> <a href="Leaf_stream_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
-A leaf stream is a linear sequence of the leaves in a B-tree, used
+<pre><span id="MODULELeaf_stream_ops"><span class="keyword">module</span> Leaf_stream_ops</span>: <code class="code">sig</code> <a href="Leaf_stream_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>A leaf stream is a linear sequence of the leaves in a B-tree, used
     for iterating over all the bindings in the tree. Leaf stream
     operations: make a leaf stream; get the list of (key,value) pairs
-    associated to "current" leaf; step to the next leaf.<br>
+    associated to "current" leaf; step to the next leaf.</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module</span> <a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_types</a>: <code class="code">sig</code> <a href="Leaf_stream_ops.Leaf_stream_types.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULELeaf_stream_types"><span class="keyword">module</span> <a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_types</a></span>: <code class="code">sig</code> <a href="Leaf_stream_ops.Leaf_stream_types.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Leaf_stream_types</pre>
 
 <pre><span id="VALwf_ls_ops"><span class="keyword">val</span> wf_ls_ops</span> : <code class="type">mk_leaf_stream:('r -> (('k, 'v, 'r) lss, 't) Tjr_monad.Monad.m) -><br>       ls_step:(('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Tjr_monad.Monad.m) -><br>       ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool</code></pre>

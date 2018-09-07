@@ -47,25 +47,34 @@ ImpFS is a project to build an advanced high-performance filesystem.
 
 * Installation
 
-There is a Dockerfile that builds all my filesystem-related
+There is a Dockerfile that I use to build my filesystem-related
 repositories here:
 
-https://github.com/tomjridge/impfs_base_docker_image
+https://github.com/tomjridge/impfs_base_docker_image/blob/master/impfs_base_docker_image/Dockerfile
 
-You need to install the dependencies ~isa_btree~, ~tjr_monad~ and
-~tjr_fs_shared~ first (all available from https://github.com/tomjridge)
+For the base system you need: 
+- a basic Linux distribution (e.g. Ubuntu 16.04)
+- supporting libraries (libfuse-dev for Ubuntu)
+- ocaml and opam
+- additional opam packages (e.g. ocamlfuse; details can be found in the
+  Dockerfile above)
 
-Then in this directory type `make && make install` to make the library
-and install it using `ocamlfind`. You need various libraries from opam
-(see ~opam_depends~ for details).
+On top of this, you then need some additional support libraries that
+may not be available in opam. You can find the details in
+./.dockerfile/Dockerfile ; at the moment this includes the libraries
+~tjr_lib~, ~isa_btree~, ~tjr_monad~ and ~tjr_fs_shared~. These are all
+available from https://github.com/tomjridge
+
+Then in this directory type ~make && make install~ to make the library
+and install it using ~ocamlfind~. 
 
 
 * Documentation
 
-Please read the
-https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html[overview]
-and the 
-https://tomjridge.github.io/tjr_btree/[ocamldoc]
+Please read the overview
+https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html
+and the ocamldoc
+https://tomjridge.github.io/tjr_btree/
 
 Please also see the recap of the main types in
 =src/r_recap/recap_edited.mli= (there is a =.html= version in the same
@@ -84,12 +93,12 @@ opam:
 
 
 other:
+| tjr_lib       | Basic library support                    |
 | isa_btree     | Base OCaml defns extracted from Isabelle |
 | tjr_monad     | Generic monad                            |
 | tjr_fs_shared | Shared library for all fs stuff          |
 
 
 old?:
-| ocaml-compiler-libs |
-| extunix,extlib      |
-|                     |
+| ocaml-compiler-libs |                |
+| extunix             | provides fsync |

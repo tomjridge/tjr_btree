@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,19 +77,22 @@
 </div>
 <h1>Module <a href="type_Block.html">Block</a></h1>
 
-<pre><span class="keyword">module</span> Block: <code class="code">sig</code> <a href="Block.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Basic block implementation.<br>
+<pre><span id="MODULEBlock"><span class="keyword">module</span> Block</span>: <code class="code">sig</code> <a href="Block.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Basic block implementation.</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module type</span> <a href="Block.Blk_types.html">Blk_types</a> = <code class="code">sig</code> <a href="Block.Blk_types.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULETYPEBlk_types"><span class="keyword">module type</span> <a href="Block.Blk_types.html">Blk_types</a></span> = <code class="code">sig</code> <a href="Block.Blk_types.html">..</a> <code class="code">end</code></pre>
 <pre><span id="TYPEblk_sz"><span class="keyword">type</span> <code class="type"></code>blk_sz</span> = <code class="type">int</code> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Block.BlkN.html">BlkN</a>: <code class="code">sig</code> <a href="Block.BlkN.html">..</a> <code class="code">end</code></pre><div class="info">
-Basic implementation of a block.
+<pre><span id="MODULEBlkN"><span class="keyword">module</span> <a href="Block.BlkN.html">BlkN</a></span>: <code class="code">sig</code> <a href="Block.BlkN.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Basic implementation of a block.</p>
+
 </div>
 
-<pre><span class="keyword">module</span> <a href="Block.Blk4096.html">Blk4096</a>: <code class="code">sig</code> <a href="Block.Blk4096.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEBlk4096"><span class="keyword">module</span> <a href="Block.Blk4096.html">Blk4096</a></span>: <code class="code">sig</code> <a href="Block.Blk4096.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> BlkN</pre>
 </body></html>

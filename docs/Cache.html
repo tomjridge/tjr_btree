@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,8 +77,10 @@
 </div>
 <h1>Module <a href="type_Cache.html">Cache</a></h1>
 
-<pre><span class="keyword">module</span> Cache: <code class="code">sig</code> <a href="Cache.html">..</a> <code class="code">end</code></pre><div class="info module top">
-An LRU cache on top of a map.<br>
+<pre><span id="MODULECache"><span class="keyword">module</span> Cache</span>: <code class="code">sig</code> <a href="Cache.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>An LRU cache on top of a map.</p>
+</div>
 </div>
 <hr width="100%">
 
@@ -89,8 +90,8 @@ An LRU cache on top of a map.<br>
 <pre><span id="TYPEdirty"><span class="keyword">type</span> <code class="type"></code>dirty</span> = <code class="type">bool</code> </pre>
 
 
-<pre><span class="keyword">module</span> <a href="Cache.Queue.html">Queue</a>: <code class="type">Map_int</code></pre>
-<pre><span class="keyword">module</span> <a href="Cache.Pmap.html">Pmap</a>: <code class="code">sig</code> <a href="Cache.Pmap.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEQueue"><span class="keyword">module</span> <a href="Cache.Queue.html">Queue</a></span>: <code class="type">Map_int</code></pre>
+<pre><span id="MODULEPmap"><span class="keyword">module</span> <a href="Cache.Pmap.html">Pmap</a></span>: <code class="code">sig</code> <a href="Cache.Pmap.html">..</a> <code class="code">end</code></pre>
 <pre><code><span id="TYPEcache_state"><span class="keyword">type</span> <code class="type">('k, 'v)</code> cache_state</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -131,7 +132,7 @@ An LRU cache on top of a map.<br>
 
 
 
-<pre><span id="TYPEcache_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> cache_ops</span> = <code class="type">(('k, 'v) <a href="Cache.html#TYPEcache_state">cache_state</a>, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
+<pre><span id="TYPEcache_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> cache_ops</span> = <code class="type">(('k, 'v) <a href="Cache.html#TYPEcache_state">cache_state</a>, 't) Base_types.mref</code> </pre>
 
 
 <pre><span id="VALnormalize"><span class="keyword">val</span> normalize</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre>
@@ -142,6 +143,6 @@ An LRU cache on top of a map.<br>
 <pre><span id="EXCEPTIONE_"><span class="keyword">exception</span> E_</span></pre>
 
 <pre><span id="VALsync_evictees"><span class="keyword">val</span> sync_evictees</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       ('b * ('c option * 'd * bool)) list -> (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       cache_ops:(('b, 'c * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre></body></html>
+<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       cache_ops:(('b, 'c * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre>
+<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre>
+<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'a) Base_types.mref -><br>       (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre></body></html>

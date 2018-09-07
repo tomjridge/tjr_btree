@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,7 +77,7 @@
 </div>
 <h1>Module <a href="type_Exhaustive_in_mem.html">Exhaustive_in_mem</a></h1>
 
-<pre><span class="keyword">module</span> Exhaustive_in_mem: <code class="code">sig</code> <a href="Exhaustive_in_mem.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULEExhaustive_in_mem"><span class="keyword">module</span> Exhaustive_in_mem</span>: <code class="code">sig</code> <a href="Exhaustive_in_mem.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="VALfields"><span class="keyword">val</span> fields</span> : <code class="type">string list</code></pre>
 <pre><span id="TYPEconfig"><span class="keyword">type</span> <code class="type"></code>config</span> = <code class="type">(string * int) list</code> </pre>
@@ -88,10 +87,10 @@
 <pre><span id="VALconfig_of_yojson"><span class="keyword">val</span> config_of_yojson</span> : <code class="type">Yojson.Safe.json -><br>       <a href="Exhaustive_in_mem.html#TYPEconfig">config</a> Ppx_deriving_yojson_runtime.error_or</code></pre>
 <pre><span id="VALget"><span class="keyword">val</span> get</span> : <code class="type"><a href="Exhaustive_in_mem.html#TYPEconfig">config</a> -> string -> int</code></pre>
 <pre><span id="VALwf_config"><span class="keyword">val</span> wf_config</span> : <code class="type"><a href="Exhaustive_in_mem.html#TYPEconfig">config</a> -> bool</code></pre>
-<pre><span id="VALset_ops"><span class="keyword">val</span> set_ops</span> : <code class="type">(Tree_store.Set_ops.Set_.elt, Tree_store.Set_ops.Set_.t)<br>       <a href="Exhaustive.Tjr_set.html#TYPEset_ops">Exhaustive.Tjr_set.set_ops</a></code></pre>
+<pre><span id="VALset_ops"><span class="keyword">val</span> set_ops</span> : <code class="type">(Tree_store.Set_ops.Set_.elt, Tree_store.Set_ops.Set_.t) Tjr_set.set_ops</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
 <pre><span id="VALexecute_tests"><span class="keyword">val</span> execute_tests</span> : <code class="type">constants:Constants.t -><br>       map_ops:(int, int, <a href="Tree_store.html#TYPEtree">Tree_store.tree</a> Tjr_monad.state_passing) Map_ops.map_ops -><br>       ops:<a href="Insert_delete_ops.html#TYPEop">Insert_delete_ops.op</a> list -><br>       init_trees:Tree_store.Set_ops.Set_.elt list -> unit</code></pre>
-<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">('a, 'a Tjr_monad.state_passing) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code></pre>
+<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">('a, 'a Tjr_monad.state_passing) Base_types.mref</code></pre>
 <pre><span id="VALmain'"><span class="keyword">val</span> main'</span> : <code class="type">min:int -> max:int -> step:int -> constants:Constants.t -> unit</code></pre>
 <pre><span id="VALmain"><span class="keyword">val</span> main</span> : <code class="type"><a href="Exhaustive_in_mem.html#TYPEconfig">config</a> -> unit</code></pre></body></html>

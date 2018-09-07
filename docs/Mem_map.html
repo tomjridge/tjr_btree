@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,9 +77,11 @@
 </div>
 <h1>Module <a href="type_Mem_map.html">Mem_map</a></h1>
 
-<pre><span class="keyword">module</span> Mem_map: <code class="code">sig</code> <a href="Mem_map.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Generic in-memory map<br>
+<pre><span id="MODULEMem_map"><span class="keyword">module</span> Mem_map</span>: <code class="code">sig</code> <a href="Mem_map.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Generic in-memory map</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:Constants.t -><br>       cmp:('k -> 'k -> int) -><br>       ops:< mem_ops : ('k, 'v, 't) <a href="Mem_store.html#TYPEmem_ops">Mem_store.mem_ops</a>;<br>             page_ref_ops : (Map_int.key, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a>; .. > -><br>       ('k, 'v, 't) Map_ops.map_ops</code></pre></body></html>
+<pre><span id="VALmk_map_ops"><span class="keyword">val</span> mk_map_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:Constants.t -><br>       cmp:('k -> 'k -> int) -><br>       ops:< mem_ops : ('k, 'v, 't) <a href="Mem_store.html#TYPEmem_ops">Mem_store.mem_ops</a>;<br>             page_ref_ops : (Map_int.key, 't) Base_types.mref; .. > -><br>       ('k, 'v, 't) Map_ops.map_ops</code></pre></body></html>

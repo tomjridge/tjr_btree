@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,13 +77,15 @@
 </div>
 <h1>Module <a href="type_Pre_map_ops.html">Pre_map_ops</a></h1>
 
-<pre><span class="keyword">module</span> Pre_map_ops: <code class="code">sig</code> <a href="Pre_map_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
-A pre-map is like a map, but functions take an additional reference (to the
-   root of the B-tree), and return (the updated state and) an updated reference.<br>
+<pre><span id="MODULEPre_map_ops"><span class="keyword">module</span> Pre_map_ops</span>: <code class="code">sig</code> <a href="Pre_map_ops.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>A pre-map is like a map, but functions take an additional reference (to the
+   root of the B-tree), and return (the updated state and) an updated reference.</p>
+</div>
 </div>
 <hr width="100%">
 
-<pre><span class="keyword">module</span> <a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops_type</a>: <code class="code">sig</code> <a href="Pre_map_ops.Pre_map_ops_type.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEPre_map_ops_type"><span class="keyword">module</span> <a href="Pre_map_ops.Pre_map_ops_type.html">Pre_map_ops_type</a></span>: <code class="code">sig</code> <a href="Pre_map_ops.Pre_map_ops_type.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Pre_map_ops_type</pre>
 
 <pre><span id="VALmk_pre_map_ops"><span class="keyword">val</span> mk_pre_map_ops</span> : <code class="type">find_leaf:('a -><br>                  'b -> ('b * ('a * 'c) list * ('a, 'b) <a href="Rstk.html#TYPErstk">Rstk.rstk</a>, 'd) Base_types.m) -><br>       find:('a -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       insert:('a -> 'c -> 'b -> ('b, 'd) Base_types.m) -><br>       insert_many:('a -><br>                    'c -><br>                    ('a * 'c) list -> 'b -> ('b * ('a * 'c) list, 'd) Base_types.m) -><br>       delete:('a -> 'b -> ('b, 'd) Base_types.m) -> ('a, 'c, 'b, 'd) pre_map_ops</code></pre>

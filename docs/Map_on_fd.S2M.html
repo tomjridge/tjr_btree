@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,25 +77,31 @@
 </div>
 <h1>Module <a href="type_Map_on_fd.S2M.html">Map_on_fd.S2M</a></h1>
 
-<pre><span class="keyword">module</span> S2M: <code class="type"><a href="Store_to_map.html">Store_to_map</a></code></pre><hr width="100%">
+<pre><span id="MODULES2M"><span class="keyword">module</span> S2M</span>: <code class="type"><a href="Store_to_map.html">Store_to_map</a></code></pre><hr width="100%">
 
-<pre><span id="TYPEpage_ref_ops"><span class="keyword">type</span> <code class="type">'t</code> page_ref_ops</span> = <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a></code> </pre>
+<pre><span id="TYPEpage_ref_ops"><span class="keyword">type</span> <code class="type">'t</code> page_ref_ops</span> = <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>, 't) Base_types.mref</code> </pre>
 <div class="info ">
-The B-tree code exports a <code class="code">pre_map_ops</code> version of a map, with
+<div class="info-desc">
+<p>The B-tree code exports a <code class="code">pre_map_ops</code> version of a map, with
    explicit passing of the reference to the root of the B-tree. In
    order to implement the <code class="code">map_ops</code> interface, we need to store the
    "current" reference to the B-tree root in the global state
    somehow. A value of type <code class="code">'t page_ref_ops</code> reveals how to read and
-   write this reference in the global state.<br>
+   write this reference in the global state.</p>
+</div>
 </div>
 
 
-<pre><span id="VALmake_map_ops'"><span class="keyword">val</span> make_map_ops'</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       pre_map_ops:('b, 'c, 'd, 'a) Pre_map_ops.pre_map_ops -><br>       page_ref_ops:('d, 'a) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -> ('b, 'c, 'a) Map_ops.map_ops</code></pre>
-<pre><span id="VALstore_ops_to_map_ops"><span class="keyword">val</span> store_ops_to_map_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:Constants.t -><br>       cmp:('k -> 'k -> int) -><br>       page_ref_ops:('r, 't) <a href="Base_types.html#TYPEmref">Base_types.mref</a> -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('k, 'v, 't) Map_ops.map_ops</code></pre><div class="info ">
-Make <code class="code">map_ops</code>, given a <code class="code">page_ref_ops</code>.<br>
+<pre><span id="VALmake_map_ops'"><span class="keyword">val</span> make_map_ops'</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       pre_map_ops:('b, 'c, 'd, 'a) Pre_map_ops.pre_map_ops -><br>       page_ref_ops:('d, 'a) Base_types.mref -> ('b, 'c, 'a) Map_ops.map_ops</code></pre>
+<pre><span id="VALstore_ops_to_map_ops"><span class="keyword">val</span> store_ops_to_map_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:Constants.t -><br>       cmp:('k -> 'k -> int) -><br>       page_ref_ops:('r, 't) Base_types.mref -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('k, 'v, 't) Map_ops.map_ops</code></pre><div class="info ">
+<div class="info-desc">
+<p>Make <code class="code">map_ops</code>, given a <code class="code">page_ref_ops</code>.</p>
+</div>
 </div>
 
 <pre><span id="VALstore_ops_to_ls_ops"><span class="keyword">val</span> store_ops_to_ls_ops</span> : <code class="type">monad_ops:'t Base_types.monad_ops -><br>       constants:Constants.t -><br>       cmp:('k -> 'k -> int) -><br>       store_ops:('k, 'v, 'r, 't) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       ('k, 'v, 'r, 't) Leaf_stream_ops.leaf_stream_ops</code></pre><div class="info ">
-Make <code class="code">ls_ops</code>, given a <code class="code">page_ref_ops</code>.<br>
+<div class="info-desc">
+<p>Make <code class="code">ls_ops</code>, given a <code class="code">page_ref_ops</code>.</p>
+</div>
 </div>
 </body></html>

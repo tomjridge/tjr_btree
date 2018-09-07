@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,17 +77,19 @@
 </div>
 <h1>Module <a href="type_String_.html">String_</a></h1>
 
-<pre><span class="keyword">module</span> String_: <code class="code">sig</code> <a href="String_.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Ignore this module. It is a very hacky string library, with
+<pre><span id="MODULEString_"><span class="keyword">module</span> String_</span>: <code class="code">sig</code> <a href="String_.html">..</a> <code class="code">end</code></pre><div class="info module top">
+<div class="info-desc">
+<p>Ignore this module. It is a very hacky string library, with
    probably poor performance. Used in places where performance is not
-   an issue.<br>
+   an issue.</p>
+</div>
 </div>
 <hr width="100%">
 
 <pre><span class="keyword">include</span> String</pre>
 
-<pre><span class="keyword">module</span> <a href="String_.X_list.html">X_list</a>: <code class="code">sig</code> <a href="String_.X_list.html">..</a> <code class="code">end</code></pre>
-<pre><span class="keyword">module</span> <a href="String_.Span.html">Span</a>: <code class="code">sig</code> <a href="String_.Span.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEX_list"><span class="keyword">module</span> <a href="String_.X_list.html">X_list</a></span>: <code class="code">sig</code> <a href="String_.X_list.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULESpan"><span class="keyword">module</span> <a href="String_.Span.html">Span</a></span>: <code class="code">sig</code> <a href="String_.Span.html">..</a> <code class="code">end</code></pre>
 <pre><span id="VALindexes"><span class="keyword">val</span> indexes</span> : <code class="type">sub:string -> string -> int list</code></pre>
 <pre><span id="VALstarts"><span class="keyword">val</span> starts</span> : <code class="type">prefix:string -> string -> bool</code></pre>
 <pre><span id="VALends"><span class="keyword">val</span> ends</span> : <code class="type">suffix:string -> string -> bool</code></pre>

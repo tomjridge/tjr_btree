@@ -56,7 +56,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -74,7 +73,7 @@
 &nbsp;</div>
 <h1>Module <a href="type_Frame.Frame_type.html">Frame.Frame_type</a></h1>
 
-<pre><span class="keyword">module</span> Frame_type: <code class="code">sig</code> <a href="Frame.Frame_type.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<pre><span id="MODULEFrame_type"><span class="keyword">module</span> Frame_type</span>: <code class="code">sig</code> <a href="Frame.Frame_type.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="TYPEframe"><span class="keyword">type</span> <code class="type">('k, 'v, 'r)</code> frame</span> = <code class="type">('k, 'v, 'r) Isa_export.Disk_node.dnode</code> = </pre><table class="typetable">
 <tr>
@@ -94,5 +93,5 @@
 
 
 
-<pre><span id="VALframe_to_yojson"><span class="keyword">val</span> frame_to_yojson</span> : <code class="type">'k 'r 'v.<br>         ('k -> Yojson.Safe.json) -><br>         ('v -> Yojson.Safe.json) -><br>         ('r -> Yojson.Safe.json) -><br>         ('k, 'v, 'r) <a href="Frame.Frame_type.html#TYPEframe">frame</a> -> Yojson.Safe.json</code></pre>
-<pre><span id="VALframe_of_yojson"><span class="keyword">val</span> frame_of_yojson</span> : <code class="type">'k 'r 'v.<br>         (Yojson.Safe.json -> 'k Ppx_deriving_yojson_runtime.error_or) -><br>         (Yojson.Safe.json -> 'v Ppx_deriving_yojson_runtime.error_or) -><br>         (Yojson.Safe.json -> 'r Ppx_deriving_yojson_runtime.error_or) -><br>         Yojson.Safe.json -><br>         ('k, 'v, 'r) <a href="Frame.Frame_type.html#TYPEframe">frame</a> Ppx_deriving_yojson_runtime.error_or</code></pre></body></html>
+<pre><span id="VALframe_to_yojson"><span class="keyword">val</span> frame_to_yojson</span> : <code class="type">'k 'v 'r.<br>         ('k -> Yojson.Safe.json) -><br>         ('v -> Yojson.Safe.json) -><br>         ('r -> Yojson.Safe.json) -><br>         ('k, 'v, 'r) <a href="Frame.Frame_type.html#TYPEframe">frame</a> -> Yojson.Safe.json</code></pre>
+<pre><span id="VALframe_of_yojson"><span class="keyword">val</span> frame_of_yojson</span> : <code class="type">'k 'v 'r.<br>         (Yojson.Safe.json -> 'k Ppx_deriving_yojson_runtime.error_or) -><br>         (Yojson.Safe.json -> 'v Ppx_deriving_yojson_runtime.error_or) -><br>         (Yojson.Safe.json -> 'r Ppx_deriving_yojson_runtime.error_or) -><br>         Yojson.Safe.json -><br>         ('k, 'v, 'r) <a href="Frame.Frame_type.html#TYPEframe">frame</a> Ppx_deriving_yojson_runtime.error_or</code></pre></body></html>

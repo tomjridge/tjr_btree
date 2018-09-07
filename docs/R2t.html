@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,24 +77,18 @@
 </div>
 <h1>Module <a href="type_R2t.html">R2t</a></h1>
 
-<pre><span class="keyword">module</span> R2t: <code class="code">sig</code> <a href="R2t.html">..</a> <code class="code">end</code></pre><div class="info module top">
-The r2t type represents a pure view of a given system state. It is
-   constructed as a function from system state. The result is a
-   function which takes a reference r and constructs the (key,value)
-   tree rooted at r. In case the state is not wellformed, the return
-   type is actually a tree option. NOTE this function takes the global
-   state t, not some particular store state.<br>
-</div>
-<hr width="100%">
+<pre><span id="MODULER2t"><span class="keyword">module</span> R2t</span>: <code class="code">sig</code> <a href="R2t.html">..</a> <code class="code">end</code></pre><hr width="100%">
 
 <pre><span id="TYPEr2t"><span class="keyword">type</span> <code class="type">('k, 'v, 'r, 't)</code> r2t</span> = <code class="type">'t -> 'r -> ('k, 'v) Tree.tree option</code> </pre>
 <div class="info ">
-The r2t type represents a pure view of a given system state. It is
+<div class="info-desc">
+<p>The r2t type represents a pure view of a given system state. It is
    constructed as a function from system state. The result is a
    function which takes a reference r and constructs the (key,value)
    tree rooted at r. In case the state is not wellformed, the return
    type is actually a tree option. NOTE this function takes the global
-   state t, not some particular store state.<br>
+   state t, not some particular store state.</p>
+</div>
 </div>
 
 

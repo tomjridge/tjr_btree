@@ -58,7 +58,6 @@
 <link title="Ss_int_map_on_fd" rel="Chapter" href="Ss_int_map_on_fd.html">
 <link title="Ss_ss_map_on_fd" rel="Chapter" href="Ss_ss_map_on_fd.html">
 <link title="Default_filename" rel="Chapter" href="Default_filename.html">
-<link title="Exhaustive" rel="Chapter" href="Exhaustive.html">
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
@@ -78,20 +77,12 @@
 </div>
 <h1>Module <a href="type_Big_step.html">Big_step</a></h1>
 
-<pre><span class="keyword">module</span> Big_step: <code class="code">sig</code> <a href="Big_step.html">..</a> <code class="code">end</code></pre><div class="info module top">
-Iterate small-step map operations to provide big-step map
+<pre><span id="MODULEBig_step"><span class="keyword">module</span> Big_step</span>: <code class="code">sig</code> <a href="Big_step.html">..</a> <code class="code">end</code></pre><hr width="100%">
+<p>Iterate small-step map operations to provide big-step map
     operations. The important functions in this module are <code class="code">find</code>,
     <code class="code">insert</code>, <code class="code">insert_many</code> and <code class="code">delete</code> (together with the leaf stream
-    big-step operations).<br>
-</div>
-<hr width="100%">
-<br>
-Iterate small-step map operations to provide big-step map
-    operations. The important functions in this module are <code class="code">find</code>,
-    <code class="code">insert</code>, <code class="code">insert_many</code> and <code class="code">delete</code> (together with the leaf stream
-    big-step operations).<br>
+    big-step operations).</p>
 
-<pre><span id="VALmake_pre_map_ops"><span class="keyword">val</span> make_pre_map_ops</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       store_ops:('b, 'c, 'd, 'a) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       constants:Constants.t -><br>       cmp:('b -> 'b -> int) -><br>       (pre_map_ops:('b, 'c, 'd, 'a) Pre_map_ops.pre_map_ops -><br>        ls_ops:('b, 'c, 'd, 'a) Leaf_stream_ops.leaf_stream_ops -> 'e) -><br>       'e</code></pre><br>
-The main functionality exported by the B-tree code: implement a
-    map on top of a store<br>
+<pre><span id="VALmake_pre_map_ops"><span class="keyword">val</span> make_pre_map_ops</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       store_ops:('b, 'c, 'd, 'a) <a href="Store_ops.html#TYPEstore_ops">Store_ops.store_ops</a> -><br>       constants:Constants.t -><br>       cmp:('b -> 'b -> int) -><br>       (pre_map_ops:('b, 'c, 'd, 'a) Pre_map_ops.pre_map_ops -><br>        ls_ops:('b, 'c, 'd, 'a) Leaf_stream_ops.leaf_stream_ops -> 'e) -><br>       'e</code></pre><p>The main functionality exported by the B-tree code: implement a
+    map on top of a store</p>
 </body></html>
