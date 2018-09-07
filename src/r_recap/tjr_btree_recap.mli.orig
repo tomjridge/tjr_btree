@@ -1,0 +1,429 @@
+module Constants_type :
+  sig
+    type t =
+      Constants.Constants_type.t = {
+      min_leaf_size : int;
+      max_leaf_size : int;
+      min_node_keys : int;
+      max_node_keys : int;
+    }
+    val to_yojson : t -> Yojson.Safe.json
+    val of_yojson :
+      Yojson.Safe.json -> t Ppx_deriving_yojson_runtime.error_or
+  end
+module type Blk_types = sig type blk type blk_id = int end
+module Frame_type :
+  sig
+    type ('k, 'v, 'r) frame =
+      ('k, 'v, 'r) Isa_export.Disk_node.dnode =
+        Disk_node of ('k list * 'r list)
+      | Disk_leaf of ('k * 'v) list
+    val frame_to_yojson :
+      ('k -> Yojson.Safe.json) ->
+      ('v -> Yojson.Safe.json) ->
+      ('r -> Yojson.Safe.json) -> ('k, 'v, 'r) frame -> Yojson.Safe.json
+    val frame_of_yojson :
+      (Yojson.Safe.json -> 'k Ppx_deriving_yojson_runtime.error_or) ->
+      (Yojson.Safe.json -> 'v Ppx_deriving_yojson_runtime.error_or) ->
+      (Yojson.Safe.json -> 'r Ppx_deriving_yojson_runtime.error_or) ->
+      Yojson.Safe.json ->
+      ('k, 'v, 'r) frame Ppx_deriving_yojson_runtime.error_or
+  end
+module Ls_state :
+  sig
+    type ('k, 'v, 'r) ls_state =
+        ('k, 'v, 'r) Isa_export.Leaf_stream_state.ls_state
+  end
+module Params :
+  sig
+    val cmp : < cmp : 'k -> 'k -> int; .. > -> 'k -> 'k -> int
+    val constants : < constants : Constants.t; .. > -> Constants.t
+    val r2t :
+      < r2t : ('k, 'v, 'r, 't) R2t.r2t; .. > ->
+      ('k, 'v, 'r, 't) R2t.r2t
+    val k2j : < k2j : 'k -> Yojson.Safe.json; .. > -> 'k -> Yojson.Safe.json
+    val v2j : < v2j : 'v -> Yojson.Safe.json; .. > -> 'v -> Yojson.Safe.json
+    val r2j : < r2j : 'r -> Yojson.Safe.json; .. > -> 'r -> Yojson.Safe.json
+    val dbg_ps : < dbg_ps : 'a; .. > -> 'a
+    val blk_sz : < blk_sz : int; .. > -> int
+    val page_size : < blk_sz : int; .. > -> int
+    val page_to_frame :
+      < page_to_frame : blk ->
+                        ('k, 'v, 'r) frame;
+        .. > ->
+      blk -> ('k, 'v, 'r) frame
+    val frame_to_page :
+      < frame_to_page : int ->
+                        ('k, 'v, 'r) frame ->
+                        blk;
+        .. > ->
+      int -> ('k, 'v, 'r) frame -> blk
+    val page_ref_ops : < page_ref_ops : 'a; .. > -> 'a
+    val store_ops : < store_ops : 'a; .. > -> 'a
+    val fd_ops : < fd_ops : 'a; .. > -> 'a
+    val free_ops : < free_ops : 'a; .. > -> 'a
+  end
+module R2f :
+  sig
+    type ('k, 'v, 'r, 't) r2f =
+        't -> 'r -> ('k, 'v, 'r) frame option
+    val mk_r2f :
+      run:('t -> 'a -> 'b * ('k, 'v, 'r) frame) ->
+      store_read:('r -> 'a) -> ('k, 'v, 'r, 't) r2f
+  end
+module R2t :
+  sig
+    type ('k, 'v, 'r, 't) r2t =
+        't -> 'r -> ('k, 'v) tree option
+    val int_to_nat : int -> Isa_export.Arith.nat
+    val mk_r2t :
+      ('a -> 'b -> ('c, 'd, 'b) Isa_export.Disk_node.dnode option) ->
+      'a -> 'b -> ('c, 'd) tree option
+    val store_read_to_r2t :
+      run:('a -> 'b -> 'c * ('d, 'e, 'f) frame) ->
+      store_read:('f -> 'b) ->
+      'a -> 'f -> ('d, 'e) tree option
+  end
+module Rstk :
+  sig type ('k, 'r) rstk = ('k, 'r) Isa_export.Tree_stack.rstack end
+module Tree_type :
+  sig
+    type ('a, 'b) tree =
+      ('a, 'b) tree =
+        Node of ('a list * ('a, 'b) tree list)
+      | Leaf of ('a * 'b) list
+    val tree_to_yojson :
+      ('a -> Yojson.Safe.json) ->
+      ('b -> Yojson.Safe.json) -> ('a, 'b) tree -> Yojson.Safe.json
+    val tree_of_yojson :
+      (Yojson.Safe.json -> 'a Ppx_deriving_yojson_runtime.error_or) ->
+      (Yojson.Safe.json -> 'b Ppx_deriving_yojson_runtime.error_or) ->
+      Yojson.Safe.json -> ('a, 'b) tree Ppx_deriving_yojson_runtime.error_or
+  end
+module Disk_ops :
+  sig
+    module Block_device_type = Disk_ops.Block_device_type
+    type 't block_device =
+      't Block_device_type.block_device = {
+      blk_sz : blk_sz;
+      read :
+        blk_id ->
+        (blk, 't) m;
+      write :
+        blk_id ->
+        blk -> (unit, 't) m;
+    }
+    val wf_disk_ops :
+      blk_sz:blk_sz ->
+      read:(blk_id ->
+            (blk, 't) m) ->
+      write:(blk_id ->
+             blk -> (unit, 't) m) ->
+      bool
+    val mk_disk_ops :
+      blk_sz:blk_sz ->
+      read:(blk_id ->
+            (blk, 'a) m) ->
+      write:(blk_id ->
+             blk -> (unit, 'a) m) ->
+      'a block_device
+    val dest_disk_ops :
+      'a block_device ->
+      (blk_sz:blk_sz ->
+       read:(blk_id ->
+             (blk, 'a) m) ->
+       write:(blk_id ->
+              blk -> (unit, 'a) m) ->
+       'b) ->
+      'b
+    val wf_imperative_disk_ops :
+      blk_sz:blk_sz ->
+      read:(blk_id -> blk) ->
+      write:(blk_id -> blk -> unit) -> bool
+  end
+module Leaf_stream_ops :
+  sig
+    module Leaf_stream_types = Leaf_stream_ops.Leaf_stream_types
+    type ('k, 'v, 'r) leaf_stream_state =
+      ('k, 'v, 'r) Leaf_stream_types.leaf_stream_state = {
+      kvs : ('k * 'v) list;
+      ls : ('k, 'v, 'r) Ls_state.ls_state;
+    }
+    type ('k, 'v, 'r) lss = ('k, 'v, 'r) leaf_stream_state
+    type ('k, 'v, 'r, 't) leaf_stream_ops =
+      ('k, 'v, 'r, 't) Leaf_stream_types.leaf_stream_ops = {
+      mk_leaf_stream : 'r -> (('k, 'v, 'r) lss, 't) Tjr_monad.m;
+      ls_step :
+        ('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Tjr_monad.m;
+      ls_kvs : ('k, 'v, 'r) lss -> ('k * 'v) list;
+    }
+    val wf_ls_ops :
+      mk_leaf_stream:('r -> (('k, 'v, 'r) lss, 't) Tjr_monad.m) ->
+      ls_step:(('k, 'v, 'r) lss ->
+               (('k, 'v, 'r) lss option, 't) Tjr_monad.m) ->
+      ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool
+    val mk_ls_ops :
+      mk_leaf_stream:('a -> (('b, 'c, 'a) lss, 'd) Tjr_monad.m) ->
+      ls_step:(('b, 'c, 'a) lss ->
+               (('b, 'c, 'a) lss option, 'd) Tjr_monad.m) ->
+      ls_kvs:(('b, 'c, 'a) lss -> ('b * 'c) list) ->
+      ('b, 'c, 'a, 'd) leaf_stream_ops
+    val dest_ls_ops :
+      ('a, 'b, 'c, 'd) leaf_stream_ops ->
+      (mk_leaf_stream:('c -> (('a, 'b, 'c) lss, 'd) Tjr_monad.m) ->
+       ls_step:(('a, 'b, 'c) lss ->
+                (('a, 'b, 'c) lss option, 'd) Tjr_monad.m) ->
+       ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -> 'e) ->
+      'e
+  end
+module Pre_map_ops :
+  sig
+    module Pre_map_ops_type = Pre_map_ops.Pre_map_ops_type
+    type ('k, 'v, 'r, 't) pre_map_ops =
+      ('k, 'v, 'r, 't) Pre_map_ops_type.pre_map_ops = {
+      find_leaf :
+        'k ->
+        'r ->
+        ('r * ('k * 'v) list * ('k, 'r) rstk, 't)
+        m;
+      find : 'k -> 'r -> ('r * ('k * 'v) list, 't) m;
+      insert : 'k -> 'v -> 'r -> ('r, 't) m;
+      insert_many :
+        'k ->
+        'v ->
+        ('k * 'v) list ->
+        'r -> ('r * ('k * 'v) list, 't) m;
+      delete : 'k -> 'r -> ('r, 't) m;
+    }
+    val mk_pre_map_ops :
+      find_leaf:('a ->
+                 'b ->
+                 ('b * ('a * 'c) list * ('a, 'b) rstk, 'd)
+                 m) ->
+      find:('a -> 'b -> ('b * ('a * 'c) list, 'd) m) ->
+      insert:('a -> 'c -> 'b -> ('b, 'd) m) ->
+      insert_many:('a ->
+                   'c ->
+                   ('a * 'c) list ->
+                   'b -> ('b * ('a * 'c) list, 'd) m) ->
+      delete:('a -> 'b -> ('b, 'd) m) ->
+      ('a, 'c, 'b, 'd) pre_map_ops
+    val dest_pre_map_ops :
+      ('a, 'b, 'c, 'd) pre_map_ops ->
+      (find_leaf:('a ->
+                  'c ->
+                  ('c * ('a * 'b) list * ('a, 'c) rstk, 'd)
+                  m) ->
+       find:('a -> 'c -> ('c * ('a * 'b) list, 'd) m) ->
+       insert:('a -> 'b -> 'c -> ('c, 'd) m) ->
+       insert_many:('a ->
+                    'b ->
+                    ('a * 'b) list ->
+                    'c -> ('c * ('a * 'b) list, 'd) m) ->
+       delete:('a -> 'c -> ('c, 'd) m) -> 'e) ->
+      'e
+  end
+module Map_ops :
+  sig
+    module Map_ops_type = Map_ops.Map_ops_type
+    type ('k, 'v, 't) map_ops =
+      ('k, 'v, 't) Map_ops_type.map_ops = {
+      find : 'k -> ('v option, 't) Tjr_monad.m;
+      insert : 'k -> 'v -> (unit, 't) Tjr_monad.m;
+      delete : 'k -> (unit, 't) Tjr_monad.m;
+      insert_many :
+        'k -> 'v -> ('k * 'v) list -> (('k * 'v) list, 't) Tjr_monad.m;
+    }
+    val wf_map_ops :
+      find:('k -> ('v option, 't) Tjr_monad.m) ->
+      insert:('k -> 'v -> (unit, 't) Tjr_monad.m) ->
+      delete:('k -> (unit, 't) Tjr_monad.m) ->
+      insert_many:('k ->
+                   'v ->
+                   ('k * 'v) list -> (('k * 'v) list, 't) Tjr_monad.m) ->
+      bool
+    val mk_map_ops :
+      find:('a -> ('b option, 'c) Tjr_monad.m) ->
+      insert:('a -> 'b -> (unit, 'c) Tjr_monad.m) ->
+      delete:('a -> (unit, 'c) Tjr_monad.m) ->
+      insert_many:('a ->
+                   'b ->
+                   ('a * 'b) list -> (('a * 'b) list, 'c) Tjr_monad.m) ->
+      ('a, 'b, 'c) map_ops
+    val dest_map_ops :
+      ('a, 'b, 'c) map_ops ->
+      (find:('a -> ('b option, 'c) Tjr_monad.m) ->
+       insert:('a -> 'b -> (unit, 'c) Tjr_monad.m) ->
+       delete:('a -> (unit, 'c) Tjr_monad.m) ->
+       insert_many:('a ->
+                    'b ->
+                    ('a * 'b) list -> (('a * 'b) list, 'c) Tjr_monad.m) ->
+       'd) ->
+      'd
+    val insert_all :
+      monad_ops:'a Tjr_monad.monad_ops ->
+      ('b -> 'c -> ('b * 'c) list -> (('b * 'c) list, 'a) Tjr_monad.m) ->
+      'b -> 'c -> ('b * 'c) list -> (unit, 'a) Tjr_monad.m
+    val wf_imperative_map_ops :
+      find:('k -> 'v option) ->
+      insert:('k -> 'v -> unit) -> delete:('k -> unit) -> bool
+    val run :
+      init_state:'a ->
+      ('b, 'a Tjr_monad.state_passing) Tjr_monad.m -> 'b * 'a
+    val state_passing_map_ops_to_imperative :
+      ('a, 'b, 'c Tjr_monad.state_passing) map_ops ->
+      s_ref:'c ref ->
+      [> `Imperative_map_ops of
+           ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ]
+    val dest_imperative_map_ops :
+      [< `Imperative_map_ops of
+           ('a -> 'b option) * ('a -> 'b -> unit) * ('a -> unit) ] ->
+      (find:('a -> 'b option) ->
+       insert:('a -> 'b -> unit) -> delete:('a -> unit) -> 'c) ->
+      'c
+  end
+module Store_ops :
+  sig
+    type ('k, 'v, 'r, 't) store_ops =
+      ('k, 'v, 'r, 't) store_ops = {
+      store_free : 'r list -> (unit, 't) Tjr_monad.m;
+      store_read :
+        'r -> (('k, 'v, 'r) frame, 't) Tjr_monad.m;
+      store_alloc :
+        ('k, 'v, 'r) frame -> ('r, 't) Tjr_monad.m;
+    }
+    val mk_store_ops :
+      store_free:('a list -> (unit, 'b) Tjr_monad.m) ->
+      store_read:('a ->
+                  (('c, 'd, 'a) frame, 'b) Tjr_monad.m) ->
+      store_alloc:(('c, 'd, 'a) frame ->
+                   ('a, 'b) Tjr_monad.m) ->
+      ('c, 'd, 'a, 'b) store_ops
+    val dest_store_ops :
+      ('a, 'b, 'c, 'd) store_ops ->
+      (store_free:('c list -> (unit, 'd) Tjr_monad.m) ->
+       store_read:('c ->
+                   (('a, 'b, 'c) frame, 'd) Tjr_monad.m) ->
+       store_alloc:(('a, 'b, 'c) frame ->
+                    ('c, 'd) Tjr_monad.m) ->
+       'e) ->
+      'e
+  end
+module Store_to_map :
+  sig
+    type 't page_ref_ops =
+        (page_ref_int, 't) mref
+    val make_map_ops' :
+      monad_ops:'a monad_ops ->
+      pre_map_ops:('b, 'c, 'd, 'a) pre_map_ops ->
+      page_ref_ops:('d, 'a) mref ->
+      ('b, 'c, 'a) Map_ops.map_ops
+    val store_ops_to_map_ops :
+      monad_ops:'t monad_ops ->
+      constants:Constants.t ->
+      cmp:('k -> 'k -> int) ->
+      page_ref_ops:('r, 't) mref ->
+      store_ops:('k, 'v, 'r, 't) store_ops ->
+      ('k, 'v, 't) Map_ops.map_ops
+    val store_ops_to_ls_ops :
+      monad_ops:'t monad_ops ->
+      constants:Constants.t ->
+      cmp:('k -> 'k -> int) ->
+      store_ops:('k, 'v, 'r, 't) store_ops ->
+      ('k, 'v, 'r, 't) Leaf_stream_ops.leaf_stream_ops
+  end
+module Disk_on_fd :
+  sig
+    type fd = Unix.file_descr
+    type 't fd_ops = (fd, 't) mref
+    val read :
+      fd:Unix.file_descr ->
+      blk_sz:blk_sz -> blk_id:int -> blk
+    val write :
+      fd:Unix.file_descr ->
+      blk_sz:int -> blk_id:int -> blk:blk -> unit
+    val make_disk :
+      monad_ops:'t monad_ops ->
+      blk_sz:blk_sz ->
+      fd_ops:(Unix.file_descr, 't) mref ->
+      't Disk_ops.block_device
+  end
+module Disk_to_store :
+  sig
+    type 't free_ops = (int, 't) mref
+    val disk_to_store :
+      monad_ops:'t monad_ops ->
+      ps:< blk_sz : int;
+           frame_to_page : int ->
+                           ('k, 'v, blk_id)
+                           frame -> blk;
+           page_to_frame : blk ->
+                           ('k, 'v, page_ref_int)
+                           frame;
+           .. > ->
+      disk_ops:'t Disk_ops.block_device ->
+      free_ops:(blk_id, 't) mref ->
+      ('k, 'v, blk_id, 't) store_ops
+  end
+module Mem_store :
+  sig
+    type ('k, 'v) mem =
+      ('k, 'v) Mem_store.mem = {
+      free : int;
+      map : ('k, 'v) Page_ref_int.frame Map_int.t;
+    }
+    type ('k, 'v, 't) mem_ops = (('k, 'v) mem, 't) mref
+    val mk_store_ops :
+      monad_ops:'t monad_ops ->
+      mem_ops:('k, 'v, 't) mem_ops ->
+      ('k, 'v, Map_int.key, 't) store_ops
+    val mk_r2f :
+      ('a -> ('k, 'v) mem) ->
+      'a -> Map_int.key -> ('k, 'v) Page_ref_int.frame option
+    val mem_ops : < mem_ops : 'a; .. > -> 'a
+  end
+module Cache :
+  sig
+    type time = int
+    type dirty = bool
+    module Queue = Map_int
+    module Pmap = Cache.Pmap
+    type ('k, 'v) cache_state =
+      ('k, 'v) Cache.cache_state = {
+      max_size : int;
+      evict_count : int;
+      current : time;
+      map : ('k, 'v option * time * dirty) Pmap.t;
+      queue : 'k Queue.t;
+    }
+    type ('k, 'v, 't) cache_ops =
+        (('k, 'v) cache_state, 't) mref
+    val normalize : ('a, 'b) cache_state -> ('a, 'b) cache_state
+    val then_ : (unit -> int) -> int -> int
+    val compare : ('a, 'b) cache_state -> ('a, 'b) cache_state -> int
+    val mk_initial_cache : ('k -> 'k -> int) -> ('k, 'a) cache_state
+    val wf : ('a, 'b) cache_state -> unit
+    exception E_
+    val sync_evictees :
+      monad_ops:'a monad_ops ->
+      map_ops:('b, 'c, 'a) Map_ops.map_ops ->
+      ('b * ('c option * 'd * bool)) list ->
+      (unit, 'a) m
+    val mark_all_clean :
+      monad_ops:'a monad_ops ->
+      cache_ops:(('b, 'c * 'd * bool) Pmap.t, 'a) mref ->
+      (unit, 'a) m
+    val sync :
+      monad_ops:'a monad_ops ->
+      map_ops:('b, 'c, 'a) Map_ops.map_ops ->
+      cache_ops:(('b, 'c option * 'd * bool) Pmap.t, 'a)
+                mref ->
+      (unit, 'a) m
+    val make_cached_map :
+      monad_ops:'a monad_ops ->
+      map_ops:('b, 'c, 'a) Map_ops.map_ops ->
+      cache_ops:(('b, 'c) cache_state, 'a) mref ->
+      (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops ->
+       evict_hook:(unit -> unit) ref -> 'd) ->
+      'd
+  end

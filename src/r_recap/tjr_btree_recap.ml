@@ -1,12 +1,13 @@
 open Tjr_btree
 (* Pick out the main modules, functors etc *)
 
+(* from isa_btree, which is not packed *)
+module Constants_type = struct include Constants.Constants_type end 
+
 
 (* base_types ------------------------------------------------------- *)
 
 module type Blk_types = sig include Block.Blk_types end
-
-module Constants_type = struct include Constants.Constants_type end 
 
 module Frame_type = struct include Frame.Frame_type end
 
@@ -35,9 +36,9 @@ module Disk_ops = struct include Disk_ops end  (* FIXME types! *)
 
 module Leaf_stream_ops = struct include Leaf_stream_ops end
 
-module Map_ops = struct include Map_ops end
-
 module Pre_map_ops = struct include Pre_map_ops end
+
+module Map_ops = struct include Map_ops end
 
 
 (* FIXME want to include just the type defn as type x = Y.z = ... but
@@ -55,6 +56,8 @@ module Store_ops = struct include Store_ops end
 (* module Small_step_types = struct include Small_step. end  (* FIXME naming *) *)
 
 (* FIXME in recap we also want to include main functions eg store_to_map *)
+
+(* store to map ----------------------------------------------------- *)
 
 module Store_to_map = struct include Store_to_map end
 
