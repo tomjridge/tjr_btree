@@ -1,6 +1,6 @@
 (** A generic map, backed by a file descriptor *)
 
-(*
+(**
 We fix:
 
 - disk (block_size is a parameter)
@@ -17,9 +17,9 @@ open Frame
 open Params
 open Map_ops
 
-(*
+(**
 
-* Layers
+{2 Layers}
 
 | Cached | Recycling | Uncached |                      |
 | X      |           |          | high-level map cache |

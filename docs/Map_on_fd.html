@@ -19,7 +19,6 @@
 <link title="Base_types_pervasives" rel="Chapter" href="Base_types_pervasives.html">
 <link title="Block" rel="Chapter" href="Block.html">
 <link title="Frame" rel="Chapter" href="Frame.html">
-<link title="Isa_monad_conversion" rel="Chapter" href="Isa_monad_conversion.html">
 <link title="Ls_state" rel="Chapter" href="Ls_state.html">
 <link title="Ord" rel="Chapter" href="Ord.html">
 <link title="R2f" rel="Chapter" href="R2f.html">
@@ -68,7 +67,8 @@
 <link title="Test_string_int_on_fd" rel="Chapter" href="Test_string_int_on_fd.html">
 <link title="Tree_store" rel="Chapter" href="Tree_store.html">
 <link title="Exhaustive_in_mem" rel="Chapter" href="Exhaustive_in_mem.html">
-<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><title>Map_on_fd</title>
+<link title="Tjr_btree_doc" rel="Chapter" href="Tjr_btree_doc.html"><link title="Layers" rel="Section" href="#2_Layers">
+<title>Map_on_fd</title>
 </head>
 <body>
 <div class="navbar"><a class="pre" href="Map_int_blkx.html" title="Map_int_blkx">Previous</a>
@@ -83,6 +83,26 @@
 </div>
 </div>
 <hr width="100%">
+<p>We fix:</p>
+
+<ul>
+<li>disk (block_size is a parameter)</li>
+<li>store (constants and pp are parameters; block_size is a param
+  because blocks/pages are typed according to size; clearly there are
+  dependencies between these)</li>
+<li>map</li>
+</ul>
+<h3 id="2_Layers">Layers</h3>
+<p>| Cached | Recycling | Uncached |                      |
+| X      |           |          | high-level map cache |
+| X      | X         | X        | map                  |
+| X      | X         |          | recycling_store      |
+| X      | X         | X        | store                |
+| X      |           |          | disk cache           |
+| X      | X         | X        | disk                 |
+| X      | X         | X        | fd                   |</p>
+
+<p>TODO: cached</p>
 
 <pre><span id="MODULED"><span class="keyword">module</span> <a href="Map_on_fd.D.html">D</a></span>: <code class="type"><a href="Disk_on_fd.html">Disk_on_fd</a></code></pre>
 <pre><span id="MODULED2S"><span class="keyword">module</span> <a href="Map_on_fd.D2S.html">D2S</a></span>: <code class="type"><a href="Disk_to_store.html">Disk_to_store</a></code></pre>

@@ -13,10 +13,6 @@ See ./examples e.g. ./examples/int_int_map_example_functionality.ml
 
 * Introduction
 
-The core code is written in Isabelle/HOL and exported to OCaml
-(although it could easily be implemented in any language because the
-routines are very "concrete"). Further routines are written in OCaml.
-
 The B-tree is a simple CoW B-tree. All sync-ed states are persistent
 on disk (imagine that blocks are written once and then never mutated),
 so operations such as "snapshot" are almost trivial.
@@ -38,11 +34,16 @@ feasible to introduce very fine-grained concurrency by interleaving
 individual steps of each operation (where multiple operations execute
 on different B-trees).
 
+The core code is written in Isabelle/HOL and exported to OCaml
+(although it could easily be implemented in any language because the
+routines are very "concrete"). This repository contains the OCaml
+wrapper round the core OCaml code extracted from Isabelle.
+
 
 * Relation to ImpFS
 
 ImpFS is a project to build an advanced high-performance filesystem.
-~tjr_btree~ is the core library used by ImpFS.
+~tjr_btree~ is one of the core libraries used by ImpFS.
 
 
 * Installation
@@ -79,7 +80,8 @@ https://tomjridge.github.io/tjr_btree/
 Please also see the recap of the main types in
 =src/r_recap/recap_edited.mli= (there is a =.html= version in the same
 directory for easy reference). This is a "high-level, formal" document
-that gives the main types, but leaves out almost all operations.
+that gives the main types, but leaves out almost all operations. FIXME
+this needs fixing
 
 
 * Dependencies

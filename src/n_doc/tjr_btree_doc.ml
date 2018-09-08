@@ -1,185 +1,227 @@
-(** Main documentation entry point *)
+(* -*- org -*- *)
+
+(** Main documentation entry point. *)
+
 (**
 
-General documentation and overview
+This file contains general documentation and an overview of the
+code. Follow the links to individual modules for more information.
+
 
 {1 Introduction}
 
 This library implements a B-tree in OCaml. The source is actually
-   exported from Isabelle, and then OCaml code wraps the
-   Isabelle-generated code.
+exported from Isabelle, and then OCaml code wraps the
+Isabelle-generated code. This is the documentation for the OCaml
+wrapper. The documentation for the core B-tree routines can be found
+in the [isa_btree] repository.
+
+This document gives an overview of the (sub)packages and a guide to
+the structure of the code. Detailed
+comments are included in the individual modules. 
+
+
+{1 Ancestor projects}
+
+See the [README.org] in the project root directory for a list of
+dependencies.
+
+
+{1 Directory structure}
 
 The code is organized into subdirectories (subpackages), and the
-   subdirectories are in a linear order (which corresponds to the
-   dependencies between modules).
+subdirectories are in a linear order (which corresponds to the
+dependencies between modules). For example, the first subdirectory
+(ignoring [aa_from_isa] since it is not used) is [ac_test] which is
+discussed in the section "Test" below.
 
-This document gives an overview of the (sub)packages. Detailed
-   comments are included in the individual modules.
 
-{1 Guide to the code}
-
-{2 Naming conventions}
+{1 Naming conventions}
 
 To understand the interfaces, we need to introduce the following:
 
 - Keys, represented by type variable ['k] 
-- Values, by type var ['v] 
+- Values, type var ['v] 
 - Page/block references, ['r] 
 - Global state, ['t]
 
 
-{2 Exported code from Isabelle}
+{1 Monads!}
 
-Exported code is in the [from_isa] package. There is some patching of
-   the Isabelle-exported code before it is copied to [base_types] in
-   module {!Isa_export}. Hopefully this code is relatively stable. It
-   certainly isn't readable.
+The entire development is parameterized by some notion of
+monad. Before reading the rest of the documentation, please look at
+the module {!Tjr_monad} from ancestor project [tjr_monad]. Essentially
+we use a type [('a,'t) m], where ['t] is some phantom type var that is
+used to identify a particular monad instance. There is an associated
+type ['t monad_ops] which provides the expected return and bind. In
+order to get parametricity over the monad, we are forced to pass
+[monad_ops] as parameters to many functions.
 
 
-   {2 Test}
+{1 Exported code from Isabelle}
 
-   Some simple testing utility functions.
+Exported code is in the [isa_btree] opam/ocamlfind package. The
+[from_isa] package here is not used. FIXME
 
 
-   {2 Base types}
+{1 Test}
 
-   This package contains basic B-tree related types:
+Some simple testing utility functions.
+
+
+{1 Base types}
+
+This package contains basic B-tree related types:
 
 - {!Base_types} includes most of the other modules in this package
-- {!Base_types_pervasives} which includes utility functions assumed by the other modules
+- {!Base_types_pervasives} which includes utility functions assumed by
+  the other modules
 - {!Block} for blocks on disk
-- {!Constants} which give size constraints on B-tree nodes
+- {!Constants} which give size constraints on B-tree nodes FIXME now
+  in isa_btree
 - {!Frame} which imports the Isabelle frame type
 - {!Ls_state} for the leaf stream state
 - {!Ord} for orderings (typically over keys)
 - {!Params} for various projection functions from a "parameters" object
-- {!R2f} and {!R2t} for internal types used in testing
+- {!R2f} and {!R2t} for internal types used in testing (convert a
+  block ref to a frame/tree)
 - {!Rstk} for the type of framestacks
 - {!String_} for various string utility functions
 - {!Tree} for the tree type imported from Isabelle
 
-   The {!Monad} is a state-passing monad with error; this monad shows
-   up in most of the interfaces. This is now in the `tjr_fs_shared`
-   library.
-
-   The {!Tree} module describes a B-tree as an algebraic
-   datatype. The on-disk B-tree uses references between blocks i.e. a
-   graph-like structure with pointers rather than a datatype. Indeed,
-   the tree datatype is used only for testing purposes.
+The {!Tree} module describes a B-tree as an algebraic datatype. The
+on-disk B-tree uses references between blocks i.e. a graph-like
+structure with pointers rather than a datatype. Indeed, the tree
+datatype is used only for testing purposes.
 
 
-   {2 Api}
+{1 Api}
 
-   This package gives the main interface types, including interfaces
-   for disk, store and map (via types such as [`Map_ops]).
+This package gives the main interface types, including interfaces for
+disk, store and map.
 
-   - {!Disk_ops} for low-level block interface
-   - {!Isabelle_conversions} for conversions from Isabelle types (eg num) to OCaml types
-   - {!Leaf_stream_ops} and {!Leaf_stream_util} for leaf streams
-   - {!Map_ops} for map operations, find etc.
-   - {!Page_ref_int} utility to fix page ref as an integer
-   - {!Pre_map_ops} like {!Map_ops} but with explicit state passing
-   - {!Store_ops} for a layer just above {!Disk_ops}
+- {!Disk_ops} for the low-level block interface
+- {!Leaf_stream_ops} and {!Leaf_stream_util} for leaf streams
+- {!Map_ops} for map operations, find etc.
+- {!Page_ref_int} utility module to fix page ref as an integer
+- {!Pre_map_ops} like {!Map_ops} but with explicit state passing
+- {!Store_ops} for a layer just above {!Disk_ops}
 
-   In addition, the leaf stream interface allows to iterate over the
-   leaves in a B-tree e.g. to find all the bindings in the map. This
-   module also documents the type variable naming conventions (see
-   {!Map_ops}).
+In addition, the leaf stream interface allows to iterate over the
+leaves in a B-tree e.g. to find all the bindings in the map. This
+module also documents the type variable naming conventions (see
+{!Map_ops}).
 
-   {b Important note on style} Interfaces are essentially groups of
-   polymorphic functions, collected together and named using a record
-   type.
+{b Important note on code style:} Interfaces are essentially groups of
+polymorphic functions, collected together and named using a record
+type. For example, map operations are something of the form
+[('k,'v,'t) map_ops]. To get a handle on the components of such a
+thing we provide functions such as {!Map_ops.dest_map_ops} which takes
+a set of map operations and a "continuation" function and calls the
+function with the components of the record. Example code should make
+this clearer:
 
-   For example, map operations are something of the form [('k,'v,'t)
-   map_ops]. To get a handle on the components of such a thing we
-   provide functions such as {!Map_ops.dest_map_ops} which takes a set
-   of map operations and a "continuation" function and calls the
-   function with the components of the record. Example code should make
-   this clearer eg see [ii_example.ml] which includes the following
-   use of [dest_imperative_map_ops] together with the continuation
-   function which binds the [find], [insert] and [delete] functions.
 
-   FIXME following code extract does not preserve line breaking; 
-   ocamldoc should support raw html frags?
-
-   <code>
-   dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
-   (* write values *)
+{v
+dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  (* write values *)
   for x=1 to max do
     insert (k x) (v x);
   done;
-</code>
+v}
 
 
 
 
-   {2 Store to map}
+{1 Store to map}
 
-   This package, particularly the {!Store_to_map} module, wraps the
-   Isabelle routines to implement a map interface on top of a
-   store. The key function is {!Store_to_map.store_ops_to_map_ops}
-   which takes a [store_ops] and returns a [map_ops].
+This package, particularly the {!Store_to_map} module, wraps the
+Isabelle routines to implement a map interface on top of a
+store. The key function is {!Store_to_map.store_ops_to_map_ops}
+which takes a [store_ops] and returns a [map_ops].
 
-
-   {2 Disks}
-
-   {!Disk_on_fd} is a persistent block device on top of a "normal" file. 
-
-   {!Disk_to_store} includes a function that naively transforms a disk
-   to a store. 
+Also included here are {!Big_step} (to iterate the small step
+operations provided by Isabelle) and {!Iter_leaf_stream} (to wrap
+small-step leaf stream operations).
 
 
-   {2 Stores}
+{1 Disks}
 
-   {!Mem_store} is an in-memory store. 
+{!Disk_on_fd} is a persistent block device on top of a "normal" file. 
 
-   {!Recycling_store} is a store that optimizes page alloc and free to
-   avoid too many unnecessary writes.
-
-
-   {2 Binprot marshalling}
-
-   {!Binprot_marshalling} provides on-disk marshalling courtesy of
-   [binprot]. Or roll your own.
+{!Disk_to_store} includes a function that naively transforms a disk
+to a store. 
 
 
-   {2 Cache}
+{1 Stores}
 
-   A generic LRU {!Cache} on top of a map.
+{!Mem_store} is an in-memory store. 
 
-
-   {2 Examples}
-
-   Various examples. 
-
-   {!Ss_ss_map_on_fd} implements an on-disk map from (small) string to
-   string.
-
-   {!Map_int_int} and {!Ss_int_map_on_fd} are similar. {!Map_on_fd} is
-   the generic version and {!Mem_map} is a map on top of the
-   {!Mem_store}. 
-
-   {!Bytestore} is TODO and should implement arbitrary long values.
+{!Recycling_store} is a store that optimizes page alloc and free to
+avoid too many unnecessary writes. Currently commented out. FIXME?
 
 
-   {2 Testing}
+{1 Binprot marshalling}
 
-   Various tests.
+{!Binprot_marshalling} provides on-disk marshalling courtesy of
+[binprot]. You can, of course, provide your own marshalling code,
+which may be useful if your backend doesn't support binprot (js_of_ocaml?)
 
 
-   {2 Main}
+{1 Cache}
 
-   These [xxx.ml] files get turned into executables
-   [xxx.native]. 
+A generic LRU {!Cache} on top of a map. This is rather more
+sophisticated than usual because we have to do various things when
+cache entries (eg uncommitted disk operations) are flushed.
 
-   - [exhaustive_in_mem_main.native] does some fairly exhaustive testing with various branching factors for the B-tree
-   - [ii_example.native] is the [int -> int] example
-   - [main.native] is used by the [kv_main.sh] example
-   - [simple_example.native] is the [string->string] kv example
-   - [test_main.native] is used for testing
+
+{1 Examples}
+
+Various examples. 
+
+{!Bin_prot_util} is a very small module which defines eg
+[bp_size_int].
+
+{!Bytestore} provides a mechanism to store arbitrary length byte
+buffers on top of a store. Currently commented out. FIXME?
+
+{!Digest_} provides a digest/hash of a string, for situations where a
+string is used as a key, but the exact contents of the string is not needed.
+
+{!Examples_common} 
+
+{!Map_int_blk} provides a map from blk index to blk
+
+{!Map_int_blkx} provides a map from blk index to (partial) blk (i.e.,
+only the first part of the blk is used).
+
+{!Map_int_int} provides a map from int to int, using [binprot]
+marshalling.
+
+{!Map_on_fd} is a generic map backed by a file descriptor.
+
+{!Mem_map} is a generic map on top of the {!Mem_store}.
+
+{!Small_string} provides a string with a max size of 256 bytes
+(using arbitrary length strings as keys requires another approach).
+
+{!Ss_ss_map_on_fd} implements an on-disk map from small string to
+small string.
+
+
+{1 Testing}
+
+Various modules to support testing. Some of this looks a bit
+suspicious. FIXME
+
+{1 Doc}
+
+Contains this overview documentation in module {!Tjr_btree_doc}.
+
 
 *)
-let dummy = 1
+
+let dummy = 1 (* FIXME needed? *)
 
 
 
