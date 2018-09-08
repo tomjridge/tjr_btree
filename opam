@@ -1,7 +1,12 @@
 opam-version: "1.2"
 name: "tjr_btree"
-version: "0.0.1"
+version: "0.0.1" # version should match a VERSION file in this dir?
+
+# ----------------------------------------------------------------------
+
 maintainer: "Tom Ridge <tom.j.ridge@googlemail.com>"
+
+# ----------------------------------------------------------------------
 
 depends: [
   "yojson"
@@ -12,8 +17,10 @@ depends: [
   "isa_btree" "tjr_monad" "tjr_fs_shared"
 ]
 
-build: [make "all"]
+# ----------------------------------------------------------------------
+
+build: [make "build"]
 
 install: [make "install"]
 
-remove: ["ocamlfind" "remove" "tjr_btree"]
+remove: [make "uninstall"]
