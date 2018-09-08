@@ -1,0 +1,19 @@
+opam-version: "1.2"
+name: "tjr_btree"
+version: "0.0.1"
+maintainer: "Tom Ridge <tom.j.ridge@googlemail.com>"
+
+depends: [
+  "yojson"
+  "ppx_deriving_yojson"
+  "core"
+  "ppx_bin_prot"
+  "extlib"
+  "isa_btree" "tjr_monad" "tjr_fs_shared"
+]
+
+build: [make "all"]
+
+install: [make "install"]
+
+remove: ["ocamlfind" "remove" "tjr_btree"]
