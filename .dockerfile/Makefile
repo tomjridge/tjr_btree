@@ -1,7 +1,11 @@
 NAME:=tjr_btree
 
-all: 
-	docker build -t $(NAME)_from_github -f Dockerfile .
+from_github: 
+	docker build -t $(NAME)_from_github -f Dockerfile.from_github .
+
+using_opam:
+	docker build -t $(NAME)_using_opam -f Dockerfile.using_opam .
+
 
 # 	rm -rf tjr_lib
 # 	$(MAKE) -C ../src clean

@@ -14,7 +14,8 @@ all: links _depend
 	mk_cma
 	mk_cmxa
 	mk_meta
-	$(MAKE) install
+
+#	$(MAKE) install
 
 links:
 	mk_links
