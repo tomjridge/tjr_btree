@@ -6,7 +6,8 @@ script:
   - git clone https://github.com/tomjridge/impfs_base_docker_image.git
   - make -C impfs_base_docker_image/ubuntu_16.04_with_ocaml_4.06
   - make -C impfs_base_docker_image/impfs_base_docker_image
-  - make -C .dockerfile
+  - make -C .dockerfile all 
+  - make -C .dockerfile test
 
 after_script:
   - docker images
