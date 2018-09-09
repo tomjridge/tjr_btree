@@ -7,7 +7,8 @@ script:
   - make -C impfs_base_docker_image/ubuntu_16.04_with_ocaml_4.06
   - make -C impfs_base_docker_image/impfs_base_docker_image
   - make -C .dockerfile all 
-  - make -C .dockerfile test
+
+#  - make -C .dockerfile test - uses too much memory
 
 after_script:
   - docker images
