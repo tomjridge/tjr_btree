@@ -1,7 +1,7 @@
 (** Basic block implementation. *)
 
 
-module type Blk_types = sig
+module type BLK_TYPES = sig
   type blk
   type blk_id = int 
 end
@@ -13,7 +13,7 @@ type blk_sz = int  (* in bytes *)
    capture this in the type. *)
 (* FIXME use bytes? what do we assume about mutability? *)
 module BlkN : sig
-  include Blk_types 
+  include BLK_TYPES
   val of_string: blk_sz -> string -> blk
   val to_string: blk -> string
   val compare_blk_id: blk_id -> blk_id -> int 
