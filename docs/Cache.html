@@ -84,13 +84,32 @@
 <hr width="100%">
 
 <pre><span id="TYPEtime"><span class="keyword">type</span> <code class="type"></code>time</span> = <code class="type">int</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The cache maintains an internal clock.</p>
+</div>
+</div>
 
 
 <pre><span id="TYPEdirty"><span class="keyword">type</span> <code class="type"></code>dirty</span> = <code class="type">bool</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>Dirty blocks are marked using a bool.</p>
+</div>
+</div>
 
 
-<pre><span id="MODULEQueue"><span class="keyword">module</span> <a href="Cache.Queue.html">Queue</a></span>: <code class="type">Map_int</code></pre>
-<pre><span id="MODULEPmap"><span class="keyword">module</span> <a href="Cache.Pmap.html">Pmap</a></span>: <code class="code">sig</code> <a href="Cache.Pmap.html">..</a> <code class="code">end</code></pre>
+<pre><span id="MODULEQueue"><span class="keyword">module</span> <a href="Cache.Queue.html">Queue</a></span>: <code class="type">Map_int</code></pre><div class="info">
+<p>We maintain a queue as a map from time to key that was accessed at
+   that time.</p>
+
+</div>
+
+<pre><span id="MODULEPmap"><span class="keyword">module</span> <a href="Cache.Pmap.html">Pmap</a></span>: <code class="code">sig</code> <a href="Cache.Pmap.html">..</a> <code class="code">end</code></pre><div class="info">
+<p>Polymorphic map module.</p>
+
+</div>
+
 <pre><code><span id="TYPEcache_state"><span class="keyword">type</span> <code class="type">('k, 'v)</code> cache_state</span> = {</code></pre><table class="typetable">
 <tr>
 <td align="left" valign="top" >
@@ -129,19 +148,89 @@
 </tr></table>
 }
 
+<div class="info ">
+<div class="info-desc">
+<p>The <code class="code">cache_state</code> consists of:</p>
+
+<ul>
+<li><code class="code">max_size</code>: the max number of entries in the cache</li>
+<li><code class="code">evict_count</code>: number of entries to evict when cache full</li>
+<li><code class="code">current</code>: the current time (monotonically increasing)</li>
+<li><code class="code">map</code>: the cached part of the map (from key to value option, with a time and a dirty flag</li>
+<li><code class="code">queue</code>: a map from time to key that was accessed at that time; only holds the latest time a key was accessed (earlier entries for key k are deleted when a new operation on k occurs). </li>
+</ul>
+<p>The <code class="code">map</code> field, value option and dirty flag: <code class="code">None</code> indicates known 
+not to be present at lower (if
+<code class="code">dirty=false</code>), or has been deleted (if <code class="code">dirty=true</code>); <code class="code">Some v</code> with
+<code class="code">dirty=true</code> indicates that this needs to be flushed to lower map.</p>
+
+<p>The <code class="code">queue</code> field allows to identify the least recently used without walking the entire map.</p>
+</div>
+</div>
 
 
 <pre><span id="TYPEcache_ops"><span class="keyword">type</span> <code class="type">('k, 'v, 't)</code> cache_ops</span> = <code class="type">(('k, 'v) <a href="Cache.html#TYPEcache_state">cache_state</a>, 't) Base_types.mref</code> </pre>
+<div class="info ">
+<div class="info-desc">
+<p>The <code class="code">cache_ops</code> are a monadic reference to the cache_state.</p>
+</div>
+</div>
 
 
-<pre><span id="VALnormalize"><span class="keyword">val</span> normalize</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre>
+<pre><span id="VALnormalize"><span class="keyword">val</span> normalize</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>For testing, we typically need to normalize wrt. time</p>
+</div>
+</div>
+
 <pre><span id="VALthen_"><span class="keyword">val</span> then_</span> : <code class="type">(unit -> int) -> int -> int</code></pre>
-<pre><span id="VALcompare"><span class="keyword">val</span> compare</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> int</code></pre>
-<pre><span id="VALmk_initial_cache"><span class="keyword">val</span> mk_initial_cache</span> : <code class="type">('k -> 'k -> int) -> ('k, 'a) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre>
-<pre><span id="VALwf"><span class="keyword">val</span> wf</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> unit</code></pre>
-<pre><span id="EXCEPTIONE_"><span class="keyword">exception</span> E_</span></pre>
+<pre><span id="VALcompare"><span class="keyword">val</span> compare</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> ('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> int</code></pre><div class="info ">
+<div class="info-desc">
+<p>For testing we need to compare two caches.</p>
+</div>
+</div>
 
-<pre><span id="VALsync_evictees"><span class="keyword">val</span> sync_evictees</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       ('b * ('c option * 'd * bool)) list -> (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       cache_ops:(('b, 'c * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre>
-<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'a) Base_types.mref -><br>       (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre></body></html>
+<pre><span id="VALmk_initial_cache"><span class="keyword">val</span> mk_initial_cache</span> : <code class="type">compare_k:('k -> 'k -> int) -> ('k, 'a) <a href="Cache.html#TYPEcache_state">cache_state</a></code></pre><div class="info ">
+<div class="info-desc">
+<p>Construct the initial cache using some relatively small values for
+   <code class="code">max_size</code> etc.</p>
+</div>
+</div>
+
+<pre><span id="VALwf"><span class="keyword">val</span> wf</span> : <code class="type">('a, 'b) <a href="Cache.html#TYPEcache_state">cache_state</a> -> unit</code></pre><div class="info ">
+<div class="info-desc">
+<p>Cache wellformedness, check various invariants.</p>
+</div>
+</div>
+
+<pre><span id="EXCEPTIONE_"><span class="keyword">exception</span> E_</span></pre>
+<div class="info ">
+<div class="info-desc">
+<p>An exception, for quick abort. FIXME remove</p>
+</div>
+</div>
+
+<pre><span id="VALsync_evictees"><span class="keyword">val</span> sync_evictees</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       ('b * ('c option * 'd * bool)) list -> (unit, 'a) Base_types.m</code></pre><div class="info ">
+<div class="info-desc">
+<p>We <code class="code">sync_evictees</code> by calling the relevant operations on the lower map.</p>
+</div>
+</div>
+
+<pre><span id="VALmark_all_clean"><span class="keyword">val</span> mark_all_clean</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       cache_ops:(('b, 'c * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre><div class="info ">
+<div class="info-desc">
+<p>If we flush all entries (on a sync), we can the mark cache as clean.</p>
+</div>
+</div>
+
+<pre><span id="VALsync"><span class="keyword">val</span> sync</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c option * 'd * bool) <a href="Cache.Pmap.html#TYPEt">Pmap.t</a>, 'a) Base_types.mref -><br>       (unit, 'a) Base_types.m</code></pre><div class="info ">
+<div class="info-desc">
+<p><code class="code">sync</code> all entries to the lower map.</p>
+</div>
+</div>
+
+<pre><span id="VALmake_cached_map"><span class="keyword">val</span> make_cached_map</span> : <code class="type">monad_ops:'a Base_types.monad_ops -><br>       map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>       cache_ops:(('b, 'c) <a href="Cache.html#TYPEcache_state">cache_state</a>, 'a) Base_types.mref -><br>       (cached_map_ops:('b, 'c, 'a) Map_ops.map_ops -><br>        evict_hook:(unit -> unit) Pervasives.ref -> 'd) -><br>       'd</code></pre><div class="info ">
+<div class="info-desc">
+<p>Construct the cached map on top of an existing map. The <code class="code">evict_hook</code> is for testing and can be ignored.</p>
+</div>
+</div>
+</body></html>

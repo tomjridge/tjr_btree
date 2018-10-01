@@ -1,15 +1,27 @@
 (** An LRU cache on top of a map. *)
 
+
+(* TODO
+
+- ensure concurrency is handled correctly
+- implement leaf_stream, insert_many
+
+*)
+
 (* we want to be able to take eg a map_ops and produce a cached
    version *)
 
 open Base_types
 open Map_ops
 
+(** The cache maintains an internal clock. *)
 type time = int
 
+(** Dirty blocks are marked using a bool. *)
 type dirty = bool
 
+(** We maintain a queue as a map from time to key that was accessed at
+   that time. *)
 module Queue = Map_int
 
 (* following needs polymorphic map - 
@@ -19,6 +31,7 @@ module Queue = Map_int
 FIXME can also use first class modules to produce polymorphic ops
 *)
 
+(** Polymorphic map module. *)
 module Pmap = struct 
   type ('k,'v) t = (*ExtLib.*) ('k,'v)PMap.t
   let map: ('v -> 'u) -> ('k,'v) t -> ('k,'u) t = PMap.map
@@ -39,6 +52,22 @@ module Pmap = struct
 end
 
 
+(** The [cache_state] consists of:
+
+- [max_size]: the max number of entries in the cache
+- [evict_count]: number of entries to evict when cache full
+- [current]: the current time (monotonically increasing)
+- [map]: the cached part of the map (from key to value option, with a time and a dirty flag
+- [queue]: a map from time to key that was accessed at that time; only holds the latest time a key was accessed (earlier entries for key k are deleted when a new operation on k occurs). 
+
+The [map] field, value option and dirty flag: [None] indicates known 
+not to be present at lower (if
+[dirty=false]), or has been deleted (if [dirty=true]); [Some v] with
+[dirty=true] indicates that this needs to be flushed to lower map. 
+
+The [queue] field allows to identify the least recently used without walking the entire map.
+
+*)
 type ('k,'v) cache_state = {  
   max_size: int;
   evict_count: int; (* number to evict when cache full *)
@@ -46,14 +75,12 @@ type ('k,'v) cache_state = {
   map: ('k,'v option*time*dirty) Pmap.t;  
   queue: 'k Queue.t; (* map from time to key that was accessed at that time *)
 }
-(* for map, None indicates known not to be present at lower (if
-   dirty=false), or has been deleted (if dirty=true); Some v with
-   dirty=true indicates that this needs to be flushed to lower *)
 
+(** The [cache_ops] are a monadic reference to the cache_state. *)
 type ('k,'v,'t) cache_ops = ( ('k,'v)cache_state,'t) mref
 
 
-(* for testing, we typically need to normalize wrt. time *)
+(** For testing, we typically need to normalize wrt. time *)
 let normalize c =
   (* we need to map times to times *)
   let t_map = ref Map_int.empty in
@@ -75,6 +102,7 @@ let normalize c =
 let then_ f x = (if x=0 then f () else x)
 
 (* FIXME a bit horrible! *)
+(** For testing we need to compare two caches. *)
 let compare c1 c2 =
   Test.test(fun _ -> assert (c1.max_size = c2.max_size));
   (Pervasives.compare c1.current c2.current) |> then_
@@ -85,7 +113,9 @@ let compare c1 c2 =
         (c1.queue |> Map_int.bindings)
         (c2.queue |> Map_int.bindings))
 
-let mk_initial_cache compare_k = {
+(** Construct the initial cache using some relatively small values for
+   [max_size] etc. *)
+let mk_initial_cache ~compare_k = {
   max_size=8;
   evict_count=4;
   current=0;
@@ -102,6 +132,7 @@ let mk_initial_cache compare_k = {
      map and queue agree on timings
 
 *)
+(** Cache wellformedness, check various invariants. *)
 let wf c =
   Test.test @@ fun () -> 
   assert (Pmap.cardinal c.map <= c.max_size);
@@ -111,7 +142,7 @@ let wf c =
   ()
 
 
-(* for quick abort *)
+(** An exception, for quick abort. FIXME remove *)
 exception E_
 
 (* FIXME correctness of following not clear *)
@@ -122,6 +153,7 @@ exception E_
    the entire cache *)
 (* FIXME the following targets only insert and delete in the lower
    map; but we want to target insert_many probably *)
+(** We [sync_evictees] by calling the relevant operations on the lower map. *)
 let sync_evictees ~monad_ops ~map_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
@@ -147,7 +179,7 @@ let sync_evictees ~monad_ops ~map_ops =
   in
   fun evictees -> loop evictees
 
-(* if we flush all entries, we can mark cache as clean *)
+(** If we flush all entries (on a sync), we can the mark cache as clean. *)
 let mark_all_clean ~monad_ops ~cache_ops = 
   let ( >>= ) = monad_ops.bind in
   cache_ops.get () >>= fun c ->
@@ -155,14 +187,14 @@ let mark_all_clean ~monad_ops ~cache_ops =
   let c' = Pmap.map (fun (v,t,d) -> (v,t,dirty)) c in
   cache_ops.set c'
 
-
+(** [sync] all entries to the lower map. *)
 let sync ~monad_ops ~map_ops ~cache_ops =
   let ( >>= ) = monad_ops.bind in
   cache_ops.get () >>= fun c ->
   sync_evictees ~monad_ops ~map_ops (Pmap.bindings c) >>= fun () ->
   mark_all_clean ~monad_ops ~cache_ops
 
-(* FIXME document why we need evict_hook... testing? *)
+(** Construct the cached map on top of an existing map. The [evict_hook] is for testing and can be ignored. *)
 let make_cached_map ~monad_ops ~map_ops ~cache_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
