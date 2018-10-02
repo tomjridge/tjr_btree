@@ -1,7 +1,7 @@
 [
 { "name": "XXXtest_bytestore", "params": [ ], "with_asserts": true },
 
-{ "name": "test_cache", "params": [ [ "Range", [ 1, 5 ] ] ], "with_asserts": true },
+{ "name": "xxxtest_cache", "params": [ [ "Range", [ 1, 5 ] ] ], "with_asserts": true },
 
 { "name": "test_exhaustive", "params": [ [ "Range", [ 1, 10 ] ] ], "with_asserts": true },
 

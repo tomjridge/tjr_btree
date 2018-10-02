@@ -21,16 +21,16 @@ let get_range ps =
 
 type tests = test_t list [@@deriving yojson]
 
-module TC = Test_cache
+(* module TC = Test_cache *)
 module TMM = Test_mem_map
 module TII = Test_int_int_on_fd
 module TSI = Test_string_int_on_fd
 
 let tests = [
   (* TODO ("tb", fun ps -> Test_bytestore.(fun () -> main())); *)
-  ("test_cache", fun ps -> 
-      let (l,h) = get_range ps in
-      TC.test (l--h));
+  (* ("test_cache", fun ps -> 
+   *     let (l,h) = get_range ps in
+   *     TC.test (l--h)); *)
   ("test_exhaustive", fun ps -> 
       let (l,h) = get_range ps in
       TMM.test_exhaustive (l -- h));
