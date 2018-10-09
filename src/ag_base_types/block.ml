@@ -1,5 +1,5 @@
 (** Basic block implementation. *)
-
+open Tjr_fs_shared
 
 module type BLK_TYPES = sig
   type blk
