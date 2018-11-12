@@ -8,7 +8,6 @@
 <link rel="previous" href="Exhaustive_in_mem.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -42,7 +41,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -59,7 +57,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -232,7 +229,7 @@ avoid too many unnecessary writes. Currently commented out. FIXME?</p>
 which may be useful if your backend doesn't support binprot (js_of_ocaml?)</p>
 
 <h2 id="1_Cache">Cache</h2>
-<p>A generic LRU <a href="Cache.html"><code class="code">Cache</code></a> on top of a map. This is rather more
+<p>A generic LRU <code class="code">Cache</code> on top of a map. This is rather more
 sophisticated than usual because we have to do various things when
 cache entries (eg uncommitted disk operations) are flushed.</p>
 

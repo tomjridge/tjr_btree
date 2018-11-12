@@ -8,7 +8,6 @@
 <link rel="previous" href="Map_on_fd.S2M.html">
 <link rel="Up" href="Map_on_fd.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -42,7 +41,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -59,7 +57,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -105,10 +102,10 @@
 <pre><span id="TYPEt"><span class="keyword">type</span> <code class="type"></code>t</span> = <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a></code> </pre>
 
 
-<pre><span id="VALmonad_ops"><span class="keyword">val</span> monad_ops</span> : <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> Tjr_monad.state_passing<br>       Base_types.monad_ops</code></pre>
-<pre><span id="VALfd_ops"><span class="keyword">val</span> fd_ops</span> : <code class="type">(<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       Base_types.mref</code></pre>
-<pre><span id="VALfree_ops"><span class="keyword">val</span> free_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       Base_types.mref</code></pre>
-<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> Tjr_monad.state_passing)<br>       Base_types.mref</code></pre>
-<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< fd_ops : (<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                   Tjr_monad.state_passing)<br>                  Base_types.mref;<br>         free_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                     <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                     Tjr_monad.state_passing)<br>                    Base_types.mref;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                         Tjr_monad.state_passing)<br>                        Base_types.mref ></code></pre>
+<pre><span id="VALmonad_ops"><span class="keyword">val</span> monad_ops</span> : <code class="type"><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> Tjr_monad.State_passing.state_passing<br>       Base_types.monad_ops</code></pre>
+<pre><span id="VALfd_ops"><span class="keyword">val</span> fd_ops</span> : <code class="type">(<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>        Tjr_monad.State_passing.state_passing)<br>       Base_types.mref</code></pre>
+<pre><span id="VALfree_ops"><span class="keyword">val</span> free_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>        Tjr_monad.State_passing.state_passing)<br>       Base_types.mref</code></pre>
+<pre><span id="VALpage_ref_ops"><span class="keyword">val</span> page_ref_ops</span> : <code class="type">(<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>        <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>        Tjr_monad.State_passing.state_passing)<br>       Base_types.mref</code></pre>
+<pre><span id="VALops"><span class="keyword">val</span> ops</span> : <code class="type">< fd_ops : (<a href="Disk_on_fd.html#TYPEfd">Disk_on_fd.fd</a>,<br>                   <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                   Tjr_monad.State_passing.state_passing)<br>                  Base_types.mref;<br>         free_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                     <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                     Tjr_monad.State_passing.state_passing)<br>                    Base_types.mref;<br>         page_ref_ops : (<a href="Page_ref_int.html#TYPEpage_ref">Page_ref_int.page_ref</a>,<br>                         <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a><br>                         Tjr_monad.State_passing.state_passing)<br>                        Base_types.mref ></code></pre>
 <pre><span id="VALfrom_file"><span class="keyword">val</span> from_file</span> : <code class="type">fn:string -><br>       create:bool -><br>       init:bool -><br>       ps:< blk_sz : int;<br>            frame_to_page : int -> ('a, 'b, 'c) Frame.frame -> Block.blk; .. > -><br>       <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a></code></pre>
 <pre><span id="VALclose"><span class="keyword">val</span> close</span> : <code class="type">blk_sz:<a href="Block.html#TYPEblk_sz">Block.blk_sz</a> -> <a href="Map_on_fd.Default_implementation.html#TYPEglobal_state">global_state</a> -> unit</code></pre></body></html>

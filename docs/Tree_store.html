@@ -9,7 +9,6 @@
 <link rel="next" href="Exhaustive_in_mem.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -43,7 +42,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -60,7 +58,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -103,7 +100,7 @@
 <pre><span id="MODULEState"><span class="keyword">module</span> <a href="Tree_store.State.html">State</a></span>: <code class="code">sig</code> <a href="Tree_store.State.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
-<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -> ('a, <a href="Tree_store.State.html#TYPEt">State.t</a> Tjr_monad.state_passing) Tjr_monad.Monad.m</code></pre>
+<pre><span id="VALreturn"><span class="keyword">val</span> return</span> : <code class="type">'a -><br>       ('a, <a href="Tree_store.State.html#TYPEt">State.t</a> Tjr_monad.State_passing.state_passing)<br>       Tjr_monad.Types.m</code></pre>
 <pre><span class="keyword">include</span> struct ... end</pre>
 
 <pre><span id="MODULESet_ops"><span class="keyword">module</span> <a href="Tree_store.Set_ops.html">Set_ops</a></span>: <code class="type">Tjr_set.Make</code><code class="code">(</code><code class="code">sig</code></pre><div class="sig_block">

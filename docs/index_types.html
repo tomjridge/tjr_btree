@@ -5,7 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -39,7 +38,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -56,7 +54,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -91,18 +88,6 @@
 <tr><td><a href="Binprot_marshalling.html#TYPEbuf">buf</a> [<a href="Binprot_marshalling.html">Binprot_marshalling</a>]</td>
 <td></td></tr>
 <tr><td align="left"><div>C</div></td></tr>
-<tr><td><a href="Cache.html#TYPEcache_ops">cache_ops</a> [<a href="Cache.html">Cache</a>]</td>
-<td><div class="info">
-<p>The <code class="code">cache_ops</code> are a monadic reference to the cache_state.</p>
-
-</div>
-</td></tr>
-<tr><td><a href="Cache.html#TYPEcache_state">cache_state</a> [<a href="Cache.html">Cache</a>]</td>
-<td><div class="info">
-<p>The <code class="code">cache_state</code> consists of:</p>
-
-</div>
-</td></tr>
 <tr><td><a href="Exhaustive_in_mem.html#TYPEconfig">config</a> [<a href="Exhaustive_in_mem.html">Exhaustive_in_mem</a>]</td>
 <td></td></tr>
 <tr><td align="left"><div>D</div></td></tr>
@@ -110,12 +95,6 @@
 <td></td></tr>
 <tr><td><a href="Digest_.Digest.html#TYPEdigest">digest</a> [<a href="Digest_.Digest.html">Digest_.Digest</a>]</td>
 <td></td></tr>
-<tr><td><a href="Cache.html#TYPEdirty">dirty</a> [<a href="Cache.html">Cache</a>]</td>
-<td><div class="info">
-<p>Dirty blocks are marked using a bool.</p>
-
-</div>
-</td></tr>
 <tr><td align="left"><div>F</div></td></tr>
 <tr><td><a href="Disk_on_fd.html#TYPEfd">fd</a> [<a href="Disk_on_fd.html">Disk_on_fd</a>]</td>
 <td></td></tr>
@@ -156,8 +135,6 @@
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEkey">key</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
-<tr><td><a href="Test_cache.html#TYPEkey">key</a> [<a href="Test_cache.html">Test_cache</a>]</td>
-<td></td></tr>
 <tr><td align="left"><div>L</div></td></tr>
 <tr><td><a href="Leaf_stream_ops.Leaf_stream_types.html#TYPEleaf_stream_ops">leaf_stream_ops</a> [<a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_ops.Leaf_stream_types</a>]</td>
 <td></td></tr>
@@ -179,8 +156,6 @@
 <tr><td><a href="Mem_store.html#TYPEmem_ops">mem_ops</a> [<a href="Mem_store.html">Mem_store</a>]</td>
 <td></td></tr>
 <tr><td align="left"><div>O</div></td></tr>
-<tr><td><a href="Test_cache.html#TYPEop">op</a> [<a href="Test_cache.html">Test_cache</a>]</td>
-<td></td></tr>
 <tr><td><a href="Insert_delete_ops.html#TYPEop">op</a> [<a href="Insert_delete_ops.html">Insert_delete_ops</a>]</td>
 <td></td></tr>
 <tr><td><a href="Ord.html#TYPEord">ord</a> [<a href="Ord.html">Ord</a>]</td>
@@ -240,24 +215,12 @@
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEt">t</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
 <td></td></tr>
-<tr><td><a href="Test_cache.Ord.html#TYPEt">t</a> [<a href="Test_cache.Ord.html">Test_cache.Ord</a>]</td>
-<td></td></tr>
-<tr><td><a href="Test_cache.Test_state.html#TYPEt">t</a> [<a href="Test_cache.Test_state.html">Test_cache.Test_state</a>]</td>
-<td></td></tr>
 <tr><td><a href="Map_on_fd.Default_implementation.html#TYPEt">t</a> [<a href="Map_on_fd.Default_implementation.html">Map_on_fd.Default_implementation</a>]</td>
 <td></td></tr>
 <tr><td><a href="Digest_.Digest.html#TYPEt">t</a> [<a href="Digest_.Digest.html">Digest_.Digest</a>]</td>
 <td></td></tr>
-<tr><td><a href="Cache.Pmap.html#TYPEt">t</a> [<a href="Cache.Pmap.html">Cache.Pmap</a>]</td>
-<td></td></tr>
 <tr><td><a href="String_.Span.html#TYPEt">t</a> [<a href="String_.Span.html">String_.Span</a>]</td>
 <td></td></tr>
-<tr><td><a href="Cache.html#TYPEtime">time</a> [<a href="Cache.html">Cache</a>]</td>
-<td><div class="info">
-<p>The cache maintains an internal clock.</p>
-
-</div>
-</td></tr>
 <tr><td><a href="Tree_store.html#TYPEtree">tree</a> [<a href="Tree_store.html">Tree_store</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEtree">tree</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
@@ -272,8 +235,6 @@
 <tr><td><a href="Tree_store.html#TYPEvalue">value</a> [<a href="Tree_store.html">Tree_store</a>]</td>
 <td></td></tr>
 <tr><td><a href="Test_mem_map.html#TYPEvalue">value</a> [<a href="Test_mem_map.html">Test_mem_map</a>]</td>
-<td></td></tr>
-<tr><td><a href="Test_cache.html#TYPEvalue">value</a> [<a href="Test_cache.html">Test_cache</a>]</td>
 <td></td></tr>
 </table>
 </body>

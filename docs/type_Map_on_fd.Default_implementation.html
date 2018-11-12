@@ -4,7 +4,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <link rel="Start" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -38,7 +37,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -55,7 +53,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -73,32 +70,35 @@
 &nbsp;&nbsp;}<br>
 &nbsp;&nbsp;<span class="keyword">type</span>&nbsp;t&nbsp;=&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;monad_ops&nbsp;:<br>
-&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.t&nbsp;<span class="constructor">Tjr_monad</span>.state_passing<br>
+&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.t&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.monad_ops<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;fd_ops&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Disk_on_fd</span>.fd,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;free_ops&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Page_ref_int</span>.page_ref,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;page_ref_ops&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;(<span class="constructor">Page_ref_int</span>.page_ref,<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;ops&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&lt;&nbsp;fd_ops&nbsp;:&nbsp;(<span class="constructor">Disk_on_fd</span>.fd,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;free_ops&nbsp;:&nbsp;(<span class="constructor">Page_ref_int</span>.page_ref,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref;<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;page_ref_ops&nbsp;:&nbsp;(<span class="constructor">Page_ref_int</span>.page_ref,<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Map_on_fd</span>.<span class="constructor">Default_implementation</span>.global_state<br>
-&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.state_passing)<br>
+&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Tjr_monad</span>.<span class="constructor">State_passing</span>.state_passing)<br>
 &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;<span class="constructor">Base_types</span>.mref&nbsp;&gt;<br>
 &nbsp;&nbsp;<span class="keyword">val</span>&nbsp;from_file&nbsp;:<br>
 &nbsp;&nbsp;&nbsp;&nbsp;fn:string&nbsp;<span class="keywordsign">-&gt;</span><br>

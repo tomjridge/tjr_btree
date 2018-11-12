@@ -9,7 +9,6 @@
 <link rel="next" href="Leaf_stream_util.html">
 <link rel="Up" href="index.html">
 <link title="Index of types" rel=Appendix href="index_types.html">
-<link title="Index of exceptions" rel=Appendix href="index_exceptions.html">
 <link title="Index of values" rel=Appendix href="index_values.html">
 <link title="Index of modules" rel=Appendix href="index_modules.html">
 <link title="Index of module types" rel=Appendix href="index_module_types.html">
@@ -43,7 +42,6 @@
 <link title="Mem_store" rel="Chapter" href="Mem_store.html">
 <link title="Recycling_store" rel="Chapter" href="Recycling_store.html">
 <link title="Binprot_marshalling" rel="Chapter" href="Binprot_marshalling.html">
-<link title="Cache" rel="Chapter" href="Cache.html">
 <link title="Bytestore" rel="Chapter" href="Bytestore.html">
 <link title="Digest_" rel="Chapter" href="Digest_.html">
 <link title="Map_int_blk" rel="Chapter" href="Map_int_blk.html">
@@ -60,7 +58,6 @@
 <link title="Insert_delete_ops" rel="Chapter" href="Insert_delete_ops.html">
 <link title="Range" rel="Chapter" href="Range.html">
 <link title="Test_bytestore" rel="Chapter" href="Test_bytestore.html">
-<link title="Test_cache" rel="Chapter" href="Test_cache.html">
 <link title="Test_common" rel="Chapter" href="Test_common.html">
 <link title="Test_int_int_on_fd" rel="Chapter" href="Test_int_int_on_fd.html">
 <link title="Test_mem_map" rel="Chapter" href="Test_mem_map.html">
@@ -89,6 +86,6 @@
 <pre><span id="MODULELeaf_stream_types"><span class="keyword">module</span> <a href="Leaf_stream_ops.Leaf_stream_types.html">Leaf_stream_types</a></span>: <code class="code">sig</code> <a href="Leaf_stream_ops.Leaf_stream_types.html">..</a> <code class="code">end</code></pre>
 <pre><span class="keyword">include</span> Leaf_stream_types</pre>
 
-<pre><span id="VALwf_ls_ops"><span class="keyword">val</span> wf_ls_ops</span> : <code class="type">mk_leaf_stream:('r -> (('k, 'v, 'r) lss, 't) Tjr_monad.Monad.m) -><br>       ls_step:(('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Tjr_monad.Monad.m) -><br>       ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool</code></pre>
-<pre><span id="VALmk_ls_ops"><span class="keyword">val</span> mk_ls_ops</span> : <code class="type">mk_leaf_stream:('a -> (('b, 'c, 'a) lss, 'd) Tjr_monad.Monad.m) -><br>       ls_step:(('b, 'c, 'a) lss -> (('b, 'c, 'a) lss option, 'd) Tjr_monad.Monad.m) -><br>       ls_kvs:(('b, 'c, 'a) lss -> ('b * 'c) list) -><br>       ('b, 'c, 'a, 'd) leaf_stream_ops</code></pre>
-<pre><span id="VALdest_ls_ops"><span class="keyword">val</span> dest_ls_ops</span> : <code class="type">('a, 'b, 'c, 'd) leaf_stream_ops -><br>       (mk_leaf_stream:('c -> (('a, 'b, 'c) lss, 'd) Tjr_monad.Monad.m) -><br>        ls_step:(('a, 'b, 'c) lss -> (('a, 'b, 'c) lss option, 'd) Tjr_monad.Monad.m) -><br>        ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -> 'e) -><br>       'e</code></pre></body></html>
+<pre><span id="VALwf_ls_ops"><span class="keyword">val</span> wf_ls_ops</span> : <code class="type">mk_leaf_stream:('r -> (('k, 'v, 'r) lss, 't) Tjr_monad.Types.m) -><br>       ls_step:(('k, 'v, 'r) lss -> (('k, 'v, 'r) lss option, 't) Tjr_monad.Types.m) -><br>       ls_kvs:(('k, 'v, 'r) lss -> ('k * 'v) list) -> bool</code></pre>
+<pre><span id="VALmk_ls_ops"><span class="keyword">val</span> mk_ls_ops</span> : <code class="type">mk_leaf_stream:('a -> (('b, 'c, 'a) lss, 'd) Tjr_monad.Types.m) -><br>       ls_step:(('b, 'c, 'a) lss -> (('b, 'c, 'a) lss option, 'd) Tjr_monad.Types.m) -><br>       ls_kvs:(('b, 'c, 'a) lss -> ('b * 'c) list) -><br>       ('b, 'c, 'a, 'd) leaf_stream_ops</code></pre>
+<pre><span id="VALdest_ls_ops"><span class="keyword">val</span> dest_ls_ops</span> : <code class="type">('a, 'b, 'c, 'd) leaf_stream_ops -><br>       (mk_leaf_stream:('c -> (('a, 'b, 'c) lss, 'd) Tjr_monad.Types.m) -><br>        ls_step:(('a, 'b, 'c) lss -> (('a, 'b, 'c) lss option, 'd) Tjr_monad.Types.m) -><br>        ls_kvs:(('a, 'b, 'c) lss -> ('a * 'b) list) -> 'e) -><br>       'e</code></pre></body></html>
