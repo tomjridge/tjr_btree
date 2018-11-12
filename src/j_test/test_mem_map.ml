@@ -30,10 +30,10 @@ open T
 include struct
   open Tjr_monad
   let run ~init_state a = 
-    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+    State_passing.run ~init_state a |> fun (x,y) -> (y,x)
 
-  let monad_ops : t state_passing monad_ops = 
-    Tjr_monad.State_passing_instance.monad_ops ()
+  let monad_ops : t State_passing.state_passing monad_ops = 
+    Tjr_monad.State_passing.monad_ops ()
 end
 
 
@@ -92,7 +92,7 @@ let constants = Constants.{
 include struct
 
   open Tjr_monad
-  open Tjr_monad.State_passing_instance
+  open Tjr_monad.State_passing
 
   let page_ref_ops = {
     get=(fun () -> with_world (fun t -> (t.r,t)));

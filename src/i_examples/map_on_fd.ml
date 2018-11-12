@@ -135,9 +135,9 @@ module Default_implementation = struct
 
   open Tjr_monad
 
-  let monad_ops : t state_passing monad_ops = Tjr_monad.State_passing_instance.monad_ops ()
+  let monad_ops : t State_passing.state_passing monad_ops = Tjr_monad.State_passing.monad_ops ()
 
-  open Tjr_monad.State_passing_instance
+  open Tjr_monad.State_passing
 
   let fd_ops = D.{
       get=(fun () -> with_world (fun w -> (w.fd,w)));

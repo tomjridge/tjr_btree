@@ -85,11 +85,12 @@ let set_ops = Set_ops.set_ops
 
 include struct
   open Tjr_monad
+  open Tjr_monad.State_passing
   let run ~init_state a = 
-    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+    State_passing.run ~init_state a |> fun (x,y) -> (y,x)
 
   let monad_ops : Tree_store.tree state_passing monad_ops = 
-    Tjr_monad.State_passing_instance.monad_ops ()
+    Tjr_monad.State_passing.monad_ops ()
 end
 
 let execute_tests ~constants ~map_ops ~ops ~init_trees = 
@@ -140,7 +141,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
 let _ = execute_tests
 
-let page_ref_ops = Tjr_monad.State_passing_instance.{
+let page_ref_ops = Tjr_monad.State_passing.{
     get=(fun () -> with_world (fun t -> (t,t)));
     set=(fun r -> with_world (fun t -> ((),r)));
   }

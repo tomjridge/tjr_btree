@@ -1,4 +1,4 @@
-open Tjr_monad.Monad
+open Tjr_monad.Types
 open Base_types
 open Isa_btree
 
@@ -34,7 +34,7 @@ let make_pre_map_ops (type k v r t)
   in
 
   let module Monad = struct
-    type ('a,'t) mm = ('a,t) Tjr_monad.Monad.m  (* FIXME *)
+    type ('a,'t) mm = ('a,t) Tjr_monad.Types.m  (* FIXME *)
     let bind ab a = monad_ops.bind a ab
     let return a = monad_ops.return a
     let dummy = ()

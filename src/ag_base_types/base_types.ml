@@ -6,7 +6,7 @@ include Base_types_pervasives
 include Tree
 include Frame
 include R2t
-include Tjr_monad.Monad
+include Tjr_monad.Types
 
 
 include Tjr_monad.Mref

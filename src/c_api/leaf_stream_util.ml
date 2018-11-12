@@ -1,4 +1,4 @@
-open Tjr_monad.Monad
+open Tjr_monad.Types
 open Leaf_stream_ops
 
 (* for debugging *)

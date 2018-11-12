@@ -17,7 +17,7 @@ The operations typically execute in the {!Base_types.Monad}.
 *)
 
 
-open Tjr_monad.Monad
+open Tjr_monad.Types
 
 (* map ------------------------------------------------------------ *)
 
@@ -73,7 +73,7 @@ let wf_imperative_map_ops
   true
 
 
-let run = Tjr_monad.State_passing_instance.run
+let run = Tjr_monad.State_passing.run
 
 (* TODO insert_many *)
 let state_passing_map_ops_to_imperative map_ops = 

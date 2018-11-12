@@ -26,7 +26,7 @@ let (find,insert,delete) =
   (find,insert,delete)
 
 let run ~init_state a = 
-  Tjr_monad.State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+  Tjr_monad.State_passing.run ~init_state a |> fun (x,y) -> (y,x)
 
 let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 

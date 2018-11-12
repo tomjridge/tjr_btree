@@ -24,11 +24,12 @@ let (find,insert,delete) =
 
 include struct
   open Tjr_monad
+  open Tjr_monad.State_passing
   let run ~init_state a = 
-    State_passing_instance.run ~init_state a |> fun (x,y) -> (y,x)
+    State_passing.run ~init_state a |> fun (x,y) -> (y,x)
 
   let monad_ops : Map_on_fd.Default_implementation.t state_passing monad_ops = 
-    Tjr_monad.State_passing_instance.monad_ops ()
+    Tjr_monad.State_passing.monad_ops ()
 end
 
 
