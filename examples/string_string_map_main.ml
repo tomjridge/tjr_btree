@@ -2,9 +2,9 @@ open Tjr_btree
 open Small_string
 open Ss_ss_map_on_fd
 
-let run = Tjr_monad.State_passing_instance.run
+let run = Tjr_monad.State_passing.run
 
-let monad_ops = Tjr_monad.State_passing_instance.monad_ops ()
+let monad_ops = Tjr_monad.State_passing.monad_ops ()
 
 let main args = 
   (* turn off wf checking *)

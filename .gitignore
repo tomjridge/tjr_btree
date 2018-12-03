@@ -128,3 +128,5 @@ src/small_step.ml
 *.cma
 *.cmxa
 /dune-project
+/src/.merlin
+/tjr_btree.install
