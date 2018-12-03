@@ -37,6 +37,9 @@ let main args =
             close s';
             ()));                
       print_endline "list ok")
+  | ["nop"] -> (
+      (* print_endline "nop ok" *)
+    )
   | _ -> (
       failwith (
         "Unrecognized args: "^

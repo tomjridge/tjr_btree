@@ -5,26 +5,26 @@ set +x
 # execute various commands on a store
 
 STORE=./btree.store
-MAIN=dune exec examples/string_string_map_main.exe
+MAIN=string_string_map_main
 
 rm -f $STORE
-./$MAIN init $STORE
+$MAIN init $STORE
 echo
-./$MAIN insert $STORE k1 v1
+$MAIN insert $STORE k1 v1
 echo
-./$MAIN list $STORE
+$MAIN list $STORE
 echo
-./$MAIN insert $STORE k2 v2 
+$MAIN insert $STORE k2 v2 
 echo
-./$MAIN insert $STORE k3 v3 
+$MAIN insert $STORE k3 v3 
 echo
-./$MAIN list $STORE
+$MAIN list $STORE
 
 for i in `seq 4 1000`; do
-    ./$MAIN insert $STORE k$i v$i
+    $MAIN insert $STORE k$i v$i
 done
 
-./$MAIN list $STORE
+$MAIN list $STORE
 
 # for 1000 inserts, with syncing after each insert
 # real	0m11.880s

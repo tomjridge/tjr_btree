@@ -1,13 +1,16 @@
-DUNE:=dune
+# -*- makefile -*-
+# NOTE you must install tjr_btree (and executables) first
+SHELL:=bash
 
 run_examples:
-	$(DUNE) exec examples/int_int_map_example_functionality.exe
-	$(DUNE) exec examples/string_string_map_example_functionality.exe
+	int_int_map_example_functionality
+	string_string_map_example_functionality
 	./exercise_ii_map.sh  # FIXME note startup time seems a bit long for the .exe
 	./exercise_ss_map.sh
+	$(MAKE) test_startup_time
 
 test_startup_time:
-	time for f in `seq 1 100`; do ./int_int_map_main.exe nop; done
+	time for f in `seq 1 100`; do int_int_map_main nop; done
 	echo Total time is about 1.7 s, or .017s per run
 
 

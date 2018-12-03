@@ -8,7 +8,10 @@
   (names 
 exhaustive_in_mem_main
 test_main
-
+)
+  (public_names 
+exhaustive_in_mem_main
+test_main
 )
   (preprocess (pps ppx_deriving_yojson))
   (libraries tjr_btree))

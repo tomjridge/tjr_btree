@@ -1,0 +1,5 @@
+run_tests:
+	exhaustive_in_mem_main
+	test_main default_tests.json
+
+
