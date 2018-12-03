@@ -1,6 +1,6 @@
 open Base_types
-open Page_ref_int
-open Block.Blk4096
+(* open Page_ref_int *)
+(* open Block.Blk4096 *)
 open Small_string
 open Ss_int_map_on_fd
 open Default_filename
@@ -19,7 +19,7 @@ let close = close x
 let ls_ops = ls_ops x
 
 let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
   (find,insert,delete)
 
 include struct

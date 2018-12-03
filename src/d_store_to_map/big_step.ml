@@ -1,4 +1,4 @@
-open Tjr_monad.Types
+(* open Tjr_monad.Types *)
 open Base_types
 open Isa_btree
 
@@ -72,7 +72,7 @@ let make_pre_map_ops (type k v r t)
 
   let find_leaf ~k ~r = 
     find_leaf' ~k ~r 
-    |> fmap (fun ((r1:r),(k:k),(r2:r),kvs,stk) -> (r2,kvs,stk))
+    |> fmap (fun ((_r1:r),(_k:k),(r2:r),kvs,stk) -> (r2,kvs,stk))
   in
   let _ = find_leaf in
 

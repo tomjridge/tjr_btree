@@ -1,0 +1,6 @@
+name="tjr_btree"
+description="A CoW B-tree library"
+version="Mon  3 Dec 11:00:32 GMT 2018 8054eca641fde4d03c8095cdecce3270e19850b9"
+requires="yojson,ppx_deriving_yojson,core,ppx_bin_prot,extlib,isa_btree,tjr_monad,tjr_fs_shared"
+archive(byte)="tjr_btree.cma"
+archive(native)="tjr_btree.cmxa"

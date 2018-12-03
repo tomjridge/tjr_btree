@@ -39,7 +39,7 @@ module D2S = Disk_to_store
 module RS = Recycling_store
 module S2M = Store_to_map
 
-open Block
+(* open Block *)
 
 
 (* layers: disk_ops and store_ops --------------------------------- *)
@@ -97,14 +97,14 @@ let read_root_block ~blk_sz ~fd =
 let from_file ~fn ~create ~init ~ps = 
   let blk_sz = blk_sz ps in
   (*  let pp = pp ps in *)
-  let fd = File_util.fd_from_file fn create init in
+  let fd = File_util.fd_from_file ~fn ~create ~init in
   match init with
   | true -> (
       (* now need to write the initial frame *)
       let _ = 
         let frm = Disk_leaf [] in
         let p = frm|>frame_to_page ps blk_sz in
-        Disk_on_fd.write fd blk_sz 1 p 
+        Disk_on_fd.write ~fd ~blk_sz ~blk_id:1 ~blk:p 
       in
       (* 0,1 are taken so 2 is free; 1 is the root of the btree *)
       let (free,root) = (2,1) in
@@ -139,12 +139,12 @@ module Default_implementation = struct
 
   open Tjr_monad.State_passing
 
-  let fd_ops = D.{
+  let fd_ops = {
       get=(fun () -> with_world (fun w -> (w.fd,w)));
       set=(fun fd -> with_world (fun w -> ((),{w with fd}))); 
     }
 
-  let free_ops = D2S.{
+  let free_ops = {
       get=(fun () -> with_world (fun t -> (t.free,t)));
       set=(fun free -> with_world (fun t -> ((),{t with free})));
     }

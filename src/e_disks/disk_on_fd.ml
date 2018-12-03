@@ -3,7 +3,7 @@
 open Base_types
 open Block
 open Test
-open Disk_ops
+(* open Disk_ops *)
 
 
 type fd = Unix.file_descr
@@ -79,10 +79,10 @@ let make_disk ~monad_ops ~blk_sz ~fd_ops =
   let return = monad_ops.return in
   let read: blk_id -> (blk,'t) m = fun r ->
     fd_ops.get () >>= fun fd ->
-    return (read fd blk_sz r)
+    return (read ~fd ~blk_sz ~blk_id:r)
   in
   let write: blk_id -> blk -> (unit,'t) m = fun r buf -> 
     fd_ops.get () >>= fun fd ->           
-    return (write fd blk_sz r buf)
+    return (write ~fd ~blk_sz ~blk_id:r ~blk:buf)
   in
   Disk_ops.mk_disk_ops ~blk_sz ~read ~write

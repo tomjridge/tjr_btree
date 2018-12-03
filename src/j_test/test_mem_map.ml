@@ -2,7 +2,7 @@
 
 open Isa_btree
 open Base_types
-open Mem_store
+(* open Mem_store *)
 open Page_ref_int
 open Mem_store
 open Map_ops
@@ -50,6 +50,7 @@ let constants = Constants.{
 *)
 
 (* ~OK FIXME these should be part of test config *)
+(*
 let constants = Constants.{
     min_leaf_size = 2;
     max_leaf_size = 3;
@@ -80,6 +81,7 @@ let constants = Constants.{
     min_node_keys = 2;
     max_node_keys = 4;
   }
+*)
 
 (* OK with size 10; ~OK with size 12 wf_ks_rs *)
 let constants = Constants.{
@@ -89,10 +91,9 @@ let constants = Constants.{
     max_node_keys = 4;
   }
 
-
 include struct
 
-  open Tjr_monad
+  (* open Tjr_monad *)
   open Tjr_monad.State_passing
 
   let page_ref_ops = {
@@ -117,7 +118,7 @@ let store_ops : ('k,'v,'r,'t) Store_ops.store_ops =
   Mem_store.mk_store_ops ~monad_ops ~mem_ops
 
 let r2t : ('k,'v,'r,'t)r2t = 
-  Store_ops.dest_store_ops store_ops @@ fun ~store_free ~store_read ~store_alloc ->
+  Store_ops.dest_store_ops store_ops @@ fun ~store_free:_ ~store_read ~store_alloc:_ ->
   store_read_to_r2t
     ~store_read
     ~run:(fun t a -> run ~init_state:t a)
@@ -179,7 +180,7 @@ let (init_store,init_r) = Mem_store.(
 
 
 let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
   (find,insert,delete)
 
 let step range (t:global_state) = (
@@ -189,7 +190,7 @@ let step range (t:global_state) = (
         action:=Insert x;
         insert x x|> fun f -> 
             Test.log (fun _ -> __LOC__^": inserting "^(string_of_int x));
-            run t f))
+            run ~init_state:t f))
   in
   let r2 = (
     range|>List.map (
@@ -197,14 +198,14 @@ let step range (t:global_state) = (
         action:=Delete x; 
         delete x|>(fun f -> 
             Test.log (fun _ -> __LOC__^": deleting "^(string_of_int x));           
-            run t f )))
+            run ~init_state:t f )))
   in
   r1@r2 |> List.map (
     fun (t',()) -> 
       {t=r2t t' t'.r |> dest_Some; s=t'.s; r=t'.r })
   |> TSET.of_list)
 
-let test_exhaustive range = TSET.(
+let test_exhaustive range = (
     Printf.printf "%s: exhaustive test, %d elts: "  __MODULE__ (List.length range);
     flush_out();
     let s = ref TSET.(singleton {t=Tree.Leaf[];s=init_store;r=init_r }) in

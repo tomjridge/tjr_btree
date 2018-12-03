@@ -3,7 +3,7 @@
 (* used by bytestore2 *)
 
 open Base_types
-open Params
+(* open Params *)
 open Block
 open Map_ops
 
@@ -20,7 +20,7 @@ module Mk = functor (
   open X
 
   let store_ops_to_map_ops
-      ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops : ('k,'v,'t) map_ops 
+      ~monad_ops ~constants ~cmpxxx:_ ~page_ref_ops ~store_ops : ('k,'v,'t) map_ops 
     = 
     let cmp=(Block.compare_blk_id) in
     Store_to_map.store_ops_to_map_ops ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops 
@@ -40,7 +40,7 @@ module Mk = functor (
     = 
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
-    dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+    dest_map_ops map_ops @@ fun ~find ~insert ~delete:_ ~insert_many:_ ->
     let find : 'k -> ('v option,'t) m = fun i ->
       (* read from map *)
       find i >>= (
@@ -59,8 +59,8 @@ module Mk = functor (
     in
     (* NOTE following returns an empty list, since we really want to
        insert all the blocks *)
-    let insert_many =  None (* TODO *) in
-    let delete : 'k -> (unit,'t) m = (fun i -> 
+    let _insert_many =  None (* TODO *) in
+    let _delete : 'k -> (unit,'t) m = (fun _i -> 
         (* no-op: we never "delete" a particular block TODO truncate? *)
         failwith __LOC__)
     in

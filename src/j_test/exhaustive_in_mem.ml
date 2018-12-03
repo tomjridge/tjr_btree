@@ -95,8 +95,8 @@ include struct
 end
 
 let execute_tests ~constants ~map_ops ~ops ~init_trees = 
-  let find,insert,delete = 
-    Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many -> 
+  let _find,insert,delete = 
+    Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
     (find,insert,delete)
   in
 
@@ -133,18 +133,18 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
   in
   (* FIXME remove check from exhaustive - just do it in the step phase *)
 
-  let check_step t1 op t2 = () in
+  let check_step _t1 _op _t2 = () in
 
   let test_ops = Tjr_exhaustive_testing.{ step; check_state; check_step } in
   
   let test = Tjr_exhaustive_testing.test ~set_ops ~test_ops in
-  test ops init_trees
+  test ~ops ~init_states:init_trees
 
 let _ = execute_tests
 
 let page_ref_ops = Tjr_monad.State_passing.{
     get=(fun () -> with_world (fun t -> (t,t)));
-    set=(fun r -> with_world (fun t -> ((),r)));
+    set=(fun r -> with_world (fun _t -> ((),r)));
   }
 
 
@@ -170,7 +170,7 @@ let main c =
       "max_leaf_size";
       "min_node_keys";
       "max_node_keys"
-    ]
+    ][@@ocaml.warning "-8"]
   in
   let constants = Constants.{
       min_leaf_size=l; max_leaf_size=l';

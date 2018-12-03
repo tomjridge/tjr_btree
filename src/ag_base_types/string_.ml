@@ -2,8 +2,9 @@
    probably poor performance. Used in places where performance is not
    an issue. *)
 
-include String
+include Tjr_string
 
+(*
 module X_list = struct 
   let last xs = List.hd (List.rev xs)
 end
@@ -16,7 +17,7 @@ module Span = struct
 
   let to_string = function {s;i;j} -> String.sub s i (j-i)
 
-  let length = function {s;i;j} -> j-i
+  let length = function {s;i;j} -> j-i [@@ocaml.warning "-27"]
 
   let pred_to_indexes : (t->int list) -> t -> int list = (
     fun p s -> (
@@ -161,3 +162,4 @@ let exp s =
 let imp s = 
   let s = Bytes.init (List.length s) (List.nth s) in
   Bytes.unsafe_to_string s
+*)

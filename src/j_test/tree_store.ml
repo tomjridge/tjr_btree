@@ -18,7 +18,7 @@ module State = struct
 end
 
 include struct
-  open Tjr_monad
+  (* open Tjr_monad *)
   open Tjr_monad.Types
   open Tjr_monad.State_passing
   let monad_ops : State.t state_passing monad_ops = 
@@ -28,12 +28,12 @@ end
 let return = monad_ops.return
 
 include struct
-  open Base_types
+  (* open Base_types *)
   open Store_ops 
   open Frame
   open Tree
   let store_ops = {
-    store_free=(fun rs -> return ());
+    store_free=(fun _rs -> return ());
     store_read=(fun r -> 
         (* r is a tree, but we need to return a frame *)
         return @@

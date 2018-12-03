@@ -21,7 +21,7 @@ let wf_disk_ops
     ~(blk_sz:blk_sz) 
     ~(read:blk_id -> (blk,'t) m) 
     ~(write:blk_id -> blk -> (unit,'t) m) 
-  = true
+  = true[@@ocaml.warning "-8-27"]
 
 
 let mk_disk_ops ~blk_sz ~read ~write =
@@ -38,7 +38,7 @@ let wf_imperative_disk_ops
     ~(blk_sz:blk_sz)
     ~(read:blk_id -> blk)
     ~(write:blk_id -> blk -> unit)
-  = true
+  = true[@@ocaml.warning "-8-27"]
 
 
 (* FIXME? leave imperative disk ops as a polymorphic variant for the

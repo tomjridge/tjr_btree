@@ -21,19 +21,19 @@ open Pre_map_ops
 open Map_ops
 
 (* produce a map, with page_ref state set/get via monad_ops *)
-let make_map_ops' (type k v r t) ~monad_ops ~pre_map_ops ~page_ref_ops = 
+let make_map_ops' (* (type k v r t)*) ~monad_ops ~pre_map_ops ~page_ref_ops = 
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   dest_pre_map_ops pre_map_ops @@ 
   fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
-  let find_leaf = fun k ->
+  let _find_leaf = fun k ->
     page_ref_ops.get () >>= fun r ->
     find_leaf k r >>= fun kvs ->               
     return kvs
   in
   let find = fun k ->
     page_ref_ops.get () >>= fun r ->
-    find k r >>= fun (r',kvs) -> 
+    find k r >>= fun (_r',kvs) -> 
     (* page_ref_ops.set_page_ref r' >>= (fun () -> 
        NO! the r is the pointer to the leaf *)
     return (try Some(List.assoc k kvs) with _ -> None)
@@ -64,7 +64,7 @@ let store_ops_to_map_ops
   : ('k,'v,'t) Map_ops.map_ops
   =
   Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
-  fun ~pre_map_ops ~ls_ops -> 
+  fun ~pre_map_ops ~ls_ops:_ -> 
   let map_ops = make_map_ops' ~monad_ops ~pre_map_ops ~page_ref_ops in
   map_ops
 
@@ -74,7 +74,7 @@ let store_ops_to_ls_ops
     : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops
   =
   Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
-  fun ~pre_map_ops ~ls_ops -> 
+  fun ~pre_map_ops:_ ~ls_ops -> 
   ls_ops
 
 

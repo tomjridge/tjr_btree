@@ -11,8 +11,8 @@ enforce that the value of the parameter has a given type, we define
 
 *) 
 
-open Frame
-open Tree
+(* open Frame *)
+(* open Tree *)
 open R2t
 
 (*

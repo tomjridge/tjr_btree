@@ -39,7 +39,7 @@ let wf_map_ops
     ~(delete: 'k -> (unit,'t) m)
     ~(insert_many: 'k -> 'v -> ('k*'v) list -> (('k*'v)list,'t) m) 
   = 
-  true
+  true[@@ocaml.warning "-27"]
 
 
 let mk_map_ops ~find ~insert ~delete ~insert_many =
@@ -70,7 +70,7 @@ let wf_imperative_map_ops
     ~(insert: 'k -> 'v -> unit)
     ~(delete: 'k -> unit)
   =
-  true
+  true[@@ocaml.warning "-27"]
 
 
 let run = Tjr_monad.State_passing.run

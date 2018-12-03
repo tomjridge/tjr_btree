@@ -34,7 +34,7 @@ let wf_ls_ops
     ~(ls_step: ('k,'v,'r) lss -> (('k,'v,'r) lss option,'t) m)
     ~(ls_kvs: ('k,'v,'r) lss -> ('k*'v) list)
   =
-  true
+  true[@@ocaml.warning "-27"]
 
 let mk_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs =
   assert(wf_ls_ops ~mk_leaf_stream ~ls_step ~ls_kvs);

@@ -1,7 +1,7 @@
 (** A map from blk index to blk, implemented as a map from index to blkid *)
 
 open Base_types
-open Params
+(* open Params *)
 open Block
 open Map_ops
 
@@ -32,7 +32,7 @@ let mk_int_blk_map
   =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete:_ ~insert_many ->
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)
       find i >>= fun blk_id -> 
@@ -65,7 +65,7 @@ let mk_int_blk_map
           | (i,i')::xs -> insert_all insert_many i i' xs >>= (
               fun () -> return []))
   in
-  let delete : 'k -> (unit,'t) m = (fun i -> 
+  let delete : 'k -> (unit,'t) m = (fun _i -> 
       (* no-op: we never "delete" a particular block FIXME use
          different type for map_ops? or just pass on functions directly? *)
       failwith __LOC__)

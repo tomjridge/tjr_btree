@@ -24,8 +24,14 @@ let bp2f iis = (
   | N (ks,rs) -> Disk_node(ks,rs)
   | L kvs -> Disk_leaf kvs)
 
-open Bigarray
+(* open Bigarray *)
 type buf = BP.Common.buf
+
+let blit_buf_to_string ?(src_pos=0) ~src ?(dst_pos=0) ~dst ~len () =
+  BP.Common.blit_buf_string ~src_pos src ~dst_pos dst ~len
+
+let blit_string_to_buf ?(src_pos=0) ~src ?(dst_pos=0) ~dst ~len () =
+  BP.Common.blit_string_buf ~src_pos src ~dst_pos dst ~len
 
 (* pull this out because frame_to_page takes an explicit blk_sz; FIXME
    should it? *)
@@ -35,7 +41,7 @@ let frm_to_pg ~write_k ~write_v ~blk_sz =
     let buf = BP.Common.create_buf blk_sz in
     let pos' = frm |> f2bp |> bin_writer'.write buf ~pos:0 in
     let s = Bytes.create blk_sz in
-    let () = BP.Common.blit_buf_string buf s pos' in
+    let () = blit_buf_to_string ~src:buf ~dst:s ~len:pos' () in
     s |> BlkN.of_bytes blk_sz
 
 let mk_binprot_ps ~blk_sz = (
@@ -45,8 +51,8 @@ let mk_binprot_ps ~blk_sz = (
     fun pg -> 
       let s = pg |> BlkN.to_string in
       let buf = BP.Common.create_buf blk_sz in
-      let _ = BP.Common.blit_string_buf s buf blk_sz in
-      let bp = bin_reader'.read buf (ref 0) in
+      let () = blit_string_to_buf ~src:s ~dst:buf ~len:blk_sz () in
+      let bp = bin_reader'.read buf ~pos_ref:(ref 0) in
       bp|>bp2f
   in
 

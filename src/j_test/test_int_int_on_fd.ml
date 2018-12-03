@@ -2,9 +2,9 @@
 
 (* this is for performance testing *)
 
-open Base_types
+(* open Base_types *)
 open Map_int_int  
-open Block.Blk4096
+(* open Block.Blk4096 *)
 open Default_filename
 open Map_ops
 
@@ -22,7 +22,7 @@ let close = close x
 let ls_ops = ls_ops x
 
 let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ ->
   (find,insert,delete)
 
 let run ~init_state a = 

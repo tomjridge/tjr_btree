@@ -1,17 +1,30 @@
+DUNE:=dune
+
 build:
-	$(MAKE) -C src
+	$(DUNE) build @install
 
-
-install: 
-	$(MAKE) -C src install
-
+install:
+	$(DUNE) install
 
 uninstall:
-	$(MAKE) -C src remove
-
+	$(DUNE) uninstall
 
 clean:
-	$(MAKE) -C src real_clean
-	$(MAKE) -C examples clean
-	$(MAKE) -C test_bin clean
+	$(DUNE) clean
+
+doc: FORCE
+	$(DUNE) build @doc
+
+doc_install: doc
+	rm -rf ocamldoc/*
+	cp -R _build/default/_doc/_html/* ocamldoc
+
+FORCE:
+
+
+# 
+# clean:
+# 	$(MAKE) -C src real_clean
+# 	$(MAKE) -C examples clean
+# 	$(MAKE) -C test_bin clean
 

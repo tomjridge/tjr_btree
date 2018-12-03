@@ -21,7 +21,7 @@ let disk_to_store ~monad_ops ~ps ~disk_ops ~free_ops =
   let f2p = frame_to_page ps page_size in
   let p2f = page_to_frame ps in
   Test.test(fun _ -> assert (blk_sz = page_size));
-  let store_free rs = return () in  (* no-op *)
+  let store_free _rs = return () in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f |> f2p |> fun p -> 
     free_ops.get () >>= fun free -> 

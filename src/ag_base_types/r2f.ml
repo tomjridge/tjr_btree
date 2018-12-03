@@ -1,5 +1,5 @@
 open Frame
-open Tjr_monad
+(* open Tjr_monad *)
 
 (** Block ref to frame option *)
 type ('k,'v,'r,'t) r2f = ('t -> 'r -> ('k,'v,'r) frame option) 
@@ -12,6 +12,6 @@ let mk_r2f ~run ~store_read : ('k,'v,'r,'t) r2f = (
   fun s r ->
     store_read r 
     |> run s 
-    |> function (s',f) -> Some f | _ -> (ignore(failwith __LOC__); None))
+    |> function (_s',f) -> Some f)
 
 let _ = mk_r2f
