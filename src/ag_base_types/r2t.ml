@@ -1,3 +1,4 @@
+open Isa_btree
 open Tree
 
 (** The r2t type represents a pure view of a given system state. It is

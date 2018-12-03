@@ -86,7 +86,7 @@ let mk_binprot_ps ~blk_sz = (
     let r_size = 9 in (* page_ref size in bytes; assume int63 *)
     let max_node_keys = (blk_sz - 7 - r_size) / (k_size + r_size) in
     let max_leaf_size = (blk_sz - 4) / (k_size + v_size) in
-    let constants=Constants.(
+    let constants=Isa_btree.Constants.(
         {min_leaf_size=2;max_leaf_size;min_node_keys=2; max_node_keys}) in
     object
       method blk_sz=blk_sz

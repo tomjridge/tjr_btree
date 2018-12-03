@@ -23,7 +23,7 @@ let compare_k x : 'k -> 'k -> int = (x#compare_k)
 let cmp x : 'k -> 'k -> int = (x#cmp)
 
 (** Constants. See {!Constants} *)
-let constants x : Constants.t = (x#constants)
+let constants x : Isa_btree.Constants.t = (x#constants)
 
 (*
 (** Store operations. See {!Store_ops} *)

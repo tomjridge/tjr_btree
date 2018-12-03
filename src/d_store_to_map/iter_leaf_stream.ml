@@ -7,7 +7,7 @@
 
 open Base_types
 open Params
-open Isa_btree
+open Isa_btree.Isa_export_wrapper
 open Leaf_stream_ops
 
 (* FIXME there is a similarly named function in store_to_map - rename this one *)

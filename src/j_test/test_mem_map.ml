@@ -1,5 +1,6 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
+open Isa_btree
 open Base_types
 open Mem_store
 open Page_ref_int

@@ -41,7 +41,7 @@ let make_pre_map_ops (type k v r t)
     let fmap f a = a |> bind (fun a -> return (f a))
   end
   in
-  let module M = Isa_btree.Make(Monad) in
+  let module M = Isa_btree.Isa_export_wrapper.Make(Monad) in
 
   let find_step = M.Small_step.find_step in
   let insert_step = M.Small_step.insert_step in
@@ -65,8 +65,8 @@ let make_pre_map_ops (type k v r t)
 
   let find_leaf' ~(k:k) ~(r:r) = 
     let small_step = find_step ~constants ~cmp ~store_ops in
-    let dest = dest_f_finished in
-    (step ~small_step ~dest) (mk_find_state k r)
+    let dest = Isa_export_wrapper.dest_f_finished in
+    (step ~small_step ~dest) (Isa_export_wrapper.mk_find_state k r)
   in
   let _ = find_leaf' in
 
@@ -97,8 +97,8 @@ let make_pre_map_ops (type k v r t)
 
   let insert' ~k ~v ~r = 
     let small_step = insert_step ~constants ~cmp ~store_ops in
-    let dest = dest_i_finished in
-    (step ~small_step ~dest) (mk_insert_state k v r)
+    let dest = Isa_export_wrapper.dest_i_finished in
+    (step ~small_step ~dest) (Isa_export_wrapper.mk_insert_state k v r)
   in
 
 
@@ -113,8 +113,8 @@ let make_pre_map_ops (type k v r t)
 
   let im' ~k ~v ~kvs ~r =
     let small_step = im_step ~constants ~cmp ~store_ops in
-    let dest = dest_im_finished in
-    (step ~small_step ~dest) (mk_im_state k v kvs r)
+    let dest = Isa_export_wrapper.dest_im_finished in
+    (step ~small_step ~dest) (Isa_export_wrapper.mk_im_state k v kvs r)
   in
 
   (** Insert many. Take a key, value, and list of further key/values, a
@@ -132,8 +132,8 @@ let make_pre_map_ops (type k v r t)
 
   let delete' ~(k:k) ~(r:r) = 
     let small_step = delete_step ~constants ~cmp ~store_ops in
-    let dest = dest_d_finished in
-    (step ~small_step ~dest) (mk_delete_state k r)
+    let dest = Isa_export_wrapper.dest_d_finished in
+    (step ~small_step ~dest) (Isa_export_wrapper.mk_delete_state k r)
   in
 
 

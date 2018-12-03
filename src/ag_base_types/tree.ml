@@ -1,6 +1,7 @@
 (** The B-tree tree type. *)
 
-include Isa_export.Tree
+open Isa_btree
+include Isa_btree.Isa_export.Tree
 
 (* pull this out for recap *)
 module Tree_type = struct

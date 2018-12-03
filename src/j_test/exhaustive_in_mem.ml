@@ -1,3 +1,4 @@
+open Isa_btree
 open Base_types
 
 (* test config ------------------------------------------------------ *)

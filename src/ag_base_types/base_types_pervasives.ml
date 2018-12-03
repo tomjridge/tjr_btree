@@ -1,7 +1,7 @@
 (** Common types and definitions. *)
 
 (** The result type. ['a res] is equal to [Ok of 'a | Error of string] *)
-type 'a res = 'a Isa_export.Util.res
+type 'a res = 'a Isa_btree.Isa_export.Util.res
 
 (* let check_some f x = (match x with Some x -> f x | None -> true) *)
 
