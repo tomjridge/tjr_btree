@@ -23,8 +23,6 @@ depends: [
 
 # ----------------------------------------------------------------------
 
+
+# FIXME get dune to ignore "exported_munged_code" then use dune build
 build: [make "build"]
-
-install: [make "install"]
-
-remove: [make "uninstall"]
