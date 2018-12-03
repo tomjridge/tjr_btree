@@ -11,7 +11,7 @@ let main args =
   (* turn off wf checking *)
   Isa_test.disable_isa_checks();
   Test.disable ();
-  Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many ->
+  Map_ops.dest_map_ops map_ops @@ fun ~find:_ ~insert ~delete ~insert_many:_ ->
   match args with
   | ["init"; fn] -> (
       from_file ~fn ~create:true ~init:true |> fun _ -> 
@@ -40,7 +40,7 @@ let main args =
   | _ -> (
       failwith (
         "Unrecognized args: "^
-        (String_.concat_strings " " args)^ 
+        (String_.concat_strings ~sep:" " args)^ 
         __LOC__))
 
 let _ = main (Sys.argv |> Array.to_list |> List.tl)

@@ -2,7 +2,7 @@
 
 open Tjr_btree
 open Default_filename
-open Block.Blk4096
+(* open Block.Blk4096 *)
 open Map_ops
 open Map_int_int
 
@@ -35,7 +35,7 @@ let do_write () =
   let s = ref (from_file ~fn ~create:true ~init:true) in
   (* get map operations *)
   let map_ops = imperative_map_ops ~s_ref:s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert ~delete:_ ->
   (* write values *)
   for x=1 to max do
     insert (k x) (v x);
@@ -47,8 +47,8 @@ let do_write () =
 let do_delete () = 
   print_endline "Deleting...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  let map_ops = imperative_map_ops ~s_ref:s in
+  dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert:_ ~delete ->
   for x=100 to 200 do
     delete (k x);
   done;
@@ -59,8 +59,8 @@ let do_delete () =
 let do_check () = 
   print_endline "Checking...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  let map_ops = imperative_map_ops ~s_ref:s in
+  dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
   assert(find (k 100) = None);
   assert(find (k 1000) = Some(v 1000));
   close !s;
@@ -77,8 +77,8 @@ let _ =
 let do_full_check () = 
   print_endline "Full check...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert ~delete ->
+  let map_ops = imperative_map_ops ~s_ref:s in
+  dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
   for x = 1 to max do
     if (100 <= x && x <= 200) then
       assert(find (k x) = None)

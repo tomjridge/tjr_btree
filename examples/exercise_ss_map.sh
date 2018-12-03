@@ -5,7 +5,7 @@ set +x
 # execute various commands on a store
 
 STORE=./btree.store
-MAIN=string_string_map_main.native
+MAIN=dune exec examples/string_string_map_main.exe
 
 rm -f $STORE
 ./$MAIN init $STORE

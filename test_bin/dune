@@ -1,0 +1,20 @@
+(env
+  (dev (flags (:standard -w -39))))
+
+
+
+(executables
+;  (flags -noassert)
+  (names 
+exhaustive_in_mem_main
+test_main
+
+)
+  (preprocess (pps ppx_deriving_yojson))
+  (libraries tjr_btree))
+
+
+(rule
+  (targets all.touch)
+  (deps (glob_files *.exe))
+  (action (write-file all.touch "this file records that all exes have been built")) )

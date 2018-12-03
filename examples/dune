@@ -1,0 +1,15 @@
+(executables
+;  (flags -noassert)
+  (names 
+int_int_map_example_functionality
+int_int_map_main
+string_string_map_example_functionality
+string_string_map_main
+)
+  (libraries tjr_btree))
+
+
+(rule
+  (targets all.touch)
+  (deps (glob_files *.exe))
+  (action (write-file all.touch "this file records that all exes have been built")) )

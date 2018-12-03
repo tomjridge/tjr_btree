@@ -130,3 +130,5 @@ src/small_step.ml
 /dune-project
 /src/.merlin
 /tjr_btree.install
+/examples/.merlin
+/test_bin/.merlin

@@ -16,7 +16,7 @@ type test_t = {
 
 let get_range ps = 
   ps 
-  |> List.find (function Range x -> true | _ -> false) 
+  |> List.find (function Range _x -> true) 
   |> dest_Range
 
 type tests = test_t list [@@deriving yojson]
@@ -47,7 +47,7 @@ let tests = [
       let (l,h) = get_range ps in
       Test_ii.(fun () -> 
       test_cached (l -- h |> List.of_enum))); *)
-  ("tsi", fun ps -> 
+  ("tsi", fun _ps -> 
       TSI.test ());
 ]
 
@@ -76,7 +76,7 @@ let _ =
         let s = Tjr_fs_shared.File_util.read_file n in
         let Ok tests = s|>Yojson.Safe.from_string|>tests_of_yojson in
         List.iter (fun t -> run_test t) tests
-      )
+      )[@@ocaml.warning "-8"]
 (*  ) with e -> (
       Test.print_logs ();
       Base_types.flush_out();
