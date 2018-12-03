@@ -1,6 +1,6 @@
 opam-version: "2.0"
 name: "tjr_btree"
-version: "0.0.1" # version should match a VERSION file in this dir?
+version: "0.0.1"
 
 # ----------------------------------------------------------------------
 
