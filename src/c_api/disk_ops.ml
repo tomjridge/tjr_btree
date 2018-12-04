@@ -7,6 +7,7 @@ open Block
 
 (* block device ---------------------------------------- *)
 
+(* FIXME move to base types *)
 module Block_device_type = struct
   type 't block_device = {
     blk_sz:blk_sz;

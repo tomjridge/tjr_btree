@@ -10,6 +10,8 @@ open Map_ops
 (* FIXME Default.fn etc *)
 
 open Examples_common
+module Map_string = Tjr_map.Map_string
+
 
 let x = mk_example_on_fd ~ps
 

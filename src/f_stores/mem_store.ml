@@ -3,6 +3,7 @@
 open Base_types
 open Page_ref_int
 
+module Map_int = Tjr_map.Map_int
 
 (* in mem store *)
 type ('k,'v) mem = {free:int; map:('k,'v)frame Map_int.t}  
@@ -27,6 +28,9 @@ let mk_store_ops ~monad_ops ~(mem_ops:('k,'v,'t)mem_ops) =
 
 let _ = mk_store_ops
 
+
+(* debugging -------------------------------------------------------- *)
+
 let mk_r2f get_store s r : ('k,'v)frame option = 
   get_store s |> fun mem -> 
   try Some (Map_int.find r mem.map)
@@ -34,5 +38,5 @@ let mk_r2f get_store s r : ('k,'v)frame option =
 
 
 (* param FIXME move *)
-let mem_ops x = x#mem_ops
+let mem_ops x : ('k,'v,'t) mem_ops = x#mem_ops
 

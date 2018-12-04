@@ -2,7 +2,7 @@
 
 include Tjr_fs_shared
 
-include Base_types_pervasives
+include Internal_base_types_pervasives
 include Tree
 include Frame
 include R2t

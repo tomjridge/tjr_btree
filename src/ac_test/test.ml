@@ -5,7 +5,10 @@
 
 (* testing ---------------------------------------------------------- *)
 
-let run_test : ((unit -> unit) -> unit) ref = ref (fun f -> f ())
+let run_test : ((unit -> unit) -> unit) ref = 
+  Tjr_fs_shared.Global.register 
+    ~name:"run_test ref" 
+    (ref (fun f -> f ()))
 
 let test f = (!run_test) f
 let enable () = run_test := fun f -> f()
@@ -15,13 +18,22 @@ let disable () = run_test := fun _f -> ()
 
 (* logging --------------------------------------------------------- *)
 
-let log_messages: (unit -> string) list ref = ref [fun _ -> "initial log message"]
+(* FIXME logging should be elsewhere *)
+
+let log_messages: (unit -> string) list ref = 
+  Tjr_fs_shared.Global.register 
+    ~name:"log_messages" 
+    (ref [fun _ -> "initial log message"])
 
 (** Log a thunk of type [unit -> string]. *)
 let log s = (log_messages:=s::!log_messages)
 
 
-let log_take_length = ref 10
+let log_take_length = 
+  Tjr_fs_shared.Global.register 
+    ~name:"log_take_length" 
+  (ref 10)
+
 
 (** Print most recent log messages. Typically we only print
     when an exception occurs. Independent of enable/disable *)
@@ -48,7 +60,10 @@ let warn s =
 
 (* exit_hook -------------------------------------------------------- *)
 
-let exit_hooks = ref []
+let exit_hooks = 
+  Tjr_fs_shared.Global.register 
+    ~name:"exit_hooks" 
+    (ref [])
 
 let add_exit_hook (f:unit -> unit) = exit_hooks := f::!exit_hooks
 

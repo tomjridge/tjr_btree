@@ -11,13 +11,7 @@ enforce that the value of the parameter has a given type, we define
 
 *) 
 
-(* open Frame *)
-(* open Tree *)
 open R2t
-
-(*
-let compare_k x : 'k -> 'k -> int = (x#compare_k)
-*)
 
 (** The order on keys. B-trees work with ordered keys. *)
 let cmp x : 'k -> 'k -> int = (x#cmp)
@@ -52,11 +46,6 @@ let blk_sz x : int = (x#blk_sz)
 (** Pages are blocks in memory. This parameter is a synonym for [block_size]. *)
 let page_size = blk_sz
 
-(*
-open Pickle_params
-
-let pp x : ('k,'v) pp = x#pp
-*)
 
 open Block
 open Frame
@@ -72,35 +61,10 @@ let page_ref_ops x = x#page_ref_ops
 
 let store_ops x = x#store_ops
 
+
 (* more common parameters ------------------------------------------- *)
+
+(* FIXME note that these can't really be given types till later *)
 
 let fd_ops x = x#fd_ops
 let free_ops x = x#free_ops
-
-
-
-(*
-type 'k ps0 = { 
-  compare_k: 'k -> 'k -> int; 
-  constants: Constants.t 
-}
-
-(* TODO make these match up with store_ops *)
-type ('k,'v,'r,'t) ps1 = { 
-  ps0: 'k ps0;
-  store_ops: ('k,'v,'r,'t) store_ops;
-}
-*)
-
-(*let spec_tree x : ('k,'v) tree option = (x#spec_tree)*)
-
-(* let t_state x : 't = (x#t_state) *)
-
-(*
-other common parameters:
-
-r2t tree state 
-
-*)
-
-

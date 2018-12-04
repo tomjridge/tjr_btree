@@ -1,5 +1,6 @@
 (** Basic block implementation. *)
-open Tjr_fs_shared
+(* open Tjr_fs_shared *)
+
 
 module type BLK_TYPES = sig
   type blk
@@ -28,7 +29,7 @@ end = struct
       s ^ (String.make (sz - String.length s) (Char.chr 0))
   )
   let to_string: blk -> string = fun x -> x
-  let compare_blk_id = Int_.compare 
+  let compare_blk_id = Tjr_int.compare 
   let of_bytes sz bs = bs |> Bytes.to_string |> of_string sz
   let to_bytes blk = blk |> to_string |> Bytes.of_string
 end

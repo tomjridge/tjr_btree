@@ -125,7 +125,7 @@ let r2t : ('k,'v,'r,'t)r2t =
 
 let _ = r2t
 
-let cmp = Int_.compare
+let cmp = Tjr_int.compare
 
 let ps = 
   object

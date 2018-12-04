@@ -119,7 +119,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
     (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
     Tree.wellformed_tree ~constants 
       ~maybe_small:(Some Isa_export.Prelude.Small_root_node_or_leaf)
-      ~cmp:Int_.compare
+      ~cmp:Tjr_int.compare
       t) 
   in
 
@@ -154,7 +154,7 @@ let main' ~min ~max ~step ~constants =
     range|>List.map (fun x -> Insert x) |> fun xs ->
     range|>List.map (fun x -> Delete x) |> fun ys -> xs@ys
   in
-  let cmp = Int_.compare in
+  let cmp = Tjr_int.compare in
   let map_ops = Store_to_map.store_ops_to_map_ops ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops in
   execute_tests ~constants ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
 
