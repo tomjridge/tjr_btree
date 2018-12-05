@@ -1,5 +1,7 @@
 #!/bin/bash
 
+echo "exercise_ss_map -------------------------------------------------"
+
 set +x
 
 # execute various commands on a store
@@ -20,9 +22,11 @@ $MAIN insert $STORE k3 v3
 echo
 $MAIN list $STORE
 
+echo Start inserting many entries
 for i in `seq 4 1000`; do
     $MAIN insert $STORE k$i v$i
 done
+echo Finish
 
 $MAIN list $STORE
 

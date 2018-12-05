@@ -7,15 +7,10 @@ open Default_filename
 open Map_ops
 (* FIXME too many opens *)
 
-(* open Examples_common *)
-module P = Examples_common.P
-
 let (find,insert,delete) = 
-  dest_map_ops (P.map_ops map_ss_int) @@ fun ~find ~insert ~delete ~insert_many:_ -> 
+  dest_map_ops map_ops @@ 
+  fun ~find ~insert ~delete ~insert_many:_ -> 
   (find,insert,delete)
-
-let from_file = P.from_file map_ss_int
-let close = P.close map_ss_int
 
 
 include struct
@@ -44,8 +39,8 @@ let test () =
         while (!xs <> []) do
           print_string "."; Base_types.flush_out();
           let (k,v) = (List.hd !xs, !c) in
-          Test.log (fun _ -> __LOC__);
-          Test.log (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
+          Logger.log (fun _ -> __LOC__);
+          Logger.log (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
           ignore (insert (SS.of_string k) v 
                   |> run ~init_state:!s 
                   |> (function (s',()) -> s:=s'));
@@ -61,7 +56,7 @@ let test () =
               find (SS.of_string k)
               |> run ~init_state:!s 
               |> fun (_,res) -> 
-              Test.log (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
+              Logger.log (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
               if res = Some v then () else (
                 print_endline (Printf.sprintf "%s: key:%s expected %s, got %s" 
                                  __LOC__ 
@@ -69,11 +64,11 @@ let test () =
                                  (string_of_int v)
                                  (if res = None then "None" else 
                                     string_of_int (Base_types.dest_Some res)));
-                Test.print_logs ();
+                Logger.print_last_n ();
                 Pervasives.exit (-1))
             in
             let _ = 
-              Test.log (fun _ -> Printf.sprintf "deleting key %s" k);
+              Logger.log (fun _ -> Printf.sprintf "deleting key %s" k);
               delete (SS.of_string k) 
               |> run ~init_state:!s 
               |> fun (s',()) -> s:=s'

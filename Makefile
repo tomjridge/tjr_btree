@@ -16,12 +16,9 @@ clean:
 	rm -f examples/btree.store
 	rm -f test_bin/btree.store
 
-doc: FORCE
-	$(DUNE) build @doc
-
-doc_install: doc
-	rm -rf ocamldoc/*
-	cp -R _build/default/_doc/_html/* ocamldoc
+# NOTE prefer to build doc with all repos
+# doc: FORCE
+# 	$(DUNE) build @doc
 
 run_examples:
 	$(MAKE) -C examples -f Makefile.run_examples
@@ -31,10 +28,4 @@ run_tests:
 
 FORCE:
 
-
-# 
-# clean:
-# 	$(MAKE) -C src real_clean
-# 	$(MAKE) -C examples clean
-# 	$(MAKE) -C test_bin clean
 

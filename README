@@ -50,41 +50,23 @@ ImpFS is a project to build an advanced high-performance filesystem.
 
 * Installation
 
-There is a Dockerfile that I use to build my filesystem-related
-repositories here:
-
-https://github.com/tomjridge/impfs_base_docker_image/blob/master/impfs_base_docker_image/Dockerfile
-
 For the base system you need: 
 - a basic Linux distribution (e.g. Ubuntu 16.04)
-- supporting libraries (libfuse-dev for Ubuntu)
-- ocaml and opam
-- additional opam packages (e.g. ocamlfuse; details can be found in the
-  Dockerfile above)
+- ocaml and opam executables
+- additional opam packages (see "Dependencies" below)
+- additional "tjr" packages (see "Dependencies" below)
 
-On top of this, you then need some additional support libraries that
-may not be available in opam. You can find the details in
-./.dockerfile/Dockerfile ; at the moment this includes the libraries
-~tjr_lib~, ~isa_btree~, ~tjr_monad~ and ~tjr_fs_shared~. These are all
-available from https://github.com/tomjridge
-
-Then in this directory type ~make && make install~ to make the library
-and install it using ~ocamlfind~. 
-
+A simple install script is at
+<https://github.com/tomjridge/tjr_imp_build_script>. That repository
+also includes a Dockerfile.
 
 * Documentation
 
+Ocamldoc is at https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/index.html
+
 Please read the overview
-https://tomjridge.github.io/tjr_btree/Tjr_btree_doc.html
-and the ocamldoc
-https://tomjridge.github.io/tjr_btree/
 
-Please also see the recap of the main types in
-=src/r_recap/recap_edited.mli= (there is a =.html= version in the same
-directory for easy reference). This is a "high-level, formal" document
-that gives the main types, but leaves out almost all operations. FIXME
-this needs fixing
-
+https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_doc/index.html
 
 * Dependencies
 

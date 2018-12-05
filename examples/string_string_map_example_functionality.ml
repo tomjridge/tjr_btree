@@ -6,6 +6,12 @@ open Small_string
 open Ss_ss_map_on_fd
 open Default_filename
 
+let _ = 
+  Printf.printf 
+    "%s ----------------------------------------------\n%!" 
+    __MODULE__
+
+
 (* construct keys and values from an int *)
 let k x = "k"^(string_of_int x) |> SS.of_string
 let v x = "v"^(string_of_int x) |> SS.of_string
