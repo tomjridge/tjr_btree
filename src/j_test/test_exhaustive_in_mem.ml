@@ -149,7 +149,7 @@ let page_ref_ops = Tjr_monad.State_passing.{
 
 
 let main' ~min ~max ~step ~constants = 
-  let range = Range.mk_range ~min ~max ~step in
+  let range = Tjr_list.mk_range ~min ~max ~step in
   let ops = 
     range|>List.map (fun x -> Insert x) |> fun xs ->
     range|>List.map (fun x -> Delete x) |> fun ys -> xs@ys
