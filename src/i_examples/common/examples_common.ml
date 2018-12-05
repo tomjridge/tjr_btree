@@ -1,8 +1,8 @@
-open Params
 open Map_on_fd
 open Map_on_fd.Default_implementation
 
 module Internal = struct
+  module P = Params.P
   type nonrec ('a,'b,'c,'d) t = 
 < close : Map_on_fd.Default_implementation.t -> unit;
   disk_ops : Map_on_fd.Default_implementation.t Tjr_monad.State_passing.state_passing Disk_ops.block_device;
@@ -19,11 +19,13 @@ module Internal = struct
               Store_ops.store_ops >
 end
 
+open Internal
+
 (* FIXME this is specific to fd - rename this file? *)
 (** Construct various api layers based on parameters ps *)
 let mk_example_on_fd ~ps : ('a,'b,'c,'d) Internal.t = 
-  let constants = constants ps in
-  let cmp = cmp ps in
+  let constants = P.constants ps in
+  let cmp = P.cmp ps in
   let disk_ops = mk_disk_ops ~monad_ops ~ps ~fd_ops in
   let store_ops = 
     Disk_to_store.disk_to_store 
@@ -41,7 +43,7 @@ let mk_example_on_fd ~ps : ('a,'b,'c,'d) Internal.t =
   let from_file ~fn ~create ~init = 
     Map_on_fd.Default_implementation.from_file ~fn ~create ~init ~ps 
   in
-  let close = Map_on_fd.Default_implementation.close ~blk_sz:(blk_sz ps) in
+  let close = Map_on_fd.Default_implementation.close ~blk_sz:(P.blk_sz ps) in
   object
     method disk_ops=disk_ops
     method store_ops=store_ops

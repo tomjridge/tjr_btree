@@ -14,8 +14,10 @@ We fix:
 open Base_types
 open Page_ref_int
 open Frame
-open Params
 open Map_ops
+
+module P = Params.P
+
 
 (**
 
@@ -45,13 +47,13 @@ module S2M = Store_to_map
 (* layers: disk_ops and store_ops --------------------------------- *)
 
 let mk_disk_ops ~monad_ops ~ps ~fd_ops = 
-  D.make_disk ~monad_ops ~blk_sz:(blk_sz ps) ~fd_ops
+  D.make_disk ~monad_ops ~blk_sz:(P.blk_sz ps) ~fd_ops
 
 let mk_store_ops ~monad_ops ~ps ~ops = 
   D2S.disk_to_store ~monad_ops
     ~ps
-    ~disk_ops:(mk_disk_ops ~monad_ops ~ps ~fd_ops:(fd_ops ops))
-    ~free_ops:(free_ops ops)
+    ~disk_ops:(mk_disk_ops ~monad_ops ~ps ~fd_ops:(P.fd_ops ops))
+    ~free_ops:(P.free_ops ops)
 
 
 (* create --------------------------------------------------------- *)
@@ -60,7 +62,7 @@ let mk_store_ops ~monad_ops ~ps ~ops =
 
 let mk_map_ops ~monad_ops ~ps ~ops : ('k,'v,'t) map_ops = 
   mk_store_ops ~monad_ops ~ps ~ops |> fun store_ops -> 
-  S2M.store_ops_to_map_ops ~monad_ops ~constants:(constants ps) ~cmp:(cmp ps) ~page_ref_ops:(page_ref_ops ops) ~store_ops
+  S2M.store_ops_to_map_ops ~monad_ops ~constants:(P.constants ps) ~cmp:(P.cmp ps) ~page_ref_ops:(P.page_ref_ops ops) ~store_ops
 
 (*
 let mk_ls_ops ~monad_ops ~ps ~page_ref_ops ~store_ops = 
@@ -95,7 +97,7 @@ let read_root_block ~blk_sz ~fd =
   |> fun (free,root) -> (free,root)
 
 let from_file ~fn ~create ~init ~ps = 
-  let blk_sz = blk_sz ps in
+  let blk_sz = P.blk_sz ps in
   (*  let pp = pp ps in *)
   let fd = File_util.fd_from_file ~fn ~create ~init in
   match init with
@@ -103,7 +105,7 @@ let from_file ~fn ~create ~init ~ps =
       (* now need to write the initial frame *)
       let _ = 
         let frm = Disk_leaf [] in
-        let p = frm|>frame_to_page ps blk_sz in
+        let p = frm|>P.frame_to_page ps blk_sz in
         Disk_on_fd.write ~fd ~blk_sz ~blk_id:1 ~blk:p 
       in
       (* 0,1 are taken so 2 is free; 1 is the root of the btree *)

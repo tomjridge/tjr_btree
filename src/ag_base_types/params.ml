@@ -11,6 +11,8 @@ enforce that the value of the parameter has a given type, we define
 
 *) 
 
+module P = struct
+
 open R2t
 
 (** The order on keys. B-trees work with ordered keys. *)
@@ -68,3 +70,5 @@ let store_ops x = x#store_ops
 
 let fd_ops x = x#fd_ops
 let free_ops x = x#free_ops
+
+end
