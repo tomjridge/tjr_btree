@@ -7,22 +7,16 @@ open Default_filename
 open Map_ops
 (* FIXME too many opens *)
 
-(* FIXME Default.fn etc *)
-
-open Examples_common
-module Map_string = Tjr_map.Map_string
-
-
-let x = mk_example_on_fd ~ps
-
-let from_file = from_file x
-let map_ops = map_ops x
-let close = close x
-let ls_ops = ls_ops x
+(* open Examples_common *)
+module P = Examples_common.P
 
 let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
+  dest_map_ops (P.map_ops map_ss_int) @@ fun ~find ~insert ~delete ~insert_many:_ -> 
   (find,insert,delete)
+
+let from_file = P.from_file map_ss_int
+let close = P.close map_ss_int
+
 
 include struct
   open Tjr_monad
@@ -43,9 +37,9 @@ let test () =
   let s = ref s in
   (fun _ -> close !s) 
     begin
-      let xs = ref Test_common.strings in
+      let xs = ref Test_strings.strings in
       let c = ref 1 in
-      let m = ref Map_string.empty in
+      let m = ref Tjr_map.Map_string.empty in
       ignore (
         while (!xs <> []) do
           print_string "."; Base_types.flush_out();
@@ -55,14 +49,14 @@ let test () =
           ignore (insert (SS.of_string k) v 
                   |> run ~init_state:!s 
                   |> (function (s',()) -> s:=s'));
-          m:=(Map_string.add k v !m);
+          m:=(Tjr_map.Map_string.add k v !m);
           c:=!c+1;
           xs:=(List.tl !xs);
           ()
         done);
       (* check the bindings match *)
       ignore (
-        !m|>Map_string.bindings|>List.iter (fun (k,v) ->
+        !m|>Tjr_map.Map_string.bindings|>List.iter (fun (k,v) ->
             let _ = 
               find (SS.of_string k)
               |> run ~init_state:!s 

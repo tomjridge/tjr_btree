@@ -4,10 +4,10 @@ open Map_on_fd.Default_implementation
 
 module Internal = struct
   type nonrec ('a,'b,'c,'d) t = 
-< close : fd:Unix.file_descr -> free:'c -> root:'d -> unit;
-  disk_ops : t Tjr_monad.State_passing.state_passing Disk_ops.block_device;
+< close : Map_on_fd.Default_implementation.t -> unit;
+  disk_ops : Map_on_fd.Default_implementation.t Tjr_monad.State_passing.state_passing Disk_ops.block_device;
   from_file : fn:string ->
-              create:bool -> init:bool -> Unix.file_descr * int * int;
+              create:bool -> init:bool -> Map_on_fd.Default_implementation.t;
   imperative_map_ops : s_ref:t ref ->
                        [ `Imperative_map_ops of
                             ('a -> 'b option) * ('a -> 'b -> unit) *
@@ -39,9 +39,9 @@ let mk_example_on_fd ~ps : ('a,'b,'c,'d) Internal.t =
     Store_to_map.store_ops_to_ls_ops ~monad_ops ~constants ~cmp ~store_ops 
   in
   let from_file ~fn ~create ~init = 
-    Map_on_fd.from_file ~fn ~create ~init ~ps 
+    Map_on_fd.Default_implementation.from_file ~fn ~create ~init ~ps 
   in
-  let close = Map_on_fd.close ~blk_sz:(blk_sz ps) in
+  let close = Map_on_fd.Default_implementation.close ~blk_sz:(blk_sz ps) in
   object
     method disk_ops=disk_ops
     method store_ops=store_ops
@@ -57,13 +57,14 @@ let _ = mk_example_on_fd
 
 (* specific params ------------------------------------------------ *)
 
-(* FIXME move elsewhere? add types? *)
-let map_ops (x:('a,'b,'c,'d)Internal.t) = x#map_ops
-let imperative_map_ops (x:('a,'b,'c,'d)Internal.t) = x#imperative_map_ops
-let ls_ops (x:('a,'b,'c,'d)Internal.t) = x#ls_ops
-let from_file (x:('a,'b,'c,'d)Internal.t) = x#from_file
-let close (x:('a,'b,'c,'d)Internal.t) = x#close
-
+module P = struct
+  (* FIXME move elsewhere? add types? *)
+  let map_ops (x:('a,'b,'c,'d)Internal.t) = x#map_ops
+  let imperative_map_ops (x:('a,'b,'c,'d)Internal.t) = x#imperative_map_ops
+  let ls_ops (x:('a,'b,'c,'d)Internal.t) = x#ls_ops
+  let from_file (x:('a,'b,'c,'d)Internal.t) = x#from_file
+  let close (x:('a,'b,'c,'d)Internal.t) = x#close
+end
 
 (* default blocksize ------------------------------------------------ *)
 

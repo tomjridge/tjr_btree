@@ -1,5 +1,7 @@
 (* exhaustive in-mem testing ---------------------------------------- *)
 
+(* FIXME how different from test_exhaustive_in_mem? *)
+
 open Isa_btree
 open Base_types
 (* open Mem_store *)

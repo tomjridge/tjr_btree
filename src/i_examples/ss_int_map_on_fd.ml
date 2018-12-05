@@ -26,8 +26,10 @@ end
 open Internal
 
 let ps = Internal.ps
+let map_ss_int = x
 
-let from_file = from_file x
-let map_ops = map_ops x
-let close = close x
-let ls_ops = ls_ops x
+(* bind the fields so less faff later *)
+let from_file = Examples_common.P.from_file map_ss_int
+let map_ops = Examples_common.P.map_ops map_ss_int
+let close = Examples_common.P.close map_ss_int
+let ls_ops = Examples_common.P.ls_ops map_ss_int

@@ -10,23 +10,18 @@ open Map_ops
 
 (* test uncached ---------------------------------------- *)
 
-open Examples_common
-
-(* FIXME following not needd with map_int_int *)
-
-let x = mk_example_on_fd ~ps
-
-let from_file = from_file x
-let map_ops = map_ops x
-let close = close x
-let ls_ops = ls_ops x
+(* open Examples_common *)
+module P = Examples_common.P
 
 let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ ->
+  dest_map_ops (P.map_ops map_int_int) @@ fun ~find ~insert ~delete ~insert_many:_ ->
   (find,insert,delete)
 
 let run ~init_state a = 
   Tjr_monad.State_passing.run ~init_state a |> fun (x,y) -> (y,x)
+
+let from_file = P.from_file map_int_int
+let close = P.close map_int_int
 
 let test_uncached range = (
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 

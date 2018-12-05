@@ -24,10 +24,12 @@ end
 open Internal
 
 let ps = ps
+let map_int_int = x
 
-let from_file = from_file x
-let map_ops = map_ops x
-let close = close x
-let ls_ops = ls_ops x
+(* these are the particular fields of map_int_int *)
 
+let from_file = Examples_common.P.from_file x
+let map_ops = Examples_common.P.map_ops x
+let close = Examples_common.P.close x
+let ls_ops = Examples_common.P.ls_ops x
 

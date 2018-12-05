@@ -1,22 +1,12 @@
 (** A simple example of a kv store. *)
 
 open Tjr_btree
-open Default_filename
-(* open Block.Blk4096 *)
 open Map_ops
 open Map_int_int
+open Default_filename
 
 let _ = Test.disable()
 let _ = Isa_test.disable_isa_checks()
-
-open Examples_common
-
-let x = mk_example_on_fd ~ps
-
-let from_file = from_file x
-let imperative_map_ops = imperative_map_ops x
-let close = close x
-
 
 (* construct keys and values from an int *)
 let k x = x
@@ -24,6 +14,7 @@ let v x = x
 
 let max = 10000
 
+let map_ops = Examples_common.P.imperative_map_ops map_int_int
 
 (* TODO this would be much faster if we used insert_many *)
 
@@ -34,7 +25,7 @@ let do_write () =
   (* create and initialize *)
   let s = ref (from_file ~fn ~create:true ~init:true) in
   (* get map operations *)
-  let map_ops = imperative_map_ops ~s_ref:s in
+  let map_ops = map_ops ~s_ref:s in
   dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert ~delete:_ ->
   (* write values *)
   for x=1 to max do
@@ -47,7 +38,7 @@ let do_write () =
 let do_delete () = 
   print_endline "Deleting...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops ~s_ref:s in
+  let map_ops = map_ops ~s_ref:s in
   dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert:_ ~delete ->
   for x=100 to 200 do
     delete (k x);
@@ -59,7 +50,7 @@ let do_delete () =
 let do_check () = 
   print_endline "Checking...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops ~s_ref:s in
+  let map_ops = map_ops ~s_ref:s in
   dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
   assert(find (k 100) = None);
   assert(find (k 1000) = Some(v 1000));
@@ -77,7 +68,7 @@ let _ =
 let do_full_check () = 
   print_endline "Full check...";
   let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = imperative_map_ops ~s_ref:s in
+  let map_ops = map_ops ~s_ref:s in
   dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
   for x = 1 to max do
     if (100 <= x && x <= 200) then
@@ -89,7 +80,3 @@ let do_full_check () =
   ()
 
 let _ = do_full_check ()
-
-(*
-let _ = Test.run_exit_hooks()
-*)

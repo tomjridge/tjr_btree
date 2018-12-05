@@ -21,9 +21,10 @@ end
 open Internal
 
 let ps = ps
+let map_ss_ss = x
 
-let from_file = from_file x
-let map_ops = map_ops x
-let close = close x
-let ls_ops = ls_ops x
-
+(* extract some fields *)
+let from_file = Examples_common.P.from_file map_ss_ss
+let map_ops = Examples_common.P.map_ops map_ss_ss
+let close = Examples_common.P.close map_ss_ss
+let ls_ops = Examples_common.P.ls_ops map_ss_ss

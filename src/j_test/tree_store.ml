@@ -1,6 +1,8 @@
 (* a store that works with trees not refs --------------------------- *)
 
 
+(* FIXME move to stores? no, this is just for testing with exhaustive_in_mem *)
+
 type key = int  [@@deriving yojson]
 type value = int  [@@deriving yojson]
 
