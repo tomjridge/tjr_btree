@@ -7,10 +7,12 @@
 ;  (flags -noassert)
   (names 
 exhaustive_in_mem_main
+print_globals
 test_main
 )
   (public_names 
 exhaustive_in_mem_main
+print_globals
 test_main
 )
   (preprocess (pps ppx_deriving_yojson))

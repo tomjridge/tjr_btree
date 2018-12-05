@@ -15,34 +15,8 @@ let log' s = (dest_Some !logger).log s
 
 let log f = (dest_Some !logger).log_lazy f
 
-(*
-let log_messages: (unit -> string) list ref = 
-  Tjr_fs_shared.Global.register 
-    ~name:"log_messages" 
-    (ref [fun _ -> "initial log message"])
-
-(** Log a thunk of type [unit -> string]. *)
-let log s = (log_messages:=s::!log_messages)
-
-
-let log_take_length = 
-  Tjr_fs_shared.Global.register 
-    ~name:"log_take_length" 
-  (ref 10)
-
-
-(** Print most recent log messages. Typically we only print
-    when an exception occurs. Independent of enable/disable *)
-let print_logs () = 
-  print_endline "Logs (in chronological order): ";
-  ignore (
-    !log_messages
-    |> Tjr_list.take (!log_take_length) |> List.rev 
-    |> List.iter (fun f -> f()|>print_endline));
-  print_string "// end Logs\n\n"
-*)
-
 let print_last_n () = (dest_Some !logger).print_last_n ()
+
 
 (* warn ------------------------------------------------------------- *)
 
