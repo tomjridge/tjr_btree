@@ -102,19 +102,19 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
 
   let step t op = 
     (* print_endline __LOC__; *)
-    Logger.log (fun _ -> Printf.sprintf "%s: about to perform action %s on %s" 
+    Logger.logl (fun _ -> Printf.sprintf "%s: about to perform action %s on %s" 
                 __LOC__ (op2s op) (t2s t));
     match op with
     | Insert i -> 
-      Logger.log (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
+      Logger.logl (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
       insert i i |> run ~init_state:t
     | Delete i ->
-      Logger.log (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
+      Logger.logl (fun _ -> Printf.sprintf "%s: deleting %d" __LOC__ i);
       delete i |> run ~init_state:t
   in
 
   let check_state t = assert(
-    Logger.log(fun _ -> Printf.sprintf "%s: checking invariants on %s" 
+    Logger.logl (fun _ -> Printf.sprintf "%s: checking invariants on %s" 
                 __LOC__ (t2s t));    
     (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
     Tree.wellformed_tree ~constants 
@@ -126,7 +126,7 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
   (* step should return a list of next states *)
   let step t op = 
     step t op |> fun (t,()) -> 
-    Logger.log (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
+    Logger.logl (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
                  __LOC__ (op2s op) (t2s t));
     check_state t;
     [t]

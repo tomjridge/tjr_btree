@@ -1,6 +1,8 @@
 open Tjr_btree
 open Isa_btree.Constants
 
+module Logger = Tjr_fs_shared.Logger
+
 let _ = 
   Logger.logger := Some (Tjr_log.noop_log_ops);
   Logger.at_exit ~print:true;

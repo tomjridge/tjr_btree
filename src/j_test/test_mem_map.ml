@@ -191,7 +191,7 @@ let step range (t:global_state) = (
       fun x -> 
         action:=Insert x;
         insert x x|> fun f -> 
-            Logger.log (fun _ -> __LOC__^": inserting "^(string_of_int x));
+            Logger.logl (fun _ -> __LOC__^": inserting "^(string_of_int x));
             run ~init_state:t f))
   in
   let r2 = (
@@ -199,7 +199,7 @@ let step range (t:global_state) = (
       fun x -> 
         action:=Delete x; 
         delete x|>(fun f -> 
-            Logger.log (fun _ -> __LOC__^": deleting "^(string_of_int x));           
+            Logger.logl (fun _ -> __LOC__^": deleting "^(string_of_int x));           
             run ~init_state:t f )))
   in
   r1@r2 |> List.map (

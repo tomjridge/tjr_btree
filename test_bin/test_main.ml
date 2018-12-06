@@ -1,5 +1,7 @@
 open Tjr_btree
 
+module Logger = Tjr_fs_shared.Logger
+
 let (--) = Tjr_list.from_to
 
 type param = Range of (int * int) [@@deriving yojson]

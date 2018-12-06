@@ -39,8 +39,8 @@ let test () =
         while (!xs <> []) do
           print_string "."; Base_types.flush_out();
           let (k,v) = (List.hd !xs, !c) in
-          Logger.log (fun _ -> __LOC__);
-          Logger.log (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
+          Logger.logl (fun _ -> __LOC__);
+          Logger.logl (fun _ -> Printf.sprintf "insert: %s %s" k (v|>string_of_int)); 
           ignore (insert (SS.of_string k) v 
                   |> run ~init_state:!s 
                   |> (function (s',()) -> s:=s'));
@@ -56,7 +56,7 @@ let test () =
               find (SS.of_string k)
               |> run ~init_state:!s 
               |> fun (_,res) -> 
-              Logger.log (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
+              Logger.logl (fun _ -> Printf.sprintf "testing key %s, expecting %s" k (string_of_int v));
               if res = Some v then () else (
                 print_endline (Printf.sprintf "%s: key:%s expected %s, got %s" 
                                  __LOC__ 
@@ -68,7 +68,7 @@ let test () =
                 Pervasives.exit (-1))
             in
             let _ = 
-              Logger.log (fun _ -> Printf.sprintf "deleting key %s" k);
+              Logger.logl (fun _ -> Printf.sprintf "deleting key %s" k);
               delete (SS.of_string k) 
               |> run ~init_state:!s 
               |> fun (s',()) -> s:=s'
