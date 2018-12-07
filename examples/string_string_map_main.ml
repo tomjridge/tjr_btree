@@ -43,6 +43,19 @@ let main args =
             ()));                
       print_endline "list ok")
 
+
+  | ["insert_range";fn;l;h] -> (
+      from_file ~fn  ~create:false ~init:false |> fun s -> 
+      let l,h = int_of_string l, int_of_string h in
+      let s = ref s in
+      Tjr_list.from_to l h |> List.iter (fun i ->
+          let k,v = string_of_int i, string_of_int (2*i) in
+          insert (SS.of_string k) (SS.of_string v) 
+          |> run ~init_state:!s 
+          |> fun (_,s') -> s:=s');
+      close !s)
+
+
   | _ -> 
     failwith (
       Printf.sprintf "Unrecognized args: %s, at %s"
