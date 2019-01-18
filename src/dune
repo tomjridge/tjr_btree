@@ -5,6 +5,6 @@
   (name tjr_btree)
   (public_name tjr_btree)
   (preprocess (pps ppx_deriving_yojson ppx_bin_prot))
-  (libraries yojson ppx_deriving_yojson core ppx_bin_prot extlib isa_btree tjr_monad tjr_fs_shared))
+  (libraries yojson ppx_deriving_yojson core ppx_bin_prot extlib isa_btree tjr_fs_shared))
 
 (include_subdirs unqualified)

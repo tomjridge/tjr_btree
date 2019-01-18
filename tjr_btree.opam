@@ -18,7 +18,7 @@ depends: [
   "core"
   "ppx_bin_prot"
   "extlib"
-  "isa_btree" "tjr_monad" "tjr_fs_shared"
+  "isa_btree" "tjr_fs_shared" 
 ]
 
 # ----------------------------------------------------------------------

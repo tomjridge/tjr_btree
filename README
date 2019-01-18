@@ -60,6 +60,8 @@ A simple install script is at
 <https://github.com/tomjridge/tjr_imp_build_script>. That repository
 also includes a Dockerfile.
 
+
+
 * Documentation
 
 Ocamldoc is at https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/index.html
@@ -67,6 +69,7 @@ Ocamldoc is at https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_bt
 Please read the overview
 
 https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_doc/index.html
+
 
 * Dependencies
 
@@ -79,9 +82,7 @@ opam:
 
 
 other:
-| tjr_lib       | Basic library support                    |
 | isa_btree     | Base OCaml defns extracted from Isabelle |
-| tjr_monad     | Generic monad                            |
 | tjr_fs_shared | Shared library for all fs stuff          |
 
 
