@@ -16,7 +16,8 @@ open Store_ops
 
 FIXME move this type elsewhere?
 *)
-type 't page_ref_ops = (page_ref,'t) mref
+(* for all operations, we need to be able to retrieve the root; *)
+type 't btree_root_ops = (page_ref,'t) mref
 
 open Pre_map_ops
 open Map_ops
@@ -24,43 +25,42 @@ open Map_ops
 
 
 module Internal = struct
-
   (* produce a map, with page_ref state set/get via monad_ops *)
-  let make_map_ops' (* (type k v r t)*) ~monad_ops ~pre_map_ops ~page_ref_ops = 
+  let make_map_ops' (* (type k v r t)*) ~monad_ops ~pre_map_ops ~page_ref_ops:root_ops = 
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
     dest_pre_map_ops pre_map_ops @@ 
     fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
     let _find_leaf = fun k ->
-      page_ref_ops.get () >>= fun r ->
+      root_ops.get () >>= fun r ->
       find_leaf k r >>= fun kvs ->               
       return kvs
     in
     let find = fun k ->
-      page_ref_ops.get () >>= fun r ->
+      root_ops.get () >>= fun r ->
       find k r >>= fun (_r',kvs) -> 
       (* page_ref_ops.set_page_ref r' >>= (fun () -> 
          NO! the r is the pointer to the leaf *)
       return (try Some(List.assoc k kvs) with _ -> None)
     in
     let insert = fun k v ->
-      page_ref_ops.get () >>= fun r ->
+      root_ops.get () >>= fun r ->
       insert k v r >>= fun r' -> 
-      page_ref_ops.set r'
+      root_ops.set r'
     in
     let insert_many = fun k v kvs -> 
-      page_ref_ops.get () >>= fun r ->
+      root_ops.get () >>= fun r ->
       insert_many k v kvs r >>= fun (r',kvs') ->
-      page_ref_ops.set r' >>= fun () ->
+      root_ops.set r' >>= fun () ->
       return kvs'
     in
     let delete = fun k ->
-      page_ref_ops.get () >>= fun r -> 
+      root_ops.get () >>= fun r -> 
       delete k r >>= fun r' ->
-      page_ref_ops.set r'
+      root_ops.set r'
     in
-    assert(wf_map_ops ~find ~insert ~delete ~insert_many);
-    mk_map_ops ~find ~insert ~delete ~insert_many
+    (* assert(wf_map_ops ~find ~insert ~delete ~insert_many); *)
+    { find; insert; delete; insert_many }
 end
 open Internal
 
@@ -76,6 +76,8 @@ let store_ops_to_map_ops
   map_ops
 
 
+let _ = store_ops_to_map_ops
+
 (** Make [ls_ops], given a [page_ref_ops]. *)
 let store_ops_to_ls_ops 
     ~monad_ops ~constants ~cmp ~(store_ops:('k,'v,'r,'t)store_ops)
@@ -84,3 +86,4 @@ let store_ops_to_ls_ops
   Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
   fun ~pre_map_ops:_ ~ls_ops -> 
   ls_ops
+

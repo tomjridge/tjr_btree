@@ -2,7 +2,7 @@
 
 open Base_types
 (* open Params *)
-open Block
+(* open Block *)
 open Map_ops
 
 (* as usual, we implement on top of a store *)
@@ -10,6 +10,7 @@ open Map_ops
 type k1 = int  (* index *)
 
 (* location of underlying block that corresponds to this index *)
+type blk_id = int
 type v1 = blk_id  
 
 let store_ops_to_map_ops 
@@ -21,18 +22,18 @@ let store_ops_to_map_ops
 (* the map index->blk_id (k1->v1) is then used to implement a map index->blk *)
 
 type k2 = k1
-type v2 = blk
+(* type v2 = blk *)
 
 let mk_int_blk_map 
     ~monad_ops
-    ~(write_blk:blk->(blk_id,'t)m)  (* write blk in data *)
-    ~(read_blk:blk_id->(blk option,'t)m)
+    ~(write_blk:'blk->(blk_id,'t)m)  (* write blk in data *)
+    ~(read_blk:blk_id->('blk option,'t)m)
     ~map_ops
   : ('k,'v,'t) map_ops 
   =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete:_ ~insert_many ->
+  let { find; insert; insert_many; _ } = map_ops in
   let find : 'k -> ('v option,'t) m = (fun i ->
       (* read from map *)
       find i >>= fun blk_id -> 
@@ -70,4 +71,4 @@ let mk_int_blk_map
          different type for map_ops? or just pass on functions directly? *)
       failwith __LOC__)
   in
-  mk_map_ops ~find ~insert ~insert_many ~delete
+  { find; insert; delete; insert_many }

@@ -49,13 +49,13 @@ let blk_sz x : int = (x#blk_sz)
 let page_size = blk_sz
 
 
-open Block
+(* open Block *)
 open Frame
 
-let page_to_frame x : blk -> ('k,'v,'r) frame = x#page_to_frame
+let page_to_frame x : 'blk -> ('k,'v,'r) frame = x#page_to_frame
 
 (* following takes block size to allow uniformity *)
-let frame_to_page x : int -> ('k,'v,'r) frame -> blk = x#frame_to_page
+let frame_to_page x : int -> ('k,'v,'r) frame -> 'blk = x#frame_to_page
 
 (* these are typically part of "extended" parameters *)
 
@@ -70,5 +70,7 @@ let store_ops x = x#store_ops
 
 let fd_ops x = x#fd_ops
 let free_ops x = x#free_ops
+
+let fd x : Unix.file_descr = x#fd
 
 end

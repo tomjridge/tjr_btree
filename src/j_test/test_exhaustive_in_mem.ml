@@ -95,10 +95,7 @@ include struct
 end
 
 let execute_tests ~constants ~map_ops ~ops ~init_trees = 
-  let _find,insert,delete = 
-    Map_ops.dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
-    (find,insert,delete)
-  in
+  let Map_ops.{ insert; delete; _ } = map_ops in
 
   let step t op = 
     (* print_endline __LOC__; *)

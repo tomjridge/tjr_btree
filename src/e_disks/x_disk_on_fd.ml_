@@ -18,29 +18,8 @@ type fd = Unix.file_descr
    fd? because we want a uniform interface to disks, and in general they
    are not identified by fd 
 
-FIXME move elsewhere?
 *)
 type 't fd_ops = (fd,'t) mref
-
-
-(* raw operations --------------------------------------------------- *)
-
-let read ~fd ~blk_sz ~blk_id = 
-  ignore (Unix.lseek fd (blk_id * blk_sz) SEEK_SET);
-  let buf = Bytes.make blk_sz (Char.chr 0) in 
-  let n = Unix.read fd buf 0 blk_sz in
-  (* assert (n=blk_sz); we allow the file to expand automatically, so
-     no reason to read any bytes since file could be empty *)
-  test(fun _ -> assert(n=0 || n=blk_sz));
-  Block.of_bytes blk_sz buf
-
-
-let write ~fd ~blk_sz ~blk_id ~blk = 
-  ignore (Unix.lseek fd (blk_id * blk_sz) SEEK_SET);
-  let buf = Block.to_bytes blk in
-  let n = Unix.single_write fd buf 0 blk_sz in
-  test(fun _ -> assert (n=blk_sz));
-  ()
 
 
 (* in the monad ----------------------------------------------------- *)

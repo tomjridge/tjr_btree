@@ -15,11 +15,11 @@ let bin_writer_int = bin_writer_int
 
 (* small string ----------------------------------------------------- *)
 
-open Small_string
+open Tjr_fs_shared.Small_string
 
-let bp_size_ss = 3+SS.max_length
+let bp_size_ss = 3+max_length
 
-let bin_reader_ss = SS.bin_reader_ss
+let bin_reader_ss = bin_reader_ss
 
-let bin_writer_ss = SS.bin_writer_ss
+let bin_writer_ss = bin_writer_ss
 

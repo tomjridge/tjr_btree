@@ -8,9 +8,9 @@ module Internal = struct
 
   (* NOTE how easy it is to get readers and writers mixed up, and not
      agreeing with k_size and v_size *)
-  let ps' ~blk_sz = 
-    Binprot_marshalling.mk_binprot_ps 
-      ~blk_sz
+  let ps' (* ~blk_sz *) = 
+    (Binprot_marshalling.mk_binprot_ps ())
+      (* ~blk_sz *)
       ~cmp:SS.compare 
       ~k_size:bp_size_ss 
       ~v_size:bp_size_int
@@ -19,9 +19,9 @@ module Internal = struct
       ~read_v:bin_reader_int
       ~write_v:bin_writer_int
 
-  let ps = ps' ~blk_sz
+  let ps = ps' (* ~blk_sz *)
 
-  let x : (ss,int,int,int) Internal.t = mk_example_on_fd ~ps
+  let x : (ss,int) Internal.t = mk_example_on_fd ~ps
 end
 open Internal
 

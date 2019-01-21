@@ -6,9 +6,8 @@ module Internal = struct
   open Bin_prot_util 
 
   (* this is generally useful, not just in examples *)
-  let ps' ~blk_sz = 
-    Binprot_marshalling.mk_binprot_ps 
-      ~blk_sz
+  let ps' (*~blk_sz *) = 
+    (Binprot_marshalling.mk_binprot_ps ())
       ~cmp:Tjr_int.compare 
       ~k_size:bp_size_int
       ~v_size:bp_size_int
@@ -17,9 +16,9 @@ module Internal = struct
       ~read_v:bin_reader_int 
       ~write_v:bin_writer_int
 
-  let ps = ps' ~blk_sz
+  let ps = ps' (* ~blk_sz *)
 
-  let x : (int,int,int,int) Internal.t = mk_example_on_fd ~ps
+  let x : (int,int) Internal.t = mk_example_on_fd ~ps
 end
 open Internal
 

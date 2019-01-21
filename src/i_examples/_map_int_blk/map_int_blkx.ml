@@ -1,3 +1,5 @@
+(* FIXME TODO
+
 (** Map from int to partial blk, implemented as a map from blkid to blkid*sz *)
 
 (* used by bytestore2 *)
@@ -40,7 +42,7 @@ module Mk = functor (
     = 
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
-    dest_map_ops map_ops @@ fun ~find ~insert ~delete:_ ~insert_many:_ ->
+    let { find; insert; _ } = map_ops in
     let find : 'k -> ('v option,'t) m = fun i ->
       (* read from map *)
       find i >>= (
@@ -67,3 +69,4 @@ module Mk = functor (
     fun k -> k  ~find ~insert
 
 end
+*)

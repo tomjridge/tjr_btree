@@ -181,9 +181,7 @@ let (init_store,init_r) = Mem_store.(
     |> (fun s -> (s,0)))
 
 
-let (find,insert,delete) = 
-  dest_map_ops map_ops @@ fun ~find ~insert ~delete ~insert_many:_ -> 
-  (find,insert,delete)
+let { find; insert; delete; _ } = map_ops
 
 let step range (t:global_state) = (
   let r1 = (

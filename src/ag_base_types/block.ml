@@ -1,14 +1,25 @@
-(** Basic block implementation. *)
+(** Basic block interface. *)
+
+include Tjr_fs_shared.Block_ops
+
+
+
+
+
+
 (* open Tjr_fs_shared *)
 
-
+(*
 module type BLK_TYPES = sig
   type blk
   type blk_id = int 
 end
+*)
 
-type blk_sz = int  (* in bytes *)
+(* type blk_sz = int  (\* in bytes *\) *)
 
+
+(*
 (** Basic implementation of a block. Blocks are represented by
    strings. Blocks have a particular length, although we do not
    capture this in the type. *)
@@ -45,3 +56,4 @@ end
 (* default *)
 include BlkN
 
+*)

@@ -36,23 +36,24 @@ TODO: cached
 
 *)
 
-module D = Disk_on_fd
+module BD = Blk_dev_on_fd
 module D2S = Disk_to_store
 (* module RS = Recycling_store *)
 module S2M = Store_to_map
 
 (* open Block *)
-
+module Block = BD.Block_on_fd
 
 (* layers: disk_ops and store_ops --------------------------------- *)
 
-let mk_disk_ops ~monad_ops ~ps ~fd_ops = 
-  D.make_disk ~monad_ops ~blk_sz:(P.blk_sz ps) ~fd_ops
+let mk_disk_ops ~monad_ops ~fd = 
+  BD.make_blk_dev_on_fd ~monad_ops 
+  @@ fun ~generic_ops:_ ~fixed_ops -> fixed_ops fd
 
 let mk_store_ops ~monad_ops ~ps ~ops = 
   D2S.disk_to_store ~monad_ops
     ~ps
-    ~disk_ops:(mk_disk_ops ~monad_ops ~ps ~fd_ops:(P.fd_ops ops))
+    ~disk_ops:(mk_disk_ops ~monad_ops ~fd:(P.fd ops))
     ~free_ops:(P.free_ops ops)
 
 
@@ -88,12 +89,15 @@ let root_blk_id = 0
 
 
 let write_root_block ~fd ~blk_sz ~free ~root = 
-  (free,root) |> marshal_to_string |> Block.of_string blk_sz 
-  |> fun blk -> Disk_on_fd.write ~fd ~blk_sz ~blk_id:root_blk_id ~blk
+  (free,root) 
+  |> marshal_to_string 
+  |> Block.block_ops.of_string |> fun blk -> 
+  Blk_dev_on_fd.Internal.write ~fd ~blk_sz ~blk_id:root_blk_id ~blk
 
 let read_root_block ~blk_sz ~fd = 
-  Disk_on_fd.read ~fd ~blk_sz ~blk_id:root_blk_id 
-  |> Block.to_string |> (fun x -> (marshal_from_string x : (int * int)))
+  Blk_dev_on_fd.Internal.read ~fd ~blk_sz ~blk_id:root_blk_id 
+  |> Block.block_ops.to_string 
+  |> (fun x -> (marshal_from_string x : (int * int)))
   |> fun (free,root) -> (free,root)
 
 let from_file ~fn ~create ~init ~ps = 
@@ -106,7 +110,7 @@ let from_file ~fn ~create ~init ~ps =
       let _ = 
         let frm = Disk_leaf [] in
         let p = frm|>P.frame_to_page ps blk_sz in
-        Disk_on_fd.write ~fd ~blk_sz ~blk_id:1 ~blk:p 
+        Blk_dev_on_fd.Internal.write ~fd ~blk_sz ~blk_id:1 ~blk:p 
       in
       (* 0,1 are taken so 2 is free; 1 is the root of the btree *)
       let (free,root) = (2,1) in
@@ -127,7 +131,7 @@ module Default_implementation = struct
 
   (* the global state *)
   type global_state = {
-    fd: Disk_on_fd.fd;
+    fd: Unix.file_descr;
     free: page_ref;
     root: page_ref; (* pointer to root of btree *)
   }        
