@@ -38,5 +38,5 @@ let mk_r2f get_store s r : ('k,'v)frame option =
 
 
 (* param FIXME move *)
-let mem_ops x : ('k,'v,'t) mem_ops = x#mem_ops
+(* let mem_ops x : ('k,'v,'t) mem_ops = x#mem_ops *)
 

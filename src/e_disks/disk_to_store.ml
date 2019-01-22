@@ -8,14 +8,14 @@ open Freespace_ops_type
 
 Convert a disk to a store using pickling and a freespace allocator for
    disk blocks; require page size and block size are the same.  *)
-let disk_to_store ~monad_ops ~ps ~disk_ops ~free_ops =
+let disk_to_store ~monad_ops ~mp ~blk_dev_ops ~free_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  let { blk_sz; read; write } = disk_ops in
-  let page_size = ps.page_size in
+  let { blk_sz; read; write } = blk_dev_ops in
+  let page_size = mp.page_size in
   Test.test(fun _ -> assert (blk_sz = page_size));
-  let f2p = ps.frame_to_page in
-  let p2f = ps.page_to_frame in
+  let f2p = mp.frame_to_page in
+  let p2f = mp.page_to_frame in
   let store_free _rs = return () in  (* no-op *)
   let store_alloc f : (page_ref,'t) m = 
     f |> f2p |> fun p -> 

@@ -1,7 +1,18 @@
+(** Exhaustively test the B-tree functionality, using a "correct"
+   in-memory store. In this case, we use a "Tree store".
+
+At the moment this takes constants from a config file, but perhaps we
+   should test over a set of configs as well (just use the test code,
+   parameterized by a config).
+
+*)
+
 open Isa_btree
 open Base_types
 
 (* test config ------------------------------------------------------ *)
+
+(* FIXME prefer a generic lib eg tjr_config *)
 
 let fields = [
   "range_min";
@@ -72,10 +83,7 @@ Note that OCaml maps require Map.equal for comparison
 *)
 
 
-open Insert_delete_ops
-
-(* because of the min/max parameters, the step function is really a
-   runtime thing, so the functorization isn't helping here *)
+open Tjr_fs_shared.Kv_op
 
 open Tree_store
 
@@ -98,11 +106,11 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
   let Map_ops.{ insert; delete; _ } = map_ops in
 
   let step t op = 
-    (* print_endline __LOC__; *)
-    Logger.logl (fun _ -> Printf.sprintf "%s: about to perform action %s on %s" 
-                __LOC__ (op2s op) (t2s t));
+    Logger.logl (fun _ -> 
+        Printf.sprintf "%s: about to perform action %s on %s" 
+                __LOC__ (ii_op2s op) (t2s t));
     match op with
-    | Insert i -> 
+    | Insert (i,_) -> 
       Logger.logl (fun _ -> Printf.sprintf "%s: inserting %d" __LOC__ i);
       insert i i |> run ~init_state:t
     | Delete i ->
@@ -110,21 +118,24 @@ let execute_tests ~constants ~map_ops ~ops ~init_trees =
       delete i |> run ~init_state:t
   in
 
-  let check_state t = assert(
-    Logger.logl (fun _ -> Printf.sprintf "%s: checking invariants on %s" 
-                __LOC__ (t2s t));    
-    (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
-    Tree.wellformed_tree ~constants 
-      ~maybe_small:(Some Isa_export.Prelude.Small_root_node_or_leaf)
-      ~cmp:Tjr_int.compare
-      t) 
+  let check_state t = 
+    assert begin
+      Logger.logl (fun _ -> Printf.sprintf "%s: checking invariants on %s" 
+                      __LOC__ (t2s t));    
+      (* FIXME shouldn't there be a wellformed tree with default maybe_small? *)
+      Tree.wellformed_tree ~constants 
+        ~maybe_small:(Some Isa_export.Prelude.Small_root_node_or_leaf)
+        ~cmp:Tjr_int.compare
+        t
+    end
   in
 
   (* step should return a list of next states *)
   let step t op = 
     step t op |> fun (t,()) -> 
-    Logger.logl (fun _ -> Printf.sprintf "%s: result of op %s was %s" 
-                 __LOC__ (op2s op) (t2s t));
+    Logger.logl (fun _ -> 
+        Printf.sprintf "%s: result of op %s was %s" 
+          __LOC__ (ii_op2s op) (t2s t));
     check_state t;
     [t]
   in
@@ -148,11 +159,12 @@ let page_ref_ops = Tjr_monad.State_passing.{
 let main' ~min ~max ~step ~constants = 
   let range = Tjr_list.mk_range ~min ~max ~step in
   let ops = 
-    range|>List.map (fun x -> Insert x) |> fun xs ->
+    range|>List.map (fun x -> Insert (x,x)) |> fun xs ->
     range|>List.map (fun x -> Delete x) |> fun ys -> xs@ys
   in
   let cmp = Tjr_int.compare in
-  let map_ops = Store_to_map.store_ops_to_map_ops ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops in
+  let map_ops = Store_to_map.store_ops_to_map_ops 
+      ~monad_ops ~constants ~cmp ~page_ref_ops ~store_ops in
   execute_tests ~constants ~map_ops ~ops ~init_trees:[Tree.Leaf[]]
 
 let _ = main'

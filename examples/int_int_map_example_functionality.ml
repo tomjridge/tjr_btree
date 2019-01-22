@@ -1,8 +1,8 @@
 (** A simple example of a kv store. *)
 
 open Tjr_btree
-open Map_ops
-open Map_int_int
+(* open Map_on_fd_util *)
+open Examples
 open Default_filename
 
 let _ = 
@@ -13,13 +13,9 @@ let _ =
 let _ = Test.disable()
 let _ = Isa_test.disable_isa_checks()
 
-(* construct keys and values from an int *)
-let k x = x
-let v x = x
-
 let max = 10000
 
-let i_map_ops = Examples_common.P.imperative_map_ops map_int_int
+let (from_file,close,rest) = Examples.ii_map_on_fd
 
 (* TODO this would be much faster if we used insert_many *)
 
@@ -27,39 +23,34 @@ let i_map_ops = Examples_common.P.imperative_map_ops map_int_int
 let do_write () = 
   Printf.printf "Executing %d writes...\n%!" max;
   print_endline "Writing...";
-  (* create and initialize *)
-  let s = ref (from_file ~fn ~create:true ~init:true) in
-  (* get map operations *)
-  let map_ops = i_map_ops ~s_ref:s in
-  dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert ~delete:_ ->
+  let state = from_file ~fn ~create:true ~init:true in
+  let (_find,insert,_delete) = rest ~state in
   (* write values *)
   for x=1 to max do
-    insert (k x) (v x);
+    insert x x;
   done;
-  close !s;
+  close state;
   ()
 
 (* open store, delete some values, and close *)
 let do_delete () = 
   print_endline "Deleting...";
-  let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = i_map_ops ~s_ref:s in
-  dest_imperative_map_ops map_ops @@ fun ~find:_ ~insert:_ ~delete ->
+  let state = from_file ~fn ~create:false ~init:false in
+  let (_find,_insert,delete) = rest ~state in
   for x=100 to 200 do
-    delete (k x);
+    delete x;
   done;
-  close !s;
+  close state;
   ()
 
 (* open store and check whether various keys and values are correct *)
 let do_check () = 
   print_endline "Checking...";
-  let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = i_map_ops ~s_ref:s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
-  assert(find (k 100) = None);
-  assert(find (k 1000) = Some(v 1000));
-  close !s;
+  let state = from_file ~fn ~create:false ~init:false in
+  let (find,_insert,_delete) = rest ~state in
+  assert(find 100 = None);
+  assert(find 1000 = Some 1000);
+  close state;
   ()
 
 (* actually execute the above *)
@@ -72,16 +63,15 @@ let _ =
 
 let do_full_check () = 
   print_endline "Full check...";
-  let s = ref (from_file ~fn ~create:false ~init:false) in
-  let map_ops = i_map_ops ~s_ref:s in
-  dest_imperative_map_ops map_ops @@ fun ~find ~insert:_ ~delete:_ ->
+  let state = from_file ~fn ~create:false ~init:false in
+  let (find,_insert,_delete) = rest ~state in
   for x = 1 to max do
     if (100 <= x && x <= 200) then
-      assert(find (k x) = None)
+      assert(find x = None)
     else
-      assert(find (k x) = Some(v x))
+      assert(find x = Some(x))
   done;
-  close !s;
+  close state;
   ()
 
 let _ = do_full_check ()

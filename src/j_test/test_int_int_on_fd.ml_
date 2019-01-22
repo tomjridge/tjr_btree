@@ -1,49 +1,39 @@
 (* test int int map on file --------------------------------------- *)
 
 (* this is for performance testing *)
-
-(* open Base_types *)
-open Map_int_int  
-(* open Block.Blk4096 *)
 open Default_filename
-open Map_ops
+open Tjr_fs_shared.Map_ops
 
 (* test uncached ---------------------------------------- *)
 
-(* open Examples_common *)
-module P = Examples_common.P
+type state = { 
+  root: int;
+  store: Tjr_store.t;
+}
 
-let (find,insert,delete) = 
-  dest_map_ops (P.map_ops map_int_int) @@ fun ~find ~insert ~delete ~insert_many:_ ->
-  (find,insert,delete)
+let page_ref_ops = 
 
-let run ~init_state a = 
-  Tjr_monad.State_passing.run ~init_state a |> fun (x,y) -> (y,x)
-
-let from_file = P.from_file map_int_int
-let close = P.close map_int_int
-
-let test_uncached range = (
+let test_uncached range = 
   Printf.printf "%s: test_uncached, int map on rec. fstore, %d elts: " 
     __MODULE__ 
     (List.length range);
   Base_types.flush_out();
-  let s = from_file ~fn ~create:true ~init:true in
-  let s = ref s in
+  let fd = Tjr_fs_shared.File_util.fd_from_file ~fn ~create:true ~init:true in
+  let s = ref Examples.store in
   let xs = ref range in
-  ignore (
-    while (!xs <> []) do
-      print_string "."; Base_types.flush_out();
-      let x = List.hd !xs in
-      ignore (insert x (2*x) 
+  let { insert; _ } = Examples.ii_fd_map
+  while !xs <> [] do
+    print_string "."; Base_types.flush_out();
+    let x = List.hd !xs in
+    ignore (insert x (2*x) 
               |> run ~init_state:!s 
               |> function (s',()) -> s:=s');
       xs:=List.tl !xs;
-    done);
+    done;
   print_newline ();
   (* FIXME check result? *)
-  close !s;
-  ())
+  Unix.close fd;
+  ()
 
 
 (* test cached ------------------------------------------------------------ *)

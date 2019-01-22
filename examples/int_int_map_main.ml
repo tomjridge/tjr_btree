@@ -1,39 +1,36 @@
 (* a map from int to int, backed by file ------------------------------- *)
 
 open Tjr_btree
-open Map_int_int
+open Examples
 
-let run = Tjr_monad.State_passing.run
-
-let monad_ops = Tjr_monad.State_passing.monad_ops ()
+let (from_file,close,rest) = Examples.ii_map_on_fd
 
 let main args =
   (* turn off wf checking *)
   Isa_test.disable_isa_checks();
   Test.disable ();
-  Map_ops.dest_map_ops map_ops @@ 
-  fun ~find:_ ~insert ~delete ~insert_many:_ ->
   match args with
-
   | ["init"; fn] ->
-      from_file ~fn ~create:true ~init:true |> fun _ -> 
-      print_endline "init ok"
+    let state = from_file ~fn ~create:true ~init:true in
+    print_endline "init ok";
+    close state    
 
   | ["insert";fn;k;v] -> (
-      from_file ~fn ~create:false ~init:false |> fun s ->
-      insert (int_of_string k) (int_of_string v)  
-      |> run ~init_state:s 
-      |> function (_,t) -> close t)
+      let state = from_file ~fn ~create:true ~init:true in
+      let (_,insert,_) = rest ~state in
+      insert (int_of_string k) (int_of_string v);
+      close state)
 
   | ["delete";fn;k] -> (
-      from_file ~fn ~create:false ~init:false |> fun s ->
-      delete (int_of_string k) 
-      |> run ~init_state:s 
-      |> function (_,t) -> close t)
+      let state = from_file ~fn ~create:true ~init:true in
+      let (_,_,delete) = rest ~state in
+      delete (int_of_string k);
+      close state)
 
   | ["list";fn] -> (
-      from_file ~fn  ~create:false ~init:false |> fun s -> 
-      let r = s.Map_on_fd.Default_implementation.root in
+      let monad_ops = Map_on_fd_util.monad_ops in
+      let state = from_file ~fn ~create:true ~init:true in
+      let r = state.root in
       Leaf_stream_util.all_kvs ~monad_ops ~ls_ops ~r
       |> run ~init_state:s 
       |> (function (kvs,s') -> (

@@ -27,7 +27,8 @@ module Internal = struct
 
 
 
-  let make_binprot_marshalling ~blk_sz ~block_ops = 
+  let make_binprot_marshalling ~block_ops = 
+    let blk_sz = block_ops.blk_sz in
     let f2bp frm = (
       match frm with
       | Disk_node (ks,rs) -> N (ks,rs)
@@ -96,7 +97,7 @@ module Internal = struct
     - total: 4 + |kvs|*kv_size
 
 *)
-  let make_constants ~blk_sz ~k_size v_size = 
+  let make_constants ~blk_sz ~k_size ~v_size = 
     let r_size = 9 in (* page_ref size in bytes; assume int63 *)
     let max_node_keys = (blk_sz - 7 - r_size) / (k_size + r_size) in
     let max_leaf_size = (blk_sz - 4) / (k_size + v_size) in

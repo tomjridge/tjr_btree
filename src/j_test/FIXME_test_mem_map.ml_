@@ -1,3 +1,6 @@
+(** Test store-to-map functionality, on top of a mem store with
+   binprot marshalling FIXME *)
+
 (* exhaustive in-mem testing ---------------------------------------- *)
 
 (* FIXME how different from test_exhaustive_in_mem? *)

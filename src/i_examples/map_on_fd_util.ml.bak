@@ -1,4 +1,4 @@
-(** A generic map, backed by a file descriptor *)
+(** Help for maps on fd: write gloabl state into root block; load back in from file *)
 
 (**
 We fix:
