@@ -24,7 +24,7 @@ let mk_store_ops ~monad_ops ~(mem_ops:('k,'v,'t)mem_ops) =
     mem_ops.get () >>= fun s ->
     return (Map_int.find r s.map) (* ASSUMES present *)
   in
-  Store_ops.mk_store_ops ~store_free ~store_read ~store_alloc
+  Store_ops.{ store_free; store_read; store_alloc }
 
 let _ = mk_store_ops
 

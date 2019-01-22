@@ -13,7 +13,6 @@ include struct
 
     let store = Tjr_store.initial_store in
 
-
     (* blocks etc *)
     let block_ops = 
       Tjr_fs_shared.Block_ops.String_block_ops.make_string_block_ops ~blk_sz in
@@ -33,40 +32,40 @@ include struct
     (* marshalling *)
     let open Bin_prot_util in
     let ii_mp = 
-      Binprot_marshalling.make_binprot_marshalling ~block_ops 
+      Bin_prot_marshalling.make_binprot_marshalling ~block_ops 
         ~read_k:bin_reader_int ~write_k:bin_writer_int
         ~read_v:bin_reader_int ~write_v:bin_writer_int
     in
 
     let ii_constants = 
       let open Bin_prot_util in
-      Binprot_marshalling.make_constants 
+      Bin_prot_marshalling.make_constants 
         ~blk_sz ~k_size:bp_size_int ~v_size:bp_size_int
     in
 
 
     let ss_mp =
-      Binprot_marshalling.make_binprot_marshalling ~block_ops 
+      Bin_prot_marshalling.make_binprot_marshalling ~block_ops 
         ~read_k:bin_reader_ss ~write_k:bin_writer_ss
         ~read_v:bin_reader_ss ~write_v:bin_writer_ss
     in
 
     let ss_constants =
       let open Bin_prot_util in
-      Binprot_marshalling.make_constants 
+      Bin_prot_marshalling.make_constants 
         ~blk_sz ~k_size:bp_size_ss ~v_size:bp_size_ss
     in
 
 
     let si_mp = 
-      Binprot_marshalling.make_binprot_marshalling ~block_ops 
+      Bin_prot_marshalling.make_binprot_marshalling ~block_ops 
         ~read_k:bin_reader_ss ~write_k:bin_writer_ss
         ~read_v:bin_reader_int ~write_v:bin_writer_int
     in
 
     let si_constants =
       let open Bin_prot_util in
-      Binprot_marshalling.make_constants 
+      Bin_prot_marshalling.make_constants 
         ~blk_sz ~k_size:bp_size_ss ~v_size:bp_size_int
     in
 
@@ -81,7 +80,7 @@ include struct
           set_state (s+1) >>= fun _ -> return s)
       in
       let free _blk_id = return () in
-      store,Freespace_ops_type.{alloc;free}
+      store,Blk_allocator_ops_type.{alloc;free}
     in
 
 
@@ -147,7 +146,7 @@ include struct
   let ( >>= ) = monad_ops.bind
   let return = monad_ops.return
 
-  let free_ops = Freespace_ops_type.{
+  let free_ops = Blk_allocator_ops_type.{
     alloc=(fun () -> 
           free_ops.get () >>= fun x ->
           free_ops.set (x+1) >>= fun _ ->

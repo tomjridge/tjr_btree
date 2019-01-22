@@ -61,7 +61,7 @@ module Internal = struct
     in
     let _ = assert (Sys.int_size = 63) in (* ensure we are on 64 bit system *)
     fun ~read_k ~write_k ~read_v ~write_v ->
-      let mp = Marshalling_params_type.{ 
+      let mp = Marshalling_ops_type.{ 
           frame_to_page=(frm_to_pg ~write_k ~write_v (* ~blk_sz *));
           page_to_frame=(pg_to_frm ~read_k ~read_v);
           page_size=blk_sz }

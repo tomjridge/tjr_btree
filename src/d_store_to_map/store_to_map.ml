@@ -19,7 +19,7 @@ FIXME move this type elsewhere?
 (* for all operations, we need to be able to retrieve the root; *)
 type 't btree_root_ops = (page_ref,'t) mref
 
-open Pre_map_ops
+open Pre_map_ops_type
 open Map_ops
 
 
@@ -29,8 +29,7 @@ module Internal = struct
   let make_map_ops' (* (type k v r t)*) ~monad_ops ~pre_map_ops ~page_ref_ops:root_ops = 
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
-    dest_pre_map_ops pre_map_ops @@ 
-    fun ~find_leaf ~find ~insert ~insert_many ~delete -> 
+    let { find_leaf; find; insert; insert_many; delete } = pre_map_ops in
     let _find_leaf = fun k ->
       root_ops.get () >>= fun r ->
       find_leaf k r >>= fun kvs ->               

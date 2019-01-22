@@ -176,7 +176,7 @@ let make_pre_map_ops (type k v r t)
     let insert=(fun k (v:v) r -> insert ~k ~v ~r) in
     let insert_many=(fun k v kvs r -> insert_many ~k ~v ~kvs ~r) in
     let delete=(fun k r -> delete ~k ~r) in
-    let pre_map_ops = Pre_map_ops.mk_pre_map_ops ~find_leaf ~find ~insert ~insert_many ~delete in
+    let pre_map_ops = Pre_map_ops_type.{ find_leaf; find; insert; insert_many; delete } in
     pre_map_ops
   in
 

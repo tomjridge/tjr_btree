@@ -20,6 +20,9 @@ clean:
 # doc: FORCE
 # 	$(DUNE) build @doc
 
+find_ml:
+	find . -name "*.ml" -not -path "*/_build/*" -not -path "*/_*" |sort
+
 run_examples:
 	$(MAKE) -C examples -f Makefile.run_examples
 

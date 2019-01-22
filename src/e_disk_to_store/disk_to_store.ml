@@ -1,8 +1,8 @@
 open Tjr_fs_shared.Blk_dev_ops_type
 open Base_types
 open Page_ref_int (* FIXME generalize *)
-open Marshalling_params_type
-open Freespace_ops_type
+open Marshalling_ops_type  (* FIXME include in base_types? *)
+open Blk_allocator_ops_type  (* FIXME include in base_types? *)
 
 (** Use pickling to convert a disk-like thing to a store-like thing.
 
@@ -27,6 +27,6 @@ let disk_to_store ~monad_ops ~mp ~blk_dev_ops ~free_ops =
     read ~blk_id:r >>= fun blk ->
     blk |> p2f |> return
   in
-  Store_ops.mk_store_ops ~store_free ~store_read ~store_alloc
+  Store_ops.{ store_free; store_read; store_alloc }
 
 let _ = disk_to_store

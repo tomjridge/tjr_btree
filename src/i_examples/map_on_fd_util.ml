@@ -1,8 +1,9 @@
-(** Help for maps on fd: write gloabl state into root block; load back in from file *)
+(** Help for maps on fd: write global state into root block; load back
+   in from file *)
 
 open Tjr_fs_shared
 open Block_ops
-open Marshalling_params_type
+open Marshalling_ops_type
 
 (* root block ------------------------------------------------------- *)
 
