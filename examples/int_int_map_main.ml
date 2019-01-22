@@ -1,7 +1,12 @@
 (* a map from int to int, backed by file ------------------------------- *)
 
 open Tjr_btree
-open Examples
+
+let k_to_string = string_of_int
+let k_of_string = int_of_string
+let v_to_string = string_of_int
+let v_of_string = int_of_string
+
 
 let (from_file,close,rest) = Examples.ii_map_on_fd
 
@@ -16,38 +21,44 @@ let main args =
     close state    
 
   | ["insert";fn;k;v] -> (
-      let state = from_file ~fn ~create:true ~init:true in
-      let (_,insert,_) = rest ~state in
-      insert (int_of_string k) (int_of_string v);
-      close state)
+      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
+      let (_,insert,_,_) = rest ~ref_ in
+      insert (k_of_string k) (v_of_string v);
+      close !ref_)
 
   | ["delete";fn;k] -> (
-      let state = from_file ~fn ~create:true ~init:true in
-      let (_,_,delete) = rest ~state in
-      delete (int_of_string k);
-      close state)
+      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
+      let (_,_,delete,_) = rest ~ref_ in
+      delete (k_of_string k);
+      close !ref_)
 
   | ["list";fn] -> (
-      let monad_ops = Map_on_fd_util.monad_ops in
-      let state = from_file ~fn ~create:true ~init:true in
-      let r = state.root in
-      Leaf_stream_util.all_kvs ~monad_ops ~ls_ops ~r
-      |> run ~init_state:s 
-      |> (function (kvs,s') -> (
-            (List.iter (fun (k,v) -> 
-                 Printf.printf "%s -> %s\n" (string_of_int k) 
-                   (string_of_int v)) kvs);
-            close s';
-            ()));                
+      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
+      let (_,_,_,(mk_leaf_stream,ls_step,ls_kvs)) = rest ~ref_ in
+      mk_leaf_stream () |> fun lss ->
+      let rec loop lss =
+        match lss with
+        | None -> ()
+        | Some lss -> 
+          let _ = 
+            List.iter 
+              (fun (k,v) -> 
+                 Printf.printf "%s -> %s\n" (k_to_string k) (v_to_string v))
+              (ls_kvs lss)
+          in
+          loop (ls_step lss)
+      in
+      loop (Some lss);
+      close !ref_;
       print_endline "list ok")
 
   | ["insert_range";fn;l;h] -> (
-      from_file ~fn  ~create:false ~init:false |> fun s -> 
+      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
+      let (_,insert,_,_) = rest ~ref_ in
       let l,h = int_of_string l, int_of_string h in
-      let s = ref s in
-      Tjr_list.from_to l h |> List.iter (fun i ->
-          insert i (2*i) |> run ~init_state:!s |> fun (_,s') -> s:=s');
-      close !s)
+      Tjr_list.from_to l h 
+      |> List.iter (fun i -> insert i (2*i));
+      close !ref_)
 
 
   | ["nop"] -> (

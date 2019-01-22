@@ -1,4 +1,4 @@
 -*- org -*-
 
-- perhaps separate out the LRU cache as a separate component?
-- package using opam
+- nicer example output (formatting, colours, blinking progress bars etc)
+- fixup testing

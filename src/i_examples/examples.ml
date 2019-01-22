@@ -203,9 +203,8 @@ include struct
       Map_on_fd_util.from_file ~block_ops ~mp:ii_mp ~fn ~create ~init in
     let close = Map_on_fd_util.close ~block_ops in
     let page_ref_ops = Map_on_fd_util.page_ref_ops in
-    let rest ~state =
-      let ref_ = ref state in
-      let map = ii_fd_map ~page_ref_ops ~fd:state.fd in
+    let rest ~ref_ =
+      let map = ii_fd_map ~page_ref_ops ~fd:(!ref_).fd in
       let insert k v = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
@@ -221,8 +220,68 @@ include struct
           ref_
           (map.find k)
       in
-      (find,insert,delete)
+      let store_ops = ii_fd_store (!ref_).fd in
+      let ls_ops = Store_to_map.store_ops_to_ls_ops 
+          ~monad_ops ~constants:ii_constants ~cmp:Pervasives.compare ~store_ops
+      in
+      let mk_leaf_stream () = 
+        let root = (!ref_).root in
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (ls_ops.mk_leaf_stream root)
+      in
+      let ls_step lss =
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (ls_ops.ls_step lss)
+      in
+      let ls_kvs lss = ls_ops.ls_kvs lss in
+      (find,insert,delete,(mk_leaf_stream,ls_step,ls_kvs))
     in
     (from_file,close,rest)
+
+
+  let ss_map_on_fd  =
+    let from_file ~fn ~create ~init =
+      Map_on_fd_util.from_file ~block_ops ~mp:ss_mp ~fn ~create ~init in
+    let close = Map_on_fd_util.close ~block_ops in
+    let page_ref_ops = Map_on_fd_util.page_ref_ops in
+    let rest ~ref_ =
+      let map = ss_fd_map ~page_ref_ops ~fd:(!ref_).fd in
+      let insert k v = 
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (map.insert k v)
+      in
+      let delete k = 
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (map.delete k)
+      in
+      let find k = 
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (map.find k)
+      in
+      let store_ops = ss_fd_store (!ref_).fd in
+      let ls_ops = Store_to_map.store_ops_to_ls_ops 
+          ~monad_ops ~constants:ss_constants ~cmp:Pervasives.compare ~store_ops
+      in
+      let mk_leaf_stream () = 
+        let root = (!ref_).root in
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (ls_ops.mk_leaf_stream root)
+      in
+      let ls_step lss =
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (ls_ops.ls_step lss)
+      in
+      let ls_kvs lss = ls_ops.ls_kvs lss in
+      (find,insert,delete,(mk_leaf_stream,ls_step,ls_kvs))
+    in
+    (from_file,close,rest)
+
 
 end

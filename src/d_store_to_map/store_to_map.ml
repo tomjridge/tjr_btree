@@ -78,7 +78,7 @@ let store_ops_to_map_ops
 
 let _ = store_ops_to_map_ops
 
-(** Make [ls_ops], given a [page_ref_ops]. *)
+(** Make [ls_ops], given a [store_ops]. *)
 let store_ops_to_ls_ops 
     ~monad_ops ~constants ~cmp ~(store_ops:('k,'v,'r,'t)store_ops)
     : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops

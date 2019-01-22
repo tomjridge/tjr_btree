@@ -22,10 +22,11 @@ let get_range ps =
 type tests = test_t list [@@deriving yojson]
 
 (* module TC = Test_cache *)
-module TMM = Test_mem_map
-module TII = Test_int_int_on_fd
-module TSI = Test_string_int_on_fd
+module TE = Test_exhaustive_in_mem
+(* module TII = Test_int_int_on_fd *)
+(* module TSI = Test_string_int_on_fd *)
 
+(*
 let tests = [
   (* TODO ("tb", fun ps -> Test_bytestore.(fun () -> main())); *)
   (* ("test_cache", fun ps -> 
@@ -33,10 +34,10 @@ let tests = [
    *     TC.test (l--h)); *)
   ("test_exhaustive", fun ps -> 
       let (l,h) = get_range ps in
-      TMM.test_exhaustive (l -- h));
+      TE.test_exhaustive (l -- h));
   ("test_insert", fun ps -> 
       let (l,h) = get_range ps in
-      TMM.test_insert (l -- h));
+      TE.test_insert (l -- h));
   (* TODO ("tim.ls", fun ps -> 
       let (l,h) = get_range ps in
       Test_in_mem.(fun () -> test_leaf_stream (l -- h |> List.of_enum))); *)
@@ -50,6 +51,14 @@ let tests = [
   ("tsi", fun _ps -> 
       TSI.test ());
 ]
+*)
+
+let tests = [
+  ("test_exhaustive", fun ps -> 
+      let (l,h) = get_range ps in
+      TE.test_exhaustive (l -- h))
+]
+ 
 
 (* FIXME also main2 *)
 

@@ -1,8 +1,12 @@
 # -*- makefile -*-
-# NOTE you must install tjr_btree (and executables) first
+
+# NOTE the use of dune exec means that you don't have to install
+# everything to run the examples
+
 SHELL:=bash
 
 run_examples:
+	echo "Make sure you install first, in order to get access to the executables"
 	int_int_map_example_functionality
 	echo
 	string_string_map_example_functionality

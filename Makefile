@@ -2,8 +2,8 @@ DUNE:=dune
 
 build:
 	$(DUNE) build @install
-	$(DUNE) build examples/all.touch
-	$(DUNE) build test_bin/all.touch
+#	$(DUNE) build examples/*.exe
+# FIXME	$(DUNE) build test_bin/all.touch
 
 install:
 	$(DUNE) install
