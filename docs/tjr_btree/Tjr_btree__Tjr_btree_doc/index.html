@@ -1,0 +1,50 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml"><head><title>Tjr_btree__Tjr_btree_doc (tjr_btree.Tjr_btree__Tjr_btree_doc)</title><link rel="stylesheet" href="../../odoc.css"/><meta charset="utf-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/><script src="../../highlight.pack.js"></script><script>hljs.initHighlightingOnLoad();</script></head><body><div class="content"><header><nav><a href="../index.html">Up</a> – <a href="../index.html">tjr_btree</a> &#x00BB; Tjr_btree__Tjr_btree_doc</nav><h1>Module <code>Tjr_btree__Tjr_btree_doc</code></h1><p>Main documentation entry point.</p><nav class="toc"><ul><li><a href="#introduction">Introduction</a></li><li><a href="#ancestor-projects">Ancestor projects</a></li><li><a href="#directory-structure">Directory structure</a></li><li><a href="#naming-conventions">Naming conventions</a></li><li><a href="#monads!">Monads!</a></li><li><a href="#exported-code-from-isabelle">Exported code from Isabelle</a></li><li><a href="#test">Test</a></li><li><a href="#base-types">Base types</a></li><li><a href="#api">Api</a></li><li><a href="#store-to-map">Store to map</a></li><li><a href="#disk-to-store">Disk to store</a></li><li><a href="#examples">Examples</a></li><li><a href="#testing">Testing</a></li><li><a href="#doc">Doc</a></li></ul></nav></header><aside><p>This file contains general documentation and an overview of the code. Follow the links to individual modules for more information.</p></aside><section><header><h2 id="introduction"><a href="#introduction" class="anchor"></a>Introduction</h2><p>This library implements a B-tree in OCaml. The source is actually exported from Isabelle, and then OCaml code wraps the Isabelle-generated code. This is the documentation for the OCaml wrapper. The documentation for the core B-tree routines can be found in the <code>isa_btree</code> repository.</p><p>This document gives an overview of the (sub)packages and a guide to the structure of the code. Detailed comments are included in the individual modules.</p></header></section><section><header><h2 id="ancestor-projects"><a href="#ancestor-projects" class="anchor"></a>Ancestor projects</h2><p>See the <code>README.org</code> in the project root directory for a list of dependencies.</p></header></section><section><header><h2 id="directory-structure"><a href="#directory-structure" class="anchor"></a>Directory structure</h2><p>The code is organized into subdirectories (subpackages), and the subdirectories are in a linear order (which corresponds to the dependencies between modules). For example, the first subdirectory is <code>a_test</code> which is discussed in the section &quot;Test&quot; below.</p><pre><code class="ml">./examples
+     int_int_map_example_functionality.ml
+     int_int_map_main.ml
+     string_string_map_example_functionality.ml
+     string_string_map_main.ml
+./src/a_test
+     isa_test.ml
+     test.ml
+./src/b_base_types
+     base_types.ml
+     blk_allocator_ops_type.ml
+     block.ml
+     config.ml
+     frame.ml
+     internal_base_types_pervasives.ml
+     ls_state.ml
+     marshalling_ops_type.ml
+     ord.ml
+     page_ref_int.ml
+     r2f.ml
+     r2t.ml
+     rstk.ml
+     string_.ml
+     tree.ml
+./src/c_api
+     leaf_stream_ops.ml
+     leaf_stream_util.ml
+     pre_map_ops_type.ml
+     store_ops.ml
+./src/d_store_to_map
+     big_step.ml
+     iter_leaf_stream.ml
+     store_to_map.ml
+./src/e_disk_to_store
+     disk_to_store.ml
+./src/i_examples
+     bin_prot_marshalling.ml
+     bin_prot_util.ml
+     examples.ml
+     map_on_fd_util.ml
+     store_in_mem.ml
+./src/j_test
+     default_filename.ml
+     fixme_test_bytestore.ml
+     test_exhaustive_in_mem.ml
+     test_strings.ml
+     tree_store.ml
+./src/n_doc
+     tjr_btree_doc.ml</code></pre></header></section><section><header><h2 id="naming-conventions"><a href="#naming-conventions" class="anchor"></a>Naming conventions</h2><p>To understand the interfaces, we need to introduce the following:</p><ul><li>Keys, represented by type variable <code>'k</code></li><li>Values, type var <code>'v</code></li><li>Page/block references, <code>'r</code></li><li>Global state, <code>'t</code></li></ul></header></section><section><header><h2 id="monads!"><a href="#monads!" class="anchor"></a>Monads!</h2><p>The entire development is parameterized by some notion of monad. Before reading the rest of the documentation, please look at the module <code>Tjr_monad</code> from ancestor project <code>tjr_monad</code>. Essentially we use a type <code>('a,'t) m</code>, where <code>'t</code> is some phantom type var that is used to identify a particular monad instance. There is an associated type <code>'t monad_ops</code> which provides the expected return and bind. In order to get parametricity over the monad, we are forced to pass <code>monad_ops</code> as parameters to many functions.</p></header></section><section><header><h2 id="exported-code-from-isabelle"><a href="#exported-code-from-isabelle" class="anchor"></a>Exported code from Isabelle</h2><p>Exported code is in the <code>isa_btree</code> opam/ocamlfind package.</p></header></section><section><header><h2 id="test"><a href="#test" class="anchor"></a>Test</h2><p>Some simple testing utility functions.</p></header></section><section><header><h2 id="base-types"><a href="#base-types" class="anchor"></a>Base types</h2><p>This package contains basic B-tree related types:</p><ul><li><code>Base_types</code> includes most of the other modules in this package the other modules</li><li><code>Blk_allocator_ops_type</code></li><li><code>Block</code> for blocks on disk</li><li><code>Config</code></li><li><code>Frame</code> which imports the Isabelle frame type</li><li><code>Internal_base_types_pervasives</code> which includes utility functions assumed by</li><li><code>Ls_state</code> for the leaf stream state</li><li><code>Marshalling_ops_type</code></li><li><code>Ord</code> for orderings (typically over keys)</li><li><code>Page_ref_int</code> utility module to fix page ref as an integer</li><li><code>R2f</code> and <code>R2t</code> for internal types used in testing (convert a block ref to a frame/tree)</li><li><code>Rstk</code> for the type of framestacks</li><li><code>String_</code> for various string utility functions</li><li><code>Tree</code> for the tree type imported from Isabelle</li></ul><p>The <code>Tree</code> module describes a B-tree as an algebraic datatype. The on-disk B-tree uses references between blocks i.e. a graph-like structure with pointers rather than a datatype. Indeed, the tree datatype is used only for testing purposes.</p></header></section><section><header><h2 id="api"><a href="#api" class="anchor"></a>Api</h2><p>This package gives the main interface types, including interfaces for disk, store and map.</p><ul><li><code>Leaf_stream_ops</code> and <code>Leaf_stream_util</code> for leaf streams</li><li><code>Pre_map_ops</code> like <code>Map_ops</code> but with explicit state passing</li><li><code>Store_ops</code> for a layer just above <code>Disk_ops</code></li></ul><p>In addition, the leaf stream interface allows to iterate over the leaves in a B-tree e.g. to find all the bindings in the map. This module also documents the type variable naming conventions (see <code>Map_ops</code>).</p></header></section><section><header><h2 id="store-to-map"><a href="#store-to-map" class="anchor"></a>Store to map</h2><p>This package, particularly the <code>Store_to_map</code> module, wraps the Isabelle routines to implement a map interface on top of a store. The key function is <span class="xref-unresolved" title="unresolved reference to &quot;Store_to_map.store_ops_to_map_ops&quot;"><code>Store_to_map</code>.store_ops_to_map_ops</span> which takes a <code>store_ops</code> and returns a <code>map_ops</code>.</p><p>Also included here are <code>Big_step</code> (to iterate the small step operations provided by Isabelle) and <code>Iter_leaf_stream</code> (to wrap small-step leaf stream operations).</p></header></section><section><header><h2 id="disk-to-store"><a href="#disk-to-store" class="anchor"></a>Disk to store</h2><p><code>Disk_to_store</code> includes a function that naively transforms a disk to a store.</p></header></section><section><header><h2 id="examples"><a href="#examples" class="anchor"></a>Examples</h2><p>Various examples.</p><p><code>Bin_prot_marshalling</code> provides on-disk marshalling courtesy of <code>binprot</code>. You can, of course, provide your own marshalling code, which may be useful if your backend doesn't support binprot (js_of_ocaml?)</p><p><code>Bin_prot_util</code> is a very small module which defines eg <code>bp_size_int</code>.</p><p><code>Examples</code> contains the main constructions for various types of maps.</p><p><code>Map_on_fd_util</code>, utilities for a map backed by a file descriptor.</p><p><code>Store_in_mem</code> implements a simple in-memory store.</p></header></section><section><header><h2 id="testing"><a href="#testing" class="anchor"></a>Testing</h2><p>Various modules to support testing. Some of this looks a bit suspicious. The main module is <code>Test_exhaustive_in_mem</code>.</p></header></section><section><header><h2 id="doc"><a href="#doc" class="anchor"></a>Doc</h2><p>Contains this overview documentation in module <code>Tjr_btree_doc</code>.</p></header><dl><dt class="spec value" id="val-dummy"><a href="#val-dummy" class="anchor"></a><code><span class="keyword">val </span>dummy : int</code></dt></dl></section></div></body></html>

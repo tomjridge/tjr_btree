@@ -34,6 +34,58 @@ subdirectories are in a linear order (which corresponds to the
 dependencies between modules). For example, the first subdirectory is
 [a_test] which is discussed in the section "Test" below.
 
+{[
+./examples
+     int_int_map_example_functionality.ml
+     int_int_map_main.ml
+     string_string_map_example_functionality.ml
+     string_string_map_main.ml
+./src/a_test
+     isa_test.ml
+     test.ml
+./src/b_base_types
+     base_types.ml
+     blk_allocator_ops_type.ml
+     block.ml
+     config.ml
+     frame.ml
+     internal_base_types_pervasives.ml
+     ls_state.ml
+     marshalling_ops_type.ml
+     ord.ml
+     page_ref_int.ml
+     r2f.ml
+     r2t.ml
+     rstk.ml
+     string_.ml
+     tree.ml
+./src/c_api
+     leaf_stream_ops.ml
+     leaf_stream_util.ml
+     pre_map_ops_type.ml
+     store_ops.ml
+./src/d_store_to_map
+     big_step.ml
+     iter_leaf_stream.ml
+     store_to_map.ml
+./src/e_disk_to_store
+     disk_to_store.ml
+./src/i_examples
+     bin_prot_marshalling.ml
+     bin_prot_util.ml
+     examples.ml
+     map_on_fd_util.ml
+     store_in_mem.ml
+./src/j_test
+     default_filename.ml
+     fixme_test_bytestore.ml
+     test_exhaustive_in_mem.ml
+     test_strings.ml
+     tree_store.ml
+./src/n_doc
+     tjr_btree_doc.ml
+]}
+
 
 {2 Naming conventions}
 

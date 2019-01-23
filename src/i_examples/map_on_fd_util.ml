@@ -35,7 +35,7 @@ let read_root_block ~block_ops ~fd =
   |> fun (free,root) -> (free,root)
 
 let from_file ~block_ops ~mp ~fn ~create ~init = 
-  let fd = File_util.fd_from_file ~fn ~create ~init in
+  let fd = Tjr_file.fd_from_file ~fn ~create ~init in
   match init with
   | true -> (
       (* now need to write the initial frame *)

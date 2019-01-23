@@ -17,14 +17,13 @@ clean:
 	rm -f test_bin/btree.store
 
 # NOTE prefer to build doc with all repos
-doc: FORCE
+docs: FORCE
 	$(DUNE) build @doc
+	rm -rf docs/tjr_btree
+	cp -R _build/default/_doc/_html/* docs
 
 view_doc:
 	google-chrome  _build/default/_doc/_html/index.html
-
-find_ml:
-	find . -name "*.ml" -not -path "*/_build/*" -not -path "*/_*" |sort
 
 run_examples:
 	$(MAKE) -C examples -f Makefile.run_examples
