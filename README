@@ -64,9 +64,9 @@ also includes a Dockerfile.
 
 * Documentation
 
-Ocamldoc is at https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/index.html
+ocamldoc is at https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/index.html
 
-Please read the overview
+The main documentation entry point is the module ~Tjr_btree_doc~. Please read the overview
 
 https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_doc/index.html
 
