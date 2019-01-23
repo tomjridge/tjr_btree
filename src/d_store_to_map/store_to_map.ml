@@ -14,6 +14,9 @@ open Store_ops
    somehow. A value of type ['t page_ref_ops] reveals how to read and
    write this reference in the global state.  
 
+NOTE because page_ref_ops get and set are not atomic, this interface is
+not concurrent safe.
+
 FIXME move this type elsewhere?
 *)
 (* for all operations, we need to be able to retrieve the root; *)
