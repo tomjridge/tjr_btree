@@ -71,6 +71,20 @@ let main args =
       done;
       print_endline "test_random_reads ok")
 
+  | ["test_random_writes";fn;l;h;n] -> (
+      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
+      let (_,insert,_,_) = rest ~ref_ in
+      let l,h,n = int_of_string l, int_of_string h, int_of_string n in
+      (* n random writes between >=l and <h *)
+      let d = h - l in
+      for _i = 1 to n do
+        let k = (l+(Random.int d)) in
+        ignore(insert k (2*k));
+      done;
+      close !ref_;
+      print_endline "test_random_writes ok")
+
+
   | ["nop"] -> (
       (* print_endline "nop ok" *)
     )
