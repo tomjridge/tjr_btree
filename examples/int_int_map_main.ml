@@ -60,6 +60,16 @@ let main args =
       |> List.iter (fun i -> insert i (2*i));
       close !ref_)
 
+  | ["test_random_reads";fn;l;h;n] -> (
+      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
+      let (find,_,_,_) = rest ~ref_ in
+      let l,h,n = int_of_string l, int_of_string h, int_of_string n in
+      (* n random reads between >=l and <h *)
+      let d = h - l in
+      for _i = 1 to n do
+        ignore(find (l+(Random.int d)));
+      done;
+      print_endline "test_random_reads ok")
 
   | ["nop"] -> (
       (* print_endline "nop ok" *)
