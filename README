@@ -71,6 +71,24 @@ The main documentation entry point is the module ~Tjr_btree_doc~. Please read th
 https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_doc/index.html
 
 
+* Performance
+
+Take this with a pinch of salt, but on an oldish SSD:
+
+~~~
+$ examples $ int_int_map_main init ./btree.store
+init ok
+
+$ examples $ time int_int_map_main test_random_writes ./btree.store 1 1000000 1000000
+test_random_writes ok
+
+real	1m2.132s
+user	1m1.920s
+sys	0m0.204s
+~~~
+
+i.e., 1M random writes in 1m2s
+
 * Dependencies
 
 opam:
@@ -79,7 +97,7 @@ opam:
 | core                       | bin_prot; timestamping, for performance testing |
 | ppx_bin_prot               | marshalling via bin_prot, for testing           |
 | extlib                     | pmap FIXME replace with tjr_polymap             |
-
+| oseq                       | for examples involving inserting many entries   |
 
 other:
 | isa_btree     | Base OCaml defns extracted from Isabelle |

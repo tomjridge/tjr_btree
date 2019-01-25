@@ -156,11 +156,12 @@ include struct
       imperative_ops:'c;
     }
 
-    type ('a,'b,'c,'d) t3 = {
+    type ('a,'b,'c,'d,'e) t3 = {
       find:'a;
       insert:'b;
       delete:'c;
-      insert_many:'d
+      insert_many:'d;
+      insert_all:'e
     }
   end
   open Internal
@@ -231,6 +232,11 @@ include struct
     let page_ref_ops = Map_on_fd_util.page_ref_ops in
     let rest ~ref_ =
       let map = ii_fd_map ~page_ref_ops ~fd:(!ref_).fd in
+      let find k = 
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (map.find k)
+      in
       let insert k v = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
@@ -241,11 +247,19 @@ include struct
           ref_
           (map.delete k)
       in
-      let find k = 
+      let insert_many k v kvs = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
-          (map.find k)
-      in
+          (map.insert_many k v kvs)
+      in        
+      let insert_all kvs = 
+        match kvs with 
+        | [] -> ()
+        | (k,v)::kvs -> (
+            Tjr_monad.State_passing.convert_to_imperative
+              ref_        
+              (Leaf_stream_util.insert_all ~monad_ops map.insert_many k v kvs))
+      in       
       let store_ops = ii_fd_store (!ref_).fd in
       let ls_ops = Store_to_map.store_ops_to_ls_ops 
           ~monad_ops ~constants:ii_constants ~cmp:Pervasives.compare ~store_ops
@@ -264,7 +278,7 @@ include struct
       let ls_kvs lss = ls_ops.ls_kvs lss in
       { map_ops=map;
         leaf_stream_ops=(mk_leaf_stream, ls_step, ls_kvs);
-        imperative_ops={find; insert; delete; insert_many=()}}
+        imperative_ops={find; insert; delete; insert_many; insert_all}}
     in
     { from_file; close; rest }
 
@@ -276,6 +290,11 @@ include struct
     let page_ref_ops = Map_on_fd_util.page_ref_ops in
     let rest ~ref_ =
       let map = ss_fd_map ~page_ref_ops ~fd:(!ref_).fd in
+      let find k = 
+        Tjr_monad.State_passing.convert_to_imperative
+          ref_
+          (map.find k)
+      in
       let insert k v = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
@@ -286,11 +305,19 @@ include struct
           ref_
           (map.delete k)
       in
-      let find k = 
+      let insert_many k v kvs = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
-          (map.find k)
-      in
+          (map.insert_many k v kvs)
+      in        
+      let insert_all kvs = 
+        match kvs with 
+        | [] -> ()
+        | (k,v)::kvs -> (
+            Tjr_monad.State_passing.convert_to_imperative
+              ref_        
+              (Leaf_stream_util.insert_all ~monad_ops map.insert_many k v kvs))
+      in       
       let store_ops = ss_fd_store (!ref_).fd in
       let ls_ops = Store_to_map.store_ops_to_ls_ops 
           ~monad_ops ~constants:ss_constants ~cmp:Pervasives.compare ~store_ops
@@ -309,7 +336,7 @@ include struct
       let ls_kvs lss = ls_ops.ls_kvs lss in
       { map_ops = map;
         leaf_stream_ops=(mk_leaf_stream, ls_step, ls_kvs);
-        imperative_ops={find; insert; delete; insert_many=()}}
+        imperative_ops={find; insert; delete; insert_many; insert_all}}
     in
     { from_file; close; rest }
 

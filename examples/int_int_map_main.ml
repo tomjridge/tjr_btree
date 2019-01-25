@@ -13,6 +13,21 @@ include struct
   let { from_file; close; rest } = ii_map_on_fd
 end
 
+(* for insert_many operations *)
+let chunksize = 1000
+
+let insert_seq ~insert_all ~todo =
+  let todo = ref todo in
+  while !todo () <> Seq.Nil do
+    let kvs = 
+      (OSeq.take chunksize !todo) 
+      |> OSeq.to_list 
+    in 
+    insert_all kvs;
+    todo := OSeq.drop chunksize !todo
+  done
+
+
 let main args =
   (* turn off wf checking *)
   Isa_test.disable_isa_checks();
@@ -60,8 +75,8 @@ let main args =
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
       let ops = (rest ~ref_).imperative_ops in
       let l,h = int_of_string l, int_of_string h in
-      Tjr_list.from_to l h 
-      |> List.iter (fun i -> ops.insert i (2*i));
+      let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
+      insert_seq ~insert_all:ops.insert_all ~todo;
       close !ref_)
 
   | ["test_random_reads";fn;l;h;n] -> (
@@ -70,9 +85,11 @@ let main args =
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random reads between >=l and <h *)
       let d = h - l in
-      for _i = 1 to n do
-        ignore(ops.find (l+(Random.int d)));
-      done;
+      let todo = OSeq.(
+          (1--n) 
+          |> map (fun _ -> let k = l+(Random.int d) in k))
+      in
+      Seq.iter (fun k -> ignore(ops.find k)) todo;
       print_endline "test_random_reads ok")
 
   | ["test_random_writes";fn;l;h;n] -> (
@@ -81,10 +98,11 @@ let main args =
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
-      for _i = 1 to n do
-        let k = (l+(Random.int d)) in
-        ignore(ops.insert k (2*k));
-      done;
+      let todo = OSeq.(
+          (1--n) 
+          |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
+      in
+      insert_seq ~insert_all:ops.insert_all ~todo;
       close !ref_;
       print_endline "test_random_writes ok")
 

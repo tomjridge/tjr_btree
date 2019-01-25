@@ -20,3 +20,16 @@ let all_kvs (type r) ~monad_ops ~(ls_ops:('k,'v,r,'t)leaf_stream_ops) ~r : (('k 
 
 
 let _ = all_kvs
+
+
+(** Utility: call [insert_many] in a loop. *)
+let insert_all ~monad_ops =
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
+  fun insert_many ->
+    let rec loop k v kvs =
+    insert_many k v kvs >>= (fun kvs' -> 
+        match kvs' with
+        | [] -> return ()
+        | (k,v)::kvs -> loop k v kvs)
+    in loop

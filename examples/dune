@@ -10,5 +10,5 @@
   int_int_map_main
   string_string_map_example_functionality
   string_string_map_main)
- (libraries tjr_btree))
+ (libraries tjr_btree oseq))
 
