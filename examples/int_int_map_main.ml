@@ -77,7 +77,8 @@ let main args =
       let l,h = int_of_string l, int_of_string h in
       let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
       insert_seq ~insert_all:ops.insert_all ~todo;
-      close !ref_)
+      close !ref_;
+      print_endline "insert_range ok")
 
   | ["test_random_reads";fn;l;h;n] -> (
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
@@ -90,6 +91,7 @@ let main args =
           |> map (fun _ -> let k = l+(Random.int d) in k))
       in
       Seq.iter (fun k -> ignore(ops.find k)) todo;
+      close !ref_;
       print_endline "test_random_reads ok")
 
   | ["test_random_writes";fn;l;h;n] -> (
@@ -105,7 +107,6 @@ let main args =
       insert_seq ~insert_all:ops.insert_all ~todo;
       close !ref_;
       print_endline "test_random_writes ok")
-
 
   | ["nop"] -> (
       (* print_endline "nop ok" *)
