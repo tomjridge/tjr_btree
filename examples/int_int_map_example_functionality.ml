@@ -13,7 +13,11 @@ let _ = Isa_test.disable_isa_checks()
 
 let max = 10000
 
-let (from_file,close,rest) = Examples.ii_map_on_fd
+include struct
+  open Examples
+  open Internal
+  let { from_file; close; rest } = ii_map_on_fd
+end
 
 (* TODO this would be much faster if we used insert_many *)
 
@@ -22,10 +26,10 @@ let do_write () =
   Printf.printf "Executing %d writes...\n%!" max;
   print_endline "Writing...";
   let ref_ = ref (from_file ~fn ~create:true ~init:true) in
-  let (_find,insert,_delete,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   (* write values *)
   for x=1 to max do
-    insert x x;
+    ops.insert x x;
   done;
   close !ref_;
   ()
@@ -34,9 +38,9 @@ let do_write () =
 let do_delete () = 
   print_endline "Deleting...";
   let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-  let (_find,_insert,delete,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   for x=100 to 200 do
-    delete x;
+    ops.delete x;
   done;
   close !ref_;
   ()
@@ -45,9 +49,9 @@ let do_delete () =
 let do_check () = 
   print_endline "Checking...";
   let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-  let (find,_insert,_delete,_) = rest ~ref_ in
-  assert(find 100 = None);
-  assert(find 1000 = Some 1000);
+  let ops = (rest ~ref_).imperative_ops in
+  assert(ops.find 100 = None);
+  assert(ops.find 1000 = Some 1000);
   close !ref_;
   ()
 
@@ -62,12 +66,12 @@ let _ =
 let do_full_check () = 
   print_endline "Full check...";
   let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-  let (find,_insert,_delete,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   for x = 1 to max do
     if (100 <= x && x <= 200) then
-      assert(find x = None)
+      assert(ops.find x = None)
     else
-      assert(find x = Some(x))
+      assert(ops.find x = Some(x))
   done;
   close !ref_;
   ()

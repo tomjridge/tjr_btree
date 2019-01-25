@@ -141,6 +141,33 @@ end
 
 include struct
 
+  module Internal = struct
+
+    (** Simple record to record results of various examples *)
+    type ('a,'b,'c) t1 = {
+      from_file:'a;
+      close:'b;
+      rest:'c
+    }
+
+    type ('a,'b,'c) t2 = {
+      map_ops:'a;
+      leaf_stream_ops:'b;
+      imperative_ops:'c;
+    }
+
+    type ('a,'b,'c,'d) t3 = {
+      find:'a;
+      insert:'b;
+      delete:'c;
+      insert_many:'d
+    }
+  end
+  open Internal
+    
+
+
+
   open Map_on_fd_util
 
   let ( >>= ) = monad_ops.bind
@@ -235,9 +262,11 @@ include struct
           (ls_ops.ls_step lss)
       in
       let ls_kvs lss = ls_ops.ls_kvs lss in
-      (find,insert,delete,(mk_leaf_stream,ls_step,ls_kvs))
+      { map_ops=map;
+        leaf_stream_ops=(mk_leaf_stream, ls_step, ls_kvs);
+        imperative_ops={find; insert; delete; insert_many=()}}
     in
-    (from_file,close,rest)
+    { from_file; close; rest }
 
 
   let ss_map_on_fd  =
@@ -278,9 +307,10 @@ include struct
           (ls_ops.ls_step lss)
       in
       let ls_kvs lss = ls_ops.ls_kvs lss in
-      (find,insert,delete,(mk_leaf_stream,ls_step,ls_kvs))
+      { map_ops = map;
+        leaf_stream_ops=(mk_leaf_stream, ls_step, ls_kvs);
+        imperative_ops={find; insert; delete; insert_many=()}}
     in
-    (from_file,close,rest)
-
+    { from_file; close; rest }
 
 end

@@ -16,18 +16,22 @@ let v x = "v"^(string_of_int x) |> Small_string.of_string
 
 let max = 10000
 
-let (from_file,close,rest) = Examples.ss_map_on_fd
+include struct
+  open Examples
+  open Internal
+  let { from_file; close; rest } = ss_map_on_fd
+end
 
 (* create and init store, write some values, and close *)
 let do_write () = 
   print_endline "Writing...";
   (* create and initialize *)
   let ref_ = ref (from_file ~fn ~create:true ~init:true) in
-  let (_,insert,_,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   (* write values *)
   for x=1 to max do
     (* TODO this would be much faster if we used insert_many *)
-    insert (k x) (v x);
+    ops.insert (k x) (v x);
   done;
   close !ref_;
   ()
@@ -37,9 +41,9 @@ let do_write () =
 let do_delete () = 
   print_endline "Deleting...";
   let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-  let (_,_,delete,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   for x=100 to 200 do
-    delete (k x);
+    ops.delete (k x);
   done;
   close !ref_;
   ()
@@ -49,9 +53,9 @@ let do_delete () =
 let do_check () = 
   print_endline "Checking...";
   let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-  let (find,_,_,_) = rest ~ref_ in
-  assert(find (k 100) = None);
-  assert(find (k 1000) = Some(v 1000));
+  let ops = (rest ~ref_).imperative_ops in
+  assert(ops.find (k 100) = None);
+  assert(ops.find (k 1000) = Some(v 1000));
   close !ref_;
   ()
 
@@ -68,12 +72,12 @@ let _ =
 let do_full_check () = 
   print_endline "Full check...";
   let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-  let (find,_,_,_) = rest ~ref_ in
+  let ops = (rest ~ref_).imperative_ops in
   for x = 1 to max do
     if 100 <= x && x <= 200 then
-      assert(find (k x) = None)
+      assert(ops.find (k x) = None)
     else
-      assert(find (k x) = Some(v x))
+      assert(ops.find (k x) = Some(v x))
   done;
   close !ref_;
   ()

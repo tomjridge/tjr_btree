@@ -7,13 +7,17 @@ let k_of_string = int_of_string
 let v_to_string = string_of_int
 let v_of_string = int_of_string
 
-
-let (from_file,close,rest) = Examples.ii_map_on_fd
+include struct
+  open Examples
+  open Internal
+  let { from_file; close; rest } = ii_map_on_fd
+end
 
 let main args =
   (* turn off wf checking *)
   Isa_test.disable_isa_checks();
   Test.disable ();
+  let open Examples.Internal in
   match args with
   | ["init"; fn] ->
     let state = from_file ~fn ~create:true ~init:true in
@@ -22,19 +26,19 @@ let main args =
 
   | ["insert";fn;k;v] -> (
       let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let (_,insert,_,_) = rest ~ref_ in
-      insert (k_of_string k) (v_of_string v);
+      let ops = (rest ~ref_).imperative_ops in
+      ops.insert (k_of_string k) (v_of_string v);
       close !ref_)
 
   | ["delete";fn;k] -> (
       let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let (_,_,delete,_) = rest ~ref_ in
-      delete (k_of_string k);
+      let ops = (rest ~ref_).imperative_ops in
+      ops.delete (k_of_string k);
       close !ref_)
 
   | ["list";fn] -> (
       let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let (_,_,_,(mk_leaf_stream,ls_step,ls_kvs)) = rest ~ref_ in
+      let (mk_leaf_stream,ls_step,ls_kvs) = (rest ~ref_).leaf_stream_ops in
       mk_leaf_stream () |> fun lss ->
       let rec loop lss =
         match lss with
@@ -54,32 +58,32 @@ let main args =
 
   | ["insert_range";fn;l;h] -> (
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let (_,insert,_,_) = rest ~ref_ in
+      let ops = (rest ~ref_).imperative_ops in
       let l,h = int_of_string l, int_of_string h in
       Tjr_list.from_to l h 
-      |> List.iter (fun i -> insert i (2*i));
+      |> List.iter (fun i -> ops.insert i (2*i));
       close !ref_)
 
   | ["test_random_reads";fn;l;h;n] -> (
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let (find,_,_,_) = rest ~ref_ in
+      let ops = (rest ~ref_).imperative_ops in
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random reads between >=l and <h *)
       let d = h - l in
       for _i = 1 to n do
-        ignore(find (l+(Random.int d)));
+        ignore(ops.find (l+(Random.int d)));
       done;
       print_endline "test_random_reads ok")
 
   | ["test_random_writes";fn;l;h;n] -> (
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let (_,insert,_,_) = rest ~ref_ in
+      let ops = (rest ~ref_).imperative_ops in
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
       for _i = 1 to n do
         let k = (l+(Random.int d)) in
-        ignore(insert k (2*k));
+        ignore(ops.insert k (2*k));
       done;
       close !ref_;
       print_endline "test_random_writes ok")
