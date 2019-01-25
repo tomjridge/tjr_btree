@@ -75,7 +75,7 @@ https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_d
 
 Take this with a pinch of salt, but on an oldish SSD:
 
-~~~
+#+BEGIN_SRC
 $ examples $ int_int_map_main init ./btree.store
 init ok
 
@@ -85,7 +85,8 @@ test_random_writes ok
 real	1m2.132s
 user	1m1.920s
 sys	0m0.204s
-~~~
+#+END_SRC
+
 
 i.e., 1M random writes in 1m2s
 
