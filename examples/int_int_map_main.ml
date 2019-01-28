@@ -30,8 +30,8 @@ let insert_seq ~insert_all ~todo =
 
 let main args =
   (* turn off wf checking *)
-  Isa_test.disable_isa_checks();
-  Test.disable ();
+  (* Isa_test.disable_isa_checks(); *)
+  (* Test.disable (); *)
   let open Examples.Internal in
   match args with
   | ["init"; fn] ->
