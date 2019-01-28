@@ -16,12 +16,13 @@ end
 (* for insert_many operations *)
 let chunksize = 1000
 
-let insert_seq ~insert_all ~todo =
+let insert_seq ~sort ~insert_all ~todo =
   let todo = ref todo in
   while !todo () <> Seq.Nil do
     let kvs = 
       (OSeq.take chunksize !todo) 
       |> OSeq.to_list 
+      |> (fun xs -> if sort then List.sort (Pervasives.compare : (int*int) -> (int*int) -> int) xs else xs)
     in 
     insert_all kvs;
     todo := OSeq.drop chunksize !todo
@@ -76,7 +77,7 @@ let main args =
       let ops = (rest ~ref_).imperative_ops in
       let l,h = int_of_string l, int_of_string h in
       let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
-      insert_seq ~insert_all:ops.insert_all ~todo;
+      insert_seq ~sort:false ~insert_all:ops.insert_all ~todo;
       close !ref_;
       print_endline "insert_range ok")
 
@@ -95,6 +96,7 @@ let main args =
       print_endline "test_random_reads ok")
 
   | ["test_random_writes";fn;l;h;n] -> (
+      (* version using plain insert *)
       let ref_ = ref (from_file ~fn ~create:false ~init:false) in
       let ops = (rest ~ref_).imperative_ops in
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
@@ -104,7 +106,22 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      insert_seq ~insert_all:ops.insert_all ~todo;
+      Seq.iter (fun (k,v) -> ops.insert k v) todo;
+      close !ref_;
+      print_endline "test_random_writes ok")
+
+  | ["test_random_writes_im";fn;l;h;n] -> (
+      (* version using insert_many, with sorting and chunks *)
+      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
+      let ops = (rest ~ref_).imperative_ops in
+      let l,h,n = int_of_string l, int_of_string h, int_of_string n in
+      (* n random writes between >=l and <h *)
+      let d = h - l in
+      let todo = OSeq.(
+          (1--n) 
+          |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
+      in
+      insert_seq ~sort:true ~insert_all:ops.insert_all ~todo;
       close !ref_;
       print_endline "test_random_writes ok")
 

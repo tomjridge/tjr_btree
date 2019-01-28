@@ -73,34 +73,42 @@ https://tomjridge.github.io/tjr_imp_build_script/tjr_btree/Tjr_btree/Tjr_btree_d
 
 * Performance
 
-Take this with a pinch of salt, but on an oldish SSD:
+Take this with a pinch of salt, but on an oldish SSD we can test
+sequential writes:
 
 #+BEGIN_SRC
 $ examples $ int_int_map_main init ./btree.store
 init ok
 
+$ examples $ time int_int_map_main insert_range ./btree.store 1 1000000
+insert_range ok
+
+real  0m16.692s
+user  0m16.597s
+sys 0m0.092s
+
+$ examples $ ls -alh btree.store 
+-rw-r----- 1 tr61 tr61 75M Jan 28 14:32 btree.store
+#+END_SRC
+
+i.e., 1M sequential writes in 16.7s with a resulting store of sized 75M.
+
+If we repeat this (i.e., another 1M random inserts, but this time on a
+store that is already full), we get the same timings (but the store
+size almost doubles).
+
+For random writes:
+
+#+BEGIN_SRC
 $ examples $ time int_int_map_main test_random_writes ./btree.store 1 1000000 1000000
 test_random_writes ok
 
-real	1m2.132s
-user	1m1.920s
-sys	0m0.204s
+real	0m37.182s
+user	0m36.898s
+sys	0m0.268s
 #+END_SRC
 
 
-i.e., 1M random writes in 1m2s. If we repeat this (i.e., another 1M
-random inserts, but this time on a store that is already full), we ge
-the same timings.
-
-For sequential insert:
-
-#+BEGIN_SRC
-$ examples $ time int_int_map_main insert_range ./btree.store 1 1000000
-
-real	0m45.256s
-user	0m45.076s
-sys	0m0.176s
-#+END_SRC
 
 
 
