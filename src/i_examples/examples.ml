@@ -237,10 +237,55 @@ include struct
           ref_
           (map.find k)
       in
+      (* at this point we want to substitute insert with a version that mutates blocks on disk *)
+      let insert = Isa_btree.Insert_with_mutation_wrapper.(
+          let blk_dev_ops = mk_blk_dev_on_fd ~fd:(!ref_).fd in
+          insert
+            ~monad_ops
+            ~cs:(ii_constants.min_leaf_size, ii_constants.max_leaf_size, ii_constants.min_node_keys, ii_constants.max_node_keys)
+            ~k_cmp:(Pervasives.compare)
+            ~blk_ops:(
+              let read r = blk_dev_ops.read ~blk_id:r in
+              let wrte blk = 
+                free_ops.alloc () >>= fun blk_id ->
+                blk_dev_ops.write ~blk_id ~blk >>= fun () ->
+                return blk_id
+              in
+              let rewrite r blk = 
+                blk_dev_ops.write ~blk_id:r ~blk >>= fun () ->
+                return None  (* always overwrite *)
+              in
+              (read,wrte,rewrite))
+            ~marshal_ops:(
+              let f (x:('k,'v,'r)Frame.frame) = match x with
+                | Disk_node (ks,rs) ->
+                  Isa_btree.Insert_with_mutation.Pre_monad.Disk_node(ks,rs)
+                | Disk_leaf kvs -> 
+                  (* FIXME add these constructors to the wrapper *)
+                  Isa_btree.Insert_with_mutation.Pre_monad.Disk_leaf(kvs)
+              in
+              let g (x:('k,'v,'r)Isa_btree.Insert_with_mutation.Pre_monad.dnode) = match x with
+                | Disk_node(ks,rs) -> Frame.Disk_node(ks,rs)
+                | Disk_leaf (kvs) -> Frame.Disk_leaf(kvs)
+              in
+              let blk2dnode blk = ii_mp.page_to_frame blk |> f in
+              let dnode2blk d = d |> g |> ii_mp.frame_to_page in
+              (blk2dnode,dnode2blk))
+            ~alloc_ops:(free_ops.alloc,(fun _ -> return ())))
+      in
+      (* but this insert uses explicit r passing; we want to go via page_ref *)
+      let insert k v = 
+        page_ref_ops.get () >>= fun r ->
+        insert ~r ~k ~v >>= fun r' ->
+        match r' with 
+        | None -> return ()
+        | Some r' -> page_ref_ops.set r'
+      in
+      (* NOTE the following now uses the insert from above *)
       let insert k v = 
         Tjr_monad.State_passing.convert_to_imperative
           ref_
-          (map.insert k v)
+          (insert k v)
       in
       let delete k = 
         Tjr_monad.State_passing.convert_to_imperative

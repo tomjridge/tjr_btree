@@ -30,6 +30,7 @@ let insert_seq ~sort ~insert_all ~todo =
 
 
 let main args =
+  Random.self_init ();
   (* turn off wf checking *)
   (* Isa_test.disable_isa_checks(); *)
   (* Test.disable (); *)
@@ -124,6 +125,22 @@ let main args =
       insert_seq ~sort:true ~insert_all:ops.insert_all ~todo;
       close !ref_;
       print_endline "test_random_writes ok")
+
+  | ["test_random_writes_mutate";fn;l;h;n] -> (
+      (* version using insert_many, with sorting and chunks *)
+      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
+      let ops = (rest ~ref_).imperative_ops in
+      let l,h,n = int_of_string l, int_of_string h, int_of_string n in
+      (* n random writes between >=l and <h *)
+      let d = h - l in
+      let todo = OSeq.(
+          (1--n) 
+          |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
+      in
+      Seq.iter (fun (k,v) -> ops.insert k v) todo;
+      close !ref_;
+      print_endline "test_random_writes_mutate ok")
+
 
   | ["nop"] -> (
       (* print_endline "nop ok" *)
