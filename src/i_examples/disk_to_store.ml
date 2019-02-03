@@ -4,11 +4,11 @@ open Page_ref_int (* FIXME generalize *)
 open Marshalling_ops_type  (* FIXME include in base_types? *)
 open Blk_allocator_ops_type  (* FIXME include in base_types? *)
 
-(** Use pickling to convert a disk-like thing to a store-like thing.
+(** UNCACHED Use pickling to convert a disk-like thing to a store-like thing.
 
 Convert a disk to a store using pickling and a freespace allocator for
    disk blocks; require page size and block size are the same.  *)
-let disk_to_store ~monad_ops ~mp ~blk_dev_ops ~free_ops =
+let uncached_disk_to_store ~monad_ops ~mp ~blk_dev_ops ~free_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   let { blk_sz; read; write } = blk_dev_ops in
@@ -29,4 +29,6 @@ let disk_to_store ~monad_ops ~mp ~blk_dev_ops ~free_ops =
   in
   Store_ops.{ store_free; store_read; store_alloc }
 
-let _ = disk_to_store
+let _ = uncached_disk_to_store
+
+let disk_to_store = uncached_disk_to_store
