@@ -244,19 +244,7 @@ include struct
             ~monad_ops
             ~cs:(ii_constants.min_leaf_size, ii_constants.max_leaf_size, ii_constants.min_node_keys, ii_constants.max_node_keys)
             ~k_cmp:(Pervasives.compare)
-            ~blk_ops:(
-              let read r = blk_dev_ops.read ~blk_id:r in
-              let wrte blk = 
-                free_ops.alloc () >>= fun blk_id ->
-                blk_dev_ops.write ~blk_id ~blk >>= fun () ->
-                return blk_id
-              in
-              let rewrite r blk = 
-                blk_dev_ops.write ~blk_id:r ~blk >>= fun () ->
-                return None  (* always overwrite *)
-              in
-              (read,wrte,rewrite))
-            ~marshal_ops:(
+            ~store_ops:(
               let f (x:('k,'v,'r)Frame.frame) = match x with
                 | Disk_node (ks,rs) ->
                   Isa_btree.Insert_with_mutation.Pre_monad.Disk_node(ks,rs)
@@ -268,10 +256,22 @@ include struct
                 | Disk_node(ks,rs) -> Frame.Disk_node(ks,rs)
                 | Disk_leaf (kvs) -> Frame.Disk_leaf(kvs)
               in
-              let blk2dnode blk = ii_mp.page_to_frame blk |> f in
-              let dnode2blk d = d |> g |> ii_mp.frame_to_page in
-              (blk2dnode,dnode2blk))
-            ~alloc_ops:(free_ops.alloc,(fun _ -> return ())))
+              let read r = 
+                blk_dev_ops.read ~blk_id:r >>= fun blk -> 
+                ii_mp.page_to_frame blk |> f |> return
+              in
+              let wrte dnode = 
+                free_ops.alloc () >>= fun blk_id ->
+                dnode |> g |> ii_mp.frame_to_page |> fun blk ->
+                blk_dev_ops.write ~blk_id ~blk >>= fun () ->
+                return blk_id
+              in
+              let rewrite r dnode = 
+                dnode |> g |> ii_mp.frame_to_page |> fun blk ->
+                blk_dev_ops.write ~blk_id:r ~blk >>= fun () ->
+                return None  (* always overwrite *)
+              in
+              (read,wrte,rewrite)))
       in
       (* but this insert uses explicit r passing; we want to go via page_ref *)
       let insert k v = 
