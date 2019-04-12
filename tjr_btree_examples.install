@@ -1,0 +1,21 @@
+lib: [
+  "_build/install/default/lib/tjr_btree_examples/META" {"META"}
+  "_build/install/default/lib/tjr_btree_examples/bin_prot_marshalling.ml" {"bin_prot_marshalling.ml"}
+  "_build/install/default/lib/tjr_btree_examples/dune-package" {"dune-package"}
+  "_build/install/default/lib/tjr_btree_examples/opam" {"opam"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.a" {"tjr_btree_examples.a"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cma" {"tjr_btree_examples.cma"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cmi" {"tjr_btree_examples.cmi"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cmt" {"tjr_btree_examples.cmt"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cmx" {"tjr_btree_examples.cmx"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cmxa" {"tjr_btree_examples.cmxa"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.cmxs" {"tjr_btree_examples.cmxs"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples.ml" {"tjr_btree_examples.ml"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples__Bin_prot_marshalling.cmi" {"tjr_btree_examples__Bin_prot_marshalling.cmi"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples__Bin_prot_marshalling.cmt" {"tjr_btree_examples__Bin_prot_marshalling.cmt"}
+  "_build/install/default/lib/tjr_btree_examples/tjr_btree_examples__Bin_prot_marshalling.cmx" {"tjr_btree_examples__Bin_prot_marshalling.cmx"}
+]
+doc: [
+  "_build/install/default/doc/tjr_btree_examples/CHANGES"
+  "_build/install/default/doc/tjr_btree_examples/README.md"
+]

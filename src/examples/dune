@@ -1,0 +1,9 @@
+(env
+  (dev (flags (:standard -w -39-26))))
+
+(library
+  (name tjr_btree_examples)
+  (public_name tjr_btree_examples)
+  (preprocess (pps ppx_deriving_yojson ppx_bin_prot))
+  (libraries tjr_fs_shared isa_btree tjr_btree))
+

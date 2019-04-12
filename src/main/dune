@@ -1,0 +1,8 @@
+(env
+  (dev (flags (:standard -w -39-26))))
+
+(library
+  (name tjr_btree)
+  (public_name tjr_btree)
+  (libraries tjr_fs_shared isa_btree))
+
