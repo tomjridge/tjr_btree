@@ -79,6 +79,18 @@ let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int)
 
 let _ = store_ops_to_map_ops
 
+(** Prettier type: {%html:<pre>
+monad_ops:'t monad_ops ->
+cs:Constants_type.constants ->
+k_cmp:('k -> 'k -> int) ->
+store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
+root_ops:('r, 't) root_ops ->
+[> `Map_ops of ('k, 'v, 't) map_ops ] * [> `Insert_many of unit ]
+</pre> %}
+*)
+
+
+
 (*
 (** Make [ls_ops], given a [store_ops]. *)
 let store_ops_to_ls_ops 

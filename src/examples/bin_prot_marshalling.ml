@@ -92,7 +92,7 @@ module Internal = struct
     in
     let _ = assert (Sys.int_size = 63) in (* ensure we are on 64 bit system *)
     fun ~read_k ~write_k ~read_v ~write_v ->
-      let mp = Marshalling_ops_type.{ 
+      let mp = { 
           dnode_to_blk=(dnode_to_blk ~write_k ~write_v (* ~blk_sz *));
           blk_to_dnode=(blk_to_dnode ~read_k ~read_v);
           marshal_blk_size=blk_sz }

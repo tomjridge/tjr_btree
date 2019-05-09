@@ -34,4 +34,13 @@ let uncached_disk_to_store ~monad_ops ~marshalling_ops:marshal ~blk_dev_ops ~blk
 
 let _ = uncached_disk_to_store
 
+(** Prettier type: {%html:<pre>
+monad_ops:'a monad_ops ->
+marshalling_ops:('b, 'c) marshalling_ops ->
+blk_dev_ops:('d, 'c, 'a) Blk_dev_ops_type.blk_dev_ops ->
+blk_allocator_ops:('d, 'a) blk_allocator_ops -> 
+('d, 'b, 'a) store_ops
+</pre> %}
+*)
+
 (* let disk_to_store = uncached_disk_to_store *)
