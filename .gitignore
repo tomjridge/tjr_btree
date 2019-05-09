@@ -132,3 +132,6 @@ src/small_step.ml
 /tjr_btree.install
 /examples/.merlin
 /test_bin/.merlin
+/src/examples/.merlin
+/src/main/.merlin
+/tjr_btree_examples.install
