@@ -32,6 +32,7 @@ let bin_reader_ss = bin_reader_ss
 let bin_writer_ss = bin_writer_ss
 
 
+
 module Internal = struct
 
   module BP = Bin_prot
@@ -56,19 +57,20 @@ module Internal = struct
 
 
 
-  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~isa_btree_ops = 
-    let node_ops = node_ops isa_btree_ops in
-    let leaf_ops = leaf_ops isa_btree_ops in
-    let node_of_krs = krs_to_node isa_btree_ops in
-    let leaf_of_kvs = kvs_to_leaf isa_btree_ops in
+  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_leaf_conversions = 
+    let x = node_leaf_conversions in
+    (* let node_ops = node_ops isa_btree in *)
+    (* let leaf_ops = leaf_ops isa_btree in *)
+    (* let node_of_krs = krs_to_node isa_btree in *)
+    (* let leaf_of_kvs = kvs_to_leaf isa_btree in *)
     let blk_sz = block_ops.blk_sz in
     let dn2bp = function
-      | Disk_node n -> n |> node_ops.dbg_node_krs |> fun (ks,rs) -> N (ks,rs)
-      | Disk_leaf l -> l |> leaf_ops.dbg_leaf_kvs |> fun kvs -> L kvs
+      | Disk_node n -> n |> x.node_to_krs |> fun (ks,rs) -> N (ks,rs)
+      | Disk_leaf l -> l |> x.leaf_to_kvs |> fun kvs -> L kvs
     in
     let bp2dn = function
-      | N (ks,rs) -> (ks,rs) |> node_of_krs |> fun n -> Disk_node n
-      | L kvs -> kvs |> leaf_of_kvs |> fun l -> Disk_leaf l
+      | N (ks,rs) -> (ks,rs) |> x.krs_to_node |> fun n -> Disk_node n
+      | L kvs -> kvs |> x.kvs_to_leaf |> fun l -> Disk_leaf l
     in
     (* pull this out because frame_to_page takes an explicit blk_sz; FIXME
        should it? *)
@@ -148,19 +150,20 @@ let make_constants = Internal.make_constants
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
     ~(block_ops:'blk block_ops) 
-    ~(isa_btree_ops: ('k,'v,'r,'t)isa_btree_ops) 
+    ~node_leaf_conversions
   = 
-  Internal.make_binprot_marshalling ~block_ops ~isa_btree_ops
-
-(** Prettier type: {%html:<pre>
-block_ops:'blk block_ops ->
-isa_btree_ops:('k, 'v, int, 't) isa_btree_ops ->
-read_k:'k Bin_prot.Type_class.reader ->
-write_k:'k Bin_prot.Type_class.writer ->
-read_v:'v Bin_prot.Type_class.reader ->
-write_v:'v Bin_prot.Type_class.writer ->
-((('k, int) node_impl, ('k, 'v) leaf_impl) dnode, 'blk) marshalling_ops
-</pre>%} *)
+  Internal.make_binprot_marshalling ~block_ops ~node_leaf_conversions
 
 
 let _ = make_binprot_marshalling
+
+(** Prettier type: {%html:<pre>
+block_ops:'blk block_ops ->
+node_leaf_conversions:('a, 'b, int, 'c, 'd) node_leaf_conversions ->
+read_k:'a Bin_prot.Type_class.reader ->
+write_k:'a Bin_prot.Type_class.writer ->
+read_v:'b Bin_prot.Type_class.reader ->
+write_v:'b Bin_prot.Type_class.writer ->
+(('c, 'd) dnode, 'blk) marshalling_ops
+</pre>%} *)
+

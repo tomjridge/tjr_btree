@@ -24,3 +24,6 @@ module Bin_prot_marshalling = Bin_prot_marshalling
 
 module Map_on_fd_util = Map_on_fd_util
 
+(** {2 Actual examples} *)
+
+module Examples = Examples

@@ -94,10 +94,12 @@ let free_ops = {
   set=(fun free -> with_world (fun t -> ((),{t with free})));
 }
 
-let page_ref_ops = {
+let _page_ref_ops = {
   get=(fun () -> with_world (fun t -> (t.root,t)));
   set=(fun root -> with_world (fun t -> ((),{t with root})));
 }
+
+let root_ops = _page_ref_ops
 
 let from_file ~block_ops ~mp ~fn ~create ~init ~empty_disk_leaf = 
   from_file ~block_ops ~mp ~fn ~create ~init ~empty_disk_leaf |> (fun (fd,free,root) -> 
