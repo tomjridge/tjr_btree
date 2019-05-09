@@ -3,7 +3,8 @@
 
 open Tjr_fs_shared
 open Block_ops
-open Marshalling_ops_type
+(* open Isa_btree.Isa_export_wrapper *)
+open Tjr_btree
 
 (* root block ------------------------------------------------------- *)
 
@@ -34,14 +35,15 @@ let read_root_block ~block_ops ~fd =
   |> (fun x -> (marshal_from_string x : (int * int)))
   |> fun (free,root) -> (free,root)
 
-let from_file ~block_ops ~mp ~fn ~create ~init = 
+(** NOTE empty_disk_leaf only needed for init *)
+let from_file ~block_ops ~mp ~fn ~create ~init ~empty_disk_leaf = 
   let fd = Tjr_file.fd_from_file ~fn ~create ~init in
   match init with
   | true -> (
-      (* now need to write the initial frame *)
+      (* now need to write the initial dnode *)
       let _ = 
-        let frm = Frame.Disk_leaf [] in
-        let p = frm|>mp.frame_to_page in
+        let dn = empty_disk_leaf in
+        let p = dn|>mp.dnode_to_blk in
         Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:1 ~blk:p 
       in
       (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
@@ -97,8 +99,8 @@ let page_ref_ops = {
   set=(fun root -> with_world (fun t -> ((),{t with root})));
 }
 
-let from_file ~block_ops ~mp ~fn ~create ~init  = 
-  from_file ~block_ops ~mp ~fn ~create ~init |> (fun (fd,free,root) -> 
+let from_file ~block_ops ~mp ~fn ~create ~init ~empty_disk_leaf = 
+  from_file ~block_ops ~mp ~fn ~create ~init ~empty_disk_leaf |> (fun (fd,free,root) -> 
       {fd;free;root})
 
 let close ~block_ops t = 

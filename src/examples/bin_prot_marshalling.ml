@@ -2,8 +2,8 @@
 
 open Tjr_fs_shared.Block_ops_type
 open Isa_btree
-open Isa_export
-open Disk_node
+(* open Isa_export *)
+(* open Disk_node *)
 open Isa_export_wrapper
 open Tjr_btree
 
@@ -59,8 +59,8 @@ module Internal = struct
   let make_binprot_marshalling ~(block_ops:'blk block_ops) ~isa_btree_ops = 
     let node_ops = node_ops isa_btree_ops in
     let leaf_ops = leaf_ops isa_btree_ops in
-    let node_of_krs = node_of_krs isa_btree_ops in
-    let leaf_of_kvs = leaf_of_kvs isa_btree_ops in
+    let node_of_krs = krs_to_node isa_btree_ops in
+    let leaf_of_kvs = kvs_to_leaf isa_btree_ops in
     let blk_sz = block_ops.blk_sz in
     let dn2bp = function
       | Disk_node n -> n |> node_ops.dbg_node_krs |> fun (ks,rs) -> N (ks,rs)
@@ -152,5 +152,15 @@ let make_binprot_marshalling
   = 
   Internal.make_binprot_marshalling ~block_ops ~isa_btree_ops
 
+(** Prettier type: {%html:<pre>
+block_ops:'blk block_ops ->
+isa_btree_ops:('k, 'v, int, 't) isa_btree_ops ->
+read_k:'k Bin_prot.Type_class.reader ->
+write_k:'k Bin_prot.Type_class.writer ->
+read_v:'v Bin_prot.Type_class.reader ->
+write_v:'v Bin_prot.Type_class.writer ->
+((('k, int) node_impl, ('k, 'v) leaf_impl) dnode, 'blk) marshalling_ops
+</pre>%} *)
 
 
+let _ = make_binprot_marshalling
