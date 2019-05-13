@@ -1,5 +1,5 @@
 (env
-  (dev (flags (:standard -w -39-26))))
+  (dev (flags (:standard -w -39-26 -open Tjr_monad -open Tjr_fs_shared -open Isa_btree))))
 
 (library
   (name tjr_btree)

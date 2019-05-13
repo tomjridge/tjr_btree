@@ -1,8 +1,8 @@
 (** The essential B-tree functionality: implement a map on top of a store. *)
-open Tjr_monad.Mref
-open Tjr_monad.Types
-open Isa_btree
-open Isa_export_wrapper
+(* open Tjr_monad.Mref *)
+(* open Tjr_monad.Types *)
+(* open Isa_btree *)
+(* open Isa_export_wrapper *)
 open Map_ops_type
 
 (* convert store to map ---------------------------------------- *)
@@ -20,7 +20,7 @@ not concurrent safe.
 FIXME move this type elsewhere?
 *)
 (* for all operations, we need to be able to retrieve the root; *)
-type ('r,'t) root_ops = ('r,'t) mref
+type ('r,'t) root_ops = ('r,'t) with_state
 
 module Internal = struct
   (* produce a map, with page_ref state set/get via monad_ops *)
@@ -28,19 +28,20 @@ module Internal = struct
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
     let { leaf_lookup; find; insert; delete } = pre_map_ops in
+    let { with_state } = root_ops in
     let find ~k = 
-      root_ops.get () >>= fun r ->
-      find ~r ~k >>= fun (_,leaf,_) -> 
-      (* page_ref_ops.set_page_ref r' >>= (fun () -> 
-         NO! the r is the pointer to the leaf *)
-      return (leaf_lookup k leaf)
+      with_state (fun ~state:r ~set_state:_ -> 
+          find ~r ~k >>= fun (_,leaf,_) -> 
+          (* page_ref_ops.set_page_ref r' >>= (fun () -> 
+             NO! the r is the pointer to the leaf *)
+          return (leaf_lookup k leaf))
     in
     let insert ~k ~v =
-      root_ops.get () >>= fun r ->
-      insert ~r ~k ~v >>= fun r' -> 
-      match r' with
-      | None -> return ()
-      | Some r' -> root_ops.set r'
+      with_state (fun ~state:r ~set_state -> 
+          insert ~r ~k ~v >>= fun r' -> 
+          match r' with
+          | None -> return ()
+          | Some r' -> set_state r')
     in
     (*
     let insert_many ~k ~v ~kvs =
@@ -51,9 +52,9 @@ module Internal = struct
     in
 *)
     let delete ~k =
-      root_ops.get () >>= fun r -> 
-      delete ~r ~k >>= fun r' ->
-      root_ops.set r'
+      with_state (fun ~state:r ~set_state -> 
+          delete ~r ~k >>= fun r' ->
+          set_state r')
     in
     (`Map_ops { find; insert; delete }),(`Insert_many ())
 end
@@ -62,7 +63,7 @@ open Internal
 (* type ('k,'r) node_impl = ('k,'r) Isa_btree.Isa_export_wrapper.node_impl *)
 
 (** This defn serves to abbreviate types in what follows *)
-type ('k,'v,'r) dnode_impl = (('k,'r)node_impl,('k,'v)leaf_impl) dnode
+(* type ('k,'v,'r) dnode_impl = (('k,'r)node_impl,('k,'v)leaf_impl) dnode *)
 
 (** Make [map_ops], given a [page_ref_ops]. *)
 let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int) 
@@ -70,7 +71,7 @@ let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int)
   let return = monad_ops.return in
   let dbg_tree_at_r = fun _ -> return () in
   let pre_map_ops = 
-    (make_pre_map_ops_etc ~monad_ops ~cs ~k_cmp ~store_ops ~dbg_tree_at_r)
+    (make_isa_btree ~monad_ops ~cs ~k_cmp ~store_ops ~dbg_tree_at_r)
     |> pre_map_ops
   in
   fun ~root_ops -> 

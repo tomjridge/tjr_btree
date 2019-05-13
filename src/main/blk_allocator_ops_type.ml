@@ -1,5 +1,5 @@
 (** A type for managing the free space on the disk. *)
-open Tjr_monad.Types
+(* open Tjr_monad.Types *)
 
 (** NOTE we assume alloc never fails, or that error is handled
    elsewhere in the monad *)

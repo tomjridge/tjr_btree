@@ -1,7 +1,7 @@
 (** Various examples *)
 (* open Isa_btree *)
 open Tjr_btree
-open Bin_prot_marshalling
+(* open Bin_prot_marshalling *)
 
 (* we work with a simple store-passing monad for the in-mem versions *)
 
@@ -26,9 +26,204 @@ open Bin_prot_marshalling
 
 FIXME include this documentation in main tjr_btree lib, perhaps as a
 simple int->int example
+
+{%html: <img src="https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&amp;h=766"> %}
+
 *)
 
 
+(** {2 Abstract version} 
+
+We start with a version that abstracts over k,v, marshalling and blk_dev
+
+*)
+
+(* common to all impls *)
+type blk_allocator_state = {
+  min_free_blk_id:int;
+}
+
+(* FIXME free space; note the blk_allocator itself has to leave room for eg the root block *)
+
+(** The global state is represented by a store; within the store
+    there are refs to the block device, the block allocator state,
+    ... 
+
+    - blk_dev state
+    - blk_allocator state
+
+*)
+
+let blk_sz = 4096
+
+let monad_ops = fstore_passing_monad_ops
+let ( >>= ) = monad_ops.bind
+let return = monad_ops.return
+
+(** A store, which we mutably change while initializing *)
+let fstore = ref Tjr_store.initial_store
+
+let alloc_fstore_ref = 
+  fun x -> 
+    Tjr_store.mk_ref x !fstore |> fun (store',r) ->
+    fstore:=store';
+    r
+
+let _ = alloc_fstore_ref
+
+module Blk_allocator = struct
+  let blk_allocator : (blk_allocator_state,fstore_passing) with_state = 
+    let r = alloc_fstore_ref {min_free_blk_id=2} in  (* FIXME 2??? *)
+    Fstore_passing.fstore_ref_to_with_state r
+end
+open Blk_allocator
+
+
+module type S =  sig
+  type k  (* we assume k_cmp = Pervasives.compare *)
+  type v
+  (* type r *)
+
+  val read_k  : k Bin_prot.Type_class.reader
+  val write_k : k Bin_prot.Type_class.writer
+  val read_v  : v Bin_prot.Type_class.reader
+  val write_v : v Bin_prot.Type_class.writer
+  val k_size: int
+  val v_size: int      
+
+  type blk_id = int
+  type blk = string
+  val blk_dev_ops: (blk_id,blk,fstore_passing) blk_dev_ops
+end
+
+
+module Internal_abstract(S:S) = struct
+  open S
+
+  let k_cmp = Pervasives.compare
+
+  (* blocks etc *)
+  let block_ops = String_block_ops.make_string_block_ops ~blk_sz 
+
+  (* node leaf conversions, for marshalling *)
+  let nlc () = Isa_btree.Isa_export_wrapper.node_leaf_conversions ~k_cmp
+
+  (* marshalling *)
+  let mp = 
+    Bin_prot_marshalling.make_binprot_marshalling ~block_ops
+      ~node_leaf_conversions:(nlc()) ~read_k ~write_k ~read_v ~write_v
+
+  let constants = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size
+
+  let blk_allocator_ops = 
+    let { with_state } = blk_allocator in
+    let alloc () = with_state (fun ~state:s ~set_state ->
+      set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
+      -> return s.min_free_blk_id)
+    in
+    let free _blk_id = return () in
+    {alloc;free}
+
+  let _ = blk_allocator_ops
+
+  let disk_to_store = Tjr_btree.uncached_disk_to_store 
+
+  let store_ops = 
+    disk_to_store
+      ~monad_ops 
+      ~marshalling_ops:mp
+      ~blk_dev_ops
+      ~blk_allocator_ops
+
+  (* map *)
+  let map ~root_ops = 
+    store_ops_to_map_ops
+      ~monad_ops 
+      ~cs:constants 
+      ~k_cmp
+      ~root_ops
+      ~store_ops
+
+  let _ : root_ops:(blk_id, fstore_passing) root_ops ->
+    [> `Map_ops of
+         (k, v, fstore_passing) map_ops ] *
+      [> `Insert_many of unit ] = map
+end
+
+
+
+module In_memory = struct
+
+  let blk_dev_ops () = 
+    let blk_dev_ref = alloc_fstore_ref (Tjr_poly_map.empty) in
+    let with_state = {
+      with_state=fun _f -> failwith "FIXME need to construct with_state easily from a blk_ref"
+    }
+    in
+    Blk_dev_in_mem.make 
+      ~monad_ops 
+      ~blk_sz:(bsz_of_int blk_sz)
+      ~with_state
+
+  let _ :unit -> ('a, 'b, Tjr_store.t state_passing) blk_dev_ops
+    = blk_dev_ops
+
+  module Int_int' = struct
+    open Bin_prot_marshalling
+    type k = int
+    type v = int
+    let read_k = bin_reader_int
+    let write_k = bin_writer_int
+    let read_v = bin_reader_int
+    let write_v = bin_writer_int
+    let k_size = bp_size_int
+    let v_size = bp_size_int
+    type blk_id = int
+    type blk = string
+    let blk_dev_ops = blk_dev_ops()      
+  end
+(* 
+sig
+  val k_cmp : 'a -> 'a -> int
+  val block_ops : string block_ops
+  val nlc :
+    unit ->
+    ('a, 'b, 'c, ('a, 'c) node_impl, ('a, 'b) leaf_impl)
+    node_leaf_conversions
+  val mp :
+    (((int, int) node_impl, (int, int) leaf_impl) dnode, string)
+    marshalling_ops
+  val constants : constants
+  val blk_allocator_ops : (int, fstore_passing) blk_allocator_ops
+  val disk_to_store :
+    monad_ops:'a monad_ops ->
+    marshalling_ops:('b, 'c) marshalling_ops ->
+    blk_dev_ops:('d, 'c, 'a) blk_dev_ops ->
+    blk_allocator_ops:('d, 'a) blk_allocator_ops -> ('d, 'b, 'a) store_ops
+  val store_ops :
+    (int, ((int, int) node_impl, (int, int) leaf_impl) dnode, fstore_passing)
+    store_ops
+  val map :
+    root_ops:(int, fstore_passing) with_state ->
+    [> `Map_ops of (int, int, fstore_passing) map_ops ] *
+    [> `Insert_many of unit ]
+end
+*)
+  module Int_int = Internal_abstract(Int_int')
+
+  module X = Int_int  (* FIXME this type is too general *)
+      
+  let ii_map = Int_int.map
+(*
+root_ops:(int, fstore_passing) with_state ->
+[> `Map_ops of (int, int, fstore_passing) map_ops ] *
+[> `Insert_many of unit ]
+*)
+
+
+end
+
+(*
 (** {2 In-memory examples} *)
 
 module Internal_in_mem = struct
@@ -41,8 +236,7 @@ module Internal_in_mem = struct
     let store = Tjr_store.initial_store in
 
     (* blocks etc *)
-    let block_ops = 
-      Tjr_fs_shared.Block_ops.String_block_ops.make_string_block_ops ~blk_sz in
+    let block_ops = String_block_ops.make_string_block_ops ~blk_sz in
 
     let store,blk_dev_in_mem =
       let store,r = 
@@ -427,4 +621,5 @@ module Internal_on_disk = struct
     { from_file; close; rest }
 *)
 end
+*)
 *)

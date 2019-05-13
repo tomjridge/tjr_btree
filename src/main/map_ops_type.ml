@@ -1,6 +1,6 @@
 (** Map operations *)
 
-open Tjr_monad.Types
+(* open Tjr_monad.Types *)
 
 type ('k,'v,'t) map_ops = {
   find: k:'k -> ('v option, 't)m;

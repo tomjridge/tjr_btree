@@ -1,11 +1,11 @@
 (** Marshal frames to blocks using binprot *)
 
-open Tjr_fs_shared.Block_ops_type
-open Isa_btree
+(* open Tjr_fs_shared.Block_ops_type *)
+(* open Isa_btree *)
 (* open Isa_export *)
 (* open Disk_node *)
-open Isa_export_wrapper
-open Tjr_btree
+(* open Isa_export_wrapper *)
+(* open Tjr_btree *)
 
 (** {2 Binprot util: max sizes etc} *)
 
@@ -63,7 +63,7 @@ module Internal = struct
     (* let leaf_ops = leaf_ops isa_btree in *)
     (* let node_of_krs = krs_to_node isa_btree in *)
     (* let leaf_of_kvs = kvs_to_leaf isa_btree in *)
-    let blk_sz = block_ops.blk_sz in
+    let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
     let dn2bp = function
       | Disk_node n -> n |> x.node_to_krs |> fun (ks,rs) -> N (ks,rs)
       | Disk_leaf l -> l |> x.leaf_to_kvs |> fun kvs -> L kvs
