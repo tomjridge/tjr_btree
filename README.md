@@ -4,6 +4,8 @@
 
 tjr_btree is a B-tree library written for OCaml, and based on code extracted from an Isabelle formalization.
 
+![](https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&h=766)
+
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
