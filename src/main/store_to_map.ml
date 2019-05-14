@@ -19,8 +19,8 @@ not concurrent safe.
 
 FIXME move this type elsewhere?
 *)
+type ('r,'t) btree_root_ops = ('r,'t) with_state
 (* for all operations, we need to be able to retrieve the root; *)
-type ('r,'t) root_ops = ('r,'t) with_state
 
 module Internal = struct
   (* produce a map, with page_ref state set/get via monad_ops *)

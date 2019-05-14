@@ -3,7 +3,7 @@ DUNE:=dune
 
 build:
 	$(DUNE) build @install
-#	$(DUNE) build examples/*.exe
+	$(DUNE) build examples/ocaml/btree_main.exe
 # FIXME	$(DUNE) build test_bin/all.touch
 
 install:
@@ -37,6 +37,9 @@ promote_docs: FORCE
 
 view_doc:
 	google-chrome  $(SRC)/index.html
+
+run:
+	$(DUNE) exec examples/ocaml/btree_main.exe
 
 run_examples:
 	$(MAKE) -C examples -f Makefile.run_examples

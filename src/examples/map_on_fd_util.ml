@@ -5,124 +5,89 @@
    marshalling params allow us to convert to a blk; perhaps assume we
    already have empty_leaf_as_blk? *)
 
-module type S = sig
-  type blk
-  val block_ops: blk block_ops
-
-  type dnode
-  val mp: (dnode,blk) marshalling_ops
-
-  val empty_disk_leaf_as_blk: blk
+module Internal_blk_id = struct
+  type blk_id = int
 end
+open Internal_blk_id
 
+module Root_blk = struct
+  (** FIXME if btree_root was an option, we could avoid passing empty_disk_leaf_as_blk *)
+  type root_block = {
+    free:blk_id;
+    btree_root:blk_id
+  }
+end
+include Root_blk
 
-module Make(S:S) = struct
-  open S
+(** Constructs [from_file] and [close] *)
+let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:blk) = 
+  let module A = struct
 
-  (** {2 Root blocks}
+    (** {2 Root blocks}
 
-      We implement the map on fd by writing the free counter and root
-      page_ref into the root block 
+        We implement the map on fd by writing the free counter and root
+        page_ref into the root block 
 
-  *)
+    *)
 
-  (* TODO we use standard ocaml marshalling for the root block - this is
-     a demo anyway *)
-  let marshal_to_string (x:int*int) = Marshal.to_string x []
+    (* TODO we use standard ocaml marshalling for the root block - this is
+       a demo anyway *)
+    let marshal_to_string (x:root_block) = Marshal.to_string x []
 
-  let marshal_from_string s : int*int = Marshal.from_string s 0
+    let marshal_from_string s : root_block = Marshal.from_string s 0
 
-  let root_blk_id = 0
+    let root_blk_id = 0
 
-  let write_root_block ~fd ~free ~root = 
-    (free,root)
-    |> marshal_to_string 
-    |> block_ops.of_string |> fun blk -> 
-    Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:root_blk_id ~blk
+    let write_root_block ~fd ~root_block = 
+      root_block
+      |> marshal_to_string 
+      |> block_ops.of_string |> fun blk -> 
+      Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:root_blk_id ~blk
 
-  let _ : fd:Unix.file_descr -> free:int -> root:int -> unit
-    = write_root_block
+    let read_root_block ~fd = 
+      Blk_dev_on_fd.Internal.read ~block_ops ~fd ~blk_id:root_blk_id 
+      |> block_ops.to_string 
+      |> (fun x -> (marshal_from_string x))
 
-  let read_root_block ~fd = 
-    Blk_dev_on_fd.Internal.read ~block_ops ~fd ~blk_id:root_blk_id 
-    |> block_ops.to_string 
-    |> (fun x -> (marshal_from_string x : (int * int)))
-    |> fun (free,root) -> (free,root)
+    let _ = read_root_block
 
-  (** NOTE empty_disk_leaf and mp only needed for init *)
-  let from_file ~fn ~create ~init = 
-    let fd = Tjr_file.fd_from_file ~fn ~create ~init in
-    match init with
-    | true -> (
-        (* now need to write the initial dnode *)
-        let _ = 
-          let blk = empty_disk_leaf_as_blk in
-          Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:1 ~blk
-        in
-        (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
-           this needs to somehow match up with Examples.first_free_block
-        *)
-        let (free,root) = (2,1) in
-        (* remember to write blk0 *)
-        let _ = write_root_block ~fd ~free ~root in
-        (fd,free,root))
-    | false -> (
-        let (free,root) = read_root_block ~fd in 
-        (fd,free,root))
-
-  let _ : 
-fn:string -> create:bool -> init:bool -> Unix.file_descr * int * int
-= from_file
-
-  let close ~fd ~free ~root = 
-    write_root_block ~fd ~free ~root;
-    Unix.close fd
-
-  (** {2 State passing type with fd, free and root fields} *)
-
-  open Page_ref_int
-
-  (* the global state *)
-  type state = {
-    fd: Unix.file_descr;
-    free: page_ref;
-    root: page_ref; (* pointer to root of btree *)
-  }        
-  type t = state
-
-
-  let monad_ops : t state_passing monad_ops = State_passing.monad_ops ()
-
-  (* FIXME change to with_state? 
-     let fd_ops = {
-     get=(fun () -> with_world (fun w -> (w.fd,w)));
-     set=(fun fd -> with_world (fun w -> ((),{w with fd}))); 
-     }
-
-     let free_ops = {
-     get=(fun () -> with_world (fun t -> (t.free,t)));
-     set=(fun free -> with_world (fun t -> ((),{t with free})));
-     }
-
-     let _page_ref_ops = {
-     get=(fun () -> with_world (fun t -> (t.root,t)));
-     set=(fun root -> with_world (fun t -> ((),{t with root})));
-     }
-
-     let root_ops = _page_ref_ops
-  *)
-
-  module Export = struct
+    (** NOTE empty_disk_leaf only needed for init *)
     let from_file ~fn ~create ~init = 
-      from_file ~fn ~create ~init |> fun (fd,free,root) -> 
-      {fd;free;root}
+      let fd = Tjr_file.fd_from_file ~fn ~create ~init in
+      match init with
+      | true -> (
+          (* now need to write the initial dnode *)
+          let _ = 
+            let blk = empty_disk_leaf_as_blk in
+            Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:1 ~blk
+          in
+          (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
+             this needs to somehow match up with Examples.first_free_block
+          *)
+          let root_block = {free=2; btree_root=1} in
+          (* remember to write blk0 *)
+          let _ = write_root_block ~fd ~root_block in
+          (fd,root_block))
+      | false -> (
+          let rb = read_root_block ~fd in 
+          (fd,rb))
 
-    let close t = close ~fd:t.fd ~free:t.free ~root:t.root
+    let close ~fd ~root_block = 
+      write_root_block ~fd ~root_block;
+      Unix.close fd
+
   end
+  in
+  let open A in
+  fun f -> f ~from_file ~close
+(** Prettier type: {%html:<pre>
+block_ops:'a block_ops ->
+empty_disk_leaf_as_blk:'a ->
+(from_file:(fn:string ->
+            create:bool -> init:bool -> Unix.file_descr * root_block) ->
+ close:(fd:Unix.file_descr -> root_block:root_block -> unit) -> 'b) ->
+'b
+</pre>%} *)
 
-end
-
-
-
-
+let _ = make
 
