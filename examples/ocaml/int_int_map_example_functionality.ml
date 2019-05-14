@@ -10,7 +10,6 @@ let _ =
 module Internal = struct
   let fn = "btree.store"
 
-
   (* let _ = Test.disable() *)
   let _ = Isa_btree.disable_isa_checks()
 
@@ -34,6 +33,7 @@ module Internal = struct
 
 
   let init_store ~fd ~(root_block:root_block) =
+    (* Printf.printf "Init with free=%d and root=%d\n%!" root_block.free root_block.btree_root; *)
     let set = Tjr_store.set in
     Tjr_store.initial_store 
     |> set ba_ref {min_free_blk_id=root_block.free}
@@ -41,9 +41,10 @@ module Internal = struct
     |> set bd_ref (Some fd)
 
   let close ~fd ~fstore =
-    close ~fd 
-      ~root_block:({free=(Tjr_store.get ba_ref !fstore).min_free_blk_id;
-                    btree_root=Tjr_store.get rb_ref !fstore})
+    let free = (Tjr_store.get ba_ref !fstore).min_free_blk_id in
+    let btree_root = Tjr_store.get rb_ref !fstore in
+    (* Printf.printf "Close with free=%d and root=%d\n%!" free btree_root; *)
+    close ~fd ~root_block:{free; btree_root}
 end
 open Internal
 
