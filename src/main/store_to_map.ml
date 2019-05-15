@@ -96,7 +96,10 @@ k_cmp:('k -> 'k -> int) ->
 store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
 root_ops:('r, 't) btree_root_ops ->
 [> `Map_ops of ('k, 'v, 't) map_ops ] *
-[> `Insert_many of kvs:('k * 'v) list -> (unit, 't) m ]
+[> `Insert_many of kvs:('k * 'v) list -> (unit, 't) m ] *
+[> `Leaf_stream_ops of
+     ('r, ('k, 'v) leaf_impl, ('k, 'v, 'r) leaf_stream_impl, 't)
+     leaf_stream_ops ]
 </pre> %}
 *)
 
