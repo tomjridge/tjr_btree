@@ -13,7 +13,8 @@ module Internal = struct
   (* let _ = Test.disable() *)
   let _ = Isa_btree.disable_isa_checks()
 
-  let on_disk_util,(`Map_ops map_ops,_) = Examples.On_disk.Int_int.(on_disk_util,map)
+  let on_disk_util,(`Map_ops map_ops,`Insert_many im, `Leaf_stream_ops leaf_stream_ops) = 
+    Examples.On_disk.Int_int.(on_disk_util,map)
 
   let from_file,close = on_disk_util
 

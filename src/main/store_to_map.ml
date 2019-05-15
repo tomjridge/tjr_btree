@@ -24,10 +24,12 @@ type ('r,'t) btree_root_ops = ('r,'t) with_state
 
 module Internal = struct
   (* produce a map, with page_ref state set/get via monad_ops *)
-  let _make_map_ops ~monad_ops ~pre_map_ops ~root_ops = 
+  let _make_map_ops ~monad_ops ~pre_map_ops ~pre_insert_many_op ~leaf_stream_ops ~root_ops = 
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
     let { leaf_lookup; find; insert; delete } = pre_map_ops in
+    let Isa_btree.{ insert_many } = pre_insert_many_op in
+    let Isa_btree.{ make_leaf_stream; ls_step; ls_leaf } = leaf_stream_ops in
     let { with_state } = root_ops in
     let find ~k = 
       with_state (fun ~state:r ~set_state:_ -> 
@@ -43,20 +45,27 @@ module Internal = struct
           | None -> return ()
           | Some r' -> set_state r')
     in
-    (*
-    let insert_many ~k ~v ~kvs =
-      root_ops.get () >>= fun r ->
-      failwith "FIXME uinimplemented insert_many k v kvs r" >>= fun (r',kvs') ->
-      root_ops.set r' >>= fun () ->
-      return kvs'
+    let insert_many ~kvs =
+      with_state (fun ~state:r ~set_state -> 
+        insert_many ~r ~kvs >>= fun (kvs,ropt) -> 
+        match ropt with
+        | None -> return kvs
+        | Some r -> set_state r >>= fun () -> return kvs)
     in
-*)
+    let iter_m = iter_m ~monad_ops in
+    let insert_many ~kvs = 
+      kvs |> iter_m (fun kvs -> insert_many ~kvs >>= function
+      | [] -> return None
+      | kvs -> return (Some kvs)) >>= function
+      | [] -> return ()
+      | _ -> failwith "impossible"
+    in
     let delete ~k =
       with_state (fun ~state:r ~set_state -> 
           delete ~r ~k >>= fun r' ->
           set_state r')
     in
-    (`Map_ops { find; insert; delete }),(`Insert_many ())
+    (`Map_ops { find; insert; delete }),(`Insert_many insert_many),(`Leaf_stream_ops leaf_stream_ops)
 end
 open Internal
 
@@ -70,35 +79,24 @@ let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int)
     ~(store_ops:('r,('k,'v,'r)dnode_impl,'t)store_ops) =
   let return = monad_ops.return in
   let dbg_tree_at_r = fun _ -> return () in
-  let pre_map_ops = 
-    (make_isa_btree ~monad_ops ~cs ~k_cmp ~store_ops ~dbg_tree_at_r)
-    |> pre_map_ops
-  in
+  let isa_btree = make_isa_btree ~monad_ops ~cs ~k_cmp ~store_ops ~dbg_tree_at_r in
+  let pre_map_ops = isa_btree |> pre_map_ops in
+  let pre_insert_many_op = isa_btree |> pre_insert_many_op in
+  let leaf_stream_ops = isa_btree |> leaf_stream_ops in
   fun ~root_ops -> 
-    let ops = _make_map_ops ~monad_ops ~pre_map_ops ~root_ops in
+    let ops = _make_map_ops ~monad_ops ~pre_map_ops ~pre_insert_many_op ~leaf_stream_ops ~root_ops in
     ops
 
 let _ = store_ops_to_map_ops
 
 (** Prettier type: {%html:<pre>
 monad_ops:'t monad_ops ->
-cs:Constants_type.constants ->
+cs:constants ->
 k_cmp:('k -> 'k -> int) ->
 store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
-root_ops:('r, 't) root_ops ->
-[> `Map_ops of ('k, 'v, 't) map_ops ] * [> `Insert_many of unit ]
+root_ops:('r, 't) btree_root_ops ->
+[> `Map_ops of ('k, 'v, 't) map_ops ] *
+[> `Insert_many of kvs:('k * 'v) list -> (unit, 't) m ]
 </pre> %}
 *)
 
-
-
-(*
-(** Make [ls_ops], given a [store_ops]. *)
-let store_ops_to_ls_ops 
-    ~monad_ops ~constants ~cmp ~(store_ops:('k,'v,'r,'t)store_ops)
-    : ('k,'v,'r,'t) Leaf_stream_ops.leaf_stream_ops
-  =
-  Big_step.make_pre_map_ops ~monad_ops ~store_ops ~constants ~cmp @@ 
-  fun ~pre_map_ops:_ ~ls_ops -> 
-  ls_ops
-*)

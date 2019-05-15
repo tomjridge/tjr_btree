@@ -199,13 +199,17 @@ module Internal_abstract(S:S) = struct
       ~monad_ops 
       ~cs:constants 
       ~k_cmp
-      ~root_ops
       ~store_ops
+      ~root_ops
 
-  let _ : 
-    [> `Map_ops of
-         (k, v, fstore_passing) map_ops ] *
-      [> `Insert_many of unit ] = map
+  let _ :
+[> `Map_ops of (k, v, fstore_passing) map_ops ] *
+[> `Insert_many of kvs:(k * v) list -> (unit, fstore_passing) m ] *
+[> `Leaf_stream_ops of
+     (blk_id, (k, v) leaf_impl, (k, v, blk_id) leaf_stream_impl,
+      fstore_passing)
+     leaf_stream_ops ]
+    = map
 end
 
 
