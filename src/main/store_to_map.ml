@@ -65,7 +65,8 @@ module Internal = struct
           delete ~r ~k >>= fun r' ->
           set_state r')
     in
-    (`Map_ops { find; insert; delete }),(`Insert_many insert_many),(`Leaf_stream_ops leaf_stream_ops)
+    (* (`Map_ops { find; insert; delete }),(`Insert_many insert_many),(`Leaf_stream_ops leaf_stream_ops) *)
+    (`Map_ops { find; insert; delete }),{insert_many; leaf_stream_ops}
 end
 open Internal
 
@@ -96,10 +97,8 @@ k_cmp:('k -> 'k -> int) ->
 store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
 root_ops:('r, 't) btree_root_ops ->
 [> `Map_ops of ('k, 'v, 't) map_ops ] *
-[> `Insert_many of kvs:('k * 'v) list -> (unit, 't) m ] *
-[> `Leaf_stream_ops of
-     ('r, ('k, 'v) leaf_impl, ('k, 'v, 'r) leaf_stream_impl, 't)
-     leaf_stream_ops ]
+('k, 'v, 'r, ('k, 'v) leaf_impl, ('k, 'v, 'r) leaf_stream_impl, 't)
+extra_map_ops
 </pre> %}
 *)
 

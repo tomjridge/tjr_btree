@@ -204,11 +204,9 @@ module Internal_abstract(S:S) = struct
 
   let _ :
 [> `Map_ops of (k, v, fstore_passing) map_ops ] *
-[> `Insert_many of kvs:(k * v) list -> (unit, fstore_passing) m ] *
-[> `Leaf_stream_ops of
-     (blk_id, (k, v) leaf_impl, (k, v, blk_id) leaf_stream_impl,
-      fstore_passing)
-     leaf_stream_ops ]
+(k, v, blk_id, (k, v) leaf_impl, (k, v, blk_id) leaf_stream_impl,
+ fstore_passing)
+extra_map_ops
     = map
 end
 
