@@ -203,7 +203,7 @@ module Internal_abstract(S:S) = struct
       ~root_ops
 
   let _ :
-[> `Map_ops of (k, v, fstore_passing) map_ops ] *
+(k, v, fstore_passing) map_ops *
 (k, v, blk_id, (k, v) leaf_impl, (k, v, blk_id) leaf_stream_impl,
  fstore_passing)
 extra_map_ops
