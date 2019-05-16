@@ -116,8 +116,9 @@ let main args =
       let insert_all = fun kvs -> run (insert_many ~kvs) in
       insert_seq ~sort:true ~insert_all ~todo;
       close ();
-      print_endline "test_random_writes ok")
+      print_endline "test_random_writes_im ok")
 
+(* same as test_random_writes
   | ["test_random_writes_mutate";fn;l;h;n] -> (
       (* version using insert_many, with sorting and chunks *)
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
@@ -131,7 +132,7 @@ let main args =
       Seq.iter (fun (k,v) -> run(map_ops.insert ~k ~v)) todo;
       close ();
       print_endline "test_random_writes_mutate ok")
-
+*)
 
   | ["nop"] -> (
       (* print_endline "nop ok" *)
