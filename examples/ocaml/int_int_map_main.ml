@@ -30,6 +30,7 @@ let main args =
   (* turn off wf checking *)
   (* Isa_test.disable_isa_checks(); *)
   (* Test.disable (); *)
+  let create,init = false,false in (* defaults *)
   match args with
   | ["init"; fn] ->
     btree_from_file ~fn ~create:true ~init:true |> fun { close; _ } ->
@@ -37,17 +38,17 @@ let main args =
     close ()    
 
   | ["insert";fn;k;v] -> (
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       run (map_ops.insert ~k:(k_of_string k) ~v:(v_of_string v));
       close ())
 
   | ["delete";fn;k] -> (
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       run (map_ops.delete ~k:(k_of_string k));
       close ())
 
   | ["list";fn] -> (
-      btree_from_file ~fn ~create:true ~init:true 
+      btree_from_file ~fn ~create ~init
       |> fun { run; close; root_block; _ } -> 
       let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
       run (make_leaf_stream root_block.btree_root) |> fun lss ->
@@ -67,7 +68,7 @@ let main args =
       print_endline "list ok")
 
   | ["insert_range";fn;l;h] -> (
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h = int_of_string l, int_of_string h in
       let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
       let insert_all = fun kvs -> run (insert_many ~kvs) in
@@ -76,7 +77,7 @@ let main args =
       print_endline "insert_range ok")
 
   | ["test_random_reads";fn;l;h;n] -> (
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random reads between >=l and <h *)
       let d = h - l in
@@ -90,7 +91,7 @@ let main args =
 
   | ["test_random_writes";fn;l;h;n] -> (
       (* version using plain insert *)
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
@@ -104,7 +105,7 @@ let main args =
 
   | ["test_random_writes_im";fn;l;h;n] -> (
       (* version using insert_many, with sorting and chunks *)
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
@@ -119,7 +120,7 @@ let main args =
 
   | ["test_random_writes_mutate";fn;l;h;n] -> (
       (* version using insert_many, with sorting and chunks *)
-      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in

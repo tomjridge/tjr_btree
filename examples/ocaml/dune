@@ -2,8 +2,8 @@
   (dev (flags (:standard -w -8-39-26 -open Tjr_monad -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Tjr_btree_examples ))))
 
 (executables
-;  (package tjr_btree_examples)
-  (names btree_main)
+  (package tjr_btree_examples)
+  (public_names btree_main)
   (libraries oseq tjr_btree tjr_btree_examples))
 
 

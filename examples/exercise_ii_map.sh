@@ -7,7 +7,7 @@ set +x
 # execute various commands on a store
 
 STORE=./btree.store
-MAIN=int_int_map_main
+MAIN=btree_main
 echo
 
 echo Executing various simple operations -------------------------------

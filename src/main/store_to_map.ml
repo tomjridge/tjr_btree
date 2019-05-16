@@ -48,19 +48,26 @@ module Internal = struct
     let insert_many ~kvs =
       with_state (fun ~state:r ~set_state -> 
         insert_many ~r ~kvs >>= fun (kvs,ropt) -> 
-        match ropt with
-        | None -> return kvs
-        | Some r -> set_state r >>= fun () -> return kvs)
+        (match ropt with
+        | None -> return ()
+        | Some r -> set_state r) >>= fun () -> 
+        return kvs)
     in
     let iter_m = iter_m ~monad_ops in
+    (* execute in a loop to insert all *)
     let insert_many ~kvs = 
-      kvs |> iter_m (fun kvs -> insert_many ~kvs >>= function
-      | [] -> return None
-      | kvs -> return (Some kvs)) >>= function
+      (kvs |> iter_m (function
+           | [] -> return None
+           | kvs -> 
+             insert_many ~kvs >>= fun kvs -> 
+             return (Some kvs)))
+      >>= function
       | [] -> return ()
-      | _ -> failwith "impossible"
-    in
-    let delete ~k =
+      | _ -> failwith __LOC__  
+      (* impossible, since iter_m stops at None, and returns the
+         previous kvs state, which has to be [] *)
+    in 
+   let delete ~k =
       with_state (fun ~state:r ~set_state -> 
           delete ~r ~k >>= fun r' ->
           set_state r')
