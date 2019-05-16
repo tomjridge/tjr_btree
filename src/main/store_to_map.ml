@@ -29,7 +29,7 @@ module Internal = struct
     let return = monad_ops.return in
     let { leaf_lookup; find; insert; delete } = pre_map_ops in
     let Isa_btree.{ insert_many } = pre_insert_many_op in
-    let Isa_btree.{ make_leaf_stream; ls_step; ls_leaf } = leaf_stream_ops in
+    let Isa_btree.{ make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
     let { with_state } = root_ops in
     let find ~k = 
       with_state (fun ~state:r ~set_state:_ -> 

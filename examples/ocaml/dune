@@ -4,6 +4,6 @@
 (executables
 ;  (package tjr_btree_examples)
   (names btree_main)
-  (libraries tjr_btree tjr_btree_examples))
+  (libraries oseq tjr_btree tjr_btree_examples))
 
 

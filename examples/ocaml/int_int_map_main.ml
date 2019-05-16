@@ -7,11 +7,8 @@ let k_of_string = int_of_string
 let v_to_string = string_of_int
 let v_of_string = int_of_string
 
-include struct
-  open Examples
-  open Internal
-  let { from_file; close; rest } = ii_map_on_fd
-end
+module Internal = Int_int_map_example_functionality.Internal
+open Internal
 
 (* for insert_many operations *)
 let chunksize = 1000
@@ -28,63 +25,58 @@ let insert_seq ~sort ~insert_all ~todo =
     todo := OSeq.drop chunksize !todo
   done
 
-
 let main args =
   Random.self_init ();
   (* turn off wf checking *)
   (* Isa_test.disable_isa_checks(); *)
   (* Test.disable (); *)
-  let open Examples.Internal in
   match args with
   | ["init"; fn] ->
-    let state = from_file ~fn ~create:true ~init:true in
+    btree_from_file ~fn ~create:true ~init:true |> fun { close; _ } ->
     print_endline "init ok";
-    close state    
+    close ()    
 
   | ["insert";fn;k;v] -> (
-      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
-      ops.insert (k_of_string k) (v_of_string v);
-      close !ref_)
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      run (map_ops.insert ~k:(k_of_string k) ~v:(v_of_string v));
+      close ())
 
   | ["delete";fn;k] -> (
-      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
-      ops.delete (k_of_string k);
-      close !ref_)
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+      run (map_ops.delete ~k:(k_of_string k));
+      close ())
 
   | ["list";fn] -> (
-      let ref_ = ref (from_file ~fn ~create:true ~init:false) in
-      let (mk_leaf_stream,ls_step,ls_kvs) = (rest ~ref_).leaf_stream_ops in
-      mk_leaf_stream () |> fun lss ->
+      btree_from_file ~fn ~create:true ~init:true 
+      |> fun { run; close; root_block; _ } -> 
+      let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
+      run (make_leaf_stream root_block.btree_root) |> fun lss ->
       let rec loop lss =
-        match lss with
+        let _ = 
+          List.iter 
+            (fun (k,v) -> 
+               Printf.printf "%s -> %s\n" (k_to_string k) (v_to_string v))
+            (ls_kvs lss)
+        in
+        run (ls_step lss) |> function
         | None -> ()
-        | Some lss -> 
-          let _ = 
-            List.iter 
-              (fun (k,v) -> 
-                 Printf.printf "%s -> %s\n" (k_to_string k) (v_to_string v))
-              (ls_kvs lss)
-          in
-          loop (ls_step lss)
+        | Some lss -> loop lss
       in
-      loop (Some lss);
-      close !ref_;
+      loop lss;
+      close ();
       print_endline "list ok")
 
   | ["insert_range";fn;l;h] -> (
-      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
       let l,h = int_of_string l, int_of_string h in
       let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
-      insert_seq ~sort:false ~insert_all:ops.insert_all ~todo;
-      close !ref_;
+      let insert_all = fun kvs -> run (insert_many ~kvs) in
+      insert_seq ~sort:false ~insert_all ~todo;
+      close ();
       print_endline "insert_range ok")
 
   | ["test_random_reads";fn;l;h;n] -> (
-      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random reads between >=l and <h *)
       let d = h - l in
@@ -92,14 +84,13 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in k))
       in
-      Seq.iter (fun k -> ignore(ops.find k)) todo;
-      close !ref_;
+      Seq.iter (fun k -> ignore(run(map_ops.find ~k))) todo;
+      close ();
       print_endline "test_random_reads ok")
 
   | ["test_random_writes";fn;l;h;n] -> (
       (* version using plain insert *)
-      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
@@ -107,14 +98,13 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      Seq.iter (fun (k,v) -> ops.insert k v) todo;
-      close !ref_;
+      Seq.iter (fun (k,v) -> run(map_ops.insert ~k ~v)) todo;
+      close ();
       print_endline "test_random_writes ok")
 
   | ["test_random_writes_im";fn;l;h;n] -> (
       (* version using insert_many, with sorting and chunks *)
-      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
@@ -122,14 +112,14 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      insert_seq ~sort:true ~insert_all:ops.insert_all ~todo;
-      close !ref_;
+      let insert_all = fun kvs -> run (insert_many ~kvs) in
+      insert_seq ~sort:true ~insert_all ~todo;
+      close ();
       print_endline "test_random_writes ok")
 
   | ["test_random_writes_mutate";fn;l;h;n] -> (
       (* version using insert_many, with sorting and chunks *)
-      let ref_ = ref (from_file ~fn ~create:false ~init:false) in
-      let ops = (rest ~ref_).imperative_ops in
+      btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
@@ -137,8 +127,8 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      Seq.iter (fun (k,v) -> ops.insert k v) todo;
-      close !ref_;
+      Seq.iter (fun (k,v) -> run(map_ops.insert ~k ~v)) todo;
+      close ();
       print_endline "test_random_writes_mutate ok")
 
 
@@ -147,10 +137,10 @@ let main args =
     )
 
   | _ ->
-    failwith (
-      Printf.sprintf "Unrecognized args: %s, at %s"
-        (String_.concat_strings ~sep:" " args)
-        __LOC__)
+    Printf.sprintf "Unrecognized args: %s, at %s"
+      (String.concat " " args)
+      __LOC__
+    |> failwith
 
-let _ = main (Sys.argv |> Array.to_list |> List.tl)
+(* let _ = main (Sys.argv |> Array.to_list |> List.tl) *)
 

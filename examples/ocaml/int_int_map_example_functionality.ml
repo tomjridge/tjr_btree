@@ -46,6 +46,21 @@ module Internal = struct
     let btree_root = Tjr_store.get rb_ref !fstore in
     (* Printf.printf "Close with free=%d and root=%d\n%!" free btree_root; *)
     close ~fd ~root_block:{free; btree_root}
+
+  type tmp = {
+    fd:Unix.file_descr;
+    root_block:root_block;
+    fstore:Tjr_store.t ref;
+    run:'a. ('a, fstore_passing) m -> 'a;
+    close: unit -> unit;
+  }
+
+  let btree_from_file ~fn ~create ~init =
+    let fd,root_block = from_file ~fn ~create ~init in
+    let fstore = ref (init_store ~fd ~root_block) in
+    let run x = run ~fstore x in
+    let close () = close ~fd ~fstore in
+    { fd; root_block; fstore; run; close }
 end
 open Internal
 
@@ -54,34 +69,31 @@ module Internal2 = struct
   let do_write () = 
     Printf.printf "Executing %d writes...\n%!" max;
     print_endline "Writing...";
-    let fd,root_block = from_file ~fn ~create:true ~init:true in
-    let fstore = ref (init_store ~fd ~root_block) in
+    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
     (* write values *)
     for x=1 to max do
-      run ~fstore (map_ops.insert ~k:x ~v:x)
+      run (map_ops.insert ~k:x ~v:x)
     done;
-    close ~fd ~fstore;
+    close ();
     ()
 
   (* open store, delete some values, and close *)
   let do_delete () = 
     print_endline "Deleting...";
-    let fd,root_block = from_file ~fn ~create:false ~init:false in
-    let fstore = ref (init_store ~fd ~root_block) in
+    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
     for x=100 to 200 do
-      run ~fstore (map_ops.delete ~k:x);
+      run (map_ops.delete ~k:x);
     done;
-    close ~fd ~fstore;
+    close ();
     ()
 
   (* open store and check whether various keys and values are correct *)
   let do_check () = 
     print_endline "Checking...";
-    let fd,root_block = from_file ~fn ~create:false ~init:false in
-    let fstore = ref (init_store ~fd ~root_block) in
-    assert(run ~fstore (map_ops.find ~k:100) = None);
-    assert(run ~fstore (map_ops.find ~k:1000) = Some 1000);
-    close ~fd ~fstore;
+    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    assert(run (map_ops.find ~k:100) = None);
+    assert(run (map_ops.find ~k:1000) = Some 1000);
+    close ();
     ()
 end
 open Internal2
@@ -95,15 +107,12 @@ let do_mini_check() =
 
 let do_full_check () = 
   print_endline "Full check...";
-  let fd,root_block = from_file ~fn ~create:false ~init:false in
-  let fstore = ref (init_store ~fd ~root_block) in
+  btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
   for k = 1 to max do
     if (100 <= k && k <= 200) then
-      assert(run ~fstore (map_ops.find ~k) = None)
+      assert(run (map_ops.find ~k) = None)
     else
-      assert(run ~fstore (map_ops.find ~k) = Some(k))
+      assert(run (map_ops.find ~k) = Some(k))
   done;
-  close ~fd ~fstore;
+  close ();
   ()
-
-(* let _ = do_full_check () *)

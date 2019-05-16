@@ -11,5 +11,5 @@ type ('k,'v,'t) map_ops = {
 
 type ('k,'v,'r,'leaf,'ls_impl,'t) extra_map_ops = {
   insert_many: kvs:('k*'v)list -> (unit, 't)m;
-  leaf_stream_ops: ('r,'leaf,'ls_impl,'t) leaf_stream_ops;
+  leaf_stream_ops: ('k,'v,'r,'ls_impl,'t) leaf_stream_ops;
 }
