@@ -81,9 +81,6 @@ let main args =
       insert_seq ~sort:false ~insert_all ~todo;
       close ();
       print_endline "insert_range ok";
-      Printf.printf "Block stats: read_count:%d, write_count:%d\n%!" 
-        (!Examples.On_disk_blk_dev.read_count) 
-        (!Examples.On_disk_blk_dev.write_count) 
     )
 
   | ["test_random_reads";fn;l;h;n] -> (

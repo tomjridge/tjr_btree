@@ -1,5 +1,22 @@
 (** Various examples *)
 
+module Profiler = struct
+  let profiler: string profiler ref = 
+    ref dummy_profiler
+    |> Tjr_global.register ~name:"Examples.profiler"
+
+
+  let profile x y z =
+    !profiler.mark x;
+    let r = z() in
+    !profiler.mark y;
+    r
+
+  let profile x z = 
+    profile x (x^"'") z
+end
+let profile _x z = z()
+
 open Tjr_btree
 
 (** The steps to construct an example are:
@@ -154,6 +171,12 @@ module Internal_abstract(S:S) = struct
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
         ~node_leaf_conversions:nlc ~read_k ~write_k ~read_v ~write_v
 
+    let mp = {
+      dnode_to_blk=(fun dn -> profile "hb" @@ fun () -> mp.dnode_to_blk dn);
+      blk_to_dnode=(fun blk -> profile "hc" @@ fun () -> mp.blk_to_dnode blk);
+      marshal_blk_size=mp.marshal_blk_size;
+    }
+
     let constants = 
       Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
 
@@ -181,6 +204,22 @@ module Internal_abstract(S:S) = struct
         ~marshalling_ops:mp
         ~blk_dev_ops
         ~blk_allocator_ops
+
+    let profile s m = 
+      return () >>= fun () -> 
+      !Profiler.profiler.mark s;
+      m >>= fun r ->
+      !Profiler.profiler.mark (s^"'");
+      return r
+
+    let store_ops = 
+      let {read;wrte;rewrite;free} = store_ops in
+      {
+        read=(fun r -> profile "ib" (read r));
+        wrte=(fun dn -> profile "ic" (wrte dn));
+        rewrite=(fun r dn -> profile "id" (rewrite r dn));
+        free;
+    }
   end
   open Internal
 
@@ -327,10 +366,12 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
   let write_count = Tjr_global.register ~name:"Examples.write_count" (ref 0)
  
   let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+      profile "fb" @@ fun () -> 
       incr(read_count);
       read ~block_ops ~fd ~blk_id |> return) [@@warning "-8"]
 
   let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+      profile "fc" @@ fun () -> 
       incr(write_count);
       write ~block_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
  
