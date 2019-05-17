@@ -154,7 +154,13 @@ module Internal_abstract(S:S) = struct
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
         ~node_leaf_conversions:nlc ~read_k ~write_k ~read_v ~write_v
 
-    let constants = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size
+    let constants = 
+      Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
+
+    let print_constants () = 
+      let cs = constants in
+      Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
+        cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
 
     let blk_allocator_ops = 
       let { with_state } = blk_allocator in
@@ -235,6 +241,7 @@ module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
       let blk_dev_ops = blk_dev_ops
     end
     include Internal_abstract(S)
+    let _ = Internal.print_constants()
   end
 
 
@@ -315,11 +322,16 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
 
   (* reuse the internal functionality *)
   open Blk_dev_on_fd.Internal
+
+  let read_count = Tjr_global.register ~name:"Examples.read_count" (ref 0)
+  let write_count = Tjr_global.register ~name:"Examples.write_count" (ref 0)
  
   let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+      incr(read_count);
       read ~block_ops ~fd ~blk_id |> return) [@@warning "-8"]
 
   let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+      incr(write_count);
       write ~block_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
  
   let blk_dev_ops = { blk_sz=(bsz_of_int blk_sz); read; write }

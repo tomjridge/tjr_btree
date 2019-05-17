@@ -8,10 +8,7 @@ let _ =
     __MODULE__
 
 module Internal = struct
-  let fn = "btree.store"
-
-  (* let _ = Test.disable() *)
-  let _ = Isa_btree.disable_isa_checks()
+  let fn = ref "btree.store"
 
   let on_disk_util,(map_ops,{insert_many; leaf_stream_ops}) = 
     Examples.On_disk.Int_int.(on_disk_util,map)
@@ -69,7 +66,7 @@ module Internal2 = struct
   let do_write () = 
     Printf.printf "Executing %d writes...\n%!" max;
     print_endline "Writing...";
-    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
     (* write values *)
     for x=1 to max do
       run (map_ops.insert ~k:x ~v:x)
@@ -80,7 +77,7 @@ module Internal2 = struct
   (* open store, delete some values, and close *)
   let do_delete () = 
     print_endline "Deleting...";
-    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
     for x=100 to 200 do
       run (map_ops.delete ~k:x);
     done;
@@ -90,7 +87,7 @@ module Internal2 = struct
   (* open store and check whether various keys and values are correct *)
   let do_check () = 
     print_endline "Checking...";
-    btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
     assert(run (map_ops.find ~k:100) = None);
     assert(run (map_ops.find ~k:1000) = Some 1000);
     close ();
@@ -98,21 +95,27 @@ module Internal2 = struct
 end
 open Internal2
 
-(* actually execute the above *)
-let do_mini_check() = 
-  do_write();
-  do_delete();
-  do_check();
-  ()
+(** force the user to consider staging and fn when running the
+   examples, by having a trivial functor *)
+module Example() = struct
 
-let do_full_check () = 
-  print_endline "Full check...";
-  btree_from_file ~fn ~create:true ~init:true |> fun { run; close; _ } -> 
-  for k = 1 to max do
-    if (100 <= k && k <= 200) then
-      assert(run (map_ops.find ~k) = None)
-    else
-      assert(run (map_ops.find ~k) = Some(k))
-  done;
-  close ();
-  ()
+  (* actually execute the above *)
+  let do_mini_check() = 
+    do_write();
+    do_delete();
+    do_check();
+    ()
+
+  let do_full_check () = 
+    print_endline "Full check...";
+    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    for k = 1 to max do
+      if (100 <= k && k <= 200) then
+        assert(run (map_ops.find ~k) = None)
+      else
+        assert(run (map_ops.find ~k) = Some(k))
+    done;
+    close ();
+    ()
+
+end
