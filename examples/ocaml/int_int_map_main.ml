@@ -1,4 +1,5 @@
 (* a map from int to int, backed by file ------------------------------- *)
+open Tjr_profile.Util.Profiler
 
 open Tjr_btree
 
@@ -10,20 +11,55 @@ let v_of_string = int_of_string
 module Internal = Int_int_map_example_functionality.Internal
 open Internal
 
+(** FIXME Oseq had some performance bug; this is a hand-rolled version *)
+module Seq = struct
+  type 'a seq = {
+    take: int -> 'a list;
+  }
+  let ( -- ) = fun l h ->
+    let x = ref l in
+    { take=
+        fun n -> 
+          let n = ref n in
+          let xs = ref [] in
+          while !n > 0 && !x <= h do
+            xs:=!x::!xs;
+            x:=!x+1;
+            n:=!n-1
+          done;
+          List.rev !xs
+    }
+  let map f xs = {
+    take=fun n -> xs.take n |> List.map f
+  }
+
+  let iter f xs = 
+    let rec g () = 
+      xs.take 1 |> function
+      | [] -> ()
+      | [x] -> f x; g()
+      | _ -> failwith __LOC__
+    in
+    g ()
+end
+open Seq
+
 (* for insert_many operations *)
 let chunksize = 1000
 
 let insert_seq ~sort ~insert_all ~todo =
-  let todo = ref todo in
-  while !todo () <> Seq.Nil do
-    let kvs = 
-      (OSeq.take chunksize !todo) 
-      |> OSeq.to_list 
-      |> (fun xs -> if sort then List.sort (Pervasives.compare : (int*int) -> (int*int) -> int) xs else xs)
-    in 
-    insert_all kvs;
-    todo := OSeq.drop chunksize !todo
-  done
+  let rec f () = 
+    todo.take chunksize |> fun xs ->
+    match xs with
+    | [] -> ()
+    | _ -> 
+      let kvs = 
+        if sort then List.sort (Pervasives.compare : (int*int) -> (int*int) -> int) xs else xs
+      in 
+      (profile "jb" @@ fun () -> insert_all kvs);
+      f ()
+  in
+  f ()
 
 (* allow float representation *)
 let int_of_string s = 
@@ -76,7 +112,7 @@ let main args =
   | ["insert_range";fn;l;h] -> (
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h = int_of_string l, int_of_string h in
-      let todo = OSeq.((l -- h) |> map (fun k -> (k,2*k))) in      
+      let todo = Seq.((l -- h) |> map (fun k -> (k,2*k))) in      
       let insert_all = fun kvs -> run (insert_many ~kvs) in
       insert_seq ~sort:false ~insert_all ~todo;
       close ();
@@ -88,7 +124,7 @@ let main args =
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random reads between >=l and <h *)
       let d = h - l in
-      let todo = OSeq.(
+      let todo = Seq.(
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in k))
       in
@@ -102,7 +138,7 @@ let main args =
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
-      let todo = OSeq.(
+      let todo = Seq.(
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
@@ -116,7 +152,7 @@ let main args =
       let l,h,n = int_of_string l, int_of_string h, int_of_string n in
       (* n random writes between >=l and <h *)
       let d = h - l in
-      let todo = OSeq.(
+      let todo = Seq.(
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in

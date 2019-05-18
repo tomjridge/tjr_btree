@@ -4,6 +4,6 @@
 (executables
   (package tjr_btree_examples)
   (public_names btree_main)
-  (libraries oseq tjr_btree tjr_btree_examples tjr_profile core))
+    (libraries tjr_btree tjr_btree_examples tjr_profile core))
 
 

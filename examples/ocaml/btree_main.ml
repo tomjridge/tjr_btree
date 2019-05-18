@@ -1,5 +1,6 @@
 (** Single entry point for executable examples *)
-(* open Int_int_map_example_functionality *)
+open Tjr_profile.Util.Profiler
+open Int_int_map_example_functionality[@@warning "-33"]
 
 let args = Sys.argv |> Array.to_list |> List.tl
 
@@ -9,19 +10,7 @@ let _ =
   Tjr_test.disable ()
 
 let _ = 
-(*
-  Isa_export_wrapper.Profiler2.profiler := 
-    Tjr_profile.make_string_profiler 
-      ~now:Core.Time_stamp_counter.(fun () ->
-          now () |> to_int63 |> Core.Int63.to_int |> fun (Some x) -> x);
-*)
-
-(*  Isa_export.profiler := 
-    Tjr_profile.make_string_profiler 
-      ~now:Core.Time_stamp_counter.(fun () ->
-          now () |> to_int63 |> Core.Int63.to_int |> fun (Some x) -> x); *)
-  
-  Examples.Profiler.profiler := 
+  Tjr_profile.string_profiler := 
     Tjr_profile.make_string_profiler 
       ~now:Core.Time_stamp_counter.(fun () ->
           now () |> to_int63 |> Core.Int63.to_int |> fun (Some x) -> x);
@@ -37,7 +26,7 @@ let _ =
 *)
 
 let _ = 
-  Isa_export_wrapper.Profiler2.profile "aa" @@ fun () ->
+  profile "aa" @@ fun () ->
   Int_int_map_main.main args
 
 let _ = 
@@ -45,4 +34,4 @@ let _ =
         (!Examples.On_disk_blk_dev.read_count) 
         (!Examples.On_disk_blk_dev.write_count) 
 
-let _ = !(Examples.Profiler.profiler).print_summary()
+let _ = (!Tjr_profile.string_profiler).print_summary()
