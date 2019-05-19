@@ -1,5 +1,5 @@
 (env
-  (dev (flags (:standard -w -8-39-26 -open Tjr_monad -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Tjr_btree_examples ))))
+  (dev (flags (:standard -w -8-39-26 -open Tjr_monad -open Tjr_profile -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Tjr_btree_examples ))))
 
 (executables
   (package tjr_btree_examples)

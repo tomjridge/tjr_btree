@@ -1,5 +1,5 @@
 (** Various examples *)
-
+open Tjr_profile.Util.Profiler
 open Tjr_btree
 
 (** The steps to construct an example are:
@@ -154,7 +154,7 @@ module Internal_abstract(S:S) = struct
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
         ~node_leaf_conversions:nlc ~read_k ~write_k ~read_v ~write_v
 
-    open Tjr_profile.Util.No_profiler
+    (* open Tjr_profile.Util.No_profiler *)
 
     let mp = {
       dnode_to_blk=(fun dn -> profile "hb" @@ fun () -> mp.dnode_to_blk dn);
@@ -197,8 +197,33 @@ module Internal_abstract(S:S) = struct
       mark (s^"'");
       return r
 
+    (* we add some profiling; we also take the opportunity to add some
+       simple caching; FIXME add LRU caching for store *)
     let store_ops = 
       let {read;wrte;rewrite;free} = store_ops in
+
+(*
+      (* Add some memoization *)
+      let last = ref (-1,Obj.magic ()) in
+      (* NOTE for insert_range, we only need to keep the current
+         block; otherwise we should experiment to see what LRU
+         capacity values are best given the usage pattern; for the
+         moment, we just remember the last block *)
+      let read = fun r -> 
+        !last |> fun (r',dn) -> 
+        match r'=r with 
+        | true -> return dn 
+        | false -> read r >>= fun dn -> last:=(r,dn); return dn
+      in
+      let wrte dn = 
+        wrte dn >>= fun r -> last:=(r,dn); return r
+      in
+      let rewrite r dn = 
+        rewrite r dn >>= function
+        | None -> last:=(r,dn); return None
+        | Some r' -> last:=(r',dn); return (Some r')
+      in
+*)
       {
         read=(fun r -> profile_m ~mark "ib" (read r));
         wrte=(fun dn -> profile_m ~mark "ic" (wrte dn));
@@ -350,7 +375,7 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
   let read_count = Tjr_global.register ~name:"Examples.read_count" (ref 0)
   let write_count = Tjr_global.register ~name:"Examples.write_count" (ref 0)
  
-  open Tjr_profile.Util.No_profiler
+  (* open Tjr_profile.Util.No_profiler *)
 
   let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
       profile "fb" @@ fun () -> 

@@ -5,5 +5,5 @@
   (name tjr_btree_examples)
   (public_name tjr_btree_examples)
   (preprocess (pps ppx_deriving_yojson ppx_bin_prot))
-  (libraries tjr_fs_shared isa_btree tjr_btree tjr_profile))
+  (libraries lru tjr_fs_shared isa_btree tjr_btree tjr_profile))
 

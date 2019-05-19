@@ -13,7 +13,8 @@ bug-reports: "https://github.com/tomjridge/tjr_btree/issues"
 # ----------------------------------------------------------------------
 
 depends: [
-  "tjr_btree"
+  "lru"       # for caching store ops
+  "tjr_btree"  
 ]
 
 # ----------------------------------------------------------------------
