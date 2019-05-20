@@ -157,8 +157,8 @@ module Internal_abstract(S:S) = struct
     (* open Tjr_profile.Util.No_profiler *)
 
     let mp = {
-      dnode_to_blk=(fun dn -> profile "hb" @@ fun () -> mp.dnode_to_blk dn);
-      blk_to_dnode=(fun blk -> profile "hc" @@ fun () -> mp.blk_to_dnode blk);
+      dnode_to_blk=(fun dn -> profile "d2blk" @@ fun () -> mp.dnode_to_blk dn);
+      blk_to_dnode=(fun blk -> profile "blk2d" @@ fun () -> mp.blk_to_dnode blk);
       marshal_blk_size=mp.marshal_blk_size;
     }
 
@@ -211,7 +211,7 @@ module Internal_abstract(S:S) = struct
           let weight: t -> int = fun _ -> 1
         end)
       in    
-      let cap = 100 in   (* FIXME config *)
+      let cap = 52000 (* 51539*) in   (* FIXME config; (+ 10 ( * 227 227)) *)
       let slack = 10 in
       let lru = L.create cap in
       (* FIXME we perhaps want to avoid calling trim on every add

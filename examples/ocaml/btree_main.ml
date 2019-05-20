@@ -6,8 +6,9 @@ let args = Sys.argv |> Array.to_list |> List.tl
 (* let _ = Test.disable() *)
 let _ = 
   Isa_btree.disable_isa_checks();
-  Tjr_test.disable ()
-
+  (* Isa_btree.enable_isa_checks(); *)
+  Tjr_test.disable ();
+  ()
 
 
 
