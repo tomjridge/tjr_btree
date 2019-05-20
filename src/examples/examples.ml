@@ -201,29 +201,53 @@ module Internal_abstract(S:S) = struct
        simple caching; FIXME add LRU caching for store *)
     let store_ops = 
       let {read;wrte;rewrite;free} = store_ops in
-
-(*
       (* Add some memoization *)
-      let last = ref (-1,Obj.magic ()) in
-      (* NOTE for insert_range, we only need to keep the current
-         block; otherwise we should experiment to see what LRU
-         capacity values are best given the usage pattern; for the
-         moment, we just remember the last block *)
+      let module L = Lru.M.Make(struct
+          type t = blk_id
+          let equal : t -> t -> bool = Pervasives.(=)  (* FIXME don't use pervasives for real code *)
+          let hash: t -> int = Hashtbl.hash
+        end)(struct
+          type t = ((k, blk_id) node_impl, (k, v) leaf_impl) dnode  (* FIXME dnode_impl *)
+          let weight: t -> int = fun _ -> 1
+        end)
+      in    
+      let cap = 100 in   (* FIXME config *)
+      let slack = 10 in
+      let lru = L.create cap in
+      (* FIXME we perhaps want to avoid calling trim on every add
+         (depending on the cost of performing a trim) *)
+      let trim lru = 
+        if L.size lru >= cap+slack then L.trim lru else ()
+      in
       let read = fun r -> 
-        !last |> fun (r',dn) -> 
-        match r'=r with 
-        | true -> return dn 
-        | false -> read r >>= fun dn -> last:=(r,dn); return dn
+        L.find r lru |> function
+        | None -> (read r >>= fun dn -> 
+            L.add r dn lru; 
+            trim lru;
+            ();
+            return dn)
+        | Some dn -> 
+          L.promote r lru;
+          return dn
       in
       let wrte dn = 
-        wrte dn >>= fun r -> last:=(r,dn); return r
+        wrte dn >>= fun r -> 
+        L.add r dn lru;
+        trim lru;
+        return r
       in
       let rewrite r dn = 
         rewrite r dn >>= function
-        | None -> last:=(r,dn); return None
-        | Some r' -> last:=(r',dn); return (Some r')
+        | None -> (
+            (* updated in place *)
+            L.add r dn lru;
+            trim lru;
+            return None)
+        | Some r' -> (
+          L.add r' dn lru;
+          trim lru;
+          return (Some r'))
       in
-*)
       {
         read=(fun r -> profile_m ~mark "ib" (read r));
         wrte=(fun dn -> profile_m ~mark "ic" (wrte dn));
