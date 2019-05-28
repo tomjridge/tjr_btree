@@ -15,7 +15,7 @@ let uncached_disk_to_store ~monad_ops ~marshalling_ops:marshal
   let return = monad_ops.return in
   let { blk_sz; read; write } = blk_dev_ops in
   let { marshal_blk_size; dnode_to_blk; blk_to_dnode } = marshal in
-  Tjr_test.test(fun _ -> assert (Blk_sz.to_int blk_sz = marshal_blk_size));
+  Test.test(fun _ -> assert (Blk_sz.to_int blk_sz = marshal_blk_size));
   let ops = {
     read=(fun r ->
         read ~blk_id:r >>= fun blk ->

@@ -372,7 +372,7 @@ Finally, we can start instantiating.
 module In_mem_blk_dev : BLK_DEV_OPS = struct
 
   let blk_dev_ops = 
-    let blk_dev_ref = alloc_fstore_ref (Tjr_poly_map.empty ()) in
+    let blk_dev_ref = alloc_fstore_ref (Tjr_map.With_pervasives_compare.empty ()) in
     let with_state = Tjr_fs_shared.Fstore_passing.fstore_ref_to_with_state blk_dev_ref in
     let _ = with_state in
     Blk_dev_in_mem.make 
@@ -396,8 +396,8 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
   (* reuse the internal functionality *)
   open Blk_dev_on_fd.Internal
 
-  let read_count = Tjr_global.register ~name:"Examples.read_count" (ref 0)
-  let write_count = Tjr_global.register ~name:"Examples.write_count" (ref 0)
+  let read_count = Global.register ~name:"Examples.read_count" (ref 0)
+  let write_count = Global.register ~name:"Examples.write_count" (ref 0)
  
   (* open Tjr_profile.Util.No_profiler *)
 

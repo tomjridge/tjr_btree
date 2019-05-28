@@ -7,7 +7,7 @@ let args = Sys.argv |> Array.to_list |> List.tl
 let _ = 
   Isa_btree.disable_isa_checks();
   (* Isa_btree.enable_isa_checks(); *)
-  Tjr_test.disable ();
+  Tjr_lib.Test.disable ();
   ()
 
 

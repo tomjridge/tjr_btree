@@ -2,8 +2,6 @@
 
 open Page_ref_int
 
-module Map_int = Tjr_map.Map_int
-
 (** In-mem store, a map from r (int) to [('k,'v)dnode_impl] *)
 type ('k,'v) mem = {free:int; map:('k,'v,int)dnode_impl Map_int.t}  
 
