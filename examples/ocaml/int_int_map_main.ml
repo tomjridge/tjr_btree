@@ -79,6 +79,26 @@ let main args =
     print_endline "init ok";
     close ()    
 
+  | ["count"; fn] -> (
+      btree_from_file ~fn ~create ~init
+      |> fun { run; close; root_block; _ } -> 
+      let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
+      run (make_leaf_stream root_block.btree_root) |> fun lss ->
+      let count = ref 0 in
+      let rec loop lss =
+        let _ = 
+          List.iter 
+            (fun (_k,_v) -> incr count)
+            (ls_kvs lss)
+        in
+        run (ls_step lss) |> function
+        | None -> ()
+        | Some lss -> loop lss
+      in
+      loop lss;
+      close ();
+      Printf.printf "count ok; %d entries\n%!" !count)
+
   | ["insert";fn;k;v] -> (
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       run (map_ops.insert ~k:(k_of_string k) ~v:(v_of_string v));

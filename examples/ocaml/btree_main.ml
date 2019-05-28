@@ -5,9 +5,10 @@ let args = Sys.argv |> Array.to_list |> List.tl
 
 (* let _ = Test.disable() *)
 let _ = 
-  Isa_btree.disable_isa_checks();
-  (* Isa_btree.enable_isa_checks(); *)
-  Tjr_lib.Test.disable ();
+  (* Isa_btree.disable_isa_checks(); *)
+  Isa_btree.enable_isa_checks();
+  (* Tjr_lib.Test.disable (); *)
+  Tjr_lib.Test.enable ();
   ()
 
 
