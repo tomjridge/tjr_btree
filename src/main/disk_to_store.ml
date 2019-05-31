@@ -1,7 +1,3 @@
-(* open Tjr_monad.Types *)
-(* open Tjr_fs_shared *)
-(* open Isa_btree *)
-(* open Isa_export_wrapper *)
 open Marshalling_ops_type  (* FIXME include in base_types? *)
 open Blk_allocator_ops_type  (* FIXME include in base_types? *)
 

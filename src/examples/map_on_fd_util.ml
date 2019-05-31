@@ -20,7 +20,7 @@ end
 include Root_blk
 
 (** Constructs [from_file] and [close] *)
-let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:blk) = 
+let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:unit -> blk) = 
   let module A = struct
 
     (** {2 Root blocks}
@@ -58,7 +58,7 @@ let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:blk) =
       | true -> (
           (* now need to write the initial dnode *)
           let _ = 
-            let blk = empty_disk_leaf_as_blk in
+            let blk = empty_disk_leaf_as_blk () in
             Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:1 ~blk
           in
           (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME

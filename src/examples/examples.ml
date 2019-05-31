@@ -261,8 +261,11 @@ module Internal_abstract(S:S) = struct
 
   module Internal2 = struct
     let empty_disk_leaf_as_blk = 
-      leaf_ops.kvs_to_leaf [] |> fun x ->
-      mp.dnode_to_blk (Disk_leaf x)
+      let blk = lazy (
+        leaf_ops.kvs_to_leaf [] |> fun x ->
+        mp.dnode_to_blk (Disk_leaf x))
+      in
+      fun () -> Lazy.force blk
 
     let _ = empty_disk_leaf_as_blk
 
