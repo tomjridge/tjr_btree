@@ -147,12 +147,14 @@ module Internal_abstract(S:S) = struct
     let block_ops = Blk_ops.block_ops
 
     (* node leaf conversions, for marshalling *)
-    let nlc = Isa_btree.Isa_export_wrapper.node_leaf_conversions ~k_cmp
+    let node_ops = Isa_btree.make_node_ops ~k_cmp
+    let leaf_ops = Isa_btree.make_leaf_ops ~k_cmp
 
     (* marshalling *)
     let mp = 
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
-        ~node_leaf_conversions:nlc ~read_k ~write_k ~read_v ~write_v
+        ~node_ops ~leaf_ops
+        ~read_k ~write_k ~read_v ~write_v
 
     (* open Tjr_profile.Util.No_profiler *)
 
@@ -259,7 +261,7 @@ module Internal_abstract(S:S) = struct
 
   module Internal2 = struct
     let empty_disk_leaf_as_blk = 
-      Internal.nlc.kvs_to_leaf [] |> fun x ->
+      leaf_ops.kvs_to_leaf [] |> fun x ->
       mp.dnode_to_blk (Disk_leaf x)
 
     let _ = empty_disk_leaf_as_blk
@@ -283,8 +285,10 @@ module Internal_abstract(S:S) = struct
 
   let _ :
 (k, v, fstore_passing) map_ops *
-(k, v, blk_id, (k, v) leaf_impl, (k, v, blk_id) leaf_stream_impl,
- fstore_passing)
+(k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, fstore_passing) m,
+ kvs:(k * v) list -> (unit, fstore_passing) m,
+ (k, v, blk_id, (k, v, blk_id) leaf_stream_impl, fstore_passing)
+ leaf_stream_ops)
 extra_map_ops
     = map
 end

@@ -1,8 +1,5 @@
 (** The essential B-tree functionality: implement a map on top of a store. *)
-(* open Tjr_monad.Mref *)
-(* open Tjr_monad.Types *)
-(* open Isa_btree *)
-(* open Isa_export_wrapper *)
+
 open Map_ops_type
 
 (* convert store to map ---------------------------------------- *)
@@ -24,12 +21,15 @@ type ('r,'t) btree_root_ops = ('r,'t) with_state
 
 module Internal = struct
   (* produce a map, with page_ref state set/get via monad_ops *)
-  let _make_map_ops ~monad_ops ~pre_map_ops ~pre_insert_many_op ~leaf_stream_ops ~root_ops = 
+  (* let _make_map_ops ~monad_ops ~pre_map_ops ~pre_insert_many_op ~leaf_stream_ops ~root_ops =  *)
+  let _make_map_ops ~monad_ops ~isa_btree ~root_ops =
+    let xx = isa_btree in
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
-    let { leaf_lookup; find; insert; delete } = pre_map_ops in
-    let Isa_btree.{ insert_many } = pre_insert_many_op in
-    let Isa_btree.{ make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
+    let { leaf_lookup; find; insert; delete } = pre_map_ops xx in
+    let Isa_btree.{ insert_many } = insert_many xx in
+    let Isa_btree.{ insert_all } = insert_all xx in
+    let Isa_btree.{ make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops xx in
     let { with_state } = root_ops in
     let find ~k = 
       with_state (fun ~state:r ~set_state:_ -> 
@@ -45,41 +45,39 @@ module Internal = struct
           | None -> return ()
           | Some r' -> set_state r')
     in
-    let insert_many ~kvs =
+    let delete ~k =
       with_state (fun ~state:r ~set_state -> 
-        insert_many ~r ~kvs >>= fun (kvs,ropt) -> 
+          delete ~r ~k >>= fun r' ->
+          set_state r')
+    in
+    let insert_many ~k ~v ~kvs =
+      with_state (fun ~state:r ~set_state -> 
+        insert_many ~r ~k ~v ~kvs >>= fun (kvs,ropt) -> 
         (match ropt with
         | None -> return ()
         | Some r -> set_state r) >>= fun () -> 
         return kvs)
     in
-    let iter_m = iter_m ~monad_ops in
-    (* execute in a loop to insert all *)
-    let insert_many ~kvs = 
-      (kvs |> iter_m (function
-           | [] -> return None
-           | kvs -> 
-             insert_many ~kvs >>= fun kvs -> 
-             return (Some kvs)))
-      >>= function
-      | [] -> return ()
-      | _ -> failwith __LOC__  
-      (* impossible, since iter_m stops at None, and returns the
-         previous kvs state, which has to be [] *)
-    in 
-   let delete ~k =
+    let insert_all ~kvs = 
       with_state (fun ~state:r ~set_state -> 
-          delete ~r ~k >>= fun r' ->
-          set_state r')
+        insert_all ~r ~kvs >>= fun r -> 
+        set_state r)
     in
-    { find; insert; delete },{insert_many; leaf_stream_ops}
+    let leaf_stream_ops = { make_leaf_stream; ls_step; ls_kvs } in
+    { find; insert; delete },{ insert_many; insert_all; leaf_stream_ops }
+
+  let _ : 
+monad_ops:'a monad_ops ->
+isa_btree:('b, 'c, 'd, 'a) isa_btree ->
+root_ops:('d, 'a) btree_root_ops ->
+('b, 'c, 'a) map_ops *
+(k:'b -> v:'c -> kvs:('b * 'c) list -> (('b * 'c) list, 'a) m,
+ kvs:('b * 'c) list -> (unit, 'a) m,
+ ('b, 'c, 'd, ('b, 'c, 'd) leaf_stream_impl, 'a) leaf_stream_ops)
+extra_map_ops
+ = _make_map_ops
 end
 open Internal
-
-(* type ('k,'r) node_impl = ('k,'r) Isa_btree.Isa_export_wrapper.node_impl *)
-
-(** This defn serves to abbreviate types in what follows *)
-(* type ('k,'v,'r) dnode_impl = (('k,'r)node_impl,('k,'v)leaf_impl) dnode *)
 
 (** Make [map_ops], given a [page_ref_ops]. *)
 let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int) 
@@ -87,14 +85,23 @@ let store_ops_to_map_ops ~(monad_ops:'t monad_ops) ~cs ~(k_cmp:'k -> 'k -> int)
   let return = monad_ops.return in
   let dbg_tree_at_r = fun _ -> return () in
   let isa_btree = make_isa_btree ~monad_ops ~cs ~k_cmp ~store_ops ~dbg_tree_at_r in
-  let pre_map_ops = isa_btree |> pre_map_ops in
-  let pre_insert_many_op = isa_btree |> pre_insert_many_op in
-  let leaf_stream_ops = isa_btree |> leaf_stream_ops in
   fun ~root_ops -> 
-    let ops = _make_map_ops ~monad_ops ~pre_map_ops ~pre_insert_many_op ~leaf_stream_ops ~root_ops in
+    let ops = _make_map_ops ~monad_ops ~isa_btree ~root_ops in
     ops
 
-let _ = store_ops_to_map_ops
+let _ : 
+monad_ops:'t monad_ops ->
+cs:constants ->
+k_cmp:('k -> 'k -> int) ->
+store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
+root_ops:('r, 't) btree_root_ops ->
+('k, 'v, 't) map_ops *
+(k:'k -> v:'v -> kvs:('k * 'v) list -> (('k * 'v) list, 't) m,
+ kvs:('k * 'v) list -> (unit, 't) m,
+ ('k, 'v, 'r, ('k, 'v, 'r) leaf_stream_impl, 't) leaf_stream_ops)
+extra_map_ops
+= 
+store_ops_to_map_ops
 
 (** Prettier type: {%html:<pre>
 monad_ops:'t monad_ops ->
@@ -103,7 +110,9 @@ k_cmp:('k -> 'k -> int) ->
 store_ops:('r, ('k, 'v, 'r) dnode_impl, 't) store_ops ->
 root_ops:('r, 't) btree_root_ops ->
 ('k, 'v, 't) map_ops *
-('k, 'v, 'r, ('k, 'v) leaf_impl, ('k, 'v, 'r) leaf_stream_impl, 't)
+(k:'k -> v:'v -> kvs:('k * 'v) list -> (('k * 'v) list, 't) m,
+ kvs:('k * 'v) list -> (unit, 't) m,
+ ('k, 'v, 'r, ('k, 'v, 'r) leaf_stream_impl, 't) leaf_stream_ops)
 extra_map_ops
 </pre> %}
 *)

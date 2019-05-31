@@ -133,7 +133,7 @@ let main args =
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h = int_of_string l, int_of_string h in
       let todo = Seq.((l -- h) |> map (fun k -> (k,2*k))) in      
-      let insert_all = fun kvs -> run (insert_many ~kvs) in
+      let insert_all = fun kvs -> run (insert_all ~kvs) in
       insert_seq ~sort:false ~insert_all ~todo;
       close ();
       print_endline "insert_range ok";
@@ -176,7 +176,7 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      let insert_all = fun kvs -> run (insert_many ~kvs) in
+      let insert_all = fun kvs -> run (insert_all ~kvs) in
       insert_seq ~sort:true ~insert_all ~todo;
       close ();
       print_endline "test_random_writes_im ok")

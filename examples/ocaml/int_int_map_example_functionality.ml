@@ -10,7 +10,7 @@ let _ =
 module Internal = struct
   let fn = ref "btree.store"
 
-  let on_disk_util,(map_ops,{insert_many; leaf_stream_ops}) = 
+  let on_disk_util,(map_ops,{insert_many; insert_all; leaf_stream_ops}) = 
     Examples.On_disk.Int_int.(on_disk_util,map)
 
   let from_file,close = on_disk_util

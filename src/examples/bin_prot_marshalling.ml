@@ -57,20 +57,18 @@ module Internal = struct
 
 
 
-  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_leaf_conversions = 
-    let x = node_leaf_conversions in
-    (* let node_ops = node_ops isa_btree in *)
-    (* let leaf_ops = leaf_ops isa_btree in *)
-    (* let node_of_krs = krs_to_node isa_btree in *)
-    (* let leaf_of_kvs = kvs_to_leaf isa_btree in *)
+  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_ops ~leaf_ops = 
+    let xx = node_ops in
+    let yy = leaf_ops in
+    let open Isa_export_wrapper in  (* for node_ops fields *)
     let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
     let dn2bp = function
-      | Disk_node n -> n |> x.node_to_krs |> fun (ks,rs) -> N (ks,rs)
-      | Disk_leaf l -> l |> x.leaf_to_kvs |> fun kvs -> L kvs
+      | Disk_node n -> n |> xx.node_to_krs |> fun (ks,rs) -> N (ks,rs)
+      | Disk_leaf l -> l |> yy.leaf_to_kvs |> fun kvs -> L kvs
     in
     let bp2dn = function
-      | N (ks,rs) -> (ks,rs) |> x.krs_to_node |> fun n -> Disk_node n
-      | L kvs -> kvs |> x.kvs_to_leaf |> fun l -> Disk_leaf l
+      | N (ks,rs) -> (ks,rs) |> xx.krs_to_node |> fun n -> Disk_node n
+      | L kvs -> kvs |> yy.kvs_to_leaf |> fun l -> Disk_leaf l
     in
     (* pull this out because frame_to_page takes an explicit blk_sz; FIXME
        should it? *)
@@ -150,20 +148,22 @@ let make_constants = Internal.make_constants
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
     ~(block_ops:'blk block_ops) 
-    ~node_leaf_conversions
+    ~node_ops
+    ~leaf_ops
   = 
-  Internal.make_binprot_marshalling ~block_ops ~node_leaf_conversions
+  Internal.make_binprot_marshalling ~block_ops ~node_ops ~leaf_ops
 
 
 let _ = make_binprot_marshalling
 
 (** Prettier type: {%html:<pre>
 block_ops:'blk block_ops ->
-node_leaf_conversions:('a, 'b, int, 'c, 'd) node_leaf_conversions ->
+node_ops:('a, int, 'b) Isa_export_wrapper.node_ops ->
+leaf_ops:('a, 'c, 'd) Isa_export_wrapper.leaf_ops ->
 read_k:'a Bin_prot.Type_class.reader ->
 write_k:'a Bin_prot.Type_class.writer ->
-read_v:'b Bin_prot.Type_class.reader ->
-write_v:'b Bin_prot.Type_class.writer ->
-(('c, 'd) dnode, 'blk) marshalling_ops
+read_v:'c Bin_prot.Type_class.reader ->
+write_v:'c Bin_prot.Type_class.writer ->
+(('b, 'd) dnode, 'blk) marshalling_ops
 </pre>%} *)
 

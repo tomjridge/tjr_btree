@@ -37,7 +37,7 @@ let _ =
     Internal_leaf_impl.leaf_profiler := Tjr_profile.make_string_profiler ~now;
     Internal_node_impl.node_profiler := Tjr_profile.make_string_profiler ~now;
     Internal_frame_impl.frame_profiler := Tjr_profile.make_string_profiler ~now;
-    export_profiler := Tjr_profile.make_string_profiler ~now;
+    (* export_profiler := Tjr_profile.make_string_profiler ~now; *)
     btree_main_profiler := Tjr_profile.make_string_profiler ~now
   end
 
@@ -72,7 +72,7 @@ let _ =
     Internal_leaf_impl.leaf_profiler;
     Internal_node_impl.node_profiler;
     Internal_frame_impl.frame_profiler;
-    export_profiler;
+    (* export_profiler; *)
     btree_main_profiler];
   ()
 
