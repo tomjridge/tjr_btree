@@ -20,6 +20,7 @@ depends: [
 
 # ----------------------------------------------------------------------
 
-
-# FIXME get dune to ignore "exported_munged_code" then use dune build
-build: [make "build"]
+# taken from JS base
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]

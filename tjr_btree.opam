@@ -21,5 +21,7 @@ depends: [
 
 # ----------------------------------------------------------------------
 
-
-build: [make "build"]
+# taken from JS base
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
