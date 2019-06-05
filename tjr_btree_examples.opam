@@ -14,6 +14,7 @@ bug-reports: "https://github.com/tomjridge/tjr_btree/issues"
 
 depends: [
   "lru"       # for caching store ops
+  "core"      # for profiling
   "tjr_btree"  
 ]
 
