@@ -1,8 +1,0 @@
-FLG -w @f@p@u@s@40-8-11-26-40
-
-# https://github.com/ocaml/merlin/issues/795
-FLG -safe-string
-
-PKG yojson ppx_deriving_yojson core ppx_bin_prot extlib isa_btree tjr_monad tjr_fs_shared 
-
-B .

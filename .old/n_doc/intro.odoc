@@ -1,5 +1,0 @@
-{1 [tjr_btree], a CoW B-tree library }
-
-The main entry point for the documentation is {!Tjr_btree_doc}.
-
-{!indexlist}
