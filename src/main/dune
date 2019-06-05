@@ -4,5 +4,5 @@
 (library
   (name tjr_btree)
   (public_name tjr_btree)
-  (libraries tjr_monad tjr_fs_shared isa_btree))
+  (libraries isa_btree))
 
