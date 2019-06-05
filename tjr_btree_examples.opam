@@ -1,13 +1,15 @@
-opam-version: "2.0"
-name: "tjr_btree_examples"
-version: "0.0.1"
+opam-version : "2.0"
+name         : "tjr_btree_examples"
+version      : "0.0.1"
+synopsis     : "B-tree examples"
 
 # ----------------------------------------------------------------------
 
-authors: "Tom Ridge <tom.j.ridge@googlemail.com>"
-maintainer: "Tom Ridge <tom.j.ridge@googlemail.com>"
-homepage: "https://github.com/tomjridge/tjr_btree"
-bug-reports: "https://github.com/tomjridge/tjr_btree/issues"
+authors      : "Tom Ridge <tom.j.ridge@googlemail.com>"
+maintainer   : "Tom Ridge <tom.j.ridge@googlemail.com>"
+homepage     : "https://github.com/tomjridge/tjr_btree"
+bug-reports  : "https://github.com/tomjridge/tjr_btree/issues"
+dev-repo     : "git+https://github.com/tomjridge/tjr_btree.git"
 
 
 # ----------------------------------------------------------------------

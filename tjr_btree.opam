@@ -9,7 +9,7 @@ authors      : "Tom Ridge <tom.j.ridge@googlemail.com>"
 maintainer   : "Tom Ridge <tom.j.ridge@googlemail.com>"
 homepage     : "https://github.com/tomjridge/tjr_btree"
 bug-reports  : "https://github.com/tomjridge/tjr_btree/issues"
-dev-repo     : "git://github.com/tomjridge/tjr_btree.git"
+dev-repo     : "git+https://github.com/tomjridge/tjr_btree.git"
 
 # ----------------------------------------------------------------------
 

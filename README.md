@@ -8,19 +8,18 @@
 
 tjr_btree is a B-tree library written for OCaml, and based on code extracted from an Isabelle formalization.
 
-![](https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&h=766)
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&amp;h=766">
+
+
 
 <img src="https://docs.google.com/drawings/d/e/2PACX-1vSqzipIxfOtcWhtSEqcBUpEKPVp1ALtHYyVVBldz7WNP3idcaQTY0iHoLBMf9n4vNMUjDvoIi_gr2gE/pub?w=550&amp;h=336">
 
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
-* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). The main entry point (for documentation, and using the library) is the module [Tjr_btree.Export](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/Export/index.html).
+* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). The main entry point (for documentation, and using the library) is the module [Tjr_btree.Export](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html).
 * Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory e.g. [here](./examples/int_int_map_example_functionality.ml). 
-* A simple **install script**, together with a Docker build script,  is in the repository:
-  <https://github.com/tomjridge/tjr_imp_build_script>. I hope to make the library available in opam soon.
-
-
+* A simple **install script** using opam pin is in the file `install_script.sh`
 
 
 ## Introduction
@@ -49,7 +48,9 @@ The core code is written in Isabelle/HOL and exported to OCaml
 routines are very "concrete"). This repository contains the OCaml
 wrapper round the core OCaml code extracted from Isabelle.
 
+## Install
 
+The easiest way to install is via opam, pinning the github repos. See the `install_script.sh`.
 
 ## Examples
 
@@ -69,20 +70,19 @@ The output should look something like:
 
 From opam, there are no dependencies except what is required by the following libraries.
 
-| Dependency    | Comment                                  |
-| ------------- | ---------------------------------------- |
-| tjr_fs_shared | Shared definitions for filesystem work   |
-| isa_btree     | Base OCaml defns extracted from Isabelle |
+| Dependency | Comment                                  |
+| ---------- | ---------------------------------------- |
+| isa_btree  | Base OCaml defns extracted from Isabelle |
 
 
 
 ## Dependencies (for examples and testing)
 
-| Dependency   | Comment                               |
-| ------------ | ------------------------------------- |
-| ppx_bin_prot | marshalling via bin_prot, for testing |
-| extunix?     | fsync                                 |
-|              |                                       |
+| Dependency             | Comment                               |
+| ---------------------- | ------------------------------------- |
+| bin_prot, ppx_bin_prot | marshalling via bin_prot, for testing |
+| extunix?               | fsync                                 |
+|                        |                                       |
 
 
 
