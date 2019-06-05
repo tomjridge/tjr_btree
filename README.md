@@ -10,6 +10,8 @@ tjr_btree is a B-tree library written for OCaml, and based on code extracted fro
 
 ![](https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&h=766)
 
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vSqzipIxfOtcWhtSEqcBUpEKPVp1ALtHYyVVBldz7WNP3idcaQTY0iHoLBMf9n4vNMUjDvoIi_gr2gE/pub?w=550&amp;h=336">
+
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
