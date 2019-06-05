@@ -8,7 +8,7 @@ let k_of_string = int_of_string
 let v_to_string = string_of_int
 let v_of_string = int_of_string
 
-module Internal = Int_int_map_example_functionality.Internal
+module Internal = Int_int_map_example.Internal
 open Internal
 
 (** FIXME Oseq had some performance bug; this is a hand-rolled version *)
@@ -66,6 +66,29 @@ let int_of_string s =
   float_of_string_opt s |> function
   | None -> int_of_string s
   | Some f -> int_of_float f
+
+let usage = {|
+Usage: 
+  int_int_map_main init <path>
+  int_int_map_main count <path>
+  int_int_map_main insert <path> <key> <value>
+  int_int_map_main delete <path> <key>
+  int_int_map_main list <path>
+  int_int_map_main insert_range <path> <low> <high>
+  int_int_map_main test_random_reads <path> <low> <high> <num>
+  int_int_map_main test_random_writes <path> <low> <high> <num>
+  int_int_map_main test_random_write_im <path> <low> <high> <num>
+
+Arguments:  
+  <path> is the path to the file which serves as the store.
+  <low> and <high> together define a range of integers.
+  <num> is the number of iterations (for test targets)
+
+Description:
+  The initial argument is the command, typically a map operation, or some test targets.
+  NOTE insert_range inserts (n,2*n) for n in range
+|}
+
 
 let main args =
   Random.self_init ();
@@ -201,11 +224,12 @@ let main args =
       (* print_endline "nop ok" *)
     )
 
+  | ["--help"] -> print_endline usage
+
   | _ ->
+    print_endline usage;
     Printf.sprintf "Unrecognized args: %s, at %s"
       (String.concat " " args)
       __LOC__
     |> failwith
-
-(* let _ = main (Sys.argv |> Array.to_list |> List.tl) *)
 

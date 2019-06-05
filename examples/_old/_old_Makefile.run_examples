@@ -1,0 +1,27 @@
+# -*- makefile -*-
+
+SHELL:=bash
+
+run_examples:
+	./demo_int_int_map.sh  # FIXME note startup time seems a bit long for the .exe
+# 	echo
+# 	./exercise_ss_map.sh
+# 	echo
+# 	$(MAKE) -f Makefile.run_examples test_startup_time
+
+
+# 	int_int_map_example_functionality
+# 	echo
+# 	string_string_map_example_functionality
+# 	echo
+
+
+test_startup_time:
+	time for f in `seq 1 100`; do int_int_map_main nop; done
+	echo Total time is about 1.7 s, or .017s per run
+
+
+clean:
+	rm -f btree.store
+
+

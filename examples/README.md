@@ -4,3 +4,5 @@ before building these examples.
 After the executables are compiled and installed, you can run them
 directly. There are example bash scripts to exercise various commands
 as well.
+
+To run the examples: in the parent directory `..`, type: `make run_examples`

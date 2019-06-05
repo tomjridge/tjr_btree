@@ -2,13 +2,11 @@
 
 open Examples
 
-let _ = 
-  Printf.printf 
-    "%s ----------------------------------------------\n%!" 
-    __MODULE__
+let fn = 
+  ref "btree.store"
+  |> Global.register ~name:(__MODULE__^".fn (default: btree.store)")
 
 module Internal = struct
-  let fn = ref "btree.store"
 
   let on_disk_util,(map_ops,{insert_many; insert_all; leaf_stream_ops}) = 
     Examples.On_disk.Int_int.(on_disk_util,map)
@@ -77,7 +75,7 @@ module Internal2 = struct
   (* open store, delete some values, and close *)
   let do_delete () = 
     print_endline "Deleting...";
-    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:false ~init:false |> fun { run; close; _ } -> 
     for x=100 to 200 do
       run (map_ops.delete ~k:x);
     done;
@@ -87,7 +85,7 @@ module Internal2 = struct
   (* open store and check whether various keys and values are correct *)
   let do_check () = 
     print_endline "Checking...";
-    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:false ~init:false |> fun { run; close; _ } -> 
     assert(run (map_ops.find ~k:100) = None);
     assert(run (map_ops.find ~k:1000) = Some 1000);
     close ();
@@ -99,6 +97,12 @@ open Internal2
    examples, by having a trivial functor *)
 module Example() = struct
 
+  let _ = 
+    Printf.printf 
+      "%s\n%s\n\n%!" 
+      __MODULE__
+      String.(make (length __MODULE__) '-')
+
   (* actually execute the above *)
   let do_mini_check() = 
     do_write();
@@ -108,7 +112,7 @@ module Example() = struct
 
   let do_full_check () = 
     print_endline "Full check...";
-    btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
+    btree_from_file ~fn:!fn ~create:false ~init:false |> fun { run; close; _ } -> 
     for k = 1 to max do
       if (100 <= k && k <= 200) then
         assert(run (map_ops.find ~k) = None)

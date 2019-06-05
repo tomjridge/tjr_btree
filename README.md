@@ -1,5 +1,9 @@
 # tjr_btree, a B-tree library for OCaml
 
+
+
+[TOC]
+
 ## Description
 
 tjr_btree is a B-tree library written for OCaml, and based on code extracted from an Isabelle formalization.
@@ -10,7 +14,7 @@ tjr_btree is a B-tree library written for OCaml, and based on code extracted fro
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
 * Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). The main entry point (for documentation, and using the library) is the module [Tjr_btree.Export](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/Export/index.html).
-* Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory e.g. [here](./examples/int_int_map_example_functionality.ml).
+* Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory e.g. [here](./examples/int_int_map_example_functionality.ml). 
 * A simple **install script**, together with a Docker build script,  is in the repository:
   <https://github.com/tomjridge/tjr_imp_build_script>. I hope to make the library available in opam soon.
 
@@ -42,6 +46,21 @@ The core code is written in Isabelle/HOL and exported to OCaml
 (although it could easily be implemented in any language because the
 routines are very "concrete"). This repository contains the OCaml
 wrapper round the core OCaml code extracted from Isabelle.
+
+
+
+## Examples
+
+After installing, you can run the examples by typing:
+
+~~~bash
+make run_examples
+~~~
+
+The output should look something like:
+
+![2019-06-05.140846](/tmp/l/github/an_imp/c_tjr_btree/README.assets/2019-06-05.140846.png)
+
 
 
 ## Dependencies (for the library)

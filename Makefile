@@ -42,7 +42,16 @@ run:
 	$(DUNE) exec examples/ocaml/btree_main.exe
 
 run_examples:
-	$(MAKE) -C examples -f Makefile.run_examples
+	@echo ======================================================================
+	@echo
+	btree_main int_int_map_example |sed 's/^/    /'
+	@echo 
+	@echo ======================================================================
+	@echo
+	./examples/demo_int_int_map.sh |sed 's/^/    /'
+	@echo 
+	@echo ======================================================================
+#	$(MAKE) -f examples/Makefile.run_examples
 
 run_tests:
 	$(MAKE) -C test_bin -f Makefile.run_tests

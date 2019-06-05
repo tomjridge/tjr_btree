@@ -1,24 +1,25 @@
-opam-version: "2.0"
-name: "tjr_btree"
-version: "0.0.1"
+opam-version : "2.0"
+name         : "tjr_btree"
+version      : "0.0.1"
 
 # ----------------------------------------------------------------------
 
-authors: "Tom Ridge <tom.j.ridge@googlemail.com>"
-maintainer: "Tom Ridge <tom.j.ridge@googlemail.com>"
-homepage: "https://github.com/tomjridge/tjr_btree"
-bug-reports: "https://github.com/tomjridge/tjr_btree/issues"
+authors      : "Tom Ridge <tom.j.ridge@googlemail.com>"
+maintainer   : "Tom Ridge <tom.j.ridge@googlemail.com>"
+homepage     : "https://github.com/tomjridge/tjr_btree"
+bug-reports  : "https://github.com/tomjridge/tjr_btree/issues"
 
 
 # ----------------------------------------------------------------------
 
 depends: [
-  "bin_prot" "ppx_bin_prot"
-  "isa_btree" "tjr_fs_shared" 
+  "bin_prot" 
+  "ppx_bin_prot"
+  "tjr_fs_shared" 
+  "isa_btree" 
 ]
 
 # ----------------------------------------------------------------------
 
 
-# FIXME get dune to ignore "exported_munged_code" then use dune build
 build: [make "build"]

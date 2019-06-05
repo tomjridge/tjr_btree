@@ -1,6 +1,6 @@
 (** Single entry point for executable examples *)
 
-open Int_int_map_example_functionality[@@warning "-33"]
+open Int_int_map_example[@@warning "-33"]
 
 let args = Sys.argv |> Array.to_list |> List.tl
 
@@ -11,6 +11,10 @@ module Flag_config = struct
     tests_enabled: bool;
     profiling_enabled: bool;
   } [@@deriving yojson]
+  let default_config = Some {
+    tests_enabled=false;
+    profiling_enabled=false
+  }
   let filename="tests_and_profiling_config.json"
 end
 
@@ -71,11 +75,15 @@ let _ =
 
 let _ = Init_ref.set_post_init ()
 
-(* measure overall time --------------------------------------------- *)
+(* run main, measure overall time ----------------------------------- *)
 
 let _ = 
   profile "aa" @@ fun () ->
-  Int_int_map_main.main args
+  match args with
+  | ["int_int_map_example"] -> 
+    let module M = Int_int_map_example.Example() in
+    M.(do_mini_check(); do_full_check())
+  | _ -> Int_int_map_main.main args
 
 
 (* stats ------------------------------------------------------------ *)

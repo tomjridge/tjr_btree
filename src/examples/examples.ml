@@ -169,8 +169,9 @@ module Internal_abstract(S:S) = struct
 
     let print_constants () = 
       let cs = constants in
-      Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
-        cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
+      if !Global.debug_global then 
+        Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
+          cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
 
     let blk_allocator_ops = 
       let { with_state } = blk_allocator in
