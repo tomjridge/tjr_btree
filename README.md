@@ -62,7 +62,7 @@ make run_examples
 
 The output should look something like:
 
-![2019-06-05.140846](/tmp/l/github/an_imp/c_tjr_btree/README.assets/2019-06-05.140846.png)
+![2019-06-05.140846](README.assets/2019-06-05.140846.png)
 
 
 
