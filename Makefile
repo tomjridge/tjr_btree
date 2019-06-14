@@ -35,6 +35,10 @@ docs: FORCE
 promote_docs: FORCE
 	PROMOTE_DOCS=true $(MAKE) docs
 
+tjr_btree_doc: FORCE
+	$(DUNE) build --only-packages tjr_btree @doc
+	rsync -vaz $(SRC)/* $(DST2); echo "docs built in $(DST2) but not promoted to docs/"
+
 view_doc:
 	google-chrome  $(SRC)/index.html
 

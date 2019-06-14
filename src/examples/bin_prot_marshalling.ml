@@ -57,10 +57,10 @@ module Internal = struct
 
 
 
-  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_ops ~leaf_ops = 
+  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_ops ~(leaf_ops:('k,'v,'leaf)Isa_btree_intf.leaf_ops) = 
     let xx = node_ops in
     let yy = leaf_ops in
-    let open Isa_export_wrapper in  (* for node_ops fields *)
+    let open Isa_btree_intf in  (* for node_ops fields *)
     let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
     let dn2bp = function
       | Disk_node n -> n |> xx.node_to_krs |> fun (ks,rs) -> N (ks,rs)
@@ -148,8 +148,8 @@ let make_constants = Internal.make_constants
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
     ~(block_ops:'blk block_ops) 
-    ~node_ops
-    ~leaf_ops
+    ~(node_ops:('k,'r,'node)Isa_btree_intf.node_ops)
+    ~(leaf_ops:('k,'v,'leaf)Isa_btree_intf.leaf_ops)
   = 
   Internal.make_binprot_marshalling ~block_ops ~node_ops ~leaf_ops
 

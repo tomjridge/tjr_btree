@@ -1,11 +1,11 @@
-open Marshalling_ops_type  (* FIXME include in base_types? *)
-open Blk_allocator_ops_type  (* FIXME include in base_types? *)
-
 (** UNCACHED Use pickling to convert a disk-like thing to a store-like thing.
 
 Convert a disk to a store using pickling and a freespace allocator for
    disk blocks; require page size and block size are the same.  *)
-let uncached_disk_to_store ~monad_ops ~marshalling_ops:marshal
+
+open Btree_intf
+
+let disk_to_store ~monad_ops ~marshalling_ops:marshal
     ~blk_dev_ops ~blk_allocator_ops:alloc =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
@@ -29,7 +29,7 @@ let uncached_disk_to_store ~monad_ops ~marshalling_ops:marshal
   in
   ops
 
-let _ = uncached_disk_to_store
+let _ = disk_to_store
 
 (** Prettier type (essentially [blk_dev*marshalling->store]): {%html:<pre>
 monad_ops:'a monad_ops ->

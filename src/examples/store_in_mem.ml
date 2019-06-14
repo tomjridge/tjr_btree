@@ -1,17 +1,16 @@
 (** Simple in-memory store implementation, mainly for testing *)
-
 open Page_ref_int
 
 (** In-mem store, a map from r (int) to [('k,'v)dnode_impl] *)
-type ('k,'v) mem = {free:int; map:('k,'v,int)dnode_impl Map_int.t}  
+type 'dnode mem = {free:int; map:'dnode Map_int.t}  
 
-type ('k,'v,'t) mem_ops = (('k,'v) mem,'t) with_state
+type ('dnode,'t) mem_ops = ('dnode mem,'t) with_state
 
-let mk_store_ops ~monad_ops ~(mem_ops:('k,'v,'t)mem_ops) =
+let mk_store_ops ~monad_ops ~(mem_ops:('dnode,'t)mem_ops) =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   let { with_state } = mem_ops in
-  let read r : (('k,'v,int)dnode_impl,'t) m =
+  let read r : ('dnode,'t) m =
     with_state (fun ~state:s ~set_state:_ ->
         return (Map_int.find r s.map)) (* ASSUMES present *)
   in

@@ -16,9 +16,9 @@ open Tjr_btree
   marshalling strategy
 - implement blk_allocator_ops, to allow allocation of blks via id
 - for every desired combination of (key/value types, marshalling,
-  blk_dev, blk_allocator), use {!Tjr_btree.uncached_disk_to_store} to
+  blk_dev, blk_allocator), use {!Tjr_btree.disk_to_store} to
   construct a corresponding store
-- then use {!Tjr_btree.store_ops_to_map_ops} to convert store to a map
+- then use {!Tjr_btree.store_to_map} to convert store to a map
   (using a root pointer to convert the pre_map_ops to a map_ops)
 
 FIXME include this documentation in main tjr_btree lib, perhaps as a
@@ -123,7 +123,17 @@ end
 module type S = sig
   type k  (* we assume k_cmp = Pervasives.compare *)
   type v
-  (* type r *)
+  type r = blk_id
+    
+  type k_map
+  val k_map_ops : (k,v,k_map)Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops
+  type kopt_map
+  val kopt_map_ops: (k option,r,kopt_map)Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops
+
+(*
+  val node_ops: (k,r,node)Isa_btree_intf.node_ops
+  val leaf_ops: (k,v,leaf)Isa_btree_intf.leaf_ops
+*)
 
   val read_k  : k Bin_prot.Type_class.reader
   val write_k : k Bin_prot.Type_class.writer
@@ -146,10 +156,11 @@ module Internal_abstract(S:S) = struct
     (* blocks etc *)
     let block_ops = Blk_ops.block_ops
 
+    (* module Map_ops = Isa_export_wrapper.Internal_make_map_ops(struct type nonrec k=k let k_cmp=k_cmp end) *)
     (* node leaf conversions, for marshalling *)
-    let node_ops = Isa_btree.make_node_ops ~k_cmp
-    let leaf_ops = Isa_btree.make_leaf_ops ~k_cmp
-
+    let node_ops = Leaf_node_frame_impls.make_node_ops ~map_ops:(kopt_map_ops)
+    let leaf_ops = Leaf_node_frame_impls.make_leaf_ops ~map_ops:(k_map_ops)
+                      
     (* marshalling *)
     let mp = 
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
@@ -184,7 +195,7 @@ module Internal_abstract(S:S) = struct
 
     let _ = blk_allocator_ops
 
-    let disk_to_store = Tjr_btree.uncached_disk_to_store 
+    let disk_to_store = Tjr_btree.disk_to_store 
 
     let store_ops = 
       disk_to_store
@@ -210,7 +221,7 @@ module Internal_abstract(S:S) = struct
           let equal : t -> t -> bool = Pervasives.(=)  (* FIXME don't use pervasives for real code *)
           let hash: t -> int = Hashtbl.hash
         end)(struct
-          type t = ((k, blk_id) node_impl, (k, v) leaf_impl) dnode  (* FIXME dnode_impl *)
+          type t = (kopt_map, k_map) dnode  (* FIXME dnode_impl *)
           let weight: t -> int = fun _ -> 1
         end)
       in    
@@ -279,21 +290,22 @@ module Internal_abstract(S:S) = struct
   let on_disk_util = Internal2.on_disk_util
 
   (** Construct the B-tree operations *)
-  let map (*~(root_ops:(blk_id,fstore_passing)btree_root_ops)*) = 
-    store_ops_to_map_ops
+  let map ~k_args = 
+    store_to_map
       ~monad_ops 
       ~cs:constants 
-      ~k_cmp
+      ~k_args
       ~store_ops
-      ~root_ops
+      ~root_ops:{root_ops=root_ops}
 
   let _ :
-(k, v, fstore_passing) map_ops *
-(k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, fstore_passing) m,
- kvs:(k * v) list -> (unit, fstore_passing) m,
- (k, v, blk_id, (k, v, blk_id) leaf_stream_impl, fstore_passing)
- leaf_stream_ops)
-extra_map_ops
+k_args:('a -> 'a -> r,
+        ('a, 'b, k_map) Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops,
+        ('a option, r, kopt_map)
+        Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops)
+       Make_with_kargs.k_args ->
+('a, 'b, fstore_passing) Map_ops_etc_type.map_ops_etc *
+('a, 'b, r, 'xxx, fstore_passing) leaf_stream_ops
     = map
 end
 
