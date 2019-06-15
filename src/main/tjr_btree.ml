@@ -45,16 +45,20 @@ module Make(S:S) : sig
   
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 
+  type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
+
+  type nonrec pre_btree_ops = (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+
   val disk_to_store: 
     disk_ops:'blk disk_ops ->
-    (r, (node, leaf) dnode, t) store_ops
+    store_ops
 
   val store_to_pre_btree :
-    store_ops:(r, (node, leaf) dnode, t) store_ops ->
-    (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+    store_ops:store_ops ->
+    pre_btree_ops
 
   val pre_btree_to_map: 
-    pre_btree_ops:(k, v, r, t, leaf, node, leaf_stream) pre_btree_ops ->
+    pre_btree_ops:pre_btree_ops ->
     root_ops:(r, t) btree_root_ops ->
     (k, v, t) Map_ops_etc_type.map_ops_etc
 
@@ -100,6 +104,11 @@ end = struct
     pre_btree_ops.leaf_stream_ops
 
   let _ = disk_to_leaf_stream
+
+  type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
+
+  type nonrec pre_btree_ops = (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+
 
 end
 
