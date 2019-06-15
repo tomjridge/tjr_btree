@@ -87,3 +87,16 @@ module Map_ops_etc_type = struct
   }
 
 end
+
+
+module Disk_ops_type = struct
+  
+  (** A collection of block-based interfaces *)
+  type ('r,'t,'dnode,'blk) disk_ops = {
+    marshalling_ops:('dnode,'blk)marshalling_ops;
+    blk_dev_ops:('r,'blk,'t)blk_dev_ops;
+    blk_allocator_ops:('r,'t)blk_allocator_ops
+  }
+
+end
+include Disk_ops_type

@@ -1,4 +1,4 @@
-(** UNCACHED Use pickling to convert a disk-like thing to a store-like thing.
+(** Use pickling to convert a disk-like thing to a store-like thing.
 
 Convert a disk to a store using pickling and a freespace allocator for
    disk blocks; require page size and block size are the same.  *)

@@ -19,6 +19,11 @@ module Root_blk = struct
 end
 include Root_blk
 
+type ('a,'b) from_file_close = {
+  from_file:'a;
+  close:'b
+}
+
 (** Constructs [from_file] and [close] *)
 let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:unit -> blk) = 
   let module A = struct
@@ -78,15 +83,14 @@ let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:unit -> 
 
   end
   in
-  let open A in
-  fun f -> f ~from_file ~close
+  A.{ from_file; close }
+
 (** Prettier type: {%html:<pre>
 block_ops:'a block_ops ->
-empty_disk_leaf_as_blk:'a ->
-(from_file:(fn:string ->
-            create:bool -> init:bool -> Unix.file_descr * root_block) ->
- close:(fd:Unix.file_descr -> root_block:root_block -> unit) -> 'b) ->
-'b
+empty_disk_leaf_as_blk:(unit -> 'a) ->
+(fn:string -> create:bool -> init:bool -> Unix.file_descr * root_block,
+ fd:Unix.file_descr -> root_block:root_block -> unit)
+from_file_close
 </pre>%} *)
 
 let _ = make

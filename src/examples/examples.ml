@@ -1,6 +1,7 @@
 (** Various examples *)
 open Tjr_profile.Util.Profiler
 open Tjr_btree
+open Btree_intf
 
 (** The steps to construct an example are:
 
@@ -124,12 +125,17 @@ module type S = sig
   type k  (* we assume k_cmp = Pervasives.compare *)
   type v
   type r = blk_id
-    
-  type k_map
-  val k_map_ops : (k,v,k_map)Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops
-  type kopt_map
-  val kopt_map_ops: (k option,r,kopt_map)Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops
+  type t = fstore_passing
 
+  val monad_ops: t monad_ops
+
+(*    
+  type k_cmp
+  val k_cmp : (k,k_cmp) Base.Map.comparator
+
+  type kopt_cmp
+  val kopt_cmp : (k option,kopt_cmp) Base.Map.comparator
+*)    
 (*
   val node_ops: (k,r,node)Isa_btree_intf.node_ops
   val leaf_ops: (k,v,leaf)Isa_btree_intf.leaf_ops
@@ -153,13 +159,25 @@ module Internal_abstract(S:S) = struct
   module Internal = struct 
     let k_cmp : k -> k -> int = Pervasives.compare
 
+    let constants = 
+      Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
+
+    module S' = struct
+        include S
+        let k_cmp = k_cmp
+        let cs = constants
+      end
+    module X = Tjr_btree.Make_disk_to_map(S')
+    include X
+
+
     (* blocks etc *)
     let block_ops = Blk_ops.block_ops
 
     (* module Map_ops = Isa_export_wrapper.Internal_make_map_ops(struct type nonrec k=k let k_cmp=k_cmp end) *)
     (* node leaf conversions, for marshalling *)
-    let node_ops = Leaf_node_frame_impls.make_node_ops ~map_ops:(kopt_map_ops)
-    let leaf_ops = Leaf_node_frame_impls.make_leaf_ops ~map_ops:(k_map_ops)
+    (* let node_ops = Leaf_node_frame_impls.make_node_ops ~map_ops:(kopt_map_ops) *)
+    (* let leaf_ops = Leaf_node_frame_impls.make_leaf_ops ~map_ops:(k_map_ops) *)
                       
     (* marshalling *)
     let mp = 
@@ -169,7 +187,7 @@ module Internal_abstract(S:S) = struct
 
     (* open Tjr_profile.Util.No_profiler *)
 
-    let mp = {
+    let mp = Btree_intf.{
       dnode_to_blk=(fun dn -> profile "d2blk" @@ fun () -> mp.dnode_to_blk dn);
       blk_to_dnode=(fun blk -> profile "blk2d" @@ fun () -> mp.blk_to_dnode blk);
       marshal_blk_size=mp.marshal_blk_size;
@@ -221,7 +239,7 @@ module Internal_abstract(S:S) = struct
           let equal : t -> t -> bool = Pervasives.(=)  (* FIXME don't use pervasives for real code *)
           let hash: t -> int = Hashtbl.hash
         end)(struct
-          type t = (kopt_map, k_map) dnode  (* FIXME dnode_impl *)
+          type t = (node, leaf) dnode  (* FIXME dnode_impl *)
           let weight: t -> int = fun _ -> 1
         end)
       in    
@@ -282,16 +300,17 @@ module Internal_abstract(S:S) = struct
     let _ = empty_disk_leaf_as_blk
 
     let on_disk_util = 
-      Map_on_fd_util.make ~block_ops ~empty_disk_leaf_as_blk @@ fun ~from_file ~close ->
-      (from_file,close)
+      Map_on_fd_util.make ~block_ops ~empty_disk_leaf_as_blk 
   end
 
   (** from_file and close; Ignore this for in-mem versions *)
   let on_disk_util = Internal2.on_disk_util
 
-  (** Construct the B-tree operations *)
-  let map ~k_args = 
-    store_to_map
+  let pre_btree_ops = Isa_btree.
+
+  (** Construct the map operations *)
+  let map = 
+    pre_btree_to_map
       ~monad_ops 
       ~cs:constants 
       ~k_args
