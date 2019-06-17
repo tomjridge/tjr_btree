@@ -41,7 +41,7 @@ type ('k,'v,'r,'leaf,'ls_impl,'t) extra_map_ops = {
     leaf_stream_ops: 'c;
   }
 end
-include Map_ops_type
+(* include Map_ops_type *)
 
 
 
@@ -78,12 +78,13 @@ include Root_ops_type
 
 module Map_ops_etc_type = struct
 
-  type ('k,'v,'t) map_ops_etc = {
+  type ('k,'v,'r,'leaf_stream,'t) map_ops_etc = {
     find: k:'k -> ('v option, 't)m;
     insert: k:'k -> v:'v -> (unit,'t) m;
     delete: k:'k -> (unit,'t)m;
     insert_many: k:'k -> v:'v -> kvs:('k * 'v) list -> (('k * 'v) list, 't) m;
     insert_all: kvs:('k * 'v) list -> (unit, 't) m;    
+    leaf_stream_ops: ('k,'v,'r,'leaf_stream,'t)Isa_btree_intf.leaf_stream_ops;
   }
 
 end

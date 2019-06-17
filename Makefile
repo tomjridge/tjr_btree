@@ -2,6 +2,7 @@ SHELL:=bash
 DUNE:=dune
 
 build:
+	$(DUNE) build --only-packages tjr_btree @install
 	$(DUNE) build @install
 	$(DUNE) build examples/ocaml/btree_main.exe
 # FIXME	$(DUNE) build test_bin/all.touch

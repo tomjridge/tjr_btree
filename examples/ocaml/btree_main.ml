@@ -61,8 +61,9 @@ let _ =
 
       let _ =
         Tjr_profile.string_profiler := Tjr_profile.make_string_profiler ~now;
-        let open Isa_export_wrapper in
+        (* let open Isa_export_wrapper in *)
         let open Init_ref in
+        let open Leaf_node_frame_impls in
         Internal_leaf_impl.leaf_profiler := Tjr_profile.make_string_profiler ~now;
         Internal_node_impl.node_profiler := Tjr_profile.make_string_profiler ~now;
         Internal_frame_impl.frame_profiler := Tjr_profile.make_string_profiler ~now;
@@ -80,9 +81,7 @@ let _ = Init_ref.set_post_init ()
 let _ = 
   profile "aa" @@ fun () ->
   match args with
-  | ["int_int_map_example"] -> 
-    let module M = Int_int_map_example.Example() in
-    M.(do_mini_check(); do_full_check())
+  | ["int_int_map_example"] -> Int_int_map_example.do_all()
   | _ -> Int_int_map_main.main args
 
 
@@ -100,7 +99,8 @@ let _ =
     !Tjr_profile.string_profiler.print_summary(); print_endline "";
     let open Init_ref in
     let f ref_ = !ref_.print_summary(); print_endline "" in
-    let open Isa_export_wrapper in
+    (* let open Isa_export_wrapper in *)
+    let open Leaf_node_frame_impls in
     List.iter f [
       Internal_leaf_impl.leaf_profiler;
       Internal_node_impl.node_profiler;

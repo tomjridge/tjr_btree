@@ -1,4 +1,4 @@
-(** The essential B-tree functionality: implement a map on top of a store. *)
+(** Convert a pre-btree (with explicit root passing) to a real map. *)
 
 open Btree_intf
 
@@ -8,7 +8,7 @@ open Btree_intf
 let pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  let Isa_btree_intf.{ find; insert; delete; insert_many; insert_all; leaf_ops; _ } = pre_btree_ops in
+  let Isa_btree_intf.{ find; insert; delete; insert_many; insert_all; leaf_ops; leaf_stream_ops; _ } = pre_btree_ops in
   let Isa_btree_intf.Insert_many_type.{ insert_many } = insert_many in
   let Isa_btree_intf.Insert_all_type.{ insert_all } = insert_all in
   let { with_state } = root_ops.root_ops in
@@ -44,12 +44,13 @@ let pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops =
         insert_all ~r ~kvs >>= fun r -> 
         set_state r)
   in
-  Map_ops_etc_type.{ find; insert; delete; insert_many; insert_all}
+  Map_ops_etc_type.{ find; insert; delete; insert_many; insert_all; leaf_stream_ops }
 
 let _ : 
-  monad_ops:'a monad_ops ->
-  pre_btree_ops:('b, 'c, 'd, 'a, 'e, 'f, 'g) pre_btree_ops ->
-  root_ops:('d, 'a) btree_root_ops -> ('b, 'c, 'a) Map_ops_etc_type.map_ops_etc
+monad_ops:'a monad_ops ->
+pre_btree_ops:('b, 'c, 'd, 'a, 'e, 'f, 'g) pre_btree_ops ->
+root_ops:('d, 'a) btree_root_ops ->
+('b, 'c, 'd, 'g, 'a) Map_ops_etc_type.map_ops_etc
   = pre_btree_to_map
 
 (*

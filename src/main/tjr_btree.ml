@@ -10,6 +10,11 @@ open Btree_intf
 include Disk_to_store
 
 
+(** {2 Store to pre-btree} *)
+
+(** This is provided by the {!Isa_btree} package. *)
+
+
 (** {2 Pre-btree to map} *)
 
 include Pre_btree_to_map
@@ -58,20 +63,22 @@ module Make(S:S) : sig
     pre_btree_ops
 
   val pre_btree_to_map: 
-    pre_btree_ops:pre_btree_ops ->
-    root_ops:(r, t) btree_root_ops ->
-    (k, v, t) Map_ops_etc_type.map_ops_etc
+pre_btree_ops:pre_btree_ops ->
+root_ops:(r, t) btree_root_ops ->
+(k, v, r, leaf_stream, t) Map_ops_etc_type.map_ops_etc
 
   (** Convenience; a composition of the previous *)
   val disk_to_map: 
     disk_ops:'blk disk_ops ->
     root_ops:(r, t) btree_root_ops ->
-    (k, v, t) Map_ops_etc_type.map_ops_etc
+(k, v, r, leaf_stream, t) Map_ops_etc_type.map_ops_etc
 
+(*
   (** Convenience; a composition of the previous *)
   val disk_to_leaf_stream:
     disk_ops:'blk disk_ops -> 
     (k, v, r, leaf_stream, t) Isa_btree_intf.leaf_stream_ops
+*)
 end = struct
   open S
   include Isa_btree.Make(S)
@@ -80,7 +87,7 @@ end = struct
 
   let disk_to_store ~disk_ops = 
     let { marshalling_ops; blk_dev_ops; blk_allocator_ops } = disk_ops in
-    let store_ops = disk_to_store ~monad_ops ~marshalling_ops ~blk_dev_ops ~blk_allocator_ops in
+    let store_ops = disk_to_store ~monad_ops ~disk_ops in
     store_ops
 
   let store_to_pre_btree ~store_ops = make_btree_ops ~store_ops
@@ -98,12 +105,14 @@ end = struct
     
   let _ = disk_to_map
 
+(*
   let disk_to_leaf_stream ~disk_ops = 
     let store_ops = disk_to_store ~disk_ops in
     let pre_btree_ops = make_btree_ops ~store_ops in
     pre_btree_ops.leaf_stream_ops
 
   let _ = disk_to_leaf_stream
+*)
 
   type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
 
@@ -111,4 +120,16 @@ end = struct
 
 
 end
+
+
+
+(** {2 Internal interface} *)
+
+(** Note that this takes comparators for the node and leaf implementations *)
+let internal_disk_to_x ~monad_ops ~cs ~k_cmp ~kopt_cmp ~disk_ops ~root_ops =
+    (* let { marshalling_ops; blk_dev_ops; blk_allocator_ops } = disk_ops in *)
+    let store_ops = disk_to_store ~monad_ops ~disk_ops in
+    let pre_btree_ops = Isa_btree.make_with_comparators ~monad_ops ~cs ~k_cmp ~kopt_cmp ~store_ops in
+    let map_ops = Pre_btree_to_map.pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops in
+    fun f -> f ~store_ops ~pre_btree_ops ~map_ops
 

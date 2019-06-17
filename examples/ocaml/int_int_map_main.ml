@@ -1,15 +1,12 @@
 (* a map from int to int, backed by file ------------------------------- *)
 open Tjr_profile.Util.Profiler
 
-open Tjr_btree
+(* open Tjr_btree *)
 
 let k_to_string = string_of_int
 let k_of_string = int_of_string
 let v_to_string = string_of_int
 let v_of_string = int_of_string
-
-module Internal = Int_int_map_example.Internal
-open Internal
 
 (** FIXME Oseq had some performance bug; this is a hand-rolled version *)
 module Seq = struct
@@ -89,8 +86,11 @@ Description:
   NOTE insert_range inserts (n,2*n) for n in range
 |}
 
-
+(* FIXME close not needed because it is provided by btree_from_file *)
 let main args =
+  Int_int_map_example.make_generic_example () @@ fun ~do_all:_ ~btree_from_file ~map_ops_etc -> 
+  let leaf_stream_ops = map_ops_etc.leaf_stream_ops in
+  let Isa_btree_intf.{ make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
   Random.self_init ();
   (* turn off wf checking *)
   (* Isa_test.disable_isa_checks(); *)
@@ -100,12 +100,12 @@ let main args =
   | ["init"; fn] ->
     btree_from_file ~fn ~create:true ~init:true |> fun { close; _ } ->
     print_endline "init ok";
-    close ()    
+    close ()
 
   | ["count"; fn] -> (
       btree_from_file ~fn ~create ~init
       |> fun { run; close; root_block; _ } -> 
-      let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
+      let Isa_btree_intf.{ make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
       run (make_leaf_stream root_block.btree_root) |> fun lss ->
       let count = ref 0 in
       let rec loop lss =
@@ -124,18 +124,17 @@ let main args =
 
   | ["insert";fn;k;v] -> (
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
-      run (map_ops.insert ~k:(k_of_string k) ~v:(v_of_string v));
+      run (map_ops_etc.insert ~k:(k_of_string k) ~v:(v_of_string v));
       close ())
 
   | ["delete";fn;k] -> (
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
-      run (map_ops.delete ~k:(k_of_string k));
+      run (map_ops_etc.delete ~k:(k_of_string k));
       close ())
 
   | ["list";fn] -> (
       btree_from_file ~fn ~create ~init
       |> fun { run; close; root_block; _ } -> 
-      let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
       run (make_leaf_stream root_block.btree_root) |> fun lss ->
       let rec loop lss =
         let _ = 
@@ -156,7 +155,7 @@ let main args =
       btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
       let l,h = int_of_string l, int_of_string h in
       let todo = Seq.((l -- h) |> map (fun k -> (k,2*k))) in      
-      let insert_all = fun kvs -> run (insert_all ~kvs) in
+      let insert_all = fun kvs -> run (map_ops_etc.insert_all ~kvs) in
       insert_seq ~sort:false ~insert_all ~todo;
       close ();
       print_endline "insert_range ok";
@@ -171,7 +170,7 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in k))
       in
-      Seq.iter (fun k -> ignore(run(map_ops.find ~k))) todo;
+      Seq.iter (fun k -> ignore(run(map_ops_etc.find ~k))) todo;
       close ();
       print_endline "test_random_reads ok")
 
@@ -185,7 +184,7 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      Seq.iter (fun (k,v) -> run(map_ops.insert ~k ~v)) todo;
+      Seq.iter (fun (k,v) -> run(map_ops_etc.insert ~k ~v)) todo;
       close ();
       print_endline "test_random_writes ok")
 
@@ -199,7 +198,7 @@ let main args =
           (1--n) 
           |> map (fun _ -> let k = l+(Random.int d) in (k,2*k)))
       in
-      let insert_all = fun kvs -> run (insert_all ~kvs) in
+      let insert_all = fun kvs -> run (map_ops_etc.insert_all ~kvs) in
       insert_seq ~sort:true ~insert_all ~todo;
       close ();
       print_endline "test_random_writes_im ok")

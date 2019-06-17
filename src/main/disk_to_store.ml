@@ -5,8 +5,8 @@ Convert a disk to a store using pickling and a freespace allocator for
 
 open Btree_intf
 
-let disk_to_store ~monad_ops ~marshalling_ops:marshal
-    ~blk_dev_ops ~blk_allocator_ops:alloc =
+let disk_to_store ~monad_ops ~disk_ops = 
+  let { marshalling_ops=marshal; blk_dev_ops; blk_allocator_ops=alloc } = disk_ops in
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   let { blk_sz; read; write } = blk_dev_ops in
@@ -31,13 +31,3 @@ let disk_to_store ~monad_ops ~marshalling_ops:marshal
 
 let _ = disk_to_store
 
-(** Prettier type (essentially [blk_dev*marshalling->store]): {%html:<pre>
-monad_ops:'a monad_ops ->
-marshalling_ops:('b, 'c) marshalling_ops ->
-blk_dev_ops:('d, 'c, 'a) Blk_dev_ops_type.blk_dev_ops ->
-blk_allocator_ops:('d, 'a) blk_allocator_ops -> 
-('d, 'b, 'a) store_ops
-</pre> %}
-*)
-
-(* let disk_to_store = uncached_disk_to_store *)

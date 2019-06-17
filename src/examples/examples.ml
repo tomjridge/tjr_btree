@@ -104,13 +104,13 @@ module Blk_allocator = struct
 end
 open Blk_allocator
 
-
 module Btree_root_block = struct
   let initial_btree_root_block : blk_id = 1
   let btree_root_block_ref = alloc_fstore_ref initial_btree_root_block
   let root_ops = Fstore_passing.fstore_ref_to_with_state btree_root_block_ref
+  let root_ops = {root_ops}
 end
-open Btree_root_block
+(* open Btree_root_block *)
 
 
 module type BLK_DEV_OPS = sig
@@ -128,18 +128,6 @@ module type S = sig
   type t = fstore_passing
 
   val monad_ops: t monad_ops
-
-(*    
-  type k_cmp
-  val k_cmp : (k,k_cmp) Base.Map.comparator
-
-  type kopt_cmp
-  val kopt_cmp : (k option,kopt_cmp) Base.Map.comparator
-*)    
-(*
-  val node_ops: (k,r,node)Isa_btree_intf.node_ops
-  val leaf_ops: (k,v,leaf)Isa_btree_intf.leaf_ops
-*)
 
   val read_k  : k Bin_prot.Type_class.reader
   val write_k : k Bin_prot.Type_class.writer
@@ -167,9 +155,9 @@ module Internal_abstract(S:S) = struct
         let k_cmp = k_cmp
         let cs = constants
       end
-    module X = Tjr_btree.Make_disk_to_map(S')
-    include X
-
+    module Tjr_btree' = Tjr_btree.Make(S')
+    (* let node_ops,leaf_ops = Tjr_btree'.(node_ops,leaf_ops) *)
+    open Tjr_btree'
 
     (* blocks etc *)
     let block_ops = Blk_ops.block_ops
@@ -213,14 +201,9 @@ module Internal_abstract(S:S) = struct
 
     let _ = blk_allocator_ops
 
-    let disk_to_store = Tjr_btree.disk_to_store 
+    let disk_ops = { marshalling_ops=mp; blk_dev_ops; blk_allocator_ops }
 
-    let store_ops = 
-      disk_to_store
-        ~monad_ops 
-        ~marshalling_ops:mp
-        ~blk_dev_ops
-        ~blk_allocator_ops
+    let store_ops = disk_to_store ~disk_ops
 
     let profile_m ~mark s m = 
       return () >>= fun () -> 
@@ -286,10 +269,7 @@ module Internal_abstract(S:S) = struct
         rewrite=(fun r dn -> profile_m ~mark "id" (rewrite r dn));
         free;
     }
-  end
-  open Internal
 
-  module Internal2 = struct
     let empty_disk_leaf_as_blk = 
       let blk = lazy (
         leaf_ops.kvs_to_leaf [] |> fun x ->
@@ -299,33 +279,24 @@ module Internal_abstract(S:S) = struct
 
     let _ = empty_disk_leaf_as_blk
 
+    let pre_btree_ops = store_to_pre_btree ~store_ops
+
+    let map_ops_etc ~root_ops = pre_btree_to_map ~pre_btree_ops ~root_ops
+
     let on_disk_util = 
       Map_on_fd_util.make ~block_ops ~empty_disk_leaf_as_blk 
   end
 
   (** from_file and close; Ignore this for in-mem versions *)
-  let on_disk_util = Internal2.on_disk_util
-
-  let pre_btree_ops = Isa_btree.
+  let on_disk_util = Internal.on_disk_util
 
   (** Construct the map operations *)
-  let map = 
-    pre_btree_to_map
-      ~monad_ops 
-      ~cs:constants 
-      ~k_args
-      ~store_ops
-      ~root_ops:{root_ops=root_ops}
+  let map_ops_etc ~root_ops = Internal.map_ops_etc ~root_ops
 
   let _ :
-k_args:('a -> 'a -> r,
-        ('a, 'b, k_map) Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops,
-        ('a option, r, kopt_map)
-        Isa_btree_intf.Leaf_node_frame_map_ops_type.map_ops)
-       Make_with_kargs.k_args ->
-('a, 'b, fstore_passing) Map_ops_etc_type.map_ops_etc *
-('a, 'b, r, 'xxx, fstore_passing) leaf_stream_ops
-    = map
+root_ops:(r, t) btree_root_ops ->
+(k, v, r, Internal.Tjr_btree'.leaf_stream, t) Map_ops_etc_type.map_ops_etc
+    = map_ops_etc
 end
 
 
@@ -342,6 +313,10 @@ module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
       open Bin_prot_marshalling
       type k = int
       type v = int
+      type r = blk_id
+      type t = fstore_passing
+      let monad_ops = monad_ops
+
       let read_k = bin_reader_int
       let write_k = bin_writer_int
       let read_v = bin_reader_int
@@ -362,6 +337,10 @@ module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
       open Bin_prot_marshalling
       type k = ss
       type v = ss
+      type r = blk_id
+      type t = fstore_passing
+
+      let monad_ops = monad_ops
       let read_k = bin_reader_ss
       let write_k = bin_writer_ss
       let read_v = bin_reader_ss
@@ -380,6 +359,10 @@ module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
       open Bin_prot_marshalling
       type k = ss
       type v = int
+      type r = blk_id
+      type t = fstore_passing
+      let monad_ops = monad_ops
+
       let read_k = bin_reader_ss
       let write_k = bin_writer_ss
       let read_v = bin_reader_int
@@ -393,13 +376,9 @@ module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
     include Internal_abstract(S)
   end
       
-  let ii_map = Int_int.map
-  let ss_map = Ss_ss.map
-  let si_map = Ss_int.map
-(*
-[> `Map_ops of (int, int, fstore_passing) map_ops ] *
-[> `Insert_many of unit ]
-*)
+  let ii_map = Int_int.map_ops_etc
+  let ss_map = Ss_ss.map_ops_etc
+  let si_map = Ss_int.map_ops_etc
 end
 
 
