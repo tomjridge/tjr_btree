@@ -1,3 +1,4 @@
+
 (** Help for maps on fd: write global state into root block; load back
    in from file *)
 
@@ -5,23 +6,29 @@
    marshalling params allow us to convert to a blk; perhaps assume we
    already have empty_leaf_as_blk? *)
 
-module Internal_blk_id = struct
-  type blk_id = int
-end
-open Internal_blk_id
+(*
+    let empty_disk_leaf_as_blk = 
+      let blk = lazy (
+        leaf_ops.kvs_to_leaf [] |> fun x ->
+        mp.dnode_to_blk (Disk_leaf x))
+      in
+      fun () -> Lazy.force blk
+*)
 
-module Root_blk = struct
+module Types = struct
+  type blk_id = int
+
   (** FIXME if btree_root was an option, we could avoid passing empty_disk_leaf_as_blk *)
   type root_block = {
     free:blk_id;
     btree_root:blk_id
   }
 end
-include Root_blk
+include Types
 
-type ('a,'b) from_file_close = {
-  from_file:'a;
-  close:'b
+type from_file_close = {
+  from_file:fn:string -> create:bool -> init:bool -> Unix.file_descr * root_block;
+  close: fd:Unix.file_descr -> root_block:root_block -> unit
 }
 
 (** Constructs [from_file] and [close] *)
@@ -88,8 +95,6 @@ let make (type blk) ~(block_ops:blk block_ops) ~(empty_disk_leaf_as_blk:unit -> 
 (** Prettier type: {%html:<pre>
 block_ops:'a block_ops ->
 empty_disk_leaf_as_blk:(unit -> 'a) ->
-(fn:string -> create:bool -> init:bool -> Unix.file_descr * root_block,
- fd:Unix.file_descr -> root_block:root_block -> unit)
 from_file_close
 </pre>%} *)
 

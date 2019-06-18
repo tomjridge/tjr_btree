@@ -1,35 +1,64 @@
 (** Marshal frames to blocks using binprot *)
 
-(* open Tjr_fs_shared.Block_ops_type *)
-(* open Isa_btree *)
-(* open Isa_export *)
-(* open Disk_node *)
-(* open Isa_export_wrapper *)
-(* open Tjr_btree *)
+open Btree_intf
 
-(** {2 Binprot util: max sizes etc} *)
+(** {2 A type for holding information about a particular type we marshal (such as k)} *)
 
-
-(* int -------------------------------------------------------------- *)
+type 'k bin_prot_info = {
+  max_size: int; (* max number of bytes to marshal a 'k *)
+  bin_reader: 'k Bin_prot.Type_class.reader;
+  bin_writer: 'k Bin_prot.Type_class.writer
+}
 
 open Bin_prot.Std
 
-let bp_size_int = Bin_prot.Size.Maximum.bin_size_int
+let int_bin_prot_info = {
+  max_size= Bin_prot.Size.Maximum.bin_size_int;
+  bin_reader = bin_reader_int;
+  bin_writer = bin_writer_int
+}
 
-let bin_reader_int = bin_reader_int
+let ss_bin_prot_info = Tjr_fs_shared.Small_string.{
+  max_size=3+max_length;
+  bin_reader = bin_reader_ss;
+  bin_writer = bin_writer_ss
+}
 
-let bin_writer_int = bin_writer_int
 
 
-(* small string ----------------------------------------------------- *)
+(** {2 A type for holding key/value reader writers} *)
 
-open Tjr_fs_shared.Small_string
+type ('k,'v) reader_writers = {
+  read_k: 'k Bin_prot.Type_class.reader;
+  write_k: 'k Bin_prot.Type_class.writer;
+  read_v: 'v Bin_prot.Type_class.reader;
+  write_v: 'v Bin_prot.Type_class.writer;
+}
 
-let bp_size_ss = 3+max_length
+(** Various reader/writers *)
+module Reader_writers = struct
+  let int_int = {
+    read_k  =bin_reader_int;
+    write_k =bin_writer_int;
+    read_v  =bin_reader_int;
+    write_v =bin_writer_int;
+  }
 
-let bin_reader_ss = bin_reader_ss
+  open Small_string
+  let ss_ss = {
+    read_k  =bin_reader_ss;
+    write_k =bin_writer_ss;
+    read_v  =bin_reader_ss;
+    write_v =bin_writer_ss;
+  }
 
-let bin_writer_ss = bin_writer_ss
+  let ss_int = {
+    read_k  =bin_reader_ss;
+    write_k =bin_writer_ss;
+    read_v  =bin_reader_int;
+    write_v =bin_writer_int;
+  }
+end
 
 
 
@@ -37,10 +66,10 @@ module Internal = struct
 
   module BP = Bin_prot
 
-  open BP.Std
-         
+  (** NOTE we fix page_ref as int *)
   type page_ref = int [@@deriving bin_io]
 
+  (** We convert via this datatype, so we can use (at)(at)deriving ; FIXME inefficient *)
   type ('k,'v) binprot_tree  = 
       N of 'k list * page_ref list 
     | L of ('k*'v) list [@@deriving bin_io]
@@ -55,20 +84,17 @@ module Internal = struct
       ?(src_pos=0) ~(src:bytes) ?(dst_pos=0) ~(dst:buf) ~len () 
     = BP.Common.blit_bytes_buf ~src_pos src ~dst_pos dst ~len
 
-
-
-  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_ops ~(leaf_ops:('k,'v,'leaf)Isa_btree_intf.leaf_ops) = 
-    let xx = node_ops in
-    let yy = leaf_ops in
+  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_leaf_list_conversions = 
+    let Node_leaf_list_conversions.{ node_to_krs; krs_to_node; leaf_to_kvs; kvs_to_leaf } = node_leaf_list_conversions in
     let open Isa_btree_intf in  (* for node_ops fields *)
     let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
     let dn2bp = function
-      | Disk_node n -> n |> xx.node_to_krs |> fun (ks,rs) -> N (ks,rs)
-      | Disk_leaf l -> l |> yy.leaf_to_kvs |> fun kvs -> L kvs
+      | Disk_node n -> n |> node_to_krs |> fun (ks,rs) -> N (ks,rs)
+      | Disk_leaf l -> l |> leaf_to_kvs |> fun kvs -> L kvs
     in
     let bp2dn = function
-      | N (ks,rs) -> (ks,rs) |> xx.krs_to_node |> fun n -> Disk_node n
-      | L kvs -> kvs |> yy.kvs_to_leaf |> fun l -> Disk_leaf l
+      | N (ks,rs) -> (ks,rs) |> krs_to_node |> fun n -> Disk_node n
+      | L kvs -> kvs |> kvs_to_leaf |> fun l -> Disk_leaf l
     in
     (* pull this out because frame_to_page takes an explicit blk_sz; FIXME
        should it? *)
@@ -91,14 +117,15 @@ module Internal = struct
         bp|>bp2dn
     in
     let _ = assert (Sys.int_size = 63) in (* ensure we are on 64 bit system *)
-    fun ~read_k ~write_k ~read_v ~write_v ->
+    fun { read_k; write_k; read_v; write_v } ->
       let mp = Btree_intf.{ 
           dnode_to_blk=(dnode_to_blk ~write_k ~write_v (* ~blk_sz *));
           blk_to_dnode=(blk_to_dnode ~read_k ~read_v);
           marshal_blk_size=blk_sz }
       in
       mp
-        
+
+
 
     (* 
 
@@ -148,22 +175,18 @@ let make_constants = Internal.make_constants
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
     ~(block_ops:'blk block_ops) 
-    ~(node_ops:('k,'r,'node)Isa_btree_intf.node_ops)
-    ~(leaf_ops:('k,'v,'leaf)Isa_btree_intf.leaf_ops)
+    ~(node_leaf_list_conversions:('k,'v,'r,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
+    ~reader_writers
   = 
-  Internal.make_binprot_marshalling ~block_ops ~node_ops ~leaf_ops
+  Internal.make_binprot_marshalling ~block_ops ~node_leaf_list_conversions reader_writers
 
 
 let _ = make_binprot_marshalling
 
 (** Prettier type: {%html:<pre>
 block_ops:'blk block_ops ->
-node_ops:('a, int, 'b) Isa_export_wrapper.node_ops ->
-leaf_ops:('a, 'c, 'd) Isa_export_wrapper.leaf_ops ->
-read_k:'a Bin_prot.Type_class.reader ->
-write_k:'a Bin_prot.Type_class.writer ->
-read_v:'c Bin_prot.Type_class.reader ->
-write_v:'c Bin_prot.Type_class.writer ->
-(('b, 'd) dnode, 'blk) marshalling_ops
+node_leaf_list_conversions:('k, 'v, int, 'node, 'leaf)
+                           Node_leaf_list_conversions.node_leaf_list_conversions ->
+('k, 'v) reader_writers -> (('node, 'leaf) dnode, 'blk) marshalling_ops
 </pre>%} *)
 

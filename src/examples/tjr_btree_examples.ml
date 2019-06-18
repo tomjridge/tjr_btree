@@ -12,6 +12,11 @@ module Store_in_mem = Store_in_mem
 let mk_in_mem_store_ops = Store_in_mem.mk_store_ops
 
 
+(** {2 LRU} *)
+
+module Store_with_lru = Store_with_lru
+
+
 (** {2 Bin-prot marshalling for on-disk store} 
 
 Use Jane St. marshalling libraries.
@@ -20,11 +25,12 @@ Use Jane St. marshalling libraries.
 module Bin_prot_marshalling = Bin_prot_marshalling
 
 
-(** {2 On-disk store} *)
+(** {2 Blk dev on fd utilities} *)
 
-module Map_on_fd_util = Map_on_fd_util
+module Blk_dev_on_fd_util = Blk_dev_on_fd_util
 
-include Map_on_fd_util.Root_blk
+(* include Blk_dev_on_fd_util *)
+
 
 (** {2 Actual examples} *)
 

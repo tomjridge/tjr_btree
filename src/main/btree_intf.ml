@@ -48,7 +48,6 @@ end
 module Marshalling_ops_type = struct
 
   (** A type for recording the marshalling functions *)
-
   type ('dnode,'blk) marshalling_ops = {
     dnode_to_blk: 'dnode -> 'blk;
     blk_to_dnode: 'blk -> 'dnode;
@@ -57,6 +56,21 @@ module Marshalling_ops_type = struct
 end
 include Marshalling_ops_type
 
+
+
+module Node_leaf_list_conversions = struct
+  (** It is common for marshalling to go via a representation using
+     lists. This allows us to assume little about node and leaf
+     implementations. These fields have the same names and types as
+     the corresponding fields in node_ops and leaf_ops. *)
+  type ('k,'v,'r,'node,'leaf) node_leaf_list_conversions = {
+    node_to_krs: 'node -> 'k list * 'r list;
+    krs_to_node: ('k list * 'r list) -> 'node;
+    leaf_to_kvs: 'leaf -> ('k * 'v) list;
+    kvs_to_leaf: ('k * 'v) list -> 'leaf;
+  }
+end
+(* don't include, since fields clash with those from node_ops/leaf_ops *)
 
 
 (** The B-tree code exports a [pre_map_ops] version of a map, with

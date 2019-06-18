@@ -1,5 +1,5 @@
 (** Various examples *)
-open Tjr_profile.Util.Profiler
+(* open Tjr_profile.Util.Profiler *)
 open Tjr_btree
 open Btree_intf
 
@@ -34,92 +34,10 @@ simple int->int example
 *)
 
 
-(** {2 Abstract version...} 
-
-We start with a version that abstracts over k,v, marshalling and blk_dev
-
-*)
-
-(** {2 Misc prelude} *)
-
-(* common to all impls *)
-type blk_allocator_state = {
-  min_free_blk_id:int;
-}
-
-(* FIXME free space; note the blk_allocator itself has to leave room for eg the root block *)
-
-(** The global state is represented by a store; within the store
-    there are refs to the block device, the block allocator state,
-    ... 
-
-    - blk_dev state
-    - blk_allocator state
-
-*)
-
-module Misc = struct
-  let blk_sz = 4096
-
-
-
-  let monad_ops = fstore_passing_monad_ops
-  let ( >>= ) = monad_ops.bind
-  let return = monad_ops.return
-
-
-
-  (** A store, which we mutably change while initializing *)
-  let fstore = ref Tjr_store.initial_store
-
-  let alloc_fstore_ref = 
-    fun x -> 
-    Tjr_store.mk_ref x !fstore |> fun (store',r) ->
-    fstore:=store';
-    r
-
-  let _ = alloc_fstore_ref
-end
-open Misc
-
-
-module Blk_ops = struct
-  (* blocks etc *)
-  let block_ops = String_block_ops.make_string_block_ops ~blk_sz 
-
-  type blk_id = int
-  type blk = string
-end
-open Blk_ops
-
-
-module Blk_allocator = struct
-  (** The first block that can be allocated; currently 2, since 0 is
-     the root block, and 1 is the initial empty leaf (for an empty
-     B-tree; may be mutated) *)
-  let first_free_block = 2
-  let blk_allocator_ref = alloc_fstore_ref {min_free_blk_id=first_free_block} 
-  let blk_allocator : (blk_allocator_state,fstore_passing) with_state = 
-    Fstore_passing.fstore_ref_to_with_state blk_allocator_ref
-end
-open Blk_allocator
-
-module Btree_root_block = struct
-  let initial_btree_root_block : blk_id = 1
-  let btree_root_block_ref = alloc_fstore_ref initial_btree_root_block
-  let root_ops = Fstore_passing.fstore_ref_to_with_state btree_root_block_ref
-  let root_ops = {root_ops}
-end
-(* open Btree_root_block *)
-
-
-module type BLK_DEV_OPS = sig
-  val blk_dev_ops: (blk_id,blk,fstore_passing) blk_dev_ops
-end
+open Example_disk_ops
 
 
 (** {2 Abstract version} *)
-
 
 module type S = sig
   type k  (* we assume k_cmp = Pervasives.compare *)
@@ -129,312 +47,145 @@ module type S = sig
 
   val monad_ops: t monad_ops
 
-  val read_k  : k Bin_prot.Type_class.reader
-  val write_k : k Bin_prot.Type_class.writer
-  val read_v  : v Bin_prot.Type_class.reader
-  val write_v : v Bin_prot.Type_class.writer
   val k_size: int
-  val v_size: int      
-    
-  include BLK_DEV_OPS
+  val v_size: int          
 end
 
+(* FIXME the result sig of following could well be from isa_btree *)
 
-
-module Internal_abstract(S:S) = struct
+module Internal(S:S) = struct
   open S
-
-  module Internal = struct 
-    let k_cmp : k -> k -> int = Pervasives.compare
-
-    let constants = 
-      Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
-
-    module S' = struct
-        include S
-        let k_cmp = k_cmp
-        let cs = constants
-      end
-    module Tjr_btree' = Tjr_btree.Make(S')
-    (* let node_ops,leaf_ops = Tjr_btree'.(node_ops,leaf_ops) *)
-    open Tjr_btree'
-
-    (* blocks etc *)
-    let block_ops = Blk_ops.block_ops
-
-    (* module Map_ops = Isa_export_wrapper.Internal_make_map_ops(struct type nonrec k=k let k_cmp=k_cmp end) *)
-    (* node leaf conversions, for marshalling *)
-    (* let node_ops = Leaf_node_frame_impls.make_node_ops ~map_ops:(kopt_map_ops) *)
-    (* let leaf_ops = Leaf_node_frame_impls.make_leaf_ops ~map_ops:(k_map_ops) *)
-                      
-    (* marshalling *)
-    let mp = 
-      Bin_prot_marshalling.make_binprot_marshalling ~block_ops
-        ~node_ops ~leaf_ops
-        ~read_k ~write_k ~read_v ~write_v
-
-    (* open Tjr_profile.Util.No_profiler *)
-
-    let mp = Btree_intf.{
-      dnode_to_blk=(fun dn -> profile "d2blk" @@ fun () -> mp.dnode_to_blk dn);
-      blk_to_dnode=(fun blk -> profile "blk2d" @@ fun () -> mp.blk_to_dnode blk);
-      marshal_blk_size=mp.marshal_blk_size;
-    }
-
-    let constants = 
-      Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
-
-    let print_constants () = 
-      let cs = constants in
-      if !Global.debug_global then 
-        Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
-          cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
-
-    let blk_allocator_ops = 
-      let { with_state } = blk_allocator in
-      let alloc () = with_state (fun ~state:s ~set_state ->
-          set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
-          -> return s.min_free_blk_id)
-      in
-      let free _blk_id = return () in
-      {alloc;free}
-
-    let _ = blk_allocator_ops
-
-    let disk_ops = { marshalling_ops=mp; blk_dev_ops; blk_allocator_ops }
-
-    let store_ops = disk_to_store ~disk_ops
-
-    let profile_m ~mark s m = 
-      return () >>= fun () -> 
-      mark s;
-      m >>= fun r ->
-      mark (s^"'");
-      return r
-
-    (* we add some profiling; we also take the opportunity to add some
-       simple caching; FIXME add LRU caching for store *)
-    let store_ops = 
-      let {read;wrte;rewrite;free} = store_ops in
-      (* Add some memoization *)
-      let module L = Lru.M.Make(struct
-          type t = blk_id
-          let equal : t -> t -> bool = Pervasives.(=)  (* FIXME don't use pervasives for real code *)
-          let hash: t -> int = Hashtbl.hash
-        end)(struct
-          type t = (node, leaf) dnode  (* FIXME dnode_impl *)
-          let weight: t -> int = fun _ -> 1
-        end)
-      in    
-      let cap = 52000 (* 51539*) in   (* FIXME config; (+ 10 ( * 227 227)) *)
-      let slack = 10 in
-      let lru = L.create cap in
-      (* FIXME we perhaps want to avoid calling trim on every add
-         (depending on the cost of performing a trim) *)
-      let trim lru = 
-        if L.size lru >= cap+slack then L.trim lru else ()
-      in
-      let read = fun r -> 
-        L.find r lru |> function
-        | None -> (read r >>= fun dn -> 
-            L.add r dn lru; 
-            trim lru;
-            ();
-            return dn)
-        | Some dn -> 
-          L.promote r lru;
-          return dn
-      in
-      let wrte dn = 
-        wrte dn >>= fun r -> 
-        L.add r dn lru;
-        trim lru;
-        return r
-      in
-      let rewrite r dn = 
-        rewrite r dn >>= function
-        | None -> (
-            (* updated in place *)
-            L.add r dn lru;
-            trim lru;
-            return None)
-        | Some r' -> (
-          L.add r' dn lru;
-          trim lru;
-          return (Some r'))
-      in
-      {
-        read=(fun r -> profile_m ~mark "ib" (read r));
-        wrte=(fun dn -> profile_m ~mark "ic" (wrte dn));
-        rewrite=(fun r dn -> profile_m ~mark "id" (rewrite r dn));
-        free;
-    }
-
-    let empty_disk_leaf_as_blk = 
-      let blk = lazy (
-        leaf_ops.kvs_to_leaf [] |> fun x ->
-        mp.dnode_to_blk (Disk_leaf x))
-      in
-      fun () -> Lazy.force blk
-
-    let _ = empty_disk_leaf_as_blk
-
-    let pre_btree_ops = store_to_pre_btree ~store_ops
-
-    let map_ops_etc ~root_ops = pre_btree_to_map ~pre_btree_ops ~root_ops
-
-    let on_disk_util = 
-      Map_on_fd_util.make ~block_ops ~empty_disk_leaf_as_blk 
-  end
-
-  (** from_file and close; Ignore this for in-mem versions *)
-  let on_disk_util = Internal.on_disk_util
-
-  (** Construct the map operations *)
-  let map_ops_etc ~root_ops = Internal.map_ops_etc ~root_ops
-
-  let _ :
-root_ops:(r, t) btree_root_ops ->
-(k, v, r, Internal.Tjr_btree'.leaf_stream, t) Map_ops_etc_type.map_ops_etc
-    = map_ops_etc
-end
-
-
-(** {2 Parameterize over blk_dev} 
-
-Now we parameterize only over the blk dev
-*)
-
-module Internal_over_blk_dev(Blk_dev_ops:BLK_DEV_OPS) = struct
-  open Blk_dev_ops
-
-  module Int_int = struct
-    module S = struct
-      open Bin_prot_marshalling
-      type k = int
-      type v = int
-      type r = blk_id
-      type t = fstore_passing
-      let monad_ops = monad_ops
-
-      let read_k = bin_reader_int
-      let write_k = bin_writer_int
-      let read_v = bin_reader_int
-      let write_v = bin_writer_int
-      let k_size = bp_size_int
-      let v_size = bp_size_int
-      type blk_id = int
-      type blk = string
-      let blk_dev_ops = blk_dev_ops
-    end
-    include Internal_abstract(S)
-    let _ = Internal.print_constants()
-  end
-
-
-  module Ss_ss = struct
-    module S = struct
-      open Bin_prot_marshalling
-      type k = ss
-      type v = ss
-      type r = blk_id
-      type t = fstore_passing
-
-      let monad_ops = monad_ops
-      let read_k = bin_reader_ss
-      let write_k = bin_writer_ss
-      let read_v = bin_reader_ss
-      let write_v = bin_writer_ss
-      let k_size = bp_size_ss
-      let v_size = bp_size_ss
-      type blk_id = int
-      type blk = string
-      let blk_dev_ops = blk_dev_ops
-    end
-    include Internal_abstract(S)
-  end
-
-  module Ss_int = struct
-    module S = struct
-      open Bin_prot_marshalling
-      type k = ss
-      type v = int
-      type r = blk_id
-      type t = fstore_passing
-      let monad_ops = monad_ops
-
-      let read_k = bin_reader_ss
-      let write_k = bin_writer_ss
-      let read_v = bin_reader_int
-      let write_v = bin_writer_int
-      let k_size = bp_size_ss
-      let v_size = bp_size_int
-      type blk_id = int
-      type blk = string
-      let blk_dev_ops = blk_dev_ops
-    end
-    include Internal_abstract(S)
-  end
       
-  let ii_map = Int_int.map_ops_etc
-  let ss_map = Ss_ss.map_ops_etc
-  let si_map = Ss_int.map_ops_etc
+  let k_cmp : k -> k -> int = Pervasives.compare
+
+  let constants = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
+
+  let print_constants () = 
+    let cs = constants in
+    if !Global.debug_global then 
+      Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
+        cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
+
+  module S' = struct
+    include S
+    let k_cmp = k_cmp
+    let cs = constants
+  end
+  module Tjr_btree' = Tjr_btree.Make(S')
+  (* let node_ops,leaf_ops = Tjr_btree'.(node_ops,leaf_ops) *)
+  open Tjr_btree'
+
+  let node_leaf_list_conversions = Node_leaf_list_conversions.{
+      node_to_krs=node_ops.node_to_krs;
+      krs_to_node=node_ops.krs_to_node;
+      leaf_to_kvs=leaf_ops.leaf_to_kvs;
+      kvs_to_leaf=leaf_ops.kvs_to_leaf
+    }
+
+  let make_map_ops_etc ~blk_dev_ops ~reader_writers ~root_ops = 
+    let disk_ops = Example_disk_ops.example_disk_ops ~blk_dev_ops
+        ~reader_writers ~node_leaf_list_conversions
+    in
+    disk_to_map ~disk_ops ~root_ops
+
+  module Export = struct
+    let constants = constants
+    let print_constants = print_constants
+    type nonrec leaf = leaf
+    type nonrec node = node
+    type nonrec leaf_stream = leaf_stream
+    let node_leaf_list_conversions = node_leaf_list_conversions
+    let store_to_pre_btree = store_to_pre_btree
+    let make_map_ops_etc = make_map_ops_etc
+  end
 end
 
 
-(** {2 In-memory block dev} 
 
-Finally, we can start instantiating.
-*)
+(** {2 Instantiations} *)
 
-module In_mem_blk_dev : BLK_DEV_OPS = struct
-
-  let blk_dev_ops = 
-    let blk_dev_ref = alloc_fstore_ref (Tjr_map.With_pervasives_compare.empty ()) in
-    let with_state = Tjr_fs_shared.Fstore_passing.fstore_ref_to_with_state blk_dev_ref in
-    let _ = with_state in
-    Blk_dev_in_mem.make 
-      ~monad_ops 
-      ~blk_sz:(bsz_of_int blk_sz)
-      ~with_state
-
-  let _ = blk_dev_ops
+module type T = 
+sig
+  type k
+  type v
+  type r
+  val constants : constants
+  val print_constants : unit -> unit
+  type leaf
+  type node
+  type leaf_stream
+  val node_leaf_list_conversions :
+    (k, v, blk_id, node, leaf)
+      Node_leaf_list_conversions.node_leaf_list_conversions
+  val store_to_pre_btree :
+    store_ops:(blk_id,(node,leaf)dnode,fstore_passing) store_ops -> 
+    (k, v, r, fstore_passing, leaf, node, leaf_stream) pre_btree_ops
+  val make_map_ops_etc: 
+    blk_dev_ops:(r, blk, fstore state_passing) blk_dev_ops ->
+    reader_writers:(k, v) Bin_prot_marshalling.reader_writers ->
+    root_ops:(r, fstore state_passing) btree_root_ops ->
+    (k, v, r, leaf_stream, fstore state_passing) Map_ops_etc_type.map_ops_etc
 end
 
-module In_mem = Internal_over_blk_dev(In_mem_blk_dev)
+module Int_int : T with type k=int and type v=int and type r=int 
+= struct
+  module S = struct
+    open Bin_prot_marshalling
+    type k = int
+    type v = int
+    type r = blk_id
+    type t = fstore_passing
 
-(** {2 On-disk block dev} *)
+    let monad_ops = Monad_ops.monad_ops
 
-module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
-
-  let blk_dev_ref = alloc_fstore_ref (None:Unix.file_descr option)
-
-  let with_state = Fstore_passing.fstore_ref_to_with_state blk_dev_ref
-
-  (* reuse the internal functionality *)
-  open Blk_dev_on_fd.Internal
-
-  let read_count = Global.register ~name:"Examples.read_count" (ref 0)
-  let write_count = Global.register ~name:"Examples.write_count" (ref 0)
- 
-  (* open Tjr_profile.Util.No_profiler *)
-
-  let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
-      profile "fb" @@ fun () -> 
-      incr(read_count);
-      read ~block_ops ~fd ~blk_id |> return) [@@warning "-8"]
-
-  let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
-      profile "fc" @@ fun () -> 
-      incr(write_count);
-      write ~block_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
- 
-  let blk_dev_ops = { blk_sz=(bsz_of_int blk_sz); read; write }
+    let k_size = int_bin_prot_info.max_size
+    let v_size = int_bin_prot_info.max_size
+  end
+  include S
+  module Internal = Internal(S)
+  include Internal.Export
+  let _ = print_constants()
 end
 
-(** NOTE this requires that the fd is set in the initial fstore *)
-module On_disk = Internal_over_blk_dev(On_disk_blk_dev)
+
+module Ss_ss : T with type k=ss and type v=ss and type r=int 
+= struct
+  module S = struct
+    open Bin_prot_marshalling
+    type k = ss
+    type v = ss
+    type r = blk_id
+    type t = fstore_passing
+
+    let monad_ops = Monad_ops.monad_ops
+
+    let k_size = ss_bin_prot_info.max_size
+    let v_size = ss_bin_prot_info.max_size
+  end
+  include S
+  module Internal = Internal(S)
+  include Internal.Export
+  let _ = print_constants()
+end
 
 
-(** NOTE disk utils can be accessed eg via {!On_disk.Int_int} (ignore
-   the on_disk_util for in-mem versions) *)
+module Ss_int : T with type k=ss and type v=int and type r=int 
+= struct
+  module S = struct
+    open Bin_prot_marshalling
+    type k = ss
+    type v = int
+    type r = blk_id
+    type t = fstore_passing
+
+    let monad_ops = Monad_ops.monad_ops
+
+    let k_size = ss_bin_prot_info.max_size
+    let v_size = int_bin_prot_info.max_size
+  end
+  include S
+  module Internal = Internal(S)
+  include Internal.Export
+  let _ = print_constants()
+end
+

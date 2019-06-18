@@ -73,12 +73,6 @@ root_ops:(r, t) btree_root_ops ->
     root_ops:(r, t) btree_root_ops ->
 (k, v, r, leaf_stream, t) Map_ops_etc_type.map_ops_etc
 
-(*
-  (** Convenience; a composition of the previous *)
-  val disk_to_leaf_stream:
-    disk_ops:'blk disk_ops -> 
-    (k, v, r, leaf_stream, t) Isa_btree_intf.leaf_stream_ops
-*)
 end = struct
   open S
   include Isa_btree.Make(S)

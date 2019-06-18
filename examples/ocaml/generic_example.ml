@@ -1,7 +1,7 @@
 (** A simple example of a kv store. *)
 
 open Examples
-open Map_on_fd_util
+open Blk_dev_on_fd_util
 
 let fn = 
   ref "btree.store"
@@ -62,6 +62,8 @@ let make_generic_example (type k v r leaf_stream)
       |> set ba_ref {min_free_blk_id=root_block.free}
       |> set rb_ref root_block.btree_root
       |> set bd_ref (Some fd)
+
+    let _ = init_store
 
     let close ~fd ~fstore =
       let free = (Tjr_store.get ba_ref !fstore).min_free_blk_id in
