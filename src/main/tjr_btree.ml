@@ -67,7 +67,7 @@ pre_btree_ops:pre_btree_ops ->
 root_ops:(r, t) btree_root_ops ->
 (k, v, r, leaf_stream, t) Map_ops_etc_type.map_ops_etc
 
-  (** Convenience; a composition of the previous *)
+  (** Convenience; a composition of the previous. Note that this is not cached. For caching, construct in stages. *)
   val disk_to_map: 
     disk_ops:'blk disk_ops ->
     root_ops:(r, t) btree_root_ops ->

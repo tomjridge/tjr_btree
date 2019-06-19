@@ -94,12 +94,13 @@ module Internal(S:S) = struct
   let empty_leaf_as_blk = empty_leaf_as_blk ~disk_ops
 
   let store_ops = disk_to_store ~disk_ops
+  let store_ops = Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
 
   let pre_btree_ops = store_to_pre_btree ~store_ops
 
   let root_ops = Fstore_layer.Fstore.root_ops
 
-  let map_ops_etc = disk_to_map ~disk_ops ~root_ops
+  let map_ops_etc = pre_btree_to_map ~pre_btree_ops ~root_ops
 
 end
 
