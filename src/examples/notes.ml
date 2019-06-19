@@ -75,8 +75,9 @@ module type B = functor
     end)
 
 
-(* The B-tree root ops *)
+(*
 
+(* The B-tree root ops *)
 module type C = functor
   (S0: sig
      type blk_id (* can be free for this construction, but needs to be
@@ -89,28 +90,18 @@ module type C = functor
       open S0
       val btree_root_ops: (blk_id,fstore_passing) btree_root_ops
     end)
+*)
+
 
 (** Now we should think about the blk_dev_util, initialization etc *)
-
-type fd = Unix.file_descr 
-
 module type BLK_DEV_ON_FD_UTIL = sig
 
-  open Blk_dev_on_fd_util.Types
+  open Blk_layer
   
-  (* This uses the to_string conversion of block_ops, and file_descr
-     and standard writing to file *)
-  val make_from_file_close: 'blk block_ops -> Blk_dev_on_fd_util.from_file_close
+  val btree_from_file:     
+    block_ops:'a block_ops ->
+    empty_disk_leaf_as_blk:(unit -> 'a) -> btree_from_file
 
-  type fstore_initial_refs
-
-  val init_store : fstore_initial_refs -> fd -> root_block -> fstore
-
-  val close: fd -> fstore -> unit
-
-  type fd_etc (* = Generic_example.tmp *)
-
-  val btree_from_file: string -> bool -> bool -> fd_etc
 end
 
 

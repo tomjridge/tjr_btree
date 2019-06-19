@@ -73,6 +73,10 @@ root_ops:(r, t) btree_root_ops ->
     root_ops:(r, t) btree_root_ops ->
 (k, v, r, leaf_stream, t) Map_ops_etc_type.map_ops_etc
 
+
+  (** Convenience *)
+  val empty_leaf_as_blk: disk_ops:'blk disk_ops -> 'blk
+
 end = struct
   open S
   include Isa_btree.Make(S)
@@ -99,6 +103,10 @@ end = struct
     
   let _ = disk_to_map
 
+  (** Convenience *)
+  let empty_leaf_as_blk ~disk_ops = 
+    disk_ops.marshalling_ops.dnode_to_blk (Disk_leaf (leaf_ops.kvs_to_leaf []))
+
 (*
   let disk_to_leaf_stream ~disk_ops = 
     let store_ops = disk_to_store ~disk_ops in
@@ -111,19 +119,26 @@ end = struct
   type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
 
   type nonrec pre_btree_ops = (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
-
-
 end
 
 
 
 (** {2 Internal interface} *)
 
-(** Note that this takes comparators for the node and leaf implementations *)
-let internal_disk_to_x ~monad_ops ~cs ~k_cmp ~kopt_cmp ~disk_ops ~root_ops =
+module Internal = struct
+  type ('a,'b,'c) tmp = {
+    store_ops:'a;
+    pre_btree_ops:'b;
+    map_ops:'c;
+  }
+
+  (** Note that this takes comparators for the node and leaf implementations *)
+  let internal_disk_to_x ~monad_ops ~cs ~k_cmp ~kopt_cmp ~disk_ops ~root_ops =
     (* let { marshalling_ops; blk_dev_ops; blk_allocator_ops } = disk_ops in *)
     let store_ops = disk_to_store ~monad_ops ~disk_ops in
     let pre_btree_ops = Isa_btree.make_with_comparators ~monad_ops ~cs ~k_cmp ~kopt_cmp ~store_ops in
     let map_ops = Pre_btree_to_map.pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops in
-    fun f -> f ~store_ops ~pre_btree_ops ~map_ops
+    { store_ops; pre_btree_ops; map_ops }
+end
 
+let internal_disk_to_x = Internal.internal_disk_to_x

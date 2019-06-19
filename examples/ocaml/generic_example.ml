@@ -1,86 +1,32 @@
 (** A simple example of a kv store. *)
 
-open Examples
-open Blk_dev_on_fd_util
+(* open Examples *)
+(* open Fstore_layer *)
+open Blk_layer
 
 let fn = 
   ref "btree.store"
   |> Global.register ~name:(__MODULE__^".fn (default: btree.store)")
 
-(* Collect together vars that arise when creating a B-tree from a file on disk *)
-
-type tmp = {
-  fd:Unix.file_descr;
-  root_block:root_block;
-  fstore:Tjr_store.t ref;
-  run:'a. ('a, fstore_passing) m -> 'a;
-  close: unit -> unit;
-}
-
+module type T = sig
+  val do_write : unit -> unit
+  val do_delete : unit -> unit
+  val do_check : unit -> unit
+  val do_full_check : unit -> unit
+  val do_all : unit -> unit
+end
 
 let make_generic_example (type k v r leaf_stream) 
-    ~on_disk_util
-    ~(root_ops_to_map_ops_etc: 'root_ops -> (k,v,r,leaf_stream,fstore state_passing)Btree_intf.Map_ops_etc_type.map_ops_etc)
+    ~btree_from_file
+    ~(map_ops_etc: (k,v,r,leaf_stream,fstore state_passing)Btree_intf.Map_ops_etc_type.map_ops_etc)
     ~int_to_k ~int_to_v
   =
+  let {btree_from_file} = btree_from_file in
+
+  (* FIXME config *)
+  let max_writes = 10000 in
+
   let module A = struct
-
-    let {from_file;close} = on_disk_util
-
-    (* FIXME config *)
-    let max_writes = 10000
-
-
-
-    (* Convert state passing to imperative style using an ocaml ref *)
-    let run ~fstore (op:('a,fstore_passing)m) : 'a =
-      State_passing.to_fun op (!fstore) |> fun (a,fstore') -> 
-      fstore:=fstore';
-      a
-
-
-    (* We store various bits of state, including the B-tree root
-       block, in the store *)
-
-    let ba_ref,rb_ref,bd_ref = 
-      Examples.(Blk_allocator.blk_allocator_ref,
-                Btree_root_block.btree_root_block_ref,
-                On_disk_blk_dev.blk_dev_ref)
-
-    let root_ops = Examples.Btree_root_block.root_ops
-
-    let map_ops_etc = root_ops_to_map_ops_etc root_ops
-
-
-
-    (* Init and close *)
-
-    let init_store ~fd ~(root_block:root_block) =
-      (* Printf.printf "Init with free=%d and root=%d\n%!" root_block.free root_block.btree_root; *)
-      let set = Tjr_store.set in
-      Tjr_store.initial_store 
-      |> set ba_ref {min_free_blk_id=root_block.free}
-      |> set rb_ref root_block.btree_root
-      |> set bd_ref (Some fd)
-
-    let _ = init_store
-
-    let close ~fd ~fstore =
-      let free = (Tjr_store.get ba_ref !fstore).min_free_blk_id in
-      let btree_root = Tjr_store.get rb_ref !fstore in
-      (* Printf.printf "Close with free=%d and root=%d\n%!" free btree_root; *)
-      close ~fd ~root_block:{free; btree_root}
-
-
-    let btree_from_file ~fn ~create ~init =
-      let fd,root_block = from_file ~fn ~create ~init in
-      let fstore = ref (init_store ~fd ~root_block) in
-      let run x = run ~fstore x in
-      let close () = close ~fd ~fstore in
-      { fd; root_block; fstore; run; close }
-
-
-
     (* Some examples *)
 
     (* create and init store, write some values, and close *)
@@ -136,7 +82,7 @@ let make_generic_example (type k v r leaf_stream)
       done;
       close ();
       ()
-
+      
     (* actually execute the above *)
     let do_all() = 
       do_write ();
@@ -146,6 +92,6 @@ let make_generic_example (type k v r leaf_stream)
       
   end
   in
-  A.(fun f -> f ~do_all ~btree_from_file ~map_ops_etc)
+  (module A : T)
 
 let _ = make_generic_example

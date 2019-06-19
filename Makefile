@@ -2,9 +2,8 @@ SHELL:=bash
 DUNE:=dune
 
 build:
-	$(DUNE) build --only-packages tjr_btree @install
 	$(DUNE) build @install
-	$(DUNE) build examples/ocaml/btree_main.exe
+#	$(DUNE) build examples/ocaml/btree_main.exe
 # FIXME	$(DUNE) build test_bin/all.touch
 
 install:
@@ -39,6 +38,11 @@ promote_docs: FORCE
 tjr_btree_doc: FORCE
 	$(DUNE) build --only-packages tjr_btree @doc
 	rsync -vaz $(SRC)/* $(DST2); echo "docs built in $(DST2) but not promoted to docs/"
+
+examples_doc: FORCE
+	$(DUNE) build --only-packages tjr_btree_examples @doc
+	rsync -vaz $(SRC)/* $(DST2); echo "docs built in $(DST2) but not promoted to docs/"
+
 
 view_doc:
 	google-chrome  $(SRC)/index.html

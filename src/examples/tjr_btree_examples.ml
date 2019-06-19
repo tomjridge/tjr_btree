@@ -25,9 +25,11 @@ Use Jane St. marshalling libraries.
 module Bin_prot_marshalling = Bin_prot_marshalling
 
 
-(** {2 Blk dev on fd utilities} *)
+(** {2 Blk layer} *)
 
-module Blk_dev_on_fd_util = Blk_dev_on_fd_util
+module Fstore_layer = Fstore_layer
+
+module Blk_layer = Blk_layer
 
 (* include Blk_dev_on_fd_util *)
 

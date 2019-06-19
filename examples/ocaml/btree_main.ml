@@ -88,9 +88,10 @@ let _ =
 (* stats ------------------------------------------------------------ *)
 
 let _ = 
+  let open Tjr_btree_examples.Blk_layer in
   Printf.printf "Block stats: read_count:%d, write_count:%d\n%!" 
-    (!Examples.On_disk_blk_dev.read_count) 
-    (!Examples.On_disk_blk_dev.write_count) 
+    (!On_disk_blk_dev.read_count) 
+    (!On_disk_blk_dev.write_count) 
 
 let _ = 
   match config.profiling_enabled with

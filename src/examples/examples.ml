@@ -34,7 +34,16 @@ simple int->int example
 *)
 
 
-open Example_disk_ops
+open Fstore_layer
+
+
+module Internal_print_constants = struct
+  let print_constants cs = 
+    if !Global.debug_global then 
+      Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
+        cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
+end
+open Internal_print_constants
 
 
 (** {2 Abstract version} *)
@@ -48,7 +57,9 @@ module type S = sig
   val monad_ops: t monad_ops
 
   val k_size: int
-  val v_size: int          
+  val v_size: int 
+
+  val reader_writers: (k,v)Bin_prot_marshalling.reader_writers
 end
 
 (* FIXME the result sig of following could well be from isa_btree *)
@@ -60,12 +71,6 @@ module Internal(S:S) = struct
 
   let constants = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
 
-  let print_constants () = 
-    let cs = constants in
-    if !Global.debug_global then 
-      Printf.printf "Calculated constants: lmin,%d lmax,%d nmin,%d nmax,%d\n%!" 
-        cs.min_leaf_size cs.max_leaf_size cs.min_node_keys cs.max_node_keys
-
   module S' = struct
     include S
     let k_cmp = k_cmp
@@ -73,7 +78,7 @@ module Internal(S:S) = struct
   end
   module Tjr_btree' = Tjr_btree.Make(S')
   (* let node_ops,leaf_ops = Tjr_btree'.(node_ops,leaf_ops) *)
-  open Tjr_btree'
+  include Tjr_btree'
 
   let node_leaf_list_conversions = Node_leaf_list_conversions.{
       node_to_krs=node_ops.node_to_krs;
@@ -82,53 +87,27 @@ module Internal(S:S) = struct
       kvs_to_leaf=leaf_ops.kvs_to_leaf
     }
 
-  let make_map_ops_etc ~blk_dev_ops ~reader_writers ~root_ops = 
-    let disk_ops = Example_disk_ops.example_disk_ops ~blk_dev_ops
-        ~reader_writers ~node_leaf_list_conversions
-    in
-    disk_to_map ~disk_ops ~root_ops
 
-  module Export = struct
-    let constants = constants
-    let print_constants = print_constants
-    type nonrec leaf = leaf
-    type nonrec node = node
-    type nonrec leaf_stream = leaf_stream
-    let node_leaf_list_conversions = node_leaf_list_conversions
-    let store_to_pre_btree = store_to_pre_btree
-    let make_map_ops_etc = make_map_ops_etc
-  end
+  open Blk_layer
+  let disk_ops = Blk_layer.make_disk_ops ~blk_dev_ops:on_disk_blk_dev ~reader_writers ~node_leaf_list_conversions
+
+  let empty_leaf_as_blk = empty_leaf_as_blk ~disk_ops
+
+  let store_ops = disk_to_store ~disk_ops
+
+  let pre_btree_ops = store_to_pre_btree ~store_ops
+
+  let root_ops = Fstore_layer.Fstore.root_ops
+
+  let map_ops_etc = disk_to_map ~disk_ops ~root_ops
+
 end
 
 
 
 (** {2 Instantiations} *)
 
-module type T = 
-sig
-  type k
-  type v
-  type r
-  val constants : constants
-  val print_constants : unit -> unit
-  type leaf
-  type node
-  type leaf_stream
-  val node_leaf_list_conversions :
-    (k, v, blk_id, node, leaf)
-      Node_leaf_list_conversions.node_leaf_list_conversions
-  val store_to_pre_btree :
-    store_ops:(blk_id,(node,leaf)dnode,fstore_passing) store_ops -> 
-    (k, v, r, fstore_passing, leaf, node, leaf_stream) pre_btree_ops
-  val make_map_ops_etc: 
-    blk_dev_ops:(r, blk, fstore state_passing) blk_dev_ops ->
-    reader_writers:(k, v) Bin_prot_marshalling.reader_writers ->
-    root_ops:(r, fstore state_passing) btree_root_ops ->
-    (k, v, r, leaf_stream, fstore state_passing) Map_ops_etc_type.map_ops_etc
-end
-
-module Int_int : T with type k=int and type v=int and type r=int 
-= struct
+module Int_int = struct
   module S = struct
     open Bin_prot_marshalling
     type k = int
@@ -140,16 +119,17 @@ module Int_int : T with type k=int and type v=int and type r=int
 
     let k_size = int_bin_prot_info.max_size
     let v_size = int_bin_prot_info.max_size
+
+    let reader_writers = Reader_writers.int_int
   end
   include S
   module Internal = Internal(S)
-  include Internal.Export
-  let _ = print_constants()
+  include Internal
+  let _ = print_constants constants
 end
 
 
-module Ss_ss : T with type k=ss and type v=ss and type r=int 
-= struct
+module Ss_ss = struct
   module S = struct
     open Bin_prot_marshalling
     type k = ss
@@ -161,16 +141,17 @@ module Ss_ss : T with type k=ss and type v=ss and type r=int
 
     let k_size = ss_bin_prot_info.max_size
     let v_size = ss_bin_prot_info.max_size
+
+    let reader_writers = Reader_writers.ss_ss
   end
   include S
   module Internal = Internal(S)
-  include Internal.Export
-  let _ = print_constants()
+  include Internal
+  let _ = print_constants constants
 end
 
 
-module Ss_int : T with type k=ss and type v=int and type r=int 
-= struct
+module Ss_int = struct
   module S = struct
     open Bin_prot_marshalling
     type k = ss
@@ -182,10 +163,12 @@ module Ss_int : T with type k=ss and type v=int and type r=int
 
     let k_size = ss_bin_prot_info.max_size
     let v_size = int_bin_prot_info.max_size
+
+    let reader_writers = Reader_writers.ss_int
   end
   include S
   module Internal = Internal(S)
-  include Internal.Export
-  let _ = print_constants()
+  include Internal
+  let _ = print_constants constants
 end
 
