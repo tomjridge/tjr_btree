@@ -91,7 +91,8 @@ module Internal(S:S) = struct
   open Blk_layer
   let disk_ops = Blk_layer.make_disk_ops ~blk_dev_ops:on_disk_blk_dev ~reader_writers ~node_leaf_list_conversions
 
-  let empty_leaf_as_blk = empty_leaf_as_blk ~disk_ops
+  (* NOTE we have to shield so that evaluation is delayed till post-init *)
+  let empty_leaf_as_blk () = empty_leaf_as_blk ~disk_ops
 
   let store_ops = disk_to_store ~disk_ops
   let store_ops = Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
@@ -102,6 +103,14 @@ module Internal(S:S) = struct
 
   let map_ops_etc = pre_btree_to_map ~pre_btree_ops ~root_ops
 
+  (* NOTE we have to shield so that evaluation is delayed till post-init *)
+  let btree_from_file = 
+    { btree_from_file=(fun ~fn ~create ~init ->
+          make_btree_from_file ~empty_leaf_as_blk:(empty_leaf_as_blk ()) |> fun x -> 
+        x.btree_from_file ~fn ~create ~init )}
+
+
+  let _ = btree_from_file
 end
 
 

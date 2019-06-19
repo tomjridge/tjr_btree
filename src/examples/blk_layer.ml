@@ -6,8 +6,9 @@
    marshalling params allow us to convert to a blk; perhaps assume we
    already have empty_leaf_as_blk? *)
 
+include Fstore_layer.Block_ops
+
 module Types = struct
-  type blk_id = int
 
   (** FIXME if btree_root was an option, we could avoid passing empty_disk_leaf_as_blk *)
   type root_block = {
@@ -129,13 +130,15 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
   in
   { btree_from_file=A.btree_from_file }
 
+let make_btree_from_file ~empty_leaf_as_blk = make_btree_from_file ~block_ops ~empty_leaf_as_blk
+
 (** Prettier type: {%html:<pre>
-block_ops:'a block_ops ->
-empty_disk_leaf_as_blk:(unit -> 'a) -> 
-btree_from_file
+empty_leaf_as_blk:blk -> btree_from_file
 </pre>%} *)
 
 let _ = make_btree_from_file
+
+
 
 
 open Btree_intf

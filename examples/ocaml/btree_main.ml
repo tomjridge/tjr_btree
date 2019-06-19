@@ -78,11 +78,30 @@ let _ = Init_ref.set_post_init ()
 
 (* run main, measure overall time ----------------------------------- *)
 
+let usage = {|
+Usage:
+  btree_main <n> ...
+
+<n> - one of: 
+
+eg1 int_int_map_example 
+ii int_int_map_main 
+eg2 string_string_map_example 
+ss string_string_map_main
+
+For the main targets, the additional args ... are passed to the
+corresponding main.
+|}
+  
+
 let _ = 
   profile "aa" @@ fun () ->
   match args with
-  | ["int_int_map_example"] -> Int_int_map_example.do_all()
-  | _ -> Int_int_map_main.main args
+  | [] -> (print_endline usage; exit 0)
+  | ["eg1"] -> Int_int_map_example.do_all()
+  | "ii"::args -> Int_int_map_main.main args
+  | ["eg2"] -> String_string_map_example.do_all()
+  | "ss"::args -> String_string_map_main.main args
 
 
 (* stats ------------------------------------------------------------ *)

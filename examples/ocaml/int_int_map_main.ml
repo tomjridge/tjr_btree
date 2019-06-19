@@ -1,4 +1,5 @@
 (* a map from int to int, backed by file ------------------------------- *)
+
 open Examples
 
 (* open Examples.Int_int *)
@@ -12,9 +13,6 @@ module S = struct
   let k_of_string s = int_of_string s
   let v_to_string = k_to_string
   let v_of_string = k_of_string
-  let btree_from_file = Blk_layer.make_btree_from_file
-      ~block_ops:Fstore_layer.block_ops 
-      ~empty_leaf_as_blk
 end
 
 include Make_generic_main(S)
