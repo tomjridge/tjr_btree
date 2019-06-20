@@ -1,7 +1,7 @@
 NAME:=tjr_btree
 
 all:
-	$(MAKE) 
+	$(MAKE) opam_with_pinning
 
 #	$(MAKE) from_github
 #	$(MAKE) using_opam
