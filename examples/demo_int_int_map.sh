@@ -9,6 +9,8 @@ MAIN=btree_main
 command -v $MAIN || { echo "I require $MAIN but it's not installed.  Aborting."; exit 1; }
 echo
 
+MAIN=btree_main ii
+
 echo Executing various simple operations
 echo -----------------------------------
 echo
