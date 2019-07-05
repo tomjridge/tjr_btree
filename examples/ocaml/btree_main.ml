@@ -38,10 +38,10 @@ let _ =
 
 (* set up profilers ------------------------------------------------- *)
 
-let btree_main_profiler = Init_ref.create dummy_profiler
+let btree_main_profiler = ref dummy_profiler
+                          |> Global.register ~name:"btree_main_profiler"
 
 module Internal_ = struct
-  open Init_ref
   let profile x z =
     let profiler = btree_main_profiler in
     !profiler.mark x;
@@ -62,7 +62,6 @@ let _ =
       let _ =
         Tjr_profile.string_profiler := Tjr_profile.make_string_profiler ~now;
         (* let open Isa_export_wrapper in *)
-        let open Init_ref in
         let open Leaf_node_frame_impls in
         Internal_leaf_impl.leaf_profiler := Tjr_profile.make_string_profiler ~now;
         Internal_node_impl.node_profiler := Tjr_profile.make_string_profiler ~now;
@@ -74,7 +73,7 @@ let _ =
     in
     ()
 
-let _ = Init_ref.set_post_init ()
+(* let _ = Init_ref.set_post_init () *)
 
 (* run main, measure overall time ----------------------------------- *)
 
@@ -117,7 +116,7 @@ let _ =
   | false -> ()
   | true -> 
     !Tjr_profile.string_profiler.print_summary(); print_endline "";
-    let open Init_ref in
+    (* let open Init_ref in *)
     let f ref_ = !ref_.print_summary(); print_endline "" in
     (* let open Isa_export_wrapper in *)
     let open Leaf_node_frame_impls in

@@ -29,11 +29,11 @@ module Fstore = struct
   module Internal = struct
     (** A store, which we mutably change while initializing; only used
         for allocating refs; don't use otherwise *)
-    let _fstore = ref Tjr_store.initial_store
+    let _fstore = ref (Tjr_store.empty_fstore ~allow_reset:true ())
 
     let alloc_fstore_ref = 
       fun x -> 
-      Tjr_store.mk_ref x !_fstore |> fun (store',r) ->
+      Tjr_store.mk_ref x !_fstore |> fun (r,store') ->
       _fstore:=store';
       r
 

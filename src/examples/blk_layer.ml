@@ -20,9 +20,9 @@ module Types = struct
   type btree_from_file_result = {
     fd:Unix.file_descr;
     root_block:root_block;  (* NOTE this is the initial root block *)
-    fstore:Tjr_store.t ref;
+    fstore:Tjr_store.fstore ref;
     run:'a. ('a, fstore_passing) m -> 'a; (* uses the fstore field! *)
-    close: unit -> unit;
+    close: unit -> unit;  (* FIXME should be monadic ? *)
   }
 
   type btree_from_file = {
@@ -104,7 +104,7 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
     let init_tjr_store ~fd ~(root_block:root_block) =
       (* Printf.printf "Init with free=%d and root=%d\n%!" root_block.free root_block.btree_root; *)
       let set = Tjr_store.set in
-      Tjr_store.initial_store 
+      Tjr_store.empty_fstore ~allow_reset:false () 
       |> set blk_allocator_ref {min_free_blk_id=root_block.free}
       |> set btree_root_block_ref root_block.btree_root
       |> set on_disk_blk_dev_ref (Some fd)
@@ -150,10 +150,10 @@ let make_disk_ops ~blk_dev_ops ~reader_writers =
   (* block_ops and blk_allocator are reasonably free: the code doesn't
      depend on the exact details *)
   let block_ops,blk_allocator = Internal.(block_ops,blk_allocator) in
-  let ( >>= ) = monad_ops.bind in
-  let return = monad_ops.return in
+  (* let ( >>= ) = monad_ops.bind in *)
+  (* let return = monad_ops.return in *)
   let make_disk_ops 
-      ~(node_leaf_list_conversions:('k,'v,blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
+        ~(node_leaf_list_conversions:('k,'v,blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
     =
     let mp = 
       Bin_prot_marshalling.make_binprot_marshalling ~block_ops
@@ -181,7 +181,7 @@ let make_disk_ops ~blk_dev_ops ~reader_writers =
   make_disk_ops
 
 let _ = make_disk_ops
-
+  
 
 module type BLK_DEV_OPS = sig
   (* open Internal *)
