@@ -55,21 +55,14 @@ let _ =
   match config.profiling_enabled with
   | false -> ()
   | true -> 
-    let module M = struct
-      let now = Core.Time_stamp_counter.(fun () ->
-          now () |> to_int63 |> Core.Int63.to_int |> fun (Some x) -> x)
-
-      let _ =
-        Tjr_profile.string_profiler := Tjr_profile.make_string_profiler ~now;
-        (* let open Isa_export_wrapper in *)
-        let open Leaf_node_frame_impls in
-        Internal_leaf_impl.leaf_profiler := Tjr_profile.make_string_profiler ~now;
-        Internal_node_impl.node_profiler := Tjr_profile.make_string_profiler ~now;
-        Internal_frame_impl.frame_profiler := Tjr_profile.make_string_profiler ~now;
-        (* export_profiler := Tjr_profile.make_string_profiler ~now; *)
-        btree_main_profiler := Tjr_profile.make_string_profiler ~now;
-        ()
-    end
+    let _ =
+      let open Leaf_node_frame_impls in
+      Internal_leaf_impl.leaf_profiler := Tjr_profile.make_string_profiler ();
+      Internal_node_impl.node_profiler := Tjr_profile.make_string_profiler ();
+      Internal_frame_impl.frame_profiler := Tjr_profile.make_string_profiler ();
+      (* export_profiler := Tjr_profile.make_string_profiler (); *)
+      btree_main_profiler := Tjr_profile.make_string_profiler ();
+      ()
     in
     ()
 
@@ -115,7 +108,7 @@ let _ =
   match config.profiling_enabled with
   | false -> ()
   | true -> 
-    !Tjr_profile.string_profiler.print_summary(); print_endline "";
+    (* !Tjr_profile.string_profiler.print_summary(); print_endline ""; *)
     (* let open Init_ref in *)
     let f ref_ = !ref_.print_summary(); print_endline "" in
     (* let open Isa_export_wrapper in *)

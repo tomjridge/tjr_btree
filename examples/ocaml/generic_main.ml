@@ -1,8 +1,8 @@
 (* a map from int to int, backed by file ------------------------------- *)
-open Tjr_profile.Util.Profiler
-
+open Tjr_profile
 open Tjr_seq
 
+let profiler = make_string_profiler ()
 
 (* for insert_many operations *)
 let chunksize = 1000
@@ -17,7 +17,7 @@ let insert_seq ~sort ~insert_all ~todo ~seq_ops =
       let kvs = 
         if sort then List.sort (Pervasives.compare) xs else xs
       in 
-      (profile "jb" @@ fun () -> insert_all kvs);
+      (profiler.time_function "jb" @@ fun () -> insert_all kvs);
       f ~todo
   in
   f ~todo

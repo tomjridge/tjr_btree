@@ -5,6 +5,6 @@
   (package tjr_btree_examples)
   (preprocess (pps ppx_deriving_yojson))
   (public_names btree_main)
-    (libraries tjr_btree tjr_btree_examples core))
+    (libraries tjr_profile_with_core tjr_btree tjr_btree_examples))
 
 

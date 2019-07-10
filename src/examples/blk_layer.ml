@@ -142,8 +142,12 @@ let _ = make_btree_from_file
 
 
 open Btree_intf
-open Tjr_profile.Util.Profiler
+open Tjr_profile
 open Fstore_layer
+
+let profiler = make_string_profiler () 
+               |> Global.register ~name:"blk_layer profiler"
+let profile = profiler.time_function 
 
 let make_disk_ops ~blk_dev_ops ~reader_writers = 
   let open Monad_ops in
