@@ -104,7 +104,7 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
     let init_tjr_store ~fd ~(root_block:root_block) =
       (* Printf.printf "Init with free=%d and root=%d\n%!" root_block.free root_block.btree_root; *)
       let set = Tjr_store.set in
-      Tjr_store.empty_fstore ~allow_reset:false () 
+      !Fstore_layer.Fstore.R.fstore
       |> set blk_allocator_ref {min_free_blk_id=root_block.free}
       |> set btree_root_block_ref root_block.btree_root
       |> set on_disk_blk_dev_ref (Some fd)
@@ -145,15 +145,17 @@ open Btree_intf
 open Tjr_profile
 open Fstore_layer
 
-let profiler = make_string_profiler () 
+let profiler = ref dummy_profiler
                |> Global.register ~name:"blk_layer profiler"
-let profile = profiler.time_function 
+let profile s f = !profiler.time_function s f
+
+let _ = profile
 
 let make_disk_ops ~blk_dev_ops ~reader_writers = 
   let open Monad_ops in
   (* block_ops and blk_allocator are reasonably free: the code doesn't
      depend on the exact details *)
-  let block_ops,blk_allocator = Internal.(block_ops,blk_allocator) in
+  let block_ops,blk_allocator = (block_ops,Fstore.blk_allocator) in
   (* let ( >>= ) = monad_ops.bind in *)
   (* let return = monad_ops.return in *)
   let make_disk_ops 

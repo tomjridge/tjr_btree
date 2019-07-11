@@ -48,7 +48,7 @@ view_doc:
 	google-chrome  $(SRC)/index.html
 
 run:
-	$(DUNE) exec examples/ocaml/btree_main.exe
+	$(DUNE) exec examples/ocaml/btree_main.exe eg1
 
 run_examples:
 	@echo ======================================================================

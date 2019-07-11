@@ -16,6 +16,8 @@ module type T = sig
   val do_all : unit -> unit
 end
 
+let profile s f = Tjr_profile_with_core.time_function s f
+
 let make_generic_example (type k v r leaf_stream) 
     ~btree_from_file
     ~(map_ops_etc: (k,v,r,leaf_stream,fstore state_passing)Btree_intf.Map_ops_etc_type.map_ops_etc)
@@ -30,7 +32,7 @@ let make_generic_example (type k v r leaf_stream)
     (* Some examples *)
 
     (* create and init store, write some values, and close *)
-    let do_write () = 
+    let do_write () = profile "write" @@ fun () -> 
       Printf.printf "Executing %d writes...\n%!" max_writes;
       print_endline "Writing...";
       btree_from_file ~fn:!fn ~create:true ~init:true |> fun { run; close; _ } -> 
@@ -42,8 +44,10 @@ let make_generic_example (type k v r leaf_stream)
       close ();
       ()
 
+    let _ = do_write
+
     (* open store, delete some values, and close *)
-    let do_delete () = 
+    let do_delete () = profile "del" @@ fun () -> 
       print_endline "Deleting...";
       btree_from_file ~fn:!fn ~create:false ~init:false |> fun { run; close; _ } -> 
       for x=100 to 200 do
@@ -61,16 +65,8 @@ let make_generic_example (type k v r leaf_stream)
       assert(run (map_ops_etc.find ~k:(int_to_k 1000)) = Some (int_to_v 1000));
       close ();
       ()
-
-      (*
-    let do_mini_check() = 
-      do_write();
-      do_delete();
-      do_check();
-      ()
-*)
       
-    let do_full_check () = 
+    let do_full_check () = profile "full" @@ fun () -> 
       print_endline "Full check...";
       btree_from_file ~fn:!fn ~create:false ~init:false |> fun { run; close; _ } -> 
       for i = 1 to max_writes do
@@ -82,13 +78,14 @@ let make_generic_example (type k v r leaf_stream)
       done;
       close ();
       ()
-      
+
     (* actually execute the above *)
     let do_all() = 
       do_write ();
       do_delete ();
       do_check ();
       do_full_check()
+
       
   end
   in

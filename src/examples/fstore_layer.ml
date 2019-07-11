@@ -24,22 +24,19 @@ end
 include Block_ops
 
 
+module Initial_values = struct
+
+  (** The first block that can be allocated; currently 2, since 0 is
+      the root block, and 1 is the initial empty leaf (for an empty
+      B-tree; may be mutated) *)
+  let first_free_block = 2
+
+  (** This block stores the initial empty leaf *)
+  let initial_btree_root_block : blk_id = 1
+end
+
 module Fstore = struct
-
-  module Internal = struct
-    (** A store, which we mutably change while initializing; only used
-        for allocating refs; don't use otherwise *)
-    let _fstore = ref (Tjr_store.empty_fstore ~allow_reset:true ())
-
-    let alloc_fstore_ref = 
-      fun x -> 
-      Tjr_store.mk_ref x !_fstore |> fun (r,store') ->
-      _fstore:=store';
-      r
-
-    let _ = alloc_fstore_ref
-  end
-  open Internal
+  open Initial_values
 
   (* Convert state passing to imperative style using an ocaml
      ref. NOTE this takes the fstore argument as a ref. *)
@@ -48,45 +45,30 @@ module Fstore = struct
     fstore:=fstore';
     a
 
-  
-  (** We pull out the ref initialization, which is a bit scary and
-     which we prefer to have all in one place *)
+  (* NOTE: we allow reset for on_disk_blk_dev_ref *)
+  module R = Tjr_store.Make_imperative_fstore(struct let allow_reset=true end)
 
-  (** The first block that can be allocated; currently 2, since 0 is
-      the root block, and 1 is the initial empty leaf (for an empty
-      B-tree; may be mutated) *)
-  let first_free_block = 2
-  let blk_allocator_ref = alloc_fstore_ref {min_free_blk_id=first_free_block} 
+  let blk_allocator_ref = R.ref {min_free_blk_id=first_free_block} 
+  let blk_allocator : (blk_allocator_state,fstore_passing) with_state = 
+    Fstore_passing.fstore_ref_to_with_state blk_allocator_ref
 
-  (** This block stores the initial empty leaf *)
-  let initial_btree_root_block : blk_id = 1
-  let btree_root_block_ref = alloc_fstore_ref initial_btree_root_block
+  let btree_root_block_ref = R.ref initial_btree_root_block
+
+  let in_mem_blk_dev_ref = 
+    let m : (blk_id,blk)Tjr_map.With_pervasives_compare.map_with_pervasives_compare = (Tjr_map.With_pervasives_compare.empty ()) in
+    R.ref m
+
+  let on_disk_blk_dev_ref = R.ref (None:Unix.file_descr option)
+
 
   (** Btree root ops. NOTE the type depends only on blk_id *)
   let root_ops = Fstore_passing.fstore_ref_to_with_state btree_root_block_ref
   let root_ops = {root_ops}
-
-  let in_mem_blk_dev_ref = 
-    let m : (blk_id,blk)Tjr_map.With_pervasives_compare.map_with_pervasives_compare = (Tjr_map.With_pervasives_compare.empty ()) in
-    let r = alloc_fstore_ref m in
-    r
-
-  let on_disk_blk_dev_ref = alloc_fstore_ref (None:Unix.file_descr option)
 end
-open Fstore
 
 
 module Monad_ops = struct
   let monad_ops = fstore_passing_monad_ops
   let ( >>= ) = monad_ops.bind
   let return = monad_ops.return
-end
-
-
-module Internal = struct
-  (** {2 Block allocator} *)
-
-  let blk_allocator : (blk_allocator_state,fstore_passing) with_state = 
-    Fstore_passing.fstore_ref_to_with_state blk_allocator_ref
-
 end

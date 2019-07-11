@@ -1,4 +1,14 @@
-(** A collection of the main interfaces *)
+(** A collection of the main interfaces. This should be read first.
+
+In particular, note the following:
+
+- [marshalling_ops], for marshalling to disk
+- [disk_ops], a collection of the block-layer operations
+- [btree_root_ops], which details how to update the B-tree root when it changes
+
+Then the main functionality of this library is provided by the {!Tjr_btree.Make} functor, which provides [disk_to_map], to convert [disk_ops] to a map (and other operations).
+
+ *)
 
 
 module Blk_allocator_ops_type = struct

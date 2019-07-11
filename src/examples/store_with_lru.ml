@@ -2,7 +2,10 @@
 
 open Tjr_profile
 
-let profiler = Tjr_profile.make_string_profiler ()
+let profiler = 
+  ref dummy_profiler
+  |> Global.register ~name:"store_with_lru profiler"
+
 
 let make_store_with_lru (type blk_id node leaf) ~monad_ops ~store_ops =
   let ( >>= ) = monad_ops.bind in
@@ -66,7 +69,7 @@ let make_store_with_lru (type blk_id node leaf) ~monad_ops ~store_ops =
           trim lru;
           return (Some r'))
     in
-    let mark = profiler.mark in
+    let mark = !profiler.mark in
     {
       read=(fun r -> profile_m ~mark "ib" (read r));
       wrte=(fun dn -> profile_m ~mark "ic" (wrte dn));

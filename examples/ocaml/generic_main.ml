@@ -1,8 +1,8 @@
 (* a map from int to int, backed by file ------------------------------- *)
-open Tjr_profile
 open Tjr_seq
 
-let profiler = make_string_profiler ()
+let _ = Tjr_profile_with_core.initialize ()
+let time_function = Tjr_profile_with_core.time_function
 
 (* for insert_many operations *)
 let chunksize = 1000
@@ -17,13 +17,12 @@ let insert_seq ~sort ~insert_all ~todo ~seq_ops =
       let kvs = 
         if sort then List.sort (Pervasives.compare) xs else xs
       in 
-      (profiler.time_function "jb" @@ fun () -> insert_all kvs);
+      insert_all kvs;
       f ~todo
   in
   f ~todo
 
 let _ = insert_seq
-
 
 (* allow float representation *)
 let int_of_string s = 
@@ -32,6 +31,9 @@ let int_of_string s =
   | Some f -> int_of_float f
 
 
+(* use carefully - only create a list of length chunksize; f is a function to map *)
+let rec int_range ~f l h = 
+  if l > h then [] else (f l)::(int_range ~f (l+1) h)
 
 (* open Tjr_btree *)
 
@@ -144,13 +146,19 @@ Description:
     | ["insert_range";fn;l;h] -> (
         btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
         let l,h = int_of_string l, int_of_string h in
-        Tjr_seq.((l -- h) |> fun (tad,todo) -> 
-                 let tad = tad |> map (fun k -> (int_to_k k,(2*k)|>int_to_v)) in
-                 let insert_all = fun kvs -> run (map_ops_etc.insert_all ~kvs) in
-                 insert_seq ~sort:false ~insert_all ~todo ~seq_ops:tad;
-                 close ();
-                 print_endline "insert_range ok";
-                ))
+        (* NOTE this times the inserts, not the init and close *)
+        time_function "insert_range" @@ (fun () -> 
+          l |> List_.iter_break (fun l -> 
+              match l>h with 
+              | true -> `Break ()
+              | false -> (
+                  let h' = min (l+chunksize) h in
+                  let kvs = int_range ~f:(fun k -> (int_to_k k,int_to_v @@ 2*k)) l h' in
+                  run (map_ops_etc.insert_all ~kvs);
+                  `Continue (h'+1))));
+        close ();
+        print_endline "insert_range ok";
+      )
 
     | ["test_random_reads";fn;l;h;n] -> (
         btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
