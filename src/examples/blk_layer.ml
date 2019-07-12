@@ -142,17 +142,16 @@ let _ = make_btree_from_file
 
 
 open Btree_intf
-open Tjr_profile
 open Fstore_layer
 
-let profile s f = 
-  (* FIXME possibly inefficient *)
-  if profiling_enabled then
-    measure_execution_time_and_print s f
-  else
-    f ()
+module Blk_profiler = Make_profiler()
+open Blk_profiler
 
-let _ = profile
+let mark' s f = 
+  mark s;
+  f () |> fun r ->
+  mark (s^"'");
+  r
 
 let make_disk_ops ~blk_dev_ops ~reader_writers = 
   let open Monad_ops in
@@ -170,8 +169,8 @@ let make_disk_ops ~blk_dev_ops ~reader_writers =
         ~reader_writers
     in
     let mp = Btree_intf.{
-        dnode_to_blk=(fun dn -> profile "d2blk" @@ fun () -> mp.dnode_to_blk dn);
-        blk_to_dnode=(fun blk -> profile "blk2d" @@ fun () -> mp.blk_to_dnode blk);
+        dnode_to_blk=(fun dn -> mark' "d2blk" (fun () -> mp.dnode_to_blk dn));
+        blk_to_dnode=(fun blk -> mark' "blk2d" (fun () -> mp.blk_to_dnode blk));
         marshal_blk_size=mp.marshal_blk_size;
       }
     in

@@ -83,6 +83,7 @@ let _ =
     let f (s,p) = 
       Printf.printf "\n%s\n" s; p(); print_endline "" in
     List.iter f [
+      "blk_profiler",Blk_layer.Blk_profiler.print_summary;
       "leaf_profiler",Leaf_profiler.print_summary;
       "node_profiler",Node_profiler.print_summary;
       "frame_profiler",Frame_profiler.print_summary;
