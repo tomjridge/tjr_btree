@@ -1,9 +1,6 @@
 (* a map from int to int, backed by file ------------------------------- *)
 open Tjr_seq
 
-let _ = Tjr_profile_with_core.initialize ()
-let time_function = Tjr_profile_with_core.time_function
-
 (* for insert_many operations *)
 let chunksize = 1000
 
@@ -147,7 +144,7 @@ Description:
         btree_from_file ~fn ~create ~init |> fun { run; close; _ } -> 
         let l,h = int_of_string l, int_of_string h in
         (* NOTE this times the inserts, not the init and close *)
-        time_function "insert_range" @@ (fun () -> 
+        measure_execution_time_and_print "insert_range" @@ (fun () -> 
           l |> List_.iter_break (fun l -> 
               match l>h with 
               | true -> `Break ()
@@ -177,11 +174,14 @@ Description:
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)
         let d = h - l in
-        Tjr_seq.((1--n)  |> fun (tad,todo) -> 
-                 let tad = tad |> map (fun _ -> let k = l+(Random.int d) in (int_to_k k,2*k|>int_to_v)) in
-                 iter (fun (k,v) -> run(map_ops_etc.insert ~k ~v)) tad todo;
-                 close ();
-                 print_endline "test_random_writes ok"))
+        let f () = 
+          Tjr_seq.((1--n)  |> fun (tad,todo) -> 
+                   let tad = tad |> map (fun _ -> let k = l+(Random.int d) in (int_to_k k,2*k|>int_to_v)) in
+                   iter (fun (k,v) -> run(map_ops_etc.insert ~k ~v)) tad todo)
+        in
+        measure_execution_time_and_print "test_random_writes" f;
+        close ();
+        print_endline "test_random_writes ok")
 
     | ["test_random_writes_im";fn;l;h;n] -> (
         (* version using insert_many, with sorting and chunks *)

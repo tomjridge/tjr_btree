@@ -2,21 +2,24 @@
 
 open Tjr_profile
 
-let profiler = 
-  ref dummy_profiler
-  |> Global.register ~name:"store_with_lru profiler"
-
+let profiler = make_string_profiler ()
+let mark = profiler.mark
 
 let make_store_with_lru (type blk_id node leaf) ~monad_ops ~store_ops =
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
 
-  let profile_m ~mark s m = 
-    return () >>= fun () -> 
-    mark s;
-    m >>= fun r ->
-    mark (s^"'");
-    return r
+  (* FIXME possibly inefficient *)
+  let profile_m = 
+    if profiling_enabled then 
+      fun s m ->    
+        return () >>= fun () -> 
+        mark s;
+        m >>= fun r ->
+        mark (s^"'");
+        return r
+    else
+      fun _s m -> m
   in
   (* we add some profiling; we also take the opportunity to add some
      simple caching; FIXME add LRU caching for store *)
@@ -69,11 +72,10 @@ let make_store_with_lru (type blk_id node leaf) ~monad_ops ~store_ops =
           trim lru;
           return (Some r'))
     in
-    let mark = !profiler.mark in
     {
-      read=(fun r -> profile_m ~mark "ib" (read r));
-      wrte=(fun dn -> profile_m ~mark "ic" (wrte dn));
-      rewrite=(fun r dn -> profile_m ~mark "id" (rewrite r dn));
+      read=(fun r -> profile_m "ib" (read r));
+      wrte=(fun dn -> profile_m "ic" (wrte dn));
+      rewrite=(fun r dn -> profile_m "id" (rewrite r dn));
       free;
     }
   in

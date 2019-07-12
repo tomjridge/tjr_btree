@@ -16,7 +16,7 @@ module type T = sig
   val do_all : unit -> unit
 end
 
-let profile s f = Tjr_profile_with_core.time_function s f
+let profile s f = Tjr_profile.measure_execution_time_and_print s f
 
 let make_generic_example (type k v r leaf_stream) 
     ~btree_from_file

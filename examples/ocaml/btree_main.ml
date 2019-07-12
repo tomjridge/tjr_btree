@@ -81,9 +81,9 @@ let _ =
   | false -> ()
   | true -> 
     let f (s,p) = 
-      Printf.printf "\n%s\n" s; p.print_summary(); print_endline "" in
+      Printf.printf "\n%s\n" s; p(); print_endline "" in
     List.iter f [
-      "leaf_profiler",Leaf_profiler.internal_profiler;
-      "node_profiler",Node_profiler.internal_profiler;
-      "frame_profiler",Frame_profiler.internal_profiler;
-      "main_profiler",Profiler.internal_profiler] )
+      "leaf_profiler",Leaf_profiler.print_summary;
+      "node_profiler",Node_profiler.print_summary;
+      "frame_profiler",Frame_profiler.print_summary;
+      "main_profiler",Profiler.print_summary] )

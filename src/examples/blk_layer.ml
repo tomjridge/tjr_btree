@@ -145,9 +145,12 @@ open Btree_intf
 open Tjr_profile
 open Fstore_layer
 
-let profiler = ref dummy_profiler
-               |> Global.register ~name:"blk_layer profiler"
-let profile s f = !profiler.time_function s f
+let profile s f = 
+  (* FIXME possibly inefficient *)
+  if profiling_enabled then
+    measure_execution_time_and_print s f
+  else
+    f ()
 
 let _ = profile
 
