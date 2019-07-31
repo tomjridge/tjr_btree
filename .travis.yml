@@ -3,15 +3,4 @@ services:
   - docker
 
 script:
-   - make -C .dockerfile all 
-
-# script:
-#   - git clone https://github.com/tomjridge/impfs_base_docker_image.git
-#   - make -C impfs_base_docker_image/ubuntu_18.04_with_ocaml_4.06_opam_2
-#   - make -C impfs_base_docker_image/impfs_base_docker_image
-#   - make -C .dockerfile all 
-
-#  - make -C .dockerfile test - uses too much memory
-
-after_script:
-  - docker images
+   - docker build .
