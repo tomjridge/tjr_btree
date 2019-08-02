@@ -84,7 +84,7 @@ module Internal = struct
       ?(src_pos=0) ~(src:bytes) ?(dst_pos=0) ~(dst:buf) ~len () 
     = BP.Common.blit_bytes_buf ~src_pos src ~dst_pos dst ~len
 
-  let make_binprot_marshalling ~(block_ops:'blk block_ops) ~node_leaf_list_conversions = 
+  let make_binprot_marshalling ~(block_ops:'blk blk_ops) ~node_leaf_list_conversions = 
     let Node_leaf_list_conversions.{ node_to_krs; krs_to_node; leaf_to_kvs; kvs_to_leaf } = node_leaf_list_conversions in
     let open Isa_btree_intf in  (* for node_ops fields *)
     let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
@@ -174,7 +174,7 @@ let make_constants = Internal.make_constants
 (** Construct the bin_prot marshalling parameters, based on individual
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
-    ~(block_ops:'blk block_ops) 
+    ~(block_ops:'blk blk_ops) 
     ~(node_leaf_list_conversions:('k,'v,'r,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
     ~reader_writers
   = 

@@ -40,7 +40,7 @@ type from_file_close = {
 *)
 
 (** Constructs a btree from a file functionality. *)
-let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_blk:blk) = 
+let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:blk) = 
   let module A = struct
 
     (** {2 Root blocks}
@@ -61,12 +61,12 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
     let write_root_block ~fd ~root_block = 
       root_block
       |> marshal_to_string 
-      |> block_ops.of_string |> fun blk -> 
-      Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:root_blk_id ~blk
+      |> blk_ops.of_string |> fun blk -> 
+      Blk_dev_on_fd.Internal.write ~blk_ops ~fd ~blk_id:root_blk_id ~blk
 
     let read_root_block ~fd = 
-      Blk_dev_on_fd.Internal.read ~block_ops ~fd ~blk_id:root_blk_id 
-      |> block_ops.to_string 
+      Blk_dev_on_fd.Internal.read ~blk_ops ~fd ~blk_id:root_blk_id 
+      |> blk_ops.to_string 
       |> (fun x -> (marshal_from_string x))
 
     let _ = read_root_block
@@ -79,7 +79,7 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
           (* now need to write the initial dnode *)
           let _ = 
             let blk = empty_leaf_as_blk in
-            Blk_dev_on_fd.Internal.write ~block_ops ~fd ~blk_id:1 ~blk
+            Blk_dev_on_fd.Internal.write ~blk_ops ~fd ~blk_id:1 ~blk
           in
           (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
              this needs to somehow match up with Examples.first_free_block
@@ -130,7 +130,7 @@ let make_btree_from_file (type blk) ~(block_ops:blk block_ops) ~(empty_leaf_as_b
   in
   { btree_from_file=A.btree_from_file }
 
-let make_btree_from_file ~empty_leaf_as_blk = make_btree_from_file ~block_ops ~empty_leaf_as_blk
+let make_btree_from_file ~empty_leaf_as_blk = make_btree_from_file ~blk_ops ~empty_leaf_as_blk
 
 (** Prettier type: {%html:<pre>
 empty_leaf_as_blk:blk -> btree_from_file
@@ -157,7 +157,7 @@ let make_disk_ops ~blk_dev_ops ~reader_writers =
   let open Monad_ops in
   (* block_ops and blk_allocator are reasonably free: the code doesn't
      depend on the exact details *)
-  let block_ops,blk_allocator = (block_ops,Fstore.blk_allocator) in
+  let block_ops,blk_allocator = (blk_ops,Fstore.blk_allocator) in
   (* let ( >>= ) = monad_ops.bind in *)
   (* let return = monad_ops.return in *)
   let make_disk_ops 
@@ -205,9 +205,9 @@ module In_mem_blk_dev : BLK_DEV_OPS = struct
   let blk_dev_ops = 
     let with_state = Tjr_fs_shared.Fstore_passing.fstore_ref_to_with_state blk_dev_ref in
     let _ = with_state in
-    Blk_dev_in_mem.make 
+    Blk_dev_in_mem.make_blk_dev_in_mem
       ~monad_ops 
-      ~blk_sz:(bsz_of_int blk_sz)  (* FIXME why are we making this a separate type? *)
+      ~blk_sz:(Blk_sz.of_int blk_sz)  (* FIXME why are we making this a separate type? *)
       ~with_state
 
   let _ = blk_dev_ops
@@ -236,14 +236,14 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
   let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
       profile "fb" @@ fun () -> 
       incr(read_count);
-      read ~block_ops ~fd ~blk_id |> return) [@@warning "-8"]
+      read ~blk_ops ~fd ~blk_id |> return) [@@warning "-8"]
 
   let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
       profile "fc" @@ fun () -> 
       incr(write_count);
-      write ~block_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
+      write ~blk_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
  
-  let blk_dev_ops = { blk_sz=(bsz_of_int blk_sz); read; write }
+  let blk_dev_ops = { blk_sz=(Blk_sz.of_int blk_sz); read; write }
 end
 let on_disk_blk_dev = On_disk_blk_dev.blk_dev_ops
 

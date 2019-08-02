@@ -14,12 +14,11 @@ type blk_allocator_state = {
 (** {2 Block ops} *)
 
 module Block_ops = struct
-  let blk_sz = 4096
-
   type blk_id = int
+  let blk_sz = 4096
+    
   type blk = string
-
-  let block_ops = String_block_ops.make_string_block_ops ~blk_sz 
+  let blk_ops = Common_blk_ops.String_.make ~blk_sz 
 end
 include Block_ops
 

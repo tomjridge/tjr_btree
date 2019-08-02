@@ -35,7 +35,7 @@ end
 module type B = functor
   (S0: sig
      type blk  (* can be free for bin_prot via block_ops *)
-     val block_ops : blk block_ops
+     val block_ops : blk blk_ops
      type r = int  (* for marshalling *)
 
      type t
@@ -99,7 +99,7 @@ module type BLK_DEV_ON_FD_UTIL = sig
   open Blk_layer
   
   val btree_from_file:     
-    block_ops:'a block_ops ->
+    block_ops:'a blk_ops ->
     empty_disk_leaf_as_blk:(unit -> 'a) -> btree_from_file
 
 end
