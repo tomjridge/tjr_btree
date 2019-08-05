@@ -1,3 +1,5 @@
+module Blk_id = Blk_id_as_int
+open Blk_id
 
 (** Help for maps on fd: write global state into root block; load back
    in from file *)
@@ -6,7 +8,7 @@
    marshalling params allow us to convert to a blk; perhaps assume we
    already have empty_leaf_as_blk? *)
 
-include Fstore_layer.Block_ops
+(* include Fstore_layer.Block_ops *)
 
 module Types = struct
 
@@ -15,7 +17,6 @@ module Types = struct
     free:blk_id;
     btree_root:blk_id
   }
-
 
   type btree_from_file_result = {
     fd:Unix.file_descr;
@@ -62,10 +63,10 @@ let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:b
       root_block
       |> marshal_to_string 
       |> blk_ops.of_string |> fun blk -> 
-      Blk_dev_on_fd.Internal.write ~blk_ops ~fd ~blk_id:root_blk_id ~blk
+      Blk_dev_on_fd.Internal_unix.write ~blk_ops ~fd () ~blk_id:root_blk_id ~blk
 
     let read_root_block ~fd = 
-      Blk_dev_on_fd.Internal.read ~blk_ops ~fd ~blk_id:root_blk_id 
+      Blk_dev_on_fd.Internal_unix.read ~blk_ops ~fd () ~blk_id:root_blk_id 
       |> blk_ops.to_string 
       |> (fun x -> (marshal_from_string x))
 
@@ -79,12 +80,12 @@ let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:b
           (* now need to write the initial dnode *)
           let _ = 
             let blk = empty_leaf_as_blk in
-            Blk_dev_on_fd.Internal.write ~blk_ops ~fd ~blk_id:1 ~blk
+            Blk_dev_on_fd.Internal_unix.write ~blk_ops ~fd () ~blk_id:1 ~blk
           in
           (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
              this needs to somehow match up with Examples.first_free_block
           *)
-          let root_block = {free=2; btree_root=1} in
+          let root_block = {free=(Blk_id.of_int 2); btree_root=(Blk_id.of_int 1)} in
           (* remember to write blk0 *)
           let _ = write_root_block ~fd ~root_block in
           (fd,root_block))
@@ -105,14 +106,14 @@ let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:b
       (* Printf.printf "Init with free=%d and root=%d\n%!" root_block.free root_block.btree_root; *)
       let set = Tjr_store.set in
       !Fstore_layer.Fstore.R.fstore
-      |> set blk_allocator_ref {min_free_blk_id=root_block.free}
+      |> set blk_allocator_ref {min_free_blk_id=(Blk_id.to_int root_block.free)}
       |> set btree_root_block_ref root_block.btree_root
       |> set on_disk_blk_dev_ref (Some fd)
 
     let _ = init_tjr_store
 
     let close ~fd ~fstore =
-      let free = (Tjr_store.get blk_allocator_ref !fstore).min_free_blk_id in
+      let free = (Tjr_store.get blk_allocator_ref !fstore).min_free_blk_id |> Blk_id.of_int in
       let btree_root = Tjr_store.get btree_root_block_ref !fstore in
       (* Printf.printf "Close with free=%d and root=%d\n%!" free btree_root; *)
       close ~fd ~root_block:{free; btree_root}
@@ -130,11 +131,8 @@ let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:b
   in
   { btree_from_file=A.btree_from_file }
 
-let make_btree_from_file ~empty_leaf_as_blk = make_btree_from_file ~blk_ops ~empty_leaf_as_blk
-
-(** Prettier type: {%html:<pre>
-empty_leaf_as_blk:blk -> btree_from_file
-</pre>%} *)
+let make_btree_from_file ~empty_leaf_as_blk = 
+  make_btree_from_file ~blk_ops:Fstore_layer.blk_ops ~empty_leaf_as_blk
 
 let _ = make_btree_from_file
 
@@ -178,7 +176,7 @@ let make_disk_ops ~blk_dev_ops ~reader_writers =
       let { with_state } = blk_allocator in
       let alloc () = with_state (fun ~state:s ~set_state ->
           set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
-          -> return s.min_free_blk_id)
+          -> return (Blk_id.of_int s.min_free_blk_id))
       in
       let free _blk_id = return () in
       {alloc;free}
@@ -207,7 +205,7 @@ module In_mem_blk_dev : BLK_DEV_OPS = struct
     let _ = with_state in
     Blk_dev_in_mem.make_blk_dev_in_mem
       ~monad_ops 
-      ~blk_sz:(Blk_sz.of_int blk_sz)  (* FIXME why are we making this a separate type? *)
+      ~blk_sz
       ~with_state
 
   let _ = blk_dev_ops
@@ -226,24 +224,27 @@ module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
   let with_state = Fstore_passing.fstore_ref_to_with_state blk_dev_ref
 
   (* reuse the internal functionality *)
-  open Blk_dev_on_fd.Internal
+  module Unix_ = Blk_dev_on_fd.Internal_unix
 
   let read_count = Global.register ~name:"Examples.read_count" (ref 0)
   let write_count = Global.register ~name:"Examples.write_count" (ref 0)
- 
-  (* open Tjr_profile.Util.No_profiler *)
 
+  (* NOTE in the following, we access the fd via the functional store *)
   let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
       profile "fb" @@ fun () -> 
       incr(read_count);
-      read ~blk_ops ~fd ~blk_id |> return) [@@warning "-8"]
+      let blk_id = Blk_id.to_int blk_id in
+      Unix_.read ~blk_ops ~fd () ~blk_id |> return) [@@warning "-8"]
+
+  let _ = read
 
   let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
       profile "fc" @@ fun () -> 
       incr(write_count);
-      write ~blk_ops ~fd ~blk_id ~blk |> return) [@@warning "-8"]
+      let blk_id = Blk_id.to_int blk_id in      
+      Unix_.write ~blk_ops ~fd () ~blk_id ~blk |> return) [@@warning "-8"]
  
-  let blk_dev_ops = { blk_sz=(Blk_sz.of_int blk_sz); read; write }
+  let blk_dev_ops = { blk_sz=Blk_sz.blk_sz_4096; read; write }
 end
 let on_disk_blk_dev = On_disk_blk_dev.blk_dev_ops
 

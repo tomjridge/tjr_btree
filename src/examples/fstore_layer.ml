@@ -2,9 +2,6 @@
    before it in order to allow btree_from_file to use fstore *)
 
 open Btree_intf
-(* open Tjr_profile.Util.Profiler *)
-(* open Blk_layer *)
-
 
 (* common to all impls *)
 type blk_allocator_state = {
@@ -13,6 +10,15 @@ type blk_allocator_state = {
 
 (** {2 Block ops} *)
 
+module Blk_id = Blk_id_as_int
+open Blk_id
+
+(* open Tjr_fs_shared.Blk_intf. *)
+type blk = string
+let blk_sz = Blk_sz.blk_sz_4096 
+let blk_ops = Common_blk_ops.String_.make ~blk_sz
+
+(*
 module Block_ops = struct
   type blk_id = int
   let blk_sz = 4096
@@ -21,7 +27,7 @@ module Block_ops = struct
   let blk_ops = Common_blk_ops.String_.make ~blk_sz 
 end
 include Block_ops
-
+*)
 
 module Initial_values = struct
 
@@ -31,7 +37,7 @@ module Initial_values = struct
   let first_free_block = 2
 
   (** This block stores the initial empty leaf *)
-  let initial_btree_root_block : blk_id = 1
+  let initial_btree_root_block = (Blk_id.of_int 1)
 end
 
 module Fstore = struct

@@ -1,5 +1,6 @@
 (* a map from int to int, backed by file ------------------------------- *)
 open Tjr_seq
+module Blk_id = Blk_id_as_int
 
 (* for insert_many operations *)
 let chunksize = 1000
@@ -46,7 +47,7 @@ module type S = sig
   val v_of_string: string -> v
   val btree_from_file: Blk_layer.btree_from_file
   val map_ops_etc:
-    (k, v, int, leaf_stream,fstore state_passing) Btree_intf.Map_ops_etc_type.map_ops_etc
+    (k, v, Blk_id.blk_id, leaf_stream,fstore state_passing) Btree_intf.Map_ops_etc_type.map_ops_etc
 end
 
 module Make_generic_main(S:S) = struct

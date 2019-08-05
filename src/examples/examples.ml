@@ -2,6 +2,8 @@
 (* open Tjr_profile.Util.Profiler *)
 open Tjr_btree
 open Btree_intf
+open Fstore_layer
+module Blk_id = Blk_id_as_int
 
 (** The steps to construct an example are:
 
@@ -34,7 +36,6 @@ simple int->int example
 *)
 
 
-open Fstore_layer
 
 
 module Internal_print_constants = struct
@@ -51,7 +52,7 @@ open Internal_print_constants
 module type S = sig
   type k  (* we assume k_cmp = Pervasives.compare *)
   type v
-  type r = blk_id
+  type r = Blk_id.blk_id
   type t = fstore_passing
 
   val monad_ops: t monad_ops
@@ -90,6 +91,7 @@ module Internal(S:S) = struct
 
   open Blk_layer
   let disk_ops = Blk_layer.make_disk_ops ~blk_dev_ops:on_disk_blk_dev ~reader_writers ~node_leaf_list_conversions
+  let _ = disk_ops
 
   (* NOTE we have to shield so that evaluation is delayed till post-init *)
   let empty_leaf_as_blk () = empty_leaf_as_blk ~disk_ops
@@ -122,7 +124,7 @@ module Int_int = struct
     open Bin_prot_marshalling
     type k = int
     type v = int
-    type r = blk_id
+    type r = Blk_id.blk_id
     type t = fstore_passing
 
     let monad_ops = Monad_ops.monad_ops
@@ -144,7 +146,7 @@ module Ss_ss = struct
     open Bin_prot_marshalling
     type k = ss
     type v = ss
-    type r = blk_id
+    type r = Blk_id.blk_id
     type t = fstore_passing
 
     let monad_ops = Monad_ops.monad_ops
@@ -166,7 +168,7 @@ module Ss_int = struct
     open Bin_prot_marshalling
     type k = ss
     type v = int
-    type r = blk_id
+    type r = Blk_id.blk_id
     type t = fstore_passing
 
     let monad_ops = Monad_ops.monad_ops

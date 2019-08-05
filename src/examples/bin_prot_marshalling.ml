@@ -1,6 +1,8 @@
 (** Marshal frames to blocks using binprot *)
 
 open Btree_intf
+module Blk_id = Blk_id_as_int
+
 
 (** {2 A type for holding information about a particular type we marshal (such as k)} *)
 
@@ -67,7 +69,7 @@ module Internal = struct
   module BP = Bin_prot
 
   (** NOTE we fix page_ref as int *)
-  type page_ref = int [@@deriving bin_io]
+  type page_ref = Blk_id.blk_id [@@deriving bin_io]
 
   (** We convert via this datatype, so we can use (at)(at)deriving ; FIXME inefficient *)
   type ('k,'v) binprot_tree  = 
@@ -125,6 +127,12 @@ module Internal = struct
       in
       mp
 
+  let _ : 
+block_ops:'blk blk_ops ->
+node_leaf_list_conversions:('a, 'b, page_ref, 'c, 'd)
+                           Node_leaf_list_conversions.node_leaf_list_conversions ->
+('a, 'b) reader_writers -> (('c, 'd) dnode, 'blk) marshalling_ops
+= make_binprot_marshalling
 
 
     (* 
@@ -157,6 +165,7 @@ module Internal = struct
 
 *)
   let make_constants ~blk_sz ~k_size ~v_size = 
+    let blk_sz = blk_sz |> Blk_sz.to_int in
     let r_size = 9 in (* page_ref size in bytes; assume int63 *)
     let max_node_keys = (blk_sz - 7 - r_size) / (k_size + r_size) in
     let max_leaf_size = (blk_sz - 4) / (k_size + v_size) in

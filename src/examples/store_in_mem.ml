@@ -1,5 +1,8 @@
 (** Simple in-memory store implementation, mainly for testing *)
-open Page_ref_int
+module Blk_id = Blk_id_as_int
+open Blk_id
+
+type page_ref = blk_id[@@deriving bin_io]
 
 (** In-mem store, a map from r (int) to [('k,'v)dnode_impl] *)
 type 'dnode mem = {free:int; map:'dnode Map_int.t}  
@@ -12,18 +15,18 @@ let mk_store_ops ~monad_ops ~(mem_ops:('dnode,'t)mem_ops) =
   let { with_state } = mem_ops in
   let read r : ('dnode,'t) m =
     with_state (fun ~state:s ~set_state:_ ->
-        return (Map_int.find r s.map)) (* ASSUMES present *)
+        return (Map_int.find (Blk_id.to_int r) s.map)) (* ASSUMES present *)
   in
   let wrte dn : (page_ref,'t) m = 
     with_state (fun ~state:s ~set_state ->
         let s' = {free=s.free+1; map=Map_int.add s.free dn s.map} in
         set_state s' >>= fun () -> 
-        return s.free)
+        return (Blk_id.of_int s.free))
   in
-  let rewrite r dn : (int option,'t) m = 
+  let rewrite r dn : (page_ref option,'t) m = 
     (* always rewrite *)
     with_state (fun ~state:s ~set_state ->
-        let s' = {s with map=Map_int.add r dn s.map} in
+        let s' = {s with map=Map_int.add (Blk_id.to_int r) dn s.map} in
         set_state s' >>= fun () -> 
         return None)
   in    
