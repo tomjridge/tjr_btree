@@ -16,7 +16,7 @@ dev-repo     : "git+https://github.com/tomjridge/tjr_btree.git"
 
 depends: [
   "lru"       # for caching store ops
-  "core"      # for profiling
+  "core"      # for profiling and ppx_jane
   "tjr_btree"  
 ]
 

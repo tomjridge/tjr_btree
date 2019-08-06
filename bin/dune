@@ -1,0 +1,10 @@
+(env
+  (_ (flags (:standard -w -8-39-26 -open Tjr_lib -open Tjr_monad -open Tjr_profile -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Tjr_btree_examples  -open Tjr_btree_examples.Btree_examples_intf))))
+
+(executables
+  (package tjr_btree_examples)
+  (preprocess (pps ppx_deriving_yojson))
+  (public_names btree_main)
+    (libraries tjr_btree tjr_btree_examples))
+
+

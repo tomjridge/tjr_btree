@@ -1,9 +1,11 @@
 SHELL:=bash
 DUNE:=dune
 
+bin:=bin
+
 build:
 	$(DUNE) build @install
-#	$(DUNE) build examples/ocaml/btree_main.exe
+#	$(DUNE) build $(bin)/btree_main.exe
 # FIXME	$(DUNE) build test_bin/all.touch
 
 install:
@@ -14,15 +16,15 @@ uninstall:
 
 clean:
 	$(DUNE) clean
-	rm -f examples/btree.store
-	rm -f test_bin/btree.store
+
+#	rm -f src-examples/btree.store
+#	rm -f test_bin/btree.store
 
 all:
 	$(MAKE) clean
 	$(MAKE) build
 	$(MAKE) install
 	$(MAKE) docs
-
 
 SRC:=_build/default/_doc/_html
 DST:=docs
@@ -43,26 +45,22 @@ examples_doc: FORCE
 	$(DUNE) build --only-packages tjr_btree_examples @doc
 	rsync -vaz $(SRC)/* $(DST2); echo "docs built in $(DST2) but not promoted to docs/"
 
+run_eg1:
+	$(DUNE) exec $(bin)/btree_main.exe eg1
 
-view_doc:
-	google-chrome  $(SRC)/index.html
-
-run:
-	$(DUNE) exec examples/ocaml/btree_main.exe eg1
-
-run_examples:
+run_examples: # FIXME todo
 	@echo ======================================================================
 	@echo
 	btree_main int_int_map_example |sed 's/^/    /'
 	@echo 
 	@echo ======================================================================
 	@echo
-	./examples/demo_int_int_map.sh |sed 's/^/    /'
+	./src-examples/demo_int_int_map.sh |sed 's/^/    /'
 	@echo 
 	@echo ======================================================================
-#	$(MAKE) -f examples/Makefile.run_examples
+#	$(MAKE) -f src-examples/Makefile.run_examples
 
-run_tests:
+run_tests: # FIXME todo
 	$(MAKE) -C test_bin -f Makefile.run_tests
 
 FORCE:

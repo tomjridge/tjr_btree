@@ -17,9 +17,9 @@ tjr_btree is a B-tree library written for OCaml, and based on code extracted fro
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
-* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). The main entry point (for documentation, and using the library) is the module [Tjr_btree.Export](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html).
-* Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory e.g. [here](./examples/int_int_map_example_functionality.ml). 
-* A simple **install script** using opam pin is in the file `install_script.sh`
+* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). 
+* Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory.
+* To **install**, try the Dockerfile (`docker build .`) and then to build locally, strip the "RUN" prefix from the relevant Dockerfile lines and use opam pin.
 
 
 ## Introduction
@@ -50,7 +50,7 @@ wrapper round the core OCaml code extracted from Isabelle.
 
 ## Install
 
-The easiest way to install is via opam, pinning the github repos. See the `install_script.sh`.
+The easiest way to install is via opam, pinning the github repos. See the `Dockerfile`.
 
 ## Examples
 
@@ -62,7 +62,7 @@ make run_examples
 
 The output should look something like:
 
-![2019-06-05.140846](README.assets/2019-06-05.140846.png)
+![Imgur](https://i.imgur.com/sW7QiGS.png)
 
 
 
@@ -83,10 +83,6 @@ From opam, there are no dependencies except what is required by the following li
 | bin_prot, ppx_bin_prot | marshalling via bin_prot, for testing |
 | extunix?               | fsync                                 |
 |                        |                                       |
-
-
-
-## Some interfaces
 
 
 
