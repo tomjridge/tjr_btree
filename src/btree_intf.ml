@@ -79,8 +79,13 @@ module Node_leaf_list_conversions = struct
     leaf_to_kvs: 'leaf -> ('k * 'v) list;
     kvs_to_leaf: ('k * 'v) list -> 'leaf;
   }
+
+  type ('k,'v,'r,'node,'leaf) nlc = ('k,'v,'r,'node,'leaf) node_leaf_list_conversions
 end
 (* don't include, since fields clash with those from node_ops/leaf_ops *)
+
+type ('k,'v,'r,'node,'leaf) nlc = 
+  ('k,'v,'r,'node,'leaf) Node_leaf_list_conversions.nlc
 
 
 (** The B-tree code exports a [pre_map_ops] version of a map, with
@@ -91,11 +96,7 @@ end
    write this reference in the global state.  
 *)
 module Root_ops_type = struct
-
-  type ('r,'t) btree_root_ops = {
-    root_ops: ('r,'t)with_state
-  }
-
+  type ('r,'t) btree_root_ops = Btree_root_ops of ('r,'t)with_state
 end
 include Root_ops_type
 
@@ -114,7 +115,8 @@ module Map_ops_with_ls = struct
   }
 
 end
-
+type ('k,'v,'r,'leaf_stream,'t) map_ops_with_ls = 
+  ('k,'v,'r,'leaf_stream,'t) Map_ops_with_ls.map_ops_with_ls
 
 module Disk_ops_type = struct
   

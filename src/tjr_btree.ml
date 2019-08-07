@@ -41,12 +41,16 @@ module type S = (* Isa_btree_intf.S *) sig
 
 module Make(S:S) : sig
   open S
+  open Node_leaf_list_conversions
+
   type leaf
   type node
   type leaf_stream
   
   val leaf_ops : (k, v, leaf) Isa_btree_intf.leaf_ops
   val node_ops : (k, r, node) Isa_btree_intf.node_ops
+
+  val node_leaf_list_conversions : (k, v, r, node, leaf) node_leaf_list_conversions
   
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 
@@ -75,13 +79,20 @@ root_ops:(r, t) btree_root_ops ->
 
 
   (** Convenience *)
-  val empty_leaf_as_blk: disk_ops:'blk disk_ops -> 'blk
+  val empty_leaf_as_blk: dnode_to_blk:((node, leaf) dnode -> 'blk) -> 'blk
 
 end = struct
   open S
   include Isa_btree.Make(S)
 
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
+
+  let node_leaf_list_conversions = Node_leaf_list_conversions.{
+      node_to_krs=node_ops.node_to_krs;
+      krs_to_node=node_ops.krs_to_node;
+      leaf_to_kvs=leaf_ops.leaf_to_kvs;
+      kvs_to_leaf=leaf_ops.kvs_to_leaf
+    }
 
   let disk_to_store ~disk_ops = 
     let { marshalling_ops; blk_dev_ops; blk_allocator_ops } = disk_ops in
@@ -103,22 +114,16 @@ end = struct
     
   let _ = disk_to_map
 
-  (** Convenience *)
-  let empty_leaf_as_blk ~disk_ops = 
-    disk_ops.marshalling_ops.dnode_to_blk (Disk_leaf (leaf_ops.kvs_to_leaf []))
+  (** Convenience; apply dnode_to_blk to an empty leaf *)
+  let empty_leaf_as_blk ~(dnode_to_blk:(node,leaf)dnode -> 'blk) : 'blk = 
+    dnode_to_blk (Disk_leaf (leaf_ops.kvs_to_leaf []))
 
-(*
-  let disk_to_leaf_stream ~disk_ops = 
-    let store_ops = disk_to_store ~disk_ops in
-    let pre_btree_ops = make_btree_ops ~store_ops in
-    pre_btree_ops.leaf_stream_ops
-
-  let _ = disk_to_leaf_stream
-*)
+  let _ = empty_leaf_as_blk
 
   type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
 
-  type nonrec pre_btree_ops = (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+  type nonrec pre_btree_ops = 
+    (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
 end
 
 

@@ -9,7 +9,7 @@ let pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops =
   let Isa_btree_intf.{ find; insert; delete; insert_many; insert_all; leaf_ops; leaf_stream_ops; _ } = pre_btree_ops in
   let Isa_btree_intf.Insert_many_type.{ insert_many } = insert_many in
   let Isa_btree_intf.Insert_all_type.{ insert_all } = insert_all in
-  let { with_state } = root_ops.root_ops in
+  let Btree_root_ops { with_state } = root_ops in
   let find ~k = 
     with_state (fun ~state:r ~set_state:_ -> 
         find ~r ~k >>= fun (_,leaf,_) -> 

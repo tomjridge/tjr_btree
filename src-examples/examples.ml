@@ -34,7 +34,6 @@ simple int->int example
 %}
 
 *)
-
 type ('k,'v,'r,'t,'blk_id,'blk,'fd,'node,'leaf,'leaf_stream,'extra) example = {
   monad_ops      : 't monad_ops;
   compare_k      : 'k -> 'k -> int;
@@ -42,10 +41,13 @@ type ('k,'v,'r,'t,'blk_id,'blk,'fd,'node,'leaf,'leaf_stream,'extra) example = {
   blk_dev_ops    : 'fd -> ('blk_id,'blk,'t)blk_dev_ops;
   blk_allocator  : (blk_allocator_state,'t)with_state;
   reader_writers : ('k,'v)Bin_prot_marshalling.reader_writers;
+  nlc            : ('k,'v,'r,'node,'leaf) nlc;
+  marshalling_ops: (('node,'leaf)dnode,'blk) marshalling_ops;
   disk_ops       : 'fd -> ('blk_id,'t,('node,'leaf)dnode,'blk)disk_ops;
   store_ops      : 'fd -> ('blk_id,('node,'leaf)dnode,'t)store_ops;
   pre_btree_ops  : 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream)pre_btree_ops;
   map_ops_with_ls: 'fd -> ('r,'t)btree_root_ops -> ('k,'v,'r,'leaf_stream,'t)Map_ops_with_ls.map_ops_with_ls;
+  empty_leaf_as_blk: 'blk; 
   extra: 'extra
 }
 
@@ -62,6 +64,7 @@ module Without_monad = struct
     let k_size=int_bin_prot_info.max_size
     let v_size=int_bin_prot_info.max_size
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
+    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int
   end
 
   module String_string = struct
@@ -74,6 +77,7 @@ module Without_monad = struct
     let k_size=ss_bin_prot_info.max_size
     let v_size=ss_bin_prot_info.max_size
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size     
+    let reader_writers = Bin_prot_marshalling.Common_reader_writers.ss_ss
   end
 end
 
@@ -97,15 +101,10 @@ module Imperative = struct
       let monad_ops = monad_ops
     end
     include S
-    module Btree = Tjr_btree.Make(S)
+    module Btree = Tjr_btree.Make(S)    
     open Btree
-    let node_leaf_list_conversions = Node_leaf_list_conversions.{
-        node_to_krs=node_ops.node_to_krs;
-        krs_to_node=node_ops.krs_to_node;
-        leaf_to_kvs=leaf_ops.leaf_to_kvs;
-        kvs_to_leaf=leaf_ops.kvs_to_leaf
-      }
-    let store_to_pre_btree = Btree.store_to_pre_btree
+    let store_to_pre_btree = store_to_pre_btree
+    let node_leaf_list_conversions = node_leaf_list_conversions
   end
 
   let int_int_example = 
@@ -113,15 +112,19 @@ module Imperative = struct
     let compare_k = k_cmp in
     let blk_dev_ops fd = 
       Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd in
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int in
     let blk_allocator_ref = ref { min_free_blk_id=0 } in
     let blk_allocator = with_imperative_ref ~monad_ops blk_allocator_ref in
-    let disk_ops fd = 
-      Blk_layer.make_disk_ops ~monad_ops ~blk_ops
-        ~blk_dev_ops:(blk_dev_ops fd) ~reader_writers
+    let blk_allocator_ops = Blk_layer.make_blk_allocator_ops
+        ~monad_ops ~blk_allocator in
+    let reader_writers = reader_writers in
+    let nlc = node_leaf_list_conversions in
+    let marshalling_ops = Blk_layer.make_marshalling_ops ~blk_ops
         ~node_leaf_list_conversions
-        ~blk_allocator
-    in
+        ~reader_writers
+    in  
+    let disk_ops fd = 
+      Blk_layer.make_disk_ops ~marshalling_ops
+        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
     in
@@ -132,9 +135,13 @@ module Imperative = struct
       let pre_btree_ops = pre_btree_ops fd in
       pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops
     in
+    let empty_leaf_as_blk = 
+      Btree.empty_leaf_as_blk ~dnode_to_blk:marshalling_ops.dnode_to_blk
+    in
     {monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator;
-     reader_writers; disk_ops; store_ops; pre_btree_ops;
-     map_ops_with_ls;extra=blk_allocator_ref}
+     reader_writers; nlc; marshalling_ops; disk_ops; store_ops;
+     pre_btree_ops; map_ops_with_ls; empty_leaf_as_blk;
+     extra=blk_allocator_ref}
 
   let _ 
 : (int, int, blk_id, imperative, blk_id, string, Unix.file_descr,
@@ -154,13 +161,8 @@ example
     include S
     module Btree = Tjr_btree.Make(S)
     open Btree
-    let node_leaf_list_conversions = Node_leaf_list_conversions.{
-        node_to_krs=node_ops.node_to_krs;
-        krs_to_node=node_ops.krs_to_node;
-        leaf_to_kvs=leaf_ops.leaf_to_kvs;
-        kvs_to_leaf=leaf_ops.kvs_to_leaf
-      }
-    let store_to_pre_btree = Btree.store_to_pre_btree
+    let store_to_pre_btree = store_to_pre_btree
+    let node_leaf_list_conversions = node_leaf_list_conversions
   end
 
   let ss_ss_example = 
@@ -168,15 +170,19 @@ example
     let compare_k = k_cmp in
     let blk_dev_ops fd = 
       Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd in
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.ss_ss in
     let blk_allocator_ref = ref { min_free_blk_id=0 } in
     let blk_allocator = with_imperative_ref ~monad_ops blk_allocator_ref in
-    let disk_ops fd = 
-      Blk_layer.make_disk_ops ~monad_ops ~blk_ops
-        ~blk_dev_ops:(blk_dev_ops fd) ~reader_writers
+    let blk_allocator_ops = Blk_layer.make_blk_allocator_ops
+        ~monad_ops ~blk_allocator in
+    let reader_writers = reader_writers in
+    let nlc = node_leaf_list_conversions in
+    let marshalling_ops = Blk_layer.make_marshalling_ops ~blk_ops
         ~node_leaf_list_conversions
-        ~blk_allocator
-    in
+        ~reader_writers
+    in  
+    let disk_ops fd = 
+      Blk_layer.make_disk_ops ~marshalling_ops
+        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
     in
@@ -187,10 +193,13 @@ example
       let pre_btree_ops = pre_btree_ops fd in
       pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops
     in
+    let empty_leaf_as_blk = 
+      Btree.empty_leaf_as_blk ~dnode_to_blk:marshalling_ops.dnode_to_blk
+    in
     {monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator;
-     reader_writers; disk_ops; store_ops; pre_btree_ops;
-     map_ops_with_ls;extra=blk_allocator_ref}
-
+     reader_writers; nlc; marshalling_ops; disk_ops; store_ops;
+     pre_btree_ops; map_ops_with_ls; empty_leaf_as_blk;
+     extra=blk_allocator_ref}
 end
 
 
@@ -216,13 +225,8 @@ module Lwt = struct
     include S
     module Btree = Tjr_btree.Make(S)
     open Btree
-    let node_leaf_list_conversions = Node_leaf_list_conversions.{
-        node_to_krs=node_ops.node_to_krs;
-        krs_to_node=node_ops.krs_to_node;
-        leaf_to_kvs=leaf_ops.leaf_to_kvs;
-        kvs_to_leaf=leaf_ops.kvs_to_leaf
-      }
-    let store_to_pre_btree = Btree.store_to_pre_btree
+    let store_to_pre_btree = store_to_pre_btree
+    let node_leaf_list_conversions = node_leaf_list_conversions
   end
 
   let int_int_example = 
@@ -230,15 +234,19 @@ module Lwt = struct
     let compare_k = k_cmp in
     let blk_dev_ops fd = 
       Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd in
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int in
     let blk_allocator_ref = ref { min_free_blk_id=0 } in
     let blk_allocator = with_imperative_ref ~monad_ops blk_allocator_ref in
-    let disk_ops fd = 
-      Blk_layer.make_disk_ops ~monad_ops ~blk_ops
-        ~blk_dev_ops:(blk_dev_ops fd) ~reader_writers
+    let blk_allocator_ops = Blk_layer.make_blk_allocator_ops
+        ~monad_ops ~blk_allocator in
+    let reader_writers = reader_writers in
+    let nlc = node_leaf_list_conversions in
+    let marshalling_ops = Blk_layer.make_marshalling_ops ~blk_ops
         ~node_leaf_list_conversions
-        ~blk_allocator
-    in
+        ~reader_writers
+    in  
+    let disk_ops fd = 
+      Blk_layer.make_disk_ops ~marshalling_ops
+        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
     in
@@ -249,9 +257,13 @@ module Lwt = struct
       let pre_btree_ops = pre_btree_ops fd in
       pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops
     in
+    let empty_leaf_as_blk = 
+      Btree.empty_leaf_as_blk ~dnode_to_blk:marshalling_ops.dnode_to_blk
+    in
     {monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator;
-     reader_writers; disk_ops; store_ops; pre_btree_ops;
-     map_ops_with_ls;extra=blk_allocator_ref}
+     reader_writers; nlc; marshalling_ops; disk_ops; store_ops;
+     pre_btree_ops; map_ops_with_ls; empty_leaf_as_blk;
+     extra=blk_allocator_ref}
 
   (* NOTE this is essentially a cut-n-paste of the int-int example *)
   module String_string = struct    
@@ -263,13 +275,8 @@ module Lwt = struct
     include S
     module Btree = Tjr_btree.Make(S)
     open Btree
-    let node_leaf_list_conversions = Node_leaf_list_conversions.{
-        node_to_krs=node_ops.node_to_krs;
-        krs_to_node=node_ops.krs_to_node;
-        leaf_to_kvs=leaf_ops.leaf_to_kvs;
-        kvs_to_leaf=leaf_ops.kvs_to_leaf
-      }
-    let store_to_pre_btree = Btree.store_to_pre_btree
+    let store_to_pre_btree = store_to_pre_btree
+    let node_leaf_list_conversions = node_leaf_list_conversions
   end
 
   let ss_ss_example = 
@@ -277,15 +284,19 @@ module Lwt = struct
     let compare_k = k_cmp in
     let blk_dev_ops fd = 
       Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd in
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.ss_ss in
     let blk_allocator_ref = ref { min_free_blk_id=0 } in
     let blk_allocator = with_imperative_ref ~monad_ops blk_allocator_ref in
-    let disk_ops fd = 
-      Blk_layer.make_disk_ops ~monad_ops ~blk_ops
-        ~blk_dev_ops:(blk_dev_ops fd) ~reader_writers
+    let blk_allocator_ops = Blk_layer.make_blk_allocator_ops
+        ~monad_ops ~blk_allocator in
+    let reader_writers = reader_writers in
+    let nlc = node_leaf_list_conversions in
+    let marshalling_ops = Blk_layer.make_marshalling_ops ~blk_ops
         ~node_leaf_list_conversions
-        ~blk_allocator
-    in
+        ~reader_writers
+    in  
+    let disk_ops fd = 
+      Blk_layer.make_disk_ops ~marshalling_ops
+        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
     in
@@ -296,8 +307,11 @@ module Lwt = struct
       let pre_btree_ops = pre_btree_ops fd in
       pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops
     in
+    let empty_leaf_as_blk = 
+      Btree.empty_leaf_as_blk ~dnode_to_blk:marshalling_ops.dnode_to_blk
+    in
     {monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator;
-     reader_writers; disk_ops; store_ops; pre_btree_ops;
-     map_ops_with_ls;extra=blk_allocator_ref}
-
+     reader_writers; nlc; marshalling_ops; disk_ops; store_ops;
+     pre_btree_ops; map_ops_with_ls; empty_leaf_as_blk;
+     extra=blk_allocator_ref}
 end

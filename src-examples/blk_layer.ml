@@ -1,5 +1,5 @@
 open Intf_
-open Intf_.Staging
+(* open Intf_.Staging *)
 
 (** Help for maps on fd: write global state into root block; load back
    in from file *)
@@ -24,9 +24,9 @@ module Blk_init_and_close = struct
   }
 end
 open Blk_init_and_close
+let unix_init_and_close = Blk_init_and_close.unix_init_and_close
 
-
-module Internal = struct
+module Internal_root_block_util = struct
       
   (** {2 Root blocks}
 
@@ -60,54 +60,53 @@ module Internal = struct
     |> return
 end
 
-let write_root_block,read_root_block = Internal.(read_root_block,write_root_block)
+let write_root_block,read_root_block = Internal_root_block_util.(write_root_block,read_root_block)
 
-module With_unix(S:sig include M include B1 val empty_leaf_as_blk:blk end) 
-: sig
-  open S
-  val from_file :
-    fn:string -> create:bool -> init:bool -> (Unix.file_descr * root_block,t)m
-  val close : fd:Unix.file_descr -> root_block:root_block -> (unit,t)m
-end
-= struct  
-  open S
+type ('a,'b) from_file_and_close = {
+  from_file: 'a;
+  close: 'b
+}
 
-  (* let monad_ops = imperative_monad_ops *)
-  let ( >>= ) = monad_ops.bind
-  let return = monad_ops.return 
+let make_from_file_and_close ~monad_ops ~blk_ops ~empty_leaf_as_blk =
+  let module A = struct
+    (* let monad_ops = imperative_monad_ops *)
+    let ( >>= ) = monad_ops.bind
+    let return = monad_ops.return 
 
-  (* NOTE this uses unix to read/write the root block; need to take
-     care if also accessing fd from lwt *)
-  let blk_init_and_close = unix_init_and_close ~monad_ops ~blk_ops
-  let {blk_init; blk_close; fd_to_blk_dev}=blk_init_and_close
- 
-  (** NOTE empty_disk_leaf only needed for init *)
-  let from_file ~fn ~create ~init = 
-    blk_init (fn,create,init) >>= fun fd -> 
-    let blk_dev_ops = fd_to_blk_dev fd in
-    match init with
-    | true -> (
-        (* now need to write the initial dnode *)
-        let blk = empty_leaf_as_blk in
-        blk_dev_ops.write ~blk_id:(Blk_id.of_int 1) ~blk >>= fun () -> 
-        (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
-           this needs to somehow match up with Examples.first_free_block
-        *)
-        let root_block = {free=Blk_id.of_int 2; btree_root=Blk_id.of_int 1} in
-        (* remember to write blk0 *)
-        Internal.write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () ->
-        return (fd,root_block))
-    | false -> 
-      Internal.read_root_block ~monad_ops ~blk_ops ~blk_dev_ops >>= fun rb -> 
-      return (fd,rb)
+    (* NOTE this uses unix to read/write the root block; need to take
+       care if also accessing fd from lwt *)
+    let blk_init_and_close = unix_init_and_close ~monad_ops ~blk_ops
+    let {blk_init; blk_close; fd_to_blk_dev}=blk_init_and_close
 
-  let _  = from_file
+    (** NOTE empty_disk_leaf only needed for init *)
+    let from_file ~fn ~create ~init = 
+      blk_init (fn,create,init) >>= fun fd -> 
+      let blk_dev_ops = fd_to_blk_dev fd in
+      match init with
+      | true -> (
+          (* now need to write the initial dnode *)
+          let blk = empty_leaf_as_blk in
+          blk_dev_ops.write ~blk_id:(Blk_id.of_int 1) ~blk >>= fun () -> 
+          (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
+             this needs to somehow match up with Examples.first_free_block
+          *)
+          let root_block = {free=Blk_id.of_int 2; btree_root=Blk_id.of_int 1} in
+          (* remember to write blk0 *)
+          write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () ->
+          return (fd,root_block))
+      | false -> 
+        read_root_block ~monad_ops ~blk_ops ~blk_dev_ops >>= fun rb -> 
+        return (fd,rb)
 
-  let close ~fd ~root_block = 
-    let blk_dev_ops = fd_to_blk_dev fd in
-    Internal.write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () -> 
-    blk_close fd
-end
+    let _  = from_file
+
+    let close ~fd ~root_block = 
+      let blk_dev_ops = fd_to_blk_dev fd in
+      write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () -> 
+      blk_close fd
+  end
+  in 
+  A.{from_file; close}
 
 
 module Internal2 = struct
@@ -126,12 +125,9 @@ module Internal2 = struct
     mark (s+1);
     r
 
-  let make_disk_ops ~monad_ops ~blk_ops ~blk_dev_ops ~reader_writers 
-      ~(node_leaf_list_conversions:('k,'v,blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
-      ~blk_allocator
-    = 
-    let ( >>= ) = monad_ops.bind in
-    let return = monad_ops.return in
+  let make_marshalling_ops ~blk_ops ~node_leaf_list_conversions
+      ~reader_writers 
+    =
     let mp = 
       Bin_prot_marshalling.make_binprot_marshalling ~blk_ops
         ~node_leaf_list_conversions
@@ -144,20 +140,28 @@ module Internal2 = struct
       marshal_blk_size=mp.marshal_blk_size;
     }
     in
-    let blk_allocator_ops = 
-      let { with_state } = blk_allocator in
-      let alloc () = with_state (fun ~state:s ~set_state ->
-          set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
-          -> return (Blk_id.of_int s.min_free_blk_id))
-      in
-      let free _blk_id = return () in
-      {alloc;free}
+    mp
+
+  let make_blk_allocator_ops ~monad_ops ~blk_allocator =
+    let ( >>= ) = monad_ops.bind in
+    let return = monad_ops.return in
+    let { with_state } = blk_allocator in
+    let alloc () = with_state (fun ~state:s ~set_state ->
+        set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
+        -> return (Blk_id.of_int s.min_free_blk_id))
     in
-    let disk_ops = { marshalling_ops=mp; blk_dev_ops; blk_allocator_ops } in
-    disk_ops
+    let free _blk_id = return () in
+    {alloc;free}
+
+  let make_disk_ops ~marshalling_ops ~blk_dev_ops ~blk_allocator_ops =
+    { marshalling_ops; blk_dev_ops; blk_allocator_ops }
 
   let _ = make_disk_ops
 end
+
+let make_blk_allocator_ops = Internal2.make_blk_allocator_ops
+
+let make_marshalling_ops = Internal2.make_marshalling_ops
 
 let make_disk_ops = Internal2.make_disk_ops
 
