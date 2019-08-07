@@ -8,6 +8,11 @@
 module Blk_id = Blk_id_as_int
 include Blk_id
 
+(** Blk allocator state: just an int *)
+type blk_allocator_state = {
+  min_free_blk_id:int;
+}
+
 (** A type to record a pair: the min free blk_id and the btree root block.
 
 FIXME if btree_root was an option, we could avoid passing
@@ -31,3 +36,45 @@ type btree_from_file = {
     fn:string -> create:bool -> init:bool -> btree_from_file_result
 }
 
+
+
+(** INTERNAL PLEASE IGNORE This is another attempt to isolate the
+   various stages of type construction. *)
+module Staging = struct
+
+  module type M = sig
+    type t
+    val monad_ops: t monad_ops
+  end
+
+
+  module type B1 = sig
+    type blk_id
+    type blk
+    val blk_ops: blk blk_ops
+  end
+
+  module type B2 = sig
+    include M
+    include B1
+
+    (** NOTE typically blk_dev_ops requires eg a file_descr *)
+    val blk_dev_ops: (blk_id,blk,t)blk_dev_ops
+
+    (* val blk_layer: (blk,(blk_id,blk,t)blk_dev_ops)blk_layer FIXME this is just a pair of blk_ops and blk_dev_ops *)
+  end
+
+
+  module type K1 = sig
+    type k
+    val compare_k: k -> k -> int
+    type v
+  end
+
+
+  module type KB1 = sig
+    include B1
+    include K1
+  end
+
+end

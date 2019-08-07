@@ -1,4 +1,5 @@
-open Btree_examples_intf
+open Intf_
+open Intf_.Staging
 
 (** Help for maps on fd: write global state into root block; load back
    in from file *)
@@ -7,72 +8,241 @@ open Btree_examples_intf
    marshalling params allow us to convert to a blk; perhaps assume we
    already have empty_leaf_as_blk? *)
 
-(* include Fstore_layer.Block_ops *)
+module Blk_init_and_close = struct
+  type ('blk_id,'blk,'init,'fd,'t) blk_init_and_close = {
+    blk_init: 'init -> ('fd,'t)m;
+    blk_close: 'fd -> (unit,'t)m;
+    fd_to_blk_dev: 'fd -> ('blk_id,'blk,'t)blk_dev_ops
+  }
+  let unix_init_and_close ~monad_ops ~blk_ops = {
+    blk_init=(fun (fn,create,init) -> 
+        let fd = Tjr_file.fd_from_file ~fn ~create ~init in
+        monad_ops.return fd);
+    blk_close=(fun fd -> 
+        Unix.close fd; monad_ops.return ());
+    fd_to_blk_dev=(fun fd -> Tjr_fs_shared.Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd)
+  }
+end
+open Blk_init_and_close
 
-(*
-type from_file_close = {
-  from_file:fn:string -> create:bool -> init:bool -> Unix.file_descr * root_block;
-  close: fd:Unix.file_descr -> root_block:root_block -> unit
-}
+
+module Internal = struct
+      
+  (** {2 Root blocks}
+
+      We implement the map on fd by writing the free counter and root
+      page_ref into the root block 
+
+  *)
+
+  (* TODO we use standard ocaml marshalling for the root block - this is
+     a demo anyway *)
+  let marshal_to_string (x:root_block) = Marshal.to_string x []
+
+  let marshal_from_string s : root_block = Marshal.from_string s 0
+
+  let root_blk_id = Blk_id.of_int 0
+
+  let write_root_block ~blk_ops ~blk_dev_ops ~root_block = 
+    root_block
+    |> marshal_to_string 
+    |> blk_ops.of_string |> fun blk -> 
+    blk_dev_ops.write ~blk_id:root_blk_id ~blk
+  (* Blk_dev_on_fd.Internal_unix.write ~blk_ops ~fd () ~blk_id:root_blk_id ~blk *)
+
+  let read_root_block ~monad_ops ~blk_ops ~(blk_dev_ops:('blk_id,'blk,'t)blk_dev_ops) = 
+    let ( >>= ) = monad_ops.bind in
+    let return = monad_ops.return in
+    blk_dev_ops.read ~blk_id:root_blk_id >>= fun blk -> 
+    (* Blk_dev_on_fd.Internal_unix.read ~blk_ops ~fd () ~blk_id:root_blk_id  *)
+    blk |> blk_ops.to_string 
+    |> (fun x -> (marshal_from_string x))
+    |> return
+end
+
+let write_root_block,read_root_block = Internal.(read_root_block,write_root_block)
+
+module With_unix(S:sig include M include B1 val empty_leaf_as_blk:blk end) 
+: sig
+  open S
+  val from_file :
+    fn:string -> create:bool -> init:bool -> (Unix.file_descr * root_block,t)m
+  val close : fd:Unix.file_descr -> root_block:root_block -> (unit,t)m
+end
+= struct  
+  open S
+
+  (* let monad_ops = imperative_monad_ops *)
+  let ( >>= ) = monad_ops.bind
+  let return = monad_ops.return 
+
+  (* NOTE this uses unix to read/write the root block; need to take
+     care if also accessing fd from lwt *)
+  let blk_init_and_close = unix_init_and_close ~monad_ops ~blk_ops
+  let {blk_init; blk_close; fd_to_blk_dev}=blk_init_and_close
+ 
+  (** NOTE empty_disk_leaf only needed for init *)
+  let from_file ~fn ~create ~init = 
+    blk_init (fn,create,init) >>= fun fd -> 
+    let blk_dev_ops = fd_to_blk_dev fd in
+    match init with
+    | true -> (
+        (* now need to write the initial dnode *)
+        let blk = empty_leaf_as_blk in
+        blk_dev_ops.write ~blk_id:(Blk_id.of_int 1) ~blk >>= fun () -> 
+        (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
+           this needs to somehow match up with Examples.first_free_block
+        *)
+        let root_block = {free=Blk_id.of_int 2; btree_root=Blk_id.of_int 1} in
+        (* remember to write blk0 *)
+        Internal.write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () ->
+        return (fd,root_block))
+    | false -> 
+      Internal.read_root_block ~monad_ops ~blk_ops ~blk_dev_ops >>= fun rb -> 
+      return (fd,rb)
+
+  let _  = from_file
+
+  let close ~fd ~root_block = 
+    let blk_dev_ops = fd_to_blk_dev fd in
+    Internal.write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () -> 
+    blk_close fd
+end
+
+
+module Internal2 = struct
+  open Btree_intf
+  open Profilers_.Blk_profiler
+
+  let [d2blk;d2blk';blk2d;blk2d';fb;fb';fc;fc'] = 
+    ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map allocate_int 
+  [@@ocaml.warning "-8"]
+
+  (* FIXME this takes advantage of the undocumented fact that
+     allocations are increasing ints *)
+  let mark' s f = 
+    mark s;
+    f () |> fun r ->
+    mark (s+1);
+    r
+
+  let make_disk_ops ~monad_ops ~blk_ops ~blk_dev_ops ~reader_writers 
+      ~(node_leaf_list_conversions:('k,'v,blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
+      ~blk_allocator
+    = 
+    let ( >>= ) = monad_ops.bind in
+    let return = monad_ops.return in
+    let mp = 
+      Bin_prot_marshalling.make_binprot_marshalling ~blk_ops
+        ~node_leaf_list_conversions
+        ~reader_writers
+    in
+    (* add some profiling *)
+    let mp = {
+      dnode_to_blk=(fun dn -> mark' d2blk (fun () -> mp.dnode_to_blk dn));
+      blk_to_dnode=(fun blk -> mark' blk2d (fun () -> mp.blk_to_dnode blk));
+      marshal_blk_size=mp.marshal_blk_size;
+    }
+    in
+    let blk_allocator_ops = 
+      let { with_state } = blk_allocator in
+      let alloc () = with_state (fun ~state:s ~set_state ->
+          set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
+          -> return (Blk_id.of_int s.min_free_blk_id))
+      in
+      let free _blk_id = return () in
+      {alloc;free}
+    in
+    let disk_ops = { marshalling_ops=mp; blk_dev_ops; blk_allocator_ops } in
+    disk_ops
+
+  let _ = make_disk_ops
+end
+
+let make_disk_ops = Internal2.make_disk_ops
+
+
+(* FIXME we probably want some unix and lwt instances here *)
+
+(* see fs_shared 
+  (** {2 On-disk block dev} *)
+
+  module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
+    open Monad_ops
+    (* open Internal *)
+    let blk_dev_ref = Fstore.on_disk_blk_dev_ref
+
+    let with_state = Fstore_passing.fstore_ref_to_with_state blk_dev_ref
+
+    (* reuse the internal functionality *)
+    module Unix_ = Blk_dev_on_fd.Internal_unix
+
+    let read_count = Global.register ~name:"Examples.read_count" (ref 0)
+    let write_count = Global.register ~name:"Examples.write_count" (ref 0)
+
+    (* NOTE in the following, we access the fd via the functional store *)
+    let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+        mark' fb @@ fun () -> 
+        incr(read_count);
+        let blk_id = Blk_id.to_int blk_id in
+        Unix_.read ~blk_ops ~fd () ~blk_id |> return) [@@warning "-8"]
+
+    let _ = read
+
+    let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
+        mark' fc @@ fun () -> 
+        incr(write_count);
+        let blk_id = Blk_id.to_int blk_id in      
+        Unix_.write ~blk_ops ~fd () ~blk_id ~blk |> return) [@@warning "-8"]
+
+    let blk_dev_ops = { blk_sz=Blk_sz.blk_sz_4096; read; write }
+  end
+  let on_disk_blk_dev = On_disk_blk_dev.blk_dev_ops
 *)
 
-(** Constructs a btree from a file functionality. *)
-let make_btree_from_file (type blk) ~(blk_ops:blk blk_ops) ~(empty_leaf_as_blk:blk) = 
-  let module A = struct
 
-    (** {2 Root blocks}
+(*
+  (** Use the on-disk blk dev to construct various instances *)
+  module C = Bin_prot_marshalling.Common_reader_writers
 
-        We implement the map on fd by writing the free counter and root
-        page_ref into the root block 
+  module Common_blk_layers = struct
+    module Int_int = struct
+      let blk_dev_ops = on_disk_blk_dev
 
-    *)
+      let reader_writers = C.int_int
 
-    (* TODO we use standard ocaml marshalling for the root block - this is
-       a demo anyway *)
-    let marshal_to_string (x:root_block) = Marshal.to_string x []
+      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
+    end
 
-    let marshal_from_string s : root_block = Marshal.from_string s 0
+    module Ss_ss = struct
+      let blk_dev_ops = on_disk_blk_dev
 
-    let root_blk_id = 0
+      let reader_writers = C.ss_ss
 
-    let write_root_block ~fd ~root_block = 
-      root_block
-      |> marshal_to_string 
-      |> blk_ops.of_string |> fun blk -> 
-      Blk_dev_on_fd.Internal_unix.write ~blk_ops ~fd () ~blk_id:root_blk_id ~blk
+      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
+    end
 
-    let read_root_block ~fd = 
-      Blk_dev_on_fd.Internal_unix.read ~blk_ops ~fd () ~blk_id:root_blk_id 
-      |> blk_ops.to_string 
-      |> (fun x -> (marshal_from_string x))
 
-    let _ = read_root_block
+    module Ss_int = struct
+      let blk_dev_ops = on_disk_blk_dev
 
-    (** NOTE empty_disk_leaf only needed for init *)
-    let from_file ~fn ~create ~init = 
-      let fd = Tjr_file.fd_from_file ~fn ~create ~init in
-      match init with
-      | true -> (
-          (* now need to write the initial dnode *)
-          let _ = 
-            let blk = empty_leaf_as_blk in
-            Blk_dev_on_fd.Internal_unix.write ~blk_ops ~fd () ~blk_id:1 ~blk
-          in
-          (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
-             this needs to somehow match up with Examples.first_free_block
-          *)
-          let root_block = {free=(Blk_id.of_int 2); btree_root=(Blk_id.of_int 1)} in
-          (* remember to write blk0 *)
-          let _ = write_root_block ~fd ~root_block in
-          (fd,root_block))
-      | false -> (
-          let rb = read_root_block ~fd in 
-          (fd,rb))
+      let reader_writers = C.ss_int
 
-    let close ~fd ~root_block = 
-      write_root_block ~fd ~root_block;
-      Unix.close fd
+      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
+    end
+  end
+end
 
+let make_disk_ops,in_mem_blk_dev,on_disk_blk_dev = 
+  Internal.(make_disk_ops,in_mem_blk_dev,on_disk_blk_dev)
+
+module Common_blk_layers = Internal.Common_blk_layers
+
+
+
+(*
+  (** Additional functionality for fstore FIXME remove *)
+  module Fstore_util = struct
     (** {2 Root block initialization/finalization... Init and close} *)
     open Fstore_layer.Fstore
 
@@ -112,76 +282,14 @@ let make_btree_from_file ~empty_leaf_as_blk =
   make_btree_from_file ~blk_ops:Fstore_layer.blk_ops ~empty_leaf_as_blk
 
 let _ = make_btree_from_file
+*)
 
 
-module Internal = struct
 
-  open Btree_intf
-  open Fstore_layer
-
-  open Profilers_.Blk_profiler
-
-  let [d2blk;d2blk';blk2d;blk2d';fb;fb';fc;fc'] = 
-    ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map allocate_int 
-  [@@ocaml.warning "-8"]
-
-  (* FIXME this takes advantage of the undocumented fact that
-     allocations are increasing ints *)
-  let mark' s f = 
-    mark s;
-    f () |> fun r ->
-    mark (s+1);
-    r
-
-
-  let make_disk_ops ~blk_dev_ops ~reader_writers = 
-    let open Monad_ops in
-    (* block_ops and blk_allocator are reasonably free: the code doesn't
-       depend on the exact details *)
-    let block_ops,blk_allocator = (blk_ops,Fstore.blk_allocator) in
-    (* let ( >>= ) = monad_ops.bind in *)
-    (* let return = monad_ops.return in *)
-    let make_disk_ops 
-        ~(node_leaf_list_conversions:('k,'v,blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
-      =
-      let mp = 
-        Bin_prot_marshalling.make_binprot_marshalling ~block_ops
-          ~node_leaf_list_conversions
-          ~reader_writers
-      in
-      let mp = Btree_intf.{
-          dnode_to_blk=(fun dn -> mark' d2blk (fun () -> mp.dnode_to_blk dn));
-          blk_to_dnode=(fun blk -> mark' blk2d (fun () -> mp.blk_to_dnode blk));
-          marshal_blk_size=mp.marshal_blk_size;
-        }
-      in
-      let blk_allocator_ops = 
-        let { with_state } = blk_allocator in
-        let alloc () = with_state (fun ~state:s ~set_state ->
-            set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
-            -> return (Blk_id.of_int s.min_free_blk_id))
-        in
-        let free _blk_id = return () in
-        {alloc;free}
-      in
-      let disk_ops = { marshalling_ops=mp; blk_dev_ops; blk_allocator_ops } in
-      disk_ops
-    in
-    make_disk_ops
-
-  let _ = make_disk_ops
-
-
-  module type BLK_DEV_OPS = sig
-    (* open Internal *)
-    val blk_dev_ops: (blk_id,blk,fstore_passing) blk_dev_ops
-  end
-
-
+(* see Tjr_fs_shared.Blk_dev_in_mem
   (** {2 In-memory block dev} *)
 
-  module In_mem_blk_dev : BLK_DEV_OPS = struct
-    open Monad_ops
+  module In_mem_blk_dev = struct
     let blk_dev_ref = Fstore.in_mem_blk_dev_ref
     let blk_dev_ops = 
       let with_state = Tjr_fs_shared.Fstore_passing.fstore_ref_to_with_state blk_dev_ref in
@@ -194,76 +302,5 @@ module Internal = struct
     let _ = blk_dev_ops
   end
   let in_mem_blk_dev = In_mem_blk_dev.blk_dev_ops
-
-
-
-  (** {2 On-disk block dev} *)
-
-  module On_disk_blk_dev (* : BLK_DEV_OPS *) = struct
-    open Monad_ops
-    (* open Internal *)
-    let blk_dev_ref = Fstore.on_disk_blk_dev_ref
-
-    let with_state = Fstore_passing.fstore_ref_to_with_state blk_dev_ref
-
-    (* reuse the internal functionality *)
-    module Unix_ = Blk_dev_on_fd.Internal_unix
-
-    let read_count = Global.register ~name:"Examples.read_count" (ref 0)
-    let write_count = Global.register ~name:"Examples.write_count" (ref 0)
-
-    (* NOTE in the following, we access the fd via the functional store *)
-    let read ~blk_id = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
-        mark' fb @@ fun () -> 
-        incr(read_count);
-        let blk_id = Blk_id.to_int blk_id in
-        Unix_.read ~blk_ops ~fd () ~blk_id |> return) [@@warning "-8"]
-
-    let _ = read
-
-    let write ~blk_id ~blk = with_state.with_state (fun ~state:(Some fd) ~set_state:_ -> 
-        mark' fc @@ fun () -> 
-        incr(write_count);
-        let blk_id = Blk_id.to_int blk_id in      
-        Unix_.write ~blk_ops ~fd () ~blk_id ~blk |> return) [@@warning "-8"]
-
-    let blk_dev_ops = { blk_sz=Blk_sz.blk_sz_4096; read; write }
-  end
-  let on_disk_blk_dev = On_disk_blk_dev.blk_dev_ops
-
-
-  (** Use the on-disk blk dev to construct various instances *)
-  module C = Bin_prot_marshalling.Common_reader_writers
-
-  module Common_blk_layers = struct
-    module Int_int = struct
-      let blk_dev_ops = on_disk_blk_dev
-
-      let reader_writers = C.int_int
-
-      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
-    end
-
-    module Ss_ss = struct
-      let blk_dev_ops = on_disk_blk_dev
-
-      let reader_writers = C.ss_ss
-
-      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
-    end
-
-
-    module Ss_int = struct
-      let blk_dev_ops = on_disk_blk_dev
-
-      let reader_writers = C.ss_int
-
-      let disk_ops ~node_leaf_list_conversions = make_disk_ops ~blk_dev_ops ~reader_writers ~node_leaf_list_conversions
-    end
-  end
-end
-
-let make_disk_ops,in_mem_blk_dev,on_disk_blk_dev = 
-  Internal.(make_disk_ops,in_mem_blk_dev,on_disk_blk_dev)
-
-module Common_blk_layers = Internal.Common_blk_layers
+*)
+*)

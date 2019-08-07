@@ -86,10 +86,10 @@ module Internal = struct
       ?(src_pos=0) ~(src:bytes) ?(dst_pos=0) ~(dst:buf) ~len () 
     = BP.Common.blit_bytes_buf ~src_pos src ~dst_pos dst ~len
 
-  let make_binprot_marshalling ~(block_ops:'blk blk_ops) ~node_leaf_list_conversions = 
+  let make_binprot_marshalling ~(blk_ops:'blk blk_ops) ~node_leaf_list_conversions = 
     let Node_leaf_list_conversions.{ node_to_krs; krs_to_node; leaf_to_kvs; kvs_to_leaf } = node_leaf_list_conversions in
     let open Isa_btree_intf in  (* for node_ops fields *)
-    let blk_sz = block_ops.blk_sz |> Blk_sz.to_int in
+    let blk_sz = blk_ops.blk_sz |> Blk_sz.to_int in
     let dn2bp = function
       | Disk_node n -> n |> node_to_krs |> fun (ks,rs) -> N (ks,rs)
       | Disk_leaf l -> l |> leaf_to_kvs |> fun kvs -> L kvs
@@ -107,12 +107,12 @@ module Internal = struct
         let pos' = dn |> dn2bp |> bin_writer'.write buf ~pos:0 in
         let s = Bytes.create blk_sz in
         let () = blit_buf_to_bytes ~src:buf ~dst:s ~len:pos' () in
-        s |> block_ops.of_bytes
+        s |> blk_ops.of_bytes
     in
     let blk_to_dnode ~read_k ~read_v = 
       let bin_reader' = bin_reader_binprot_tree read_k read_v in
       fun blk -> 
-        let s = blk |> block_ops.to_bytes in
+        let s = blk |> blk_ops.to_bytes in
         let buf = BP.Common.create_buf blk_sz in
         let () = blit_bytes_to_buf ~src:s ~dst:buf ~len:blk_sz () in
         let bp = bin_reader'.read buf ~pos_ref:(ref 0) in
@@ -128,7 +128,7 @@ module Internal = struct
       mp
 
   let _ : 
-block_ops:'blk blk_ops ->
+blk_ops:'blk blk_ops ->
 node_leaf_list_conversions:('a, 'b, page_ref, 'c, 'd)
                            Node_leaf_list_conversions.node_leaf_list_conversions ->
 ('a, 'b) reader_writers -> (('c, 'd) dnode, 'blk) marshalling_ops
@@ -183,11 +183,11 @@ let make_constants = Internal.make_constants
 (** Construct the bin_prot marshalling parameters, based on individual
    functions to read and write keys and values. *)
 let make_binprot_marshalling 
-    ~(block_ops:'blk blk_ops) 
+    ~(blk_ops:'blk blk_ops) 
     ~(node_leaf_list_conversions:('k,'v,Blk_id.blk_id,'node,'leaf)Node_leaf_list_conversions.node_leaf_list_conversions)
     ~reader_writers
   = 
-  Internal.make_binprot_marshalling ~block_ops ~node_leaf_list_conversions reader_writers
+  Internal.make_binprot_marshalling ~blk_ops ~node_leaf_list_conversions reader_writers
 
 
 let _ = make_binprot_marshalling

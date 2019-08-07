@@ -1,6 +1,6 @@
 (** Examples for {!Tjr_btree} *)
 
-module Btree_examples_intf = Btree_examples_intf
+module Intf = Intf_
 
 (** {2 Introduction} 
 

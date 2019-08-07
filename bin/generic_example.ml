@@ -1,10 +1,5 @@
 (** A simple example of a kv store. *)
 
-(* open Examples *)
-(* open Fstore_layer *)
-(* open Btree_examples_intf *)
-(* open Blk_layer *)
-
 let fn = 
   ref "btree.store"
   |> Global.register ~name:(__MODULE__^".fn (default: btree.store)")

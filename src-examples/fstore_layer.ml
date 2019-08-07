@@ -1,12 +1,9 @@
 (** The fstore, which sits above the blk layer, but comes conceptually
    before it in order to allow btree_from_file to use fstore *)
 
+(*
 open Btree_intf
 
-(* common to all impls *)
-type blk_allocator_state = {
-  min_free_blk_id:int;
-}
 
 (** {2 Block ops} *)
 
@@ -77,3 +74,4 @@ module Monad_ops = struct
   let ( >>= ) = monad_ops.bind
   let return = monad_ops.return
 end
+*)
