@@ -1,7 +1,13 @@
-[%%import "optcomp_config.ml"]
+open Optcomp_config
+module Blk_profiler = struct
+  let { mark; _ } = 
+    if profiling_enabled then make_profiler ()
+    else dummy_profiler
+end
 
-[%%if PROFILING_ENABLED]
-module Blk_profiler = Tjr_profile.With_array.Make_profiler(struct let cap = int_of_float 1e7 end)
-[%%else]
-module Blk_profiler = Tjr_profile.Dummy_int_profiler
-[%%endif]
+module Lru_profiler = struct
+  let { mark; _ } = 
+    if profiling_enabled then make_profiler ()
+    else dummy_profiler
+end
+    

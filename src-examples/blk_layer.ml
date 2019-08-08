@@ -117,7 +117,7 @@ module Internal2 = struct
   open Profilers_.Blk_profiler
 
   let [d2blk;d2blk';blk2d;blk2d';fb;fb';fc;fc'] = 
-    ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map allocate_int 
+    ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map intern
   [@@ocaml.warning "-8"]
 
   (* FIXME this takes advantage of the undocumented fact that

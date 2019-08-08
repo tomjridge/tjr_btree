@@ -63,8 +63,7 @@ corresponding main.
 let fn = "btree.store" (* FIXME config *)
 
 let _ = 
-  let open Generic_example in
-  profile "aa" @@ fun () ->
+  measure_execution_time_and_print "btree_main" @@ fun () ->
   match args with
   | [] -> (print_endline usage; exit 0)
   | ["eg1"] -> Int_int_map_example.main ~fn
