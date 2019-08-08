@@ -37,8 +37,11 @@ let _ =
 
 (* set up profilers ------------------------------------------------- *)
 
+(*
 module Profiler = Make_profiler()
 open Profiler
+*)
+
 
 (* run main, measure overall time ----------------------------------- *)
 
@@ -64,10 +67,10 @@ let _ =
   profile "aa" @@ fun () ->
   match args with
   | [] -> (print_endline usage; exit 0)
-  | ["eg1"] -> Int_int_map_example.(main ~fn)
-  | "ii"::args -> Int_int_map_main.main args
-  | ["eg2"] -> String_string_map_example.(main ~fn)
-  | "ss"::args -> String_string_map_main.main args
+  | ["eg1"] -> Int_int_map_example.main ~fn
+  | "ii"::args -> Int_int_map_main.main ~args
+  | ["eg2"] -> String_string_map_example.main ~fn
+  | "ss"::args -> String_string_map_main.main ~args
 
 
 (* FIXME
