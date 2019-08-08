@@ -4,6 +4,7 @@ let args = Sys.argv |> Array.to_list |> List.tl
 
 (* flag config ------------------------------------------------------ *)
 
+(* FIXME tests etc should be controlled by optcomp *)
 module Flag_config = struct
   type config = {
     tests_enabled: bool;
@@ -56,17 +57,20 @@ For the main targets ii and ss, the additional args ... are passed to the
 corresponding main.
 |}
   
+let fn = "btree.store" (* FIXME config *)
 
 let _ = 
+  let open Generic_example in
   profile "aa" @@ fun () ->
   match args with
   | [] -> (print_endline usage; exit 0)
-  | ["eg1"] -> Int_int_map_example.do_all()
+  | ["eg1"] -> Int_int_map_example.(main ~fn)
   | "ii"::args -> Int_int_map_main.main args
-  | ["eg2"] -> String_string_map_example.do_all()
+  | ["eg2"] -> String_string_map_example.(main ~fn)
   | "ss"::args -> String_string_map_main.main args
 
 
+(* FIXME
 (* stats ------------------------------------------------------------ *)
 
 let _ = 
@@ -88,3 +92,4 @@ let _ =
       "node_profiler",Node_profiler.print_summary;
       "frame_profiler",Frame_profiler.print_summary;
       "main_profiler",Profiler.print_summary] )
+*)

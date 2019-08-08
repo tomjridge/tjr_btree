@@ -85,3 +85,24 @@ let make_generic_example (type k v r leaf_stream t)
 
 
 let _ = make_generic_example
+
+
+let make_generic_main ~fn ~int_to_k ~int_to_v ~example = 
+  let Examples.{monad_ops;blk_ops;empty_leaf_as_blk; blk_allocator_ref; btree_root_ref; _} = example in
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
+  let Blk_layer.{ from_file; close } =
+    Blk_layer.make_from_file_and_close ~monad_ops ~blk_ops
+    ~empty_leaf_as_blk in
+  from_file ~fn ~create:true ~init:true >>= fun (fd,ba_root,bt_root) -> 
+  let run = {run=Tjr_monad.Imperative.of_m} in
+  btree_root_ref := bt_root;
+  blk_allocator_ref := ba_root; 
+  let map_ops_with_ls = example.map_ops_with_ls fd in
+  let example = make_generic_example
+      ~map_ops_with_ls
+      ~run 
+      ~int_to_k ~int_to_v
+  in
+  example.do_all ();
+  close ~fd ~blk_allocator_state:!blk_allocator_ref ~btree_root_state:!btree_root_ref

@@ -1,5 +1,5 @@
 (env
-  (_ (flags (:standard -w -39-26 -open Tjr_lib -open Tjr_monad -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Tjr_profile))))
+  (_ (flags (:standard -w -39-26 -open Tjr_lib -open Tjr_monad -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Btree_intf -open Tjr_profile))))
 
 (library
   (name tjr_btree_examples)

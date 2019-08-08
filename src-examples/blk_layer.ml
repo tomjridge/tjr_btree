@@ -37,14 +37,16 @@ module Internal_root_block_util = struct
 
   (* TODO we use standard ocaml marshalling for the root block - this is
      a demo anyway *)
+  type root_block = blk_id blk_allocator_state * blk_id btree_root_state
+
   let marshal_to_string (x:root_block) = Marshal.to_string x []
 
   let marshal_from_string s : root_block = Marshal.from_string s 0
 
   let root_blk_id = Blk_id.of_int 0
 
-  let write_root_block ~blk_ops ~blk_dev_ops ~root_block = 
-    root_block
+  let write_root_block ~blk_ops ~blk_dev_ops ~blk_allocator_state ~btree_root_state = 
+    (blk_allocator_state,btree_root_state)
     |> marshal_to_string 
     |> blk_ops.of_string |> fun blk -> 
     blk_dev_ops.write ~blk_id:root_blk_id ~blk
@@ -90,19 +92,20 @@ let make_from_file_and_close ~monad_ops ~blk_ops ~empty_leaf_as_blk =
           (* 0,1 are taken so 2 is free; 1 is the root of the btree FIXME
              this needs to somehow match up with Examples.first_free_block
           *)
-          let root_block = {free=Blk_id.of_int 2; btree_root=Blk_id.of_int 1} in
+          let blk_allocator_state = {min_free_blk_id=Blk_id.of_int 2} in
+          let btree_root_state = {btree_root=Blk_id.of_int 1} in
           (* remember to write blk0 *)
-          write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () ->
-          return (fd,root_block))
+          write_root_block ~blk_ops ~blk_dev_ops ~blk_allocator_state ~btree_root_state >>= fun () ->
+          return (fd,blk_allocator_state,btree_root_state))
       | false -> 
-        read_root_block ~monad_ops ~blk_ops ~blk_dev_ops >>= fun rb -> 
-        return (fd,rb)
+        read_root_block ~monad_ops ~blk_ops ~blk_dev_ops >>= fun (ba,bt) -> 
+        return (fd,ba,bt)
 
     let _  = from_file
 
-    let close ~fd ~root_block = 
+    let close ~fd ~blk_allocator_state ~btree_root_state = 
       let blk_dev_ops = fd_to_blk_dev fd in
-      write_root_block ~blk_ops ~blk_dev_ops ~root_block >>= fun () -> 
+      write_root_block ~blk_ops ~blk_dev_ops ~blk_allocator_state ~btree_root_state >>= fun () -> 
       blk_close fd
   end
   in 
@@ -147,8 +150,8 @@ module Internal2 = struct
     let return = monad_ops.return in
     let { with_state } = blk_allocator in
     let alloc () = with_state (fun ~state:s ~set_state ->
-        set_state {min_free_blk_id=s.min_free_blk_id+1} >>= fun _ 
-        -> return (Blk_id.of_int s.min_free_blk_id))
+        set_state {min_free_blk_id=increment_blk_id s.min_free_blk_id} >>= fun _ 
+        -> return s.min_free_blk_id)
     in
     let free _blk_id = return () in
     {alloc;free}

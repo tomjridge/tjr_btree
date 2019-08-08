@@ -95,10 +95,13 @@ type ('k,'v,'r,'node,'leaf) nlc =
    somehow. A value of type [('r,'t) btree_root_ops] reveals how to read and
    write this reference in the global state.  
 *)
-module Root_ops_type = struct
-  type ('r,'t) btree_root_ops = Btree_root_ops of ('r,'t)with_state
-end
-include Root_ops_type
+
+(** Btree root; just an int/blk_id *)
+type 'blk_id btree_root_state = {
+  btree_root:'blk_id;
+}
+
+type ('r,'t) btree_root_ops = ('r btree_root_state,'t)with_state
 
 
 (* module Map_ops_etc_type = struct *)

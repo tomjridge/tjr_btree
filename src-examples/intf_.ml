@@ -7,12 +7,17 @@
 (** {2 Blk_layer types} *)
 module Blk_id = Blk_id_as_int
 include Blk_id
+let increment_blk_id i = 
+  i |> Blk_id.to_int |> fun i -> i+1 |> Blk_id.of_int
 
-(** Blk allocator state: just an int *)
-type blk_allocator_state = {
-  min_free_blk_id:int;
+(** Blk allocator state: just an int/blk_id *)
+type 'blk_id blk_allocator_state = {
+  min_free_blk_id:'blk_id;
 }
 
+
+
+(*
 (** A type to record a pair: the min free blk_id and the btree root block.
 
 FIXME if btree_root was an option, we could avoid passing
@@ -21,11 +26,15 @@ type root_block = {
   free       :blk_id;
   btree_root :blk_id
 }
+*)
+
+(* FIXME remove the following *)
 
 (** FIXME why use fstore and fstore_passing? *)
 type btree_from_file_result = {
   fd         :Unix.file_descr;
-  root_block :root_block;  (* NOTE this is the initial root block *)
+  blk_allocator_state: blk_id blk_allocator_state;
+  btree_root_state: blk_id btree_root_state;
   fstore     :Tjr_store.fstore ref;
   run        :'a. ('a, fstore_passing) m -> 'a; (* uses the fstore field! *)
   close      :unit -> unit;  (* FIXME should be monadic ? *)
