@@ -120,12 +120,11 @@ module Internal2 = struct
     ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map intern
   [@@ocaml.warning "-8"]
 
-  (* FIXME this takes advantage of the undocumented fact that
-     allocations are increasing ints *)
+  (* FIXME this takes advantage of the fact that -1*m is m' *)
   let mark' s f = 
     mark s;
     f () |> fun r ->
-    mark (s+1);
+    mark (-1*s);
     r
 
   let make_marshalling_ops ~blk_ops ~node_leaf_list_conversions

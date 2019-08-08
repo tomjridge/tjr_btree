@@ -100,8 +100,19 @@ end
 
 module Imperative = struct
   let monad_ops = imperative_monad_ops
+
+  let read_count = ref 0
+  let write_count = ref 0 
+  let _ = Pervasives.at_exit (fun () -> 
+      Printf.printf "Block statistics: %d read; %d written\n" (!read_count) (!write_count))
+
   let blk_dev_ops fd = 
-    Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd
+    Blk_dev_on_fd.make_with_unix ~monad_ops ~blk_ops ~fd |> fun { blk_sz; read; write } -> 
+    { blk_sz; 
+      read=(fun ~blk_id -> incr read_count; read ~blk_id);
+      write=(fun ~blk_id ~blk -> incr write_count; write ~blk_id ~blk)
+    }
+    
 
 
   module Int_int = struct    

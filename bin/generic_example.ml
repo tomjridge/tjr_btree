@@ -32,7 +32,7 @@ let make_generic_example (type k v r leaf_stream t)
     let ops = map_ops_with_ls
 
     (* create and init store, write some values, and close *)
-    let do_write () = profile "write" @@ fun () -> 
+    let do_write () = profile "do_write" @@ fun () -> 
       Printf.printf "Executing %d writes...\n%!" max_writes;
       print_endline "Writing...";
       (* write values *)
@@ -44,7 +44,7 @@ let make_generic_example (type k v r leaf_stream t)
     let _ = do_write
 
     (* delete some values *)
-    let do_delete () = profile "del" @@ fun () -> 
+    let do_delete () = profile "do_delete" @@ fun () -> 
       print_endline "Deleting...";
       for x=100 to 200 do
         let k = int_to_k x in
@@ -58,7 +58,7 @@ let make_generic_example (type k v r leaf_stream t)
       assert(run (ops.find ~k:(int_to_k 1000)) = Some (int_to_v 1000));
       ()
       
-    let do_full_check () = profile "full" @@ fun () -> 
+    let do_full_check () = profile "do_full_check" @@ fun () -> 
       print_endline "Full check...";
       for i = 1 to max_writes do
         let k = int_to_k i in
