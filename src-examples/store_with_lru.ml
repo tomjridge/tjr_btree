@@ -1,4 +1,9 @@
-(** Add LRU caching to an existing store FIXME move elsewhere *)
+(** Add LRU caching to an existing store. This is a read cache; writes
+   are passed through in addition to being cached. So there is no need
+   to flush anything. *)
+
+
+(* FIXME move elsewhere *)
 
 open Profilers_.Lru_profiler
 
