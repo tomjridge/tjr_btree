@@ -6,9 +6,11 @@
 
 (** {2 Blk_layer types} *)
 module Blk_id = Blk_id_as_int
-include Blk_id
-let increment_blk_id i = 
-  i |> Blk_id.to_int |> fun i -> i+1 |> Blk_id.of_int
+type blk_id = Blk_id.blk_id
+(* include Blk_id *)
+
+(* let increment_blk_id i =  *)
+  (* i |> Blk_id.to_int |> fun i -> i+1 |> Blk_id.of_int *)
 
 (** Blk allocator state: just an int/blk_id *)
 type 'blk_id blk_allocator_state = {
