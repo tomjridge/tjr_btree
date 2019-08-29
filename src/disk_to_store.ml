@@ -9,7 +9,7 @@ let disk_to_store ~monad_ops ~disk_ops =
   let { marshalling_ops=marshal; blk_dev_ops; blk_allocator_ops=alloc } = disk_ops in
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  let { blk_sz; read; write } = blk_dev_ops in
+  let { blk_sz; read; write; write_many=_ } = blk_dev_ops in
   let { marshal_blk_size; dnode_to_blk; blk_to_dnode } = marshal in
   Test.test(fun _ -> assert (Blk_sz.to_int blk_sz = marshal_blk_size));
   let ops = {
