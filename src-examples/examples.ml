@@ -147,7 +147,7 @@ module Imperative = struct
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
-      |> fun store_ops -> Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
+      |> fun store_ops -> Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops
     in
     let pre_btree_ops fd = 
       store_to_pre_btree ~store_ops:(store_ops fd)
@@ -207,7 +207,7 @@ example
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
-      |> fun store_ops -> Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
+      |> fun store_ops -> Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops
     in
     let pre_btree_ops fd = 
       store_to_pre_btree ~store_ops:(store_ops fd)
@@ -275,7 +275,7 @@ module Lwt = struct
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
-      |> fun store_ops -> Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
+      |> fun store_ops -> Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops
     in
     let pre_btree_ops fd = 
       store_to_pre_btree ~store_ops:(store_ops fd)
@@ -335,7 +335,7 @@ example
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
     let store_ops fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
-      |> fun store_ops -> Store_with_lru.make_store_with_lru ~monad_ops ~store_ops
+      |> fun store_ops -> Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops
     in
     let pre_btree_ops fd = 
       store_to_pre_btree ~store_ops:(store_ops fd)

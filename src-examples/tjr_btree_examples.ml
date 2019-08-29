@@ -14,9 +14,9 @@ module Store_in_mem = Store_in_mem
 let mk_in_mem_store_ops = Store_in_mem.mk_store_ops
 
 
-(** {2 LRU} *)
+(** {2 Read cache and write-back cache based on LRU} *)
 
-module Store_with_lru = Store_with_lru
+module Store_cache = Store_cache
 
 
 (** {2 Bin-prot marshalling for on-disk store} 
