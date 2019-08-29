@@ -51,7 +51,7 @@ module Make(S:S) : sig
   val node_ops : (k, r, node) Isa_btree_intf.node_ops
 
   val node_leaf_list_conversions : (k, v, r, node, leaf) node_leaf_list_conversions
-  
+
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 
   type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
@@ -78,8 +78,9 @@ root_ops:(r, t) btree_root_ops ->
 (k, v, r, leaf_stream, t) Map_ops_with_ls.map_ops_with_ls
 
 
-  (** Convenience *)
-  val empty_leaf_as_blk: dnode_to_blk:((node, leaf) dnode -> 'blk) -> 'blk
+  (** Convenience; dnode_to_blk comes from disk_ops; NOTE we try to
+     avoid restrictions on the blk type *)
+  (* val empty_leaf_as_blk: leaf_to_blk:(leaf -> 'blk) -> 'blk *)
 
 end = struct
   open S

@@ -41,7 +41,8 @@ open Blk_layer
 let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
   (* let example = Examples.Imperative.int_int_example in *)
   let module A = struct
-    let monad_ops = Imperative.monad_ops
+    open Inc1
+    open Imperative.Inc2
     let ( >>= ) = monad_ops.bind
     let return = monad_ops.return
 
