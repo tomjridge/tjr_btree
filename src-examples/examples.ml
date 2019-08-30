@@ -34,7 +34,7 @@ simple int->int example
 %}
 
 *)
-type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_ops,'wb,'extra) example = {
+type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_ops,'wb,'dnode,'extra) example = {
   monad_ops         : 't monad_ops;
   compare_k         : 'k -> 'k -> int;
   blk_ops           : 'blk blk_ops;
@@ -43,10 +43,10 @@ type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_
   blk_allocator     : ('blk_id blk_allocator_state,'t)with_state;
   reader_writers    : ('k,'v)Bin_prot_marshalling.reader_writers;
   nlc               : ('k,'v,'r,'node,'leaf) nlc;
-  marshalling_ops   : (('node,'leaf)dnode,'blk) marshalling_ops;
-  disk_ops          : 'fd -> ('blk_id,'t,('node,'leaf)dnode,'blk) disk_ops;
-  store_ops         : 'fd -> ('blk_id,('node,'leaf)dnode,'t) store_ops;
-  make_write_back_cache  : cap:int -> delta:int -> ('wb,('k,'v,'k*'v,'wb)write_back_cache_ops) initial_state_and_ops;
+  marshalling_ops   : ('dnode,'blk) marshalling_ops;
+  disk_ops          : 'fd -> ('blk_id,'t,'dnode,'blk) disk_ops;
+  store_ops         : 'fd -> ('blk_id,'dnode,'t) store_ops;
+  make_write_back_cache  : cap:int -> delta:int -> ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
   add_write_back_cache: blk_dev_ops:'blk_dev_ops -> store_ops:'store_ops -> with_write_back_cache:('wb,'t)with_state -> 'store_ops;
   pre_btree_ops     : 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
   btree_root_ref    : 'blk_id btree_root_state ref;
@@ -125,19 +125,24 @@ module type S2 = sig
   val blk_dev_ops: fd -> (blk_id,blk,t)blk_dev_ops
   type node
   type leaf
+  type nonrec dnode = (node,leaf)dnode
   val leaf_ops : (k,v,leaf)Isa_btree_intf.leaf_ops
   (* val empty_leaf_as_blk: (node,leaf)dnode -> blk *)
   type leaf_stream
   val node_leaf_list_conversions: (k,v,r,node,leaf) nlc
-  type nonrec store_ops = (blk_id,(node,leaf)dnode,t)store_ops
+  type nonrec store_ops = (blk_id,dnode,t)store_ops
   type nonrec pre_btree_ops = (k,v,blk_id,t,leaf,node,leaf_stream) pre_btree_ops
   val store_to_pre_btree : store_ops:store_ops -> pre_btree_ops
   type write_back_cache
-  val make_write_back_cache: cap:int -> delta:int -> (write_back_cache,(k,v,k*v,write_back_cache) write_back_cache_ops) initial_state_and_ops
+  val make_write_back_cache: cap:int -> delta:int -> (write_back_cache,(r,dnode,r*dnode,write_back_cache) write_back_cache_ops) initial_state_and_ops
 end
 
 module Make(S:S2) = struct
   open S
+      
+  let write_back_cache = make_write_back_cache ~cap:100 ~delta:10
+  let wbc = write_back_cache
+
   let make () = 
     let compare_k = k_cmp in
     let blk_allocator_ref = ref { min_free_blk_id=(Blk_id.of_int (-1)) } in
@@ -153,17 +158,27 @@ module Make(S:S2) = struct
     in  
     let disk_ops fd = 
       Blk_layer.make_disk_ops ~marshalling_ops
-        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in
-    let store_ops fd =
-      disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
-      |> fun store_ops -> Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops
-    in
+        ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in    
     let add_write_back_cache ~blk_dev_ops ~store_ops ~with_write_back_cache = 
+      let evict writes = 
+        (* these writes are dnodes; we need to marshall them first *)
+        writes |> List.map (fun (blk_id,dn) -> 
+            (blk_id,marshalling_ops.dnode_to_blk dn))
+        |> blk_dev_ops.write_many
+      in
       Store_cache.add_write_back_cache_to_store ~monad_ops ~store_ops 
         ~alloc:blk_allocator_ops.alloc
-        ~evict:blk_dev_ops.write_many                    
-        ~write_back_cache_ops:(failwith "")
+        ~evict (* :blk_dev_ops.write_many *)
+        ~write_back_cache_ops:wbc.ops
         ~with_write_back_cache
+    in
+    let wbc_ref = ref wbc.initial_state in
+    let with_write_back_cache = with_imperative_ref ~monad_ops wbc_ref in
+    let store_ops fd =
+      disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
+      |> fun store_ops -> 
+      add_write_back_cache ~blk_dev_ops:(blk_dev_ops fd) ~store_ops ~with_write_back_cache
+      (* Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops *)
     in
     let pre_btree_ops fd = 
       store_to_pre_btree ~store_ops:(store_ops fd)
@@ -215,13 +230,22 @@ module Imperative = struct
     include S
     module Btree = Tjr_btree.Make(S)    
     include Btree
-    module W = struct
-      module K = struct type t = k let compare = k_cmp end
-      module V = struct type t = v end
-      include Make_write_back_cache(K)(V)
+    type nonrec dnode = (node,leaf)dnode
+    (* write back cache types *)
+    module Write_back_cache_ = struct
+      module K = struct
+        type t = r
+        let compare: t -> t -> int = Pervasives.compare
+      end
+      module V = struct
+        type t = dnode
+      end
+      module B = Make_write_back_cache(K)(V)
+      include B
+      let make_write_back_cache = B.make_write_back_cache
     end
-    type write_back_cache = W.Internal.Lru.t
-    let make_write_back_cache = W.make_write_back_cache
+    type write_back_cache = Write_back_cache_.Internal.Lru.t
+    let make_write_back_cache = Write_back_cache_.make_write_back_cache
   end
 
   let int_int_example () = 
@@ -230,9 +254,10 @@ module Imperative = struct
 
   let _ 
 : unit ->
-(int, int, r, imperative, r, blk, (r, 'a, imperative) blk_dev_ops,
+(int, int, r, imperative, r, blk, (r, blk, imperative) blk_dev_ops,
  Unix.file_descr, Int_int.node, Int_int.leaf, Int_int.leaf_stream,
- (r, 'a, imperative) store_ops, 'b, unit)
+ (r, (Int_int.node, Int_int.leaf) dnode, imperative) store_ops,
+ Int_int.write_back_cache, (Int_int.node, Int_int.leaf) dnode, unit)
 example
 = int_int_example
 
@@ -246,13 +271,22 @@ example
     include S
     module Btree = Tjr_btree.Make(S)
     include Btree
-    module W = struct
-      module K = struct type t = k let compare = k_cmp end
-      module V = struct type t = v end
-      include Make_write_back_cache(K)(V)
+    type nonrec dnode = (node,leaf)dnode
+    (* write back cache types *)
+    module Write_back_cache_ = struct
+      module K = struct
+        type t = r
+        let compare: t -> t -> int = Pervasives.compare
+      end
+      module V = struct
+        type t = dnode
+      end
+      module B = Make_write_back_cache(K)(V)
+      include B
+      let make_write_back_cache = B.make_write_back_cache
     end
-    type write_back_cache = W.Internal.Lru.t
-    let make_write_back_cache = W.make_write_back_cache
+    type write_back_cache = Write_back_cache_.Internal.Lru.t
+    let make_write_back_cache = Write_back_cache_.make_write_back_cache
   end
 
   let ss_ss_example () = 
@@ -282,13 +316,22 @@ module Lwt = struct
     include S
     module Btree = Tjr_btree.Make(S)
     include Btree
-    module W = struct
-      module K = struct type t = k let compare = k_cmp end
-      module V = struct type t = v end
-      include Make_write_back_cache(K)(V)
+    type nonrec dnode = (node,leaf)dnode
+    (* write back cache types *)
+    module Write_back_cache_ = struct
+      module K = struct
+        type t = r
+        let compare: t -> t -> int = Pervasives.compare
+      end
+      module V = struct
+        type t = dnode
+      end
+      module B = Make_write_back_cache(K)(V)
+      include B
+      let make_write_back_cache = B.make_write_back_cache
     end
-    type write_back_cache = W.Internal.Lru.t
-    let make_write_back_cache = W.make_write_back_cache
+    type write_back_cache = Write_back_cache_.Internal.Lru.t
+    let make_write_back_cache = Write_back_cache_.make_write_back_cache
   end
 
   let int_int_example () = 
@@ -297,9 +340,10 @@ module Lwt = struct
 
   let _ 
 : unit ->
-(int, int, r, lwt, r, blk, (r, 'a, lwt) blk_dev_ops, Lwt_unix.file_descr,
- Int_int.node, Int_int.leaf, Int_int.leaf_stream, (r, 'a, lwt) store_ops, 'b,
- unit)
+(int, int, r, lwt, r, blk, (r, blk, lwt) blk_dev_ops, Lwt_unix.file_descr,
+ Int_int.node, Int_int.leaf, Int_int.leaf_stream,
+ (r, (Int_int.node, Int_int.leaf) dnode, lwt) store_ops,
+ Int_int.write_back_cache, (Int_int.node, Int_int.leaf) dnode, unit)
 example
 = int_int_example
 
@@ -311,13 +355,22 @@ example
     include S
     module Btree = Tjr_btree.Make(S)
     include Btree
-    module W = struct
-      module K = struct type t = k let compare = k_cmp end
-      module V = struct type t = v end
-      include Make_write_back_cache(K)(V)
+    type nonrec dnode = (node,leaf)dnode
+    (* write back cache types *)
+    module Write_back_cache_ = struct
+      module K = struct
+        type t = r
+        let compare: t -> t -> int = Pervasives.compare
+      end
+      module V = struct
+        type t = dnode
+      end
+      module B = Make_write_back_cache(K)(V)
+      include B
+      let make_write_back_cache = B.make_write_back_cache
     end
-    type write_back_cache = W.Internal.Lru.t
-    let make_write_back_cache = W.make_write_back_cache
+    type write_back_cache = Write_back_cache_.Internal.Lru.t
+    let make_write_back_cache = Write_back_cache_.make_write_back_cache
   end
 
   let ss_ss_example () = 
