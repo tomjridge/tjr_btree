@@ -104,8 +104,8 @@ let add_write_back_cache_to_store (type blk_id)
     let ( >>= ) = monad_ops.bind 
     let return = monad_ops.return
 
-    let [m1;m2;m3] = 
-      ["m1";"m2";"m3"] |> List.map intern
+    let [read_;wrte_;rewrite_] = 
+      ["read";"wrte";"rewrite"] |> List.map intern
     [@@ocaml.warning "-8"]
 
     (* FIXME possibly inefficient *)
@@ -134,7 +134,6 @@ let add_write_back_cache_to_store (type blk_id)
         | None -> set_state cache
         | Some(evictees,cache') -> (
             evict evictees >>= fun () -> 
-            (* FIXME handle dirty evictees *)
             set_state cache')
       in
       let read = fun r -> 
@@ -181,7 +180,7 @@ let add_write_back_cache_to_store (type blk_id)
           | None -> (
               (* assume we can't rewrite *)
               alloc_and_place_dirty_entry_in_cache ())
-          | Some (dn,dirty) -> (
+          | Some (_dn,dirty) -> (  (* was dn rather than _dn! nasty bug *)
               match dirty with
               | true -> (
                   wb.insert r (dn,true) cache |> fun cache' -> 
@@ -191,6 +190,8 @@ let add_write_back_cache_to_store (type blk_id)
         )
       in
       let free blk_ids = 
+        print_endline "Call to free";
+        ignore(failwith __LOC__); (* FIXME remove *)
         (* these blocks are guaranteed to never be accessed again; so we can remove them from the cache *)
         with_write_back_cache.with_state (fun ~state:cache ~set_state -> 
           let cache = 
@@ -205,9 +206,9 @@ let add_write_back_cache_to_store (type blk_id)
         free blk_ids
       in
       {
-        read=(fun r -> profile_m m1 (read r));
-        wrte=(fun dn -> profile_m m2 (wrte dn));
-        rewrite=(fun r dn -> profile_m m3 (rewrite r dn));
+        read=(fun r -> profile_m read_ (read r));
+        wrte=(fun dn -> profile_m wrte_ (wrte dn));
+        rewrite=(fun r dn -> profile_m rewrite_ (rewrite r dn));
         free;
       }
 

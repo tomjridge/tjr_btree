@@ -35,25 +35,26 @@ simple int->int example
 
 *)
 type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_ops,'wb,'dnode,'extra) example = {
-  monad_ops         : 't monad_ops;
-  compare_k         : 'k -> 'k -> int;
-  blk_ops           : 'blk blk_ops;
-  blk_dev_ops       : 'fd -> 'blk_dev_ops;
-  blk_allocator_ref : 'blk_id blk_allocator_state ref; 
-  blk_allocator     : ('blk_id blk_allocator_state,'t)with_state;
-  reader_writers    : ('k,'v)Bin_prot_marshalling.reader_writers;
-  nlc               : ('k,'v,'r,'node,'leaf) nlc;
-  marshalling_ops   : ('dnode,'blk) marshalling_ops;
-  disk_ops          : 'fd -> ('blk_id,'t,'dnode,'blk) disk_ops;
-  store_ops         : 'fd -> ('blk_id,'dnode,'t) store_ops;
-  make_write_back_cache  : cap:int -> delta:int -> ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
-  add_write_back_cache: blk_dev_ops:'blk_dev_ops -> store_ops:'store_ops -> with_write_back_cache:('wb,'t)with_state -> 'store_ops;
-  pre_btree_ops     : 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
-  btree_root_ref    : 'blk_id btree_root_state ref;
-  btree_root_ops    : ('blk_id btree_root_state,'t)with_state;
-  map_ops_with_ls   : 'fd -> ('k,'v,'r,'leaf_stream,'t)map_ops_with_ls;
-  empty_leaf_as_blk : 'blk; 
-  extra             : 'extra
+  monad_ops             : 't monad_ops;
+  compare_k             : 'k -> 'k -> int;
+  blk_ops               : 'blk blk_ops;
+  blk_dev_ops           : 'fd -> 'blk_dev_ops;
+  blk_allocator_ref     : 'blk_id blk_allocator_state ref; 
+  blk_allocator         : ('blk_id blk_allocator_state,'t)with_state;
+  reader_writers        : ('k,'v)Bin_prot_marshalling.reader_writers;
+  nlc                   : ('k,'v,'r,'node,'leaf) nlc;
+  marshalling_ops       : ('dnode,'blk) marshalling_ops;
+  disk_ops              : 'fd -> ('blk_id,'t,'dnode,'blk) disk_ops;
+  make_write_back_cache : cap:int -> delta:int -> ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
+  add_write_back_cache  : blk_dev_ops:'blk_dev_ops -> store_ops:'store_ops -> with_write_back_cache:('wb,'t)with_state -> 'store_ops;
+  wbc_ref               : 'wb ref; 
+  store_ops             : note_cached:unit -> 'fd -> ('blk_id,'dnode,'t) store_ops;
+  pre_btree_ops         : note_cached:unit -> 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
+  btree_root_ref        : 'blk_id btree_root_state ref;
+  btree_root_ops        : ('blk_id btree_root_state,'t)with_state;
+  map_ops_with_ls       : note_cached:unit -> 'fd -> ('k,'v,'r,'leaf_stream,'t)map_ops_with_ls;
+  empty_leaf_as_blk     : 'blk; 
+  extra                 : 'extra
 }
 (* NOTE the use of refs here means we need to allocate a new ref for
    each example instance. We use refs essentially so that we have an
@@ -174,25 +175,26 @@ module Make(S:S2) = struct
     in
     let wbc_ref = ref wbc.initial_state in
     let with_write_back_cache = with_imperative_ref ~monad_ops wbc_ref in
-    let store_ops fd =
+    let store_ops ~note_cached:() fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
       |> fun store_ops -> 
       add_write_back_cache ~blk_dev_ops:(blk_dev_ops fd) ~store_ops ~with_write_back_cache
       (* Store_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops *)
     in
-    let pre_btree_ops fd = 
-      store_to_pre_btree ~store_ops:(store_ops fd)
+    let pre_btree_ops ~note_cached:() fd = 
+      store_to_pre_btree ~store_ops:(store_ops ~note_cached:() fd)
     in
     let btree_root_ref = ref { btree_root=(Blk_id.of_int (-1)) } in
     let btree_root_ops = with_imperative_ref ~monad_ops btree_root_ref in
-    let map_ops_with_ls fd =
+    let map_ops_with_ls ~note_cached:() fd =
       let pre_btree_ops = pre_btree_ops fd in
-      pre_btree_to_map ~monad_ops ~pre_btree_ops ~root_ops:btree_root_ops
+      pre_btree_to_map ~monad_ops ~pre_btree_ops:(pre_btree_ops ~note_cached:()) ~root_ops:btree_root_ops
     in
     let empty_leaf_as_blk = marshalling_ops.dnode_to_blk (Disk_leaf (leaf_ops.kvs_to_leaf [])) in
     { monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator_ref;
       blk_allocator; reader_writers; nlc; marshalling_ops; disk_ops;
-      store_ops; make_write_back_cache; add_write_back_cache;
+      store_ops; 
+      make_write_back_cache; add_write_back_cache; wbc_ref;
       pre_btree_ops; btree_root_ref; btree_root_ops; map_ops_with_ls;
       empty_leaf_as_blk; extra=()}
 

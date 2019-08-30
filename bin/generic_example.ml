@@ -54,7 +54,7 @@ let make_generic_example (type k v r leaf_stream t)
     (* open store and check whether various keys and values are correct *)
     let do_check () = 
       print_endline "Checking...";
-      assert(run (ops.find ~k:(int_to_k 100)) = None);
+      assert(run (ops.find ~k:(int_to_k 100)) = None);      
       assert(run (ops.find ~k:(int_to_k 1000)) = Some (int_to_v 1000));
       ()
       
@@ -98,7 +98,7 @@ let make_generic_main ~fn ~int_to_k ~int_to_v ~example =
   let run = {run=Tjr_monad.Imperative.of_m} in
   btree_root_ref := bt_root;
   blk_allocator_ref := ba_root; 
-  let map_ops_with_ls = example.map_ops_with_ls fd in
+  let map_ops_with_ls = example.map_ops_with_ls ~note_cached:() fd in
   let example = make_generic_example
       ~map_ops_with_ls
       ~run 

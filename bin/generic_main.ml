@@ -85,7 +85,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
 
       | ["count"; fn] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls ~note_cached:() fd in
           let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
           make_leaf_stream ((!btree_root_ref).btree_root) >>= fun lss -> 
           let count = ref 0 in
@@ -101,19 +101,19 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
 
       | ["insert";fn;k;v] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls ~note_cached:() fd in
           insert ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
           close ())
 
       | ["delete";fn;k] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ delete; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ delete; _ } = map_ops_with_ls ~note_cached:() fd in
           delete ~k:(s2k k) >>= fun () -> 
           close ())
 
       | ["list";fn] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls ~note_cached:() fd in
           let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
           make_leaf_stream ((!btree_root_ref).btree_root) >>= fun lss -> 
           let rec loop lss =
@@ -132,7 +132,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
 
       | ["insert_range";fn;l;h] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls ~note_cached:() fd in
           let l,h = int_of_string l, int_of_string h in
           let f () =           
             l |> iter_break (fun l -> 
@@ -150,7 +150,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
 
       | ["test_random_reads";fn;l;h;n] -> run (
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ find; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ find; _ } = map_ops_with_ls ~note_cached:() fd in
           let l,h,n = int_of_string l, int_of_string h, int_of_string n in
           (* n random reads between >=l and <h *)
           let f () = 
@@ -169,7 +169,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
       | ["test_random_writes";fn;l;h;n] -> run (
           (* version using plain insert *)
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls ~note_cached:() fd in
           let l,h,n = int_of_string l, int_of_string h, int_of_string n in
           (* n random writes between >=l and <h *)
           let f () = 
@@ -189,7 +189,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
       | ["test_random_writes_im";fn;l;h;n] -> run (
           (* version using insert_many, with sorting and chunks *)
           from_file ~fn ~create ~init >>= fun (fd,close) -> 
-          let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls fd in
+          let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls ~note_cached:() fd in
           let l,h,n = int_of_string l, int_of_string h, int_of_string n in
           (* n random writes between >=l and <h *)
           let f () = 
