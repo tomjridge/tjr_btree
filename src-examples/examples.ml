@@ -48,6 +48,7 @@ type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_
   make_write_back_cache : cap:int -> delta:int -> ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
   add_write_back_cache  : blk_dev_ops:'blk_dev_ops -> store_ops:'store_ops -> with_write_back_cache:('wb,'t)with_state -> 'store_ops;
   wbc_ref               : 'wb ref; 
+  flush_wbc             : blk_dev_ops:'blk_dev_ops -> unit -> (unit,'t)m;
   store_ops             : note_cached:unit -> 'fd -> ('blk_id,'dnode,'t) store_ops;
   pre_btree_ops         : note_cached:unit -> 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
   btree_root_ref        : 'blk_id btree_root_state ref;
@@ -141,7 +142,7 @@ end
 module Make(S:S2) = struct
   open S
       
-  let write_back_cache = make_write_back_cache ~cap:100 ~delta:10
+  let write_back_cache = make_write_back_cache ~cap:52000 ~delta:10
   let wbc = write_back_cache
 
   let make () = 
@@ -160,21 +161,25 @@ module Make(S:S2) = struct
     let disk_ops fd = 
       Blk_layer.make_disk_ops ~marshalling_ops
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in    
+    let evict ~blk_dev_ops writes = 
+      (* these writes are dnodes; we need to marshall them first *)
+      writes |> List.map (fun (blk_id,dn) -> 
+          (blk_id,marshalling_ops.dnode_to_blk dn))
+      |> blk_dev_ops.write_many
+    in
     let add_write_back_cache ~blk_dev_ops ~store_ops ~with_write_back_cache = 
-      let evict writes = 
-        (* these writes are dnodes; we need to marshall them first *)
-        writes |> List.map (fun (blk_id,dn) -> 
-            (blk_id,marshalling_ops.dnode_to_blk dn))
-        |> blk_dev_ops.write_many
-      in
       Store_cache.add_write_back_cache_to_store ~monad_ops ~store_ops 
         ~alloc:blk_allocator_ops.alloc
-        ~evict (* :blk_dev_ops.write_many *)
+        ~evict:(evict ~blk_dev_ops)
         ~write_back_cache_ops:wbc.ops
         ~with_write_back_cache
     in
     let wbc_ref = ref wbc.initial_state in
     let with_write_back_cache = with_imperative_ref ~monad_ops wbc_ref in
+    let flush_wbc ~blk_dev_ops () = 
+      wbc.ops.trim_all (!wbc_ref) |> fun (writes,_) ->
+      evict ~blk_dev_ops writes
+    in      
     let store_ops ~note_cached:() fd =
       disk_to_store ~monad_ops ~disk_ops:(disk_ops fd)
       |> fun store_ops -> 
@@ -194,7 +199,7 @@ module Make(S:S2) = struct
     { monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator_ref;
       blk_allocator; reader_writers; nlc; marshalling_ops; disk_ops;
       store_ops; 
-      make_write_back_cache; add_write_back_cache; wbc_ref;
+      make_write_back_cache; add_write_back_cache; wbc_ref; flush_wbc;
       pre_btree_ops; btree_root_ref; btree_root_ops; map_ops_with_ls;
       empty_leaf_as_blk; extra=()}
 

@@ -61,7 +61,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
     
     let int2kv = fun k -> (i2k k,i2v (2*k)) 
 
-    let { map_ops_with_ls; empty_leaf_as_blk; blk_allocator_ref; btree_root_ref; _ } = example () 
+    let { map_ops_with_ls; empty_leaf_as_blk; blk_dev_ops; blk_allocator_ref; btree_root_ref; flush_wbc; _ } = example () 
 
     let _ = Random.self_init ()
 
@@ -74,7 +74,10 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
       from_file ~fn ~create ~init >>= fun (fd,blk_allocator_state,btree_root_state) -> 
       blk_allocator_ref:=blk_allocator_state;
       btree_root_ref:=btree_root_state;
-      let close () = close ~fd ~blk_allocator_state:(!blk_allocator_ref) ~btree_root_state:(!btree_root_ref) in
+      let close () = 
+        run (flush_wbc ~blk_dev_ops:(blk_dev_ops fd) ());
+        close ~fd ~blk_allocator_state:(!blk_allocator_ref) ~btree_root_state:(!btree_root_ref) 
+      in
       return (fd,close)
     
     let _ = match args with

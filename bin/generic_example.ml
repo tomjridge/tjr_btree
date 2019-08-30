@@ -73,7 +73,7 @@ let make_generic_example (type k v r leaf_stream t)
       do_write ();
       do_delete ();
       do_check ();
-      do_full_check()      
+      do_full_check();
   end
   in
   A.{  
@@ -88,7 +88,7 @@ let _ = make_generic_example
 
 
 let make_generic_main ~fn ~int_to_k ~int_to_v ~example = 
-  let Examples.{monad_ops;blk_ops;empty_leaf_as_blk; blk_allocator_ref; btree_root_ref; _} = example in
+  let Examples.{monad_ops;blk_ops;empty_leaf_as_blk; blk_dev_ops; blk_allocator_ref; btree_root_ref; flush_wbc; _} = example in
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   let Blk_layer.{ from_file; close } =
@@ -105,4 +105,5 @@ let make_generic_main ~fn ~int_to_k ~int_to_v ~example =
       ~int_to_k ~int_to_v
   in
   example.do_all ();
+  run.run (flush_wbc ~blk_dev_ops:(blk_dev_ops fd) ());
   close ~fd ~blk_allocator_state:!blk_allocator_ref ~btree_root_state:!btree_root_ref
