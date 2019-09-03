@@ -39,16 +39,29 @@ type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_
   blk_dev_ops           : 'fd -> 'blk_dev_ops;
   blk_allocator_ref     : 'blk_id blk_allocator_state ref; 
   blk_allocator         : ('blk_id blk_allocator_state,'t)with_state;
+  blk_allocator_ops     : ('blk_id, 't) blk_allocator_ops;
   reader_writers        : ('k,'v)Bin_prot_marshalling.reader_writers;
   nlc                   : ('k,'v,'r,'node,'leaf) nlc;
   marshalling_ops       : ('dnode,'blk) marshalling_ops;
   disk_ops              : 'fd -> ('blk_id,'t,'dnode,'blk) disk_ops;
-  make_write_back_cache : cap:int -> delta:int -> ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
-  add_write_back_cache  : blk_dev_ops:'blk_dev_ops -> store_ops:'store_ops -> with_write_back_cache:('wb,'t)with_state -> 'store_ops;
+  evict : 
+    blk_dev_ops:('r, 'blk, 't) blk_dev_ops ->
+    ('r * 'dnode) list -> 
+    (unit, 't) m;
+  make_write_back_cache : 
+    cap:int -> delta:int -> 
+    ('wb,('r,'dnode,'r*'dnode,'wb)write_back_cache_ops) initial_state_and_ops;
+  add_write_back_cache  : 
+    blk_dev_ops:'blk_dev_ops -> 
+    store_ops:'store_ops -> 
+    with_write_back_cache:('wb,'t)with_state -> 
+    'store_ops;
   wbc_ref               : 'wb ref; 
+  with_write_back_cache : ('wb,'t)with_state;
   flush_wbc             : blk_dev_ops:'blk_dev_ops -> unit -> (unit,'t)m; (* FIXME 'wb -> (unit,'t)m? *)
   store_ops             : note_cached:unit -> 'fd -> ('blk_id,'dnode,'t) store_ops;
-  pre_btree_ops         : note_cached:unit -> 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
+  pre_btree_ops         : 
+    note_cached:unit -> 'fd -> ('k,'v,'blk_id,'t,'leaf,'node,'leaf_stream) pre_btree_ops;
   btree_root_ref        : 'blk_id btree_root_state ref;
   btree_root_ops        : ('blk_id btree_root_state,'t)with_state;
   map_ops_with_ls       : note_cached:unit -> 'fd -> ('k,'v,'r,'leaf_stream,'t)map_ops_with_ls;
@@ -134,6 +147,20 @@ module Without_monad = struct
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size     
     let reader_writers = Bin_prot_marshalling.Common_reader_writers.ss_ss
   end
+
+
+  module Int_int2 = struct
+    include Inc1
+    open Bin_prot_marshalling
+    type k = int
+    type v = int * int
+    let k_cmp = Int_.compare
+    let k_size=int_bin_prot_info.max_size
+    let v_size=int_bin_prot_info.max_size * 2
+    let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
+    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int
+  end
+
 end
 
 
@@ -214,10 +241,10 @@ module Make(S:S2) = struct
       pre_btree_to_map ~monad_ops ~pre_btree_ops:(pre_btree_ops ~note_cached:()) ~root_ops:btree_root_ops
     in
     let empty_leaf_as_blk = marshalling_ops.dnode_to_blk (Disk_leaf (leaf_ops.kvs_to_leaf [])) in
-    { monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator_ref;
-      blk_allocator; reader_writers; nlc; marshalling_ops; disk_ops;
+    { monad_ops; compare_k; blk_ops; blk_dev_ops; blk_allocator_ref; 
+      blk_allocator; blk_allocator_ops; reader_writers; nlc; marshalling_ops; disk_ops; evict;
       store_ops; 
-      make_write_back_cache; add_write_back_cache; wbc_ref; flush_wbc;
+      make_write_back_cache; add_write_back_cache; wbc_ref; with_write_back_cache; flush_wbc;
       pre_btree_ops; btree_root_ref; btree_root_ops; map_ops_with_ls;
       empty_leaf_as_blk; extra=()}
 
@@ -304,6 +331,20 @@ example
   let ss_ss_example () = 
     let module A = Make(String_string) in
     A.make ()
+
+
+  module Int_int2 = struct
+    module S = struct
+      include Without_monad.Int_int2
+      include Inc2
+    end
+    include S
+    module Btree = Tjr_btree.Make(S)
+    include Btree
+    type nonrec dnode = (node,leaf)dnode
+    include Make_write_back_cache'(struct type nonrec r=r let compare=Pervasives.compare type nonrec dnode = dnode end)
+  end
+    
 end
 
 
