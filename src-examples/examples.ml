@@ -158,7 +158,7 @@ module Without_monad = struct
     let k_size=int_bin_prot_info.max_size
     let v_size=int_bin_prot_info.max_size * 2
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int
+    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int2
   end
 
 end
@@ -344,6 +344,10 @@ example
     type nonrec dnode = (node,leaf)dnode
     include Make_write_back_cache'(struct type nonrec r=r let compare=Pervasives.compare type nonrec dnode = dnode end)
   end
+
+  let int_int2_example () = 
+    let module A = Make(Int_int2) in
+    A.make ()
     
 end
 
@@ -400,6 +404,23 @@ example
 
   let ss_ss_example () = 
     let module A = Make(String_string) in
+    A.make ()
+
+
+  module Int_int2 = struct
+    module S = struct
+      include Without_monad.Int_int2
+      include Inc2
+    end
+    include S
+    module Btree = Tjr_btree.Make(S)
+    include Btree
+    type nonrec dnode = (node,leaf)dnode
+    include Make_write_back_cache'(struct type nonrec r=r let compare=Pervasives.compare type nonrec dnode = dnode end)
+  end
+
+  let int_int2_example () = 
+    let module A = Make(Int_int2) in
     A.make ()
 
 end

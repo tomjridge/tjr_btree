@@ -60,6 +60,18 @@ module Common_reader_writers = struct
     read_v  =bin_reader_int;
     write_v =bin_writer_int;
   }
+
+  module Int_int2 = struct
+    type t = int*int [@@deriving bin_io]
+  end
+
+  let int_int2 = Int_int2.{
+    read_k  =bin_reader_int;
+    write_k =bin_writer_int;
+    read_v  =bin_reader_t;
+    write_v =bin_writer_t;
+  }
+
 end
 
 
