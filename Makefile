@@ -25,6 +25,7 @@ all:
 	$(MAKE) build
 	$(MAKE) install
 	$(MAKE) docs
+	$(MAKE) src-test/test.exe
 
 SRC:=_build/default/_doc/_html
 DST:=docs
@@ -60,8 +61,11 @@ run_examples: # FIXME todo
 	@echo ======================================================================
 #	$(MAKE) -f src-examples/Makefile.run_examples
 
-run_tests: # FIXME todo
-	$(MAKE) -C test_bin -f Makefile.run_tests
+# run_tests: # FIXME todo
+# 	$(MAKE) -C test_bin -f Makefile.run_tests
+
+run_test:
+	dune exec src-test/test.exe
 
 FORCE:
 

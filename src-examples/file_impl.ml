@@ -158,7 +158,7 @@ end = struct
 
   let wf buf = assert(buf.ok)
 
-  type t = bytes_buf
+  (* type t = bytes_buf *)
 
   let bytes_buf_ops = 
     let module B = BytesLabels in
@@ -175,8 +175,14 @@ end = struct
       let {len} = src_len in
       (* let dst = dst |> B.of_string in *)
       let {off=dst_pos} = dst_off in
-      assert (src_pos + len < B.length src);
-      assert (dst_pos + len < B.length dst);
+      assert (
+        src_pos + len <= B.length src |> fun b -> 
+        b || (Printf.printf "%d %d %d\n" src_pos len (B.length src); false)
+      );
+      assert (
+        dst_pos + len <= B.length dst |> fun b ->
+        b || (Printf.printf "%d %d %d\n" dst_pos len (B.length dst); false)
+      );
       B.blit ~src ~src_pos ~dst ~dst_pos ~len;
       dst0.ok <- false;
       {ok=true;bytes=dst}
@@ -226,7 +232,9 @@ module Iter_block_blit = struct
       (* FIXME this block-aligned blitting should probably be factored out and tested *)
       let rec loop (buf,buf_off,blk_n,blk_off,len_remain) = (
         assert(blk_off < blk_sz);
+        assert(blk_off >= 0);
         let blit_blk_to_buf ~(blk:blk) ~blk_off ~len =
+          assert(blk_off.off + len.len <= blk_sz);
           blk |> blk_ops.to_string |> fun src -> 
           buf_ops.blit_string_to_buf ~src ~src_off:blk_off
             ~src_len:len ~dst:buf ~dst_off:{off=buf_off} |> fun buf ->
@@ -239,6 +247,8 @@ module Iter_block_blit = struct
                    add to buf and cont if len is > 0 *)
             read_file_blk blk_n >>= fun (_,blk) ->
             let can_write (* in_this_buf *) = blk_sz - blk_off in
+            (* Printf.printf "can_write: %d\n" can_write; *)
+            assert(can_write <= blk_sz);
             let len = min len_remain can_write in
             blit_blk_to_buf ~blk ~blk_off:{off=blk_off} ~len:{len} |> fun buf ->
             let len_remain' = len_remain - len in
@@ -257,9 +267,7 @@ module Iter_block_blit = struct
       let module S = StringLabels in
       let src_len0 = src_len.len in
       (* NOTE this is slightly different, because for full blocks we don't need to read then write *)
-      let src : string = 
-        buf_ops.buf_to_string ~src ~off:{off=0} ~len:{len=src_len0} (* FIXME inefficient *)
-      in
+      let src : string = buf_ops.to_string src in
       let rec loop (src_off,len_remain,blk_n,blk_off) = 
         match len_remain with 
         | 0 -> return {size=src_len0}
@@ -267,9 +275,10 @@ module Iter_block_blit = struct
           match blk_off = 0 && len_remain >= blk_sz with
           | true -> (
               (* block aligned; write and continue; FIXME we may need to adjust size? *)
-              let blk = blk_ops.of_string (S.sub src ~pos:src_off ~len:blk_sz) in
+              let len = blk_sz in
+              let blk = blk_ops.of_string (S.sub src ~pos:src_off ~len) in
               alloc_and_write_file_blk blk_n blk >>= fun _r -> (* don't need to record the blkid *)
-              loop (src_off+blk_sz,len_remain-blk_sz,blk_n+1,0))
+              loop (src_off+len,len_remain-len,blk_n+1,0))
           | false -> (
               (* have to read blk then update *)
               read_file_blk blk_n >>= fun (r,blk) ->
@@ -294,6 +303,70 @@ module Iter_block_blit = struct
     let size () = failwith __LOC__ in
     { size; pread; pwrite }
 
+  let test () =
+    let monad_ops = imperative_monad_ops in
+    let ( >>= ) = monad_ops.bind in
+    let return = monad_ops.return in
+    let to_m,of_m = Imperative.(to_m,of_m) in
+    let buf_ops = bytes_buf_ops in
+    let blk_ops = Common_blk_ops.String_.make ~blk_sz:(Blk_sz.of_int 2) in 
+    (* FIXME this needs to have blk_sz 2; FIXME perhaps make it clearer that Common_blk_ops.string_blk_ops has size 4096 *)
+    let blk_sz = blk_ops.blk_sz |> Blk_sz.to_int in
+    let with_bytes buf = 
+      let buf_size = (buf_ops.buf_size buf).size in
+      assert(buf_size mod blk_sz = 0);
+      let buf = ref buf in
+      let read_file_blk i = to_m (
+          buf_ops.buf_to_string ~src:!buf ~off:{off=(i*blk_sz)} ~len:{len=blk_sz} |> fun s ->
+        (-1,s)) in
+      let rewrite_file_blk i (_blk_id,blk) = to_m (
+          buf_ops.blit_string_to_buf ~src:blk ~src_off:{off=0} ~src_len:{len=blk_sz}
+            ~dst:!buf ~dst_off:{off=i*blk_sz} |> fun buf' ->
+        buf := buf'; None)
+      in
+      let alloc_and_write_file_blk i blk = 
+          rewrite_file_blk i (-1,blk) >>= fun _ -> 
+          return (-1)
+      in
+      let { pread; pwrite; _ } = 
+        make ~monad_ops ~buf_ops ~blk_ops ~read_file_blk 
+          ~rewrite_file_blk ~alloc_and_write_file_blk
+      in
+      pread,pwrite,buf
+    in
+    of_m (
+      with_bytes (buf_ops.of_string "abcdef") |> fun (pread,pwrite,buf) -> 
+      pread ~off:{off=0} ~len:{len=0} >>= fun b -> 
+      assert(buf_ops.to_string b = "");
+      pread ~off:{off=0} ~len:{len=1} >>= fun b -> 
+      assert(buf_ops.to_string b = "a");
+      pread ~off:{off=0} ~len:{len=2} >>= fun b -> 
+      assert(buf_ops.to_string b = "ab");
+      pread ~off:{off=0} ~len:{len=3} >>= fun b -> 
+      assert(buf_ops.to_string b = "abc");
+      pread ~off:{off=0} ~len:{len=6} >>= fun b -> 
+      assert(buf_ops.to_string b = "abcdef");
+      let src = (buf_ops.of_string "xyz") in
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=1} ~dst_off:{off=0} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "xbcdef");
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=2} ~dst_off:{off=0} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "xycdef");
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=0} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "xyzdef");
+      buf:=buf_ops.of_string "abcdef";
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=1} ~dst_off:{off=0} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "xbcdef");
+      buf:=buf_ops.of_string "abcdef";
+      pwrite ~src ~src_off:{off=1} ~src_len:{len=1} ~dst_off:{off=1} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "aycdef" |> fun b -> 
+             b || (Printf.printf "buf: %s\n" (buf_ops.to_string (!buf)); false));      
+      buf:=buf_ops.of_string "abcdef";
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=1} >>= fun _sz -> 
+      assert(buf_ops.to_string (!buf) = "axyzef");
+      return ())
+      
+  let _ = test ()
+    
 end
 
 (* FIXME at the moment, this assumes that we can rewrite file blocks as we wish *)
@@ -347,3 +420,4 @@ let make (type fid blk blk_id t)
   in
   { size; pread; pwrite }
   
+

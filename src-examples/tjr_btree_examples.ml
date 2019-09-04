@@ -44,3 +44,4 @@ module Examples = Examples
 (** {2 Internal} *)
 
 module Profilers = Profilers_
+module File_impl = File_impl
