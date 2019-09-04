@@ -107,7 +107,7 @@ end
 
 
 (** Abstract buffer type, with underlying bytes representation; FIXME use this in production *)
-module Bytes_buf : sig
+module Unsafe_bytes_buf : sig
   type bytes_buf
   val buf_ops: bytes_buf buf_ops 
 end = struct
@@ -140,7 +140,59 @@ end = struct
   let buf_ops = bytes_buf_ops
 end
 
-let bytes_buf_ops = Bytes_buf.buf_ops
+
+module Safe_bytes_buf : sig
+  type bytes_buf
+  val buf_ops: bytes_buf buf_ops 
+end = struct
+  
+  (* The idea is to use "buffer passing", but to mark old buffers as
+     "not ok". Attempts to access "not ok" buffers results in a
+     runtime error. In some sense, the reference to the bytes (via the
+     record... but bytes is mutable anyway) is the owner of the bytes,
+     until some modifcation takes place. *)
+  type bytes_buf = {
+    mutable ok:bool;
+    bytes: bytes
+  }
+
+  let wf buf = assert(buf.ok)
+
+  type t = bytes_buf
+
+  let bytes_buf_ops = 
+    let module B = BytesLabels in
+    let buf_create n = B.make n (Char.chr 0) |> fun bytes -> {ok=true;bytes} in
+    let buf_to_string ~src ~off:{off} ~len:{len} =
+      B.sub_string src.bytes ~pos:off ~len
+    in
+    let of_string s = B.of_string s |> fun bytes -> {ok=true; bytes} in
+    let to_string s = B.to_string s.bytes in
+    let blit_bytes_to_buf ~src ~src_off ~src_len ~dst:dst0 ~dst_off =
+      wf dst0;      
+      let dst = dst0.bytes in
+      let {off=src_pos} = src_off in
+      let {len} = src_len in
+      (* let dst = dst |> B.of_string in *)
+      let {off=dst_pos} = dst_off in
+      assert (src_pos + len < B.length src);
+      assert (dst_pos + len < B.length dst);
+      B.blit ~src ~src_pos ~dst ~dst_pos ~len;
+      dst0.ok <- false;
+      {ok=true;bytes=dst}
+    in
+    let blit_string_to_buf ~src ~src_off ~src_len ~dst ~dst_off =
+      blit_bytes_to_buf ~src:(Bytes.unsafe_of_string src) ~src_off ~src_len ~dst ~dst_off
+    in
+    let buf_size buf = buf.bytes |> B.length |> fun size -> {size} in
+    {buf_create;buf_size;buf_to_string;of_string;to_string;blit_bytes_to_buf; blit_string_to_buf}
+
+  let buf_ops = bytes_buf_ops
+end
+
+let bytes_buf_ops = Safe_bytes_buf.buf_ops
+
+
 
 (* FIXME also want a bigstring version *)
 
