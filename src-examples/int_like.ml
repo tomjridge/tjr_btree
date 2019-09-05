@@ -20,7 +20,14 @@ type len = int len_
 
 
 type 'int index_ = {
-  index:int;
+  index:'int;
 } [@@unboxed]
 
 type index = int index_
+
+
+type 'int id_ = {
+  id:'int
+} [@@unboxed]
+
+type id = int id_

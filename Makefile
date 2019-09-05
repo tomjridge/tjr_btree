@@ -5,6 +5,8 @@ bin:=bin
 
 build:
 	$(DUNE) build @install
+	$(DUNE) build src-test/test.exe
+
 #	$(DUNE) build $(bin)/btree_main.exe
 # FIXME	$(DUNE) build test_bin/all.touch
 
@@ -25,7 +27,6 @@ all:
 	$(MAKE) build
 	$(MAKE) install
 	$(MAKE) docs
-	$(MAKE) src-test/test.exe
 
 SRC:=_build/default/_doc/_html
 DST:=docs
