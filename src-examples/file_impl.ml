@@ -149,12 +149,12 @@ module Iter_block_blit = struct
     in
 
     (*   pwrite : src:'buf -> src_off:offset -> src_len:len -> dst_off:offset -> (size,'t)m; *)
-    let pwrite ~(src:buf) ~src_off ~src_len ~dst_off = 
+    let pwrite ~(src:buf) ~src_off:{off=src_off} ~src_len:{len=src_len0} ~dst_off:{off=dst_off} = 
       let module S = StringLabels in
-      let src_len0 = src_len.len in
       (* NOTE this is slightly different, because for full blocks we don't need to read then write *)
       let src : string = buf_ops.to_string src in
       let rec loop (src_off,len_remain,blk_n,blk_off) = 
+        (* Printf.printf "pwrite: src_off=%d len_remain=%d  blk_n=%d  blk_off=%d\n" src_off len_remain (i_to_int blk_n) blk_off; *)
         match len_remain with 
         | 0 -> return {size=src_len0}
         | _ -> 
@@ -182,10 +182,9 @@ module Iter_block_blit = struct
                 assert(len=blk_sz-blk_off);
                 loop (src_off+len,len_remain',inc blk_n,0))
       in
-      let dst_off = dst_off.off in
       let blk_n = dst_off / blk_sz in
       let blk_off = dst_off mod blk_sz in
-      loop (src_off.off,src_len0,int_to_i blk_n,blk_off)
+      loop (src_off,src_len0,int_to_i blk_n,blk_off)
     in
       
     let size () = failwith __LOC__ in
@@ -194,7 +193,7 @@ module Iter_block_blit = struct
   let _ = make
     
   let test () =
-    Printf.printf "File_impl: tests start...\n";
+    Printf.printf "Iter_block_blit: tests start...\n";
     let monad_ops = imperative_monad_ops in
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
@@ -257,7 +256,7 @@ module Iter_block_blit = struct
       pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=1} >>= fun _sz -> 
       assert(buf_ops.to_string (!buf) = "axyzef");
       return ());
-    Printf.printf "File_impl: tests end!\n"
+    Printf.printf "Iter_block_blit: tests end!\n"
 
       
 end
@@ -297,11 +296,20 @@ let make (type fid blk blk_id t)
   let bind = blk_index_map in
   let dev = blk_dev_ops in
   let read_blk {index=(i:int)} =
-    with_state (fun ~state:inode ~set_state:_ -> 
+    with_state (fun ~state:inode ~set_state -> 
       bind.find ~r:inode.blk_index_map_root ~k:i >>= function
-      | None -> 
+      | None -> (
         alloc () >>= fun r -> 
-        return (r,empty_blk)
+        let blk = empty_blk in
+        (* this ensures that every blk_id corresponds to a blk that has been written *)
+        dev.write ~blk_id:r ~blk >>= fun () ->
+        (* NOTE need to add to index map *)
+        bind.insert ~r:inode.blk_index_map_root ~k:i ~v:r >>= fun ropt ->
+        match ropt with
+        | None -> return (r,blk)
+        | Some blk_index_map_root -> 
+          set_state {inode with blk_index_map_root} >>= fun () ->
+          return (r,blk))
       | Some blk_id -> 
         dev.read ~blk_id >>= fun blk ->
         return (blk_id,blk))
@@ -319,11 +327,13 @@ let make (type fid blk blk_id t)
         return ())
   in
   let buf_ops = bytes_buf_ops in
-  let rewrite_blk_or_alloc {index=_} (blk_id,blk) = 
+  let rewrite_blk_or_alloc {index=_i} (blk_id,blk) = 
     (* FIXME at the moment, this always succeeds FIXME note we don't
        attempt to reinsert into B-tree (concurrent modification by
        another thread may result in unusual behaviour) FIXME maybe
        need another layer about blk_dev, which allows rewrite *)
+    (* FIXME if we have not already inserted index -> blk_id into the map, we probably should *)
+    (* let blk_id = i |> Blk_id_as_int.of_int in *)
     dev.write ~blk_id ~blk >>= fun () -> return ()
   in
   let int_index_iso = {a_to_b=(fun x -> x); b_to_a=(fun x -> x) } in
@@ -332,6 +342,123 @@ let make (type fid blk blk_id t)
        ~alloc_and_write_blk ~rewrite_blk_or_alloc
   in
   { size; pread; pwrite }
-  
 
 let _ = make
+
+(* NOTE should test this on top of an in-mem store blk_index *)
+
+let test () = 
+  let module A = struct
+
+    let monad_ops = Tjr_monad.imperative_monad_ops
+
+    let return = monad_ops.return
+
+    let blk_sz = Blk_sz.of_int 2
+
+    let blk_ops = Common_blk_ops.String_.make ~blk_sz
+
+    let blk_layer = 
+      Common_blk_layers.blk_layer_string_mem ~blk_sz 
+
+    (* type blk = string *)
+
+    let make_blk_dev_ops = blk_layer.blk_dev_ops ~monad_ops
+                             
+    let _ = make_blk_dev_ops
+
+    (* the blk dev is modelled by a map from blk_id to blk *)
+    
+    type blk_id = Blk_id_as_int.blk_id
+
+    module M = Tjr_map.With_pervasives_compare
+        
+    (* type blk_dev_map = (blk_id,blk)M.map_with_pervasives_compare *)
+    
+    (* [@@@ocaml.warning "-34"] *)
+
+    let blk_dev_ref = ref (M.empty ())
+
+    let with_blk_dev = with_imperative_ref ~monad_ops blk_dev_ref
+
+    let blk_dev_ops = make_blk_dev_ops ~with_state:with_blk_dev
+                        
+    let _ = blk_dev_ops
+
+
+    (* blk index map *)
+
+    type blk_index = (int,blk_id)M.map_with_pervasives_compare
+
+    let blk_index_ref = ref ((M.empty ()):blk_index)
+
+
+    (* the file inode *)
+
+    let inode_ref = ref {file_size={size=0};blk_index_map_root=(Blk_id_as_int.of_int (-1))}
+
+    let with_inode = with_imperative_ref ~monad_ops inode_ref
+
+    let _ = with_inode
+
+
+    let min_free_blk_id = ref 0
+
+    let alloc () = 
+      !min_free_blk_id |> fun i -> 
+      incr min_free_blk_id;
+      return (Blk_id_as_int.of_int i)
+      
+    let _ = make_blk_dev_ops
+
+    let blk_index_map = {
+      find=(fun ~r:_ ~k -> M.find_opt k !blk_index_ref |> return);
+      insert=(fun ~r:_ ~k ~v -> 
+          M.add k v !blk_index_ref |> fun x -> 
+          blk_index_ref:=x; 
+          return None);
+      delete=(fun ~r ~k -> 
+        M.remove k !blk_index_ref |> fun x ->
+        blk_index_ref:=x;
+        return r)
+    }
+      
+    
+    let file_ops = make ~monad_ops ~blk_ops ~blk_dev_ops ~blk_index_map ~with_inode ~alloc
+
+    let _ = file_ops
+
+    let { pread; pwrite; size=_ } = file_ops
+
+    open Imperative
+
+    let _ = 
+      Printf.printf "File_impl: tests starting...\n";
+      pread ~off:{off=0} ~len:{len=100} |> of_m |> fun buf ->
+      assert(bytes_buf_ops.to_string buf = String.make 100 '\x00');
+      let src = bytes_buf_ops.of_string "tom" in
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=0} |> of_m |> fun Int_like.{size=_} ->
+      (* Printf.printf "%d\n" size; *)
+      pread ~off:{off=0} ~len:{len=3} |> of_m |> fun buf ->
+      assert(bytes_buf_ops.to_string buf = "tom");
+      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun buf ->
+      assert(bytes_buf_ops.to_string buf = "tom\x00\x00\x00\x00\x00\x00\x00");
+      let src = bytes_buf_ops.of_string (String.make 20 '\x00') in
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=20} ~dst_off:{off=0} |> of_m |> fun Int_like.{size=_} ->
+      let src = bytes_buf_ops.of_string "thomas" in
+      pwrite ~src ~src_off:{off=1} ~src_len:{len=5} ~dst_off:{off=1} |> of_m |> fun Int_like.{size=_} ->
+      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun buf ->
+      assert(bytes_buf_ops.to_string buf = "\x00homas\x00\x00\x00\x00");
+      Printf.printf "File_impl: tests end!\n";
+      ()
+      
+      
+
+
+      
+        
+        
+
+  end
+  in
+  ()

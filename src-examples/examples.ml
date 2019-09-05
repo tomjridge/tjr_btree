@@ -93,15 +93,6 @@ module Internal_doc = struct
 end
 
 
-(* FIXME move this to tjr_monad (can be used for all monad_ops) *)
-let with_imperative_ref ~monad_ops = 
-  let return = monad_ops.return in
-  fun r -> 
-    let with_state f = 
-      f ~state:(!r) ~set_state:(fun r' -> r:=r'; return ())
-    in
-    { with_state }
-
 module Inc1 = struct
   type blk = string (* FIXME shield *)
   type r = blk_id
