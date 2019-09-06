@@ -30,9 +30,10 @@ open Inode
 module Pre_map_ops = struct
   (* we don't expose leaf and frame here *)
   type ('k,'v,'r,'t) pre_map_ops = {
-    find   : r:'r -> k:'k -> ('v option,'t) m;
-    insert : r:'r -> k:'k -> v:'v -> ('r option,'t) m;
-    delete : r:'r -> k:'k -> ('r,'t) m
+    find         : r:'r -> k:'k -> ('v option,'t) m;
+    insert       : r:'r -> k:'k -> v:'v -> ('r option,'t) m;
+    delete       : r:'r -> k:'k -> ('r,'t) m;
+    delete_after : r:'r -> k:'k -> ('r,'t) m; (* delete all entries for keys > r; used for truncate *)
   }
 end
 open Pre_map_ops
@@ -46,7 +47,14 @@ type ('buf,'t) file_ops = {
 }
 *)
 
-(** NOTE we expect buf to be string for the functional version; for
+
+type pread_error = Pread_error of string
+
+type pwrite_error = Pwrite_error of string
+
+(** Standard file operations, pwrite, pread, size and truncate.
+
+NOTE we expect buf to be string for the functional version; for
    mutable buffers we may want to pass the buffer in as a parameter? 
 
 FIXME for pwrite, we always return src_len since all bytes are written (unless there is an error of course). So perhaps return unit.
@@ -54,22 +62,83 @@ FIXME for pwrite, we always return src_len since all bytes are written (unless t
 For pread, we always return a buffer of length len.
 *)
 type ('buf,'t) file_ops = {
-  size   : unit -> (size,'t)m;
-  pwrite : src:'buf -> src_off:offset -> src_len:len -> dst_off:offset -> (size,'t)m;
-  pread  : off:offset -> len:len -> ('buf,'t)m
+  size     : unit -> (size,'t)m;
+  pwrite   : src:'buf -> src_off:offset -> src_len:len -> 
+    dst_off:offset -> ((size,pwrite_error)result,'t)m;
+  pread    : off:offset -> len:len -> (('buf,pread_error)result,'t)m;
+  truncate : size:size -> (unit,'t)m
 }
 
+
+type ('a,'b) iso = {
+  a_to_b: 'a -> 'b;
+  b_to_a: 'b -> 'a
+}
+
+(** Check the arguments to pread *)
+let pread_check = 
+  let module A = struct
+
+    let pread_check_1 ~size:Int_like.{size} ~off:{off} ~len:{len} = 
+      assert(off >=0);
+      assert(len >=0);  
+      match () with
+      | _ when off < 0                 -> `Off_neg
+      | _ when len < 0                 -> `Len_neg
+      | _ when off > size && len=0     -> `Off_gt_sz_and_len_0 (* not an error *)
+      | _ when off > size              -> `Off_gt_sz_and_pos_len
+      | _ when off+len > size && len=0 -> `Offlen_gt_sz_and_len_0
+      | _ when off+len > size          -> `Offlen_gt_sz_and_pos_len
+      | _ -> `Ok
+
+    let pread_check_2 ~size ~off ~len = 
+      pread_check_1 ~size ~off ~len |> function
+      | `Off_neg | `Len_neg -> `Error `Off_or_len
+      | `Off_gt_sz_and_len_0 | `Offlen_gt_sz_and_len_0 -> `Ok `Gt_sz_len_0
+      | `Off_gt_sz_and_pos_len | `Offlen_gt_sz_and_pos_len -> `Error `Gt_sz_pos_len
+      | `Ok -> `Ok `Unit
+
+    let pread_check ~size ~off ~len = 
+      pread_check_2 ~size ~off ~len |> function
+      | `Ok _ -> Ok ()
+      | `Error `Off_or_len -> Error "off<0 or len<0"
+      | `Error `Gt_sz_pos_len -> Error "off+len>size and len>0"
+  end
+  in A.pread_check
+
+
+(** Check arguments to pwrite *)
+let pwrite_check ~buf_ops =
+  let module A = struct
+    let pwrite_check_1 : src:'buf -> src_off:offset -> src_len:len -> dst_off:offset -> _ = 
+      fun ~src ~src_off:{off=src_off} ~src_len:{len=src_len} ~dst_off:{off=dst_off} ->
+        match () with
+        | _ when src_off < 0 -> `Err `Src_off_neg
+        | _ when dst_off < 0 -> `Err `Dst_off_neg
+        | _ when src_off+src_len > (buf_ops.buf_size src).size -> `Err `Einval
+        | _ -> `Ok
+
+    let pwrite_check ~src ~src_off ~src_len ~dst_off = 
+      pwrite_check_1 ~src ~src_off ~src_len ~dst_off |> function
+      | `Err `Src_off_neg -> Error "src_off<0"
+      | `Err `Dst_off_neg -> Error "dst_off<0"
+      | `Err `Einval -> Error "src_off+src_len>src.size"
+      | `Ok -> Ok ()
+  end
+  in A.pwrite_check
 
 (** Abstract model of blitting from blks to buffer.
 
 Spec: a seq of blits equiv to a single blit, but at most 1 blit is not
 block aligned, and at most 2 blits are not blk sized; also, minimal
-number of blits (no overlapping blits). This version assumes that the
+number of blits (no overlapping blits). 
+
+This version assumes that the
 file is backed by a map from blk_index -> blk_id (although for the
 test code, we ignore blk_id and just work directly with bytes.)
 
 - read_blk: given a block index, we look up the actual blk_id in
-  the map, and read that block
+  the map, and read that block; return empty blk if no blk; ignore size
 
 - alloc_and_write_blk: for the situation where we
   definitely want to allocate a new blk; we have a blk_index, a blk,
@@ -82,20 +151,21 @@ test code, we ignore blk_id and just work directly with bytes.)
   allocate a new blk_id, write the new blk, insert the
   (index,blk_id) into the map
 
-For the usage with file_impl, we move the B-tree root from the inode
-to a private monadic reference, construct these auxiliary functions
-(which monadically update the ref), run the pread/pwrite, then
-retrieve the new B-tree root and update the inode.
+- truncate n: drop the blk-index map entries for all blocks after byte index n
+
+For the usage with file_impl, we assume the inode is locked (so we can update the inode using set_state).
  *)
-
-type ('a,'b) iso = {
-  a_to_b: 'a -> 'b;
-  b_to_a: 'b -> 'a
-}
-
-
 module Iter_block_blit = struct
-  (* NOTE we want the following to be (as far as possible) independent of the updates to the blk-index map *)
+
+  (* These versions assume that the arguments are all "ok" *)
+  type ('buf,'t) ops = {
+    pwrite   : src:'buf -> src_off:offset -> src_len:len -> dst_off:offset -> (size,'t)m;
+    pread    : off:offset -> len:len -> ('buf,'t)m;
+  }
+
+  (** NOTE we want [make] to be (as far as possible) independent
+      of the updates to the blk-index map. NOTE that blk_id is
+      essentially completely abstract here, and only used when rewriting. *)
   let make (type buf blk_id blk i t) 
         ~monad_ops 
         ~(buf_ops              : buf buf_ops)
@@ -113,6 +183,7 @@ module Iter_block_blit = struct
 
     let inc i = i |> i_to_int |> (fun x -> x+1) |> int_to_i in
 
+    (* This version assumes that the arguments pass the pread_check *)
     let pread ~off:{off=off0} ~len:{len=len0} =
       (* FIXME we may want to launch threads for each block 
           read, then wait on all these threads to finish *)
@@ -186,12 +257,10 @@ module Iter_block_blit = struct
       let blk_off = dst_off mod blk_sz in
       loop (src_off,src_len0,int_to_i blk_n,blk_off)
     in
-      
-    let size () = failwith __LOC__ in
-    { size; pread; pwrite }
+    { pread; pwrite }
 
   let _ = make
-    
+
   let test () =
     Printf.printf "Iter_block_blit: tests start...\n";
     let monad_ops = imperative_monad_ops in
@@ -213,11 +282,11 @@ module Iter_block_blit = struct
       let rewrite_blk_or_alloc {index=i} (_blk_id,blk) = to_m (
           buf_ops.blit_string_to_buf ~src:blk ~src_off:{off=0} ~src_len:{len=blk_sz}
             ~dst:!buf ~dst_off:{off=i*blk_sz} |> fun buf' ->
-        buf := buf'; ())
+          buf := buf'; ())
       in
       let alloc_and_write_blk i blk = 
-          rewrite_blk_or_alloc i (-1,blk) >>= fun _ -> 
-          return ()
+        rewrite_blk_or_alloc i (-1,blk) >>= fun _ -> 
+        return ()
       in
       let int_index_iso = {a_to_b=(fun x -> x); b_to_a=(fun x -> x) } in
       let { pread; pwrite; _ } = 
@@ -257,8 +326,8 @@ module Iter_block_blit = struct
       assert(buf_ops.to_string (!buf) = "axyzef");
       return ());
     Printf.printf "Iter_block_blit: tests end!\n"
+  [@@ocaml.warning "-8"]
 
-      
 end
 
 (* FIXME at the moment, this assumes that we can rewrite file blocks as we wish *)
@@ -274,7 +343,7 @@ end
    when an inode is locked for more than a certain length of time. *)
 
 (** NOTE The pread,pwrite functions that result will lock the inode
-   whilst executing, in order to udpate the B-tree root *)
+    whilst executing, in order to udpate the B-tree root *)
 let make (type fid blk blk_id t) 
       ~monad_ops
       ~(blk_ops       : blk blk_ops)
@@ -287,29 +356,63 @@ let make (type fid blk blk_id t)
   let return = monad_ops.return in
   let { with_state } = with_inode in
   let blk_sz = blk_ops.blk_sz |> Blk_sz.to_int in
-  let empty_blk = blk_ops.of_string (String.make blk_sz (Char.chr 0)) in 
+  let empty_blk () = blk_ops.of_string (String.make blk_sz (Char.chr 0)) in 
   (* assumes functional blk impl ?; FIXME blk_ops pads string automatically? *)
+  let bind = blk_index_map in
+  let dev = blk_dev_ops in
   let size () = 
     with_state (fun ~state ~set_state:_ -> 
       return state.file_size)
   in
-  let bind = blk_index_map in
-  let dev = blk_dev_ops in
+  let truncate_blk ~blk ~blk_off = 
+    blk |> blk_ops.to_string |> fun blk -> String.sub blk 0 blk_off |> blk_ops.of_string
+  in
+  let truncate ~size = 
+    (* FIXME the following code is rather hacky, to say the least *)
+    with_state (fun ~state:inode ~set_state -> 
+      match size.Int_like.size >= inode.file_size.size with
+      | true -> 
+        (* no need to drop blocks *)
+        set_state{inode with file_size=size}
+      | false -> 
+        (* FIXME check the maths of this - if size is 0 we may want to have no entries in blk_index *)
+        (* drop all blocks after size/blk_sz FIXME would be nice to have
+           "delete from"; perhaps we list the contents of the index_map
+           and remove the relevant keys? or a monadic fold or iteration? *)
+        (* also need to zero out the bytes in the final block beyond size.size *)
+        let i,blk_off = size.size / blk_sz, size.size mod blk_sz in
+        let r = inode.blk_index_map_root in
+        bind.delete_after ~r ~k:i >>= fun r ->
+        (
+          match blk_off > 0 with
+          | true -> (
+              (* read blk and zero out suffix, then rewrite *)
+              bind.find ~r ~k:i >>= function
+              | None -> return ()
+              | Some blk_id -> 
+                dev.read ~blk_id >>= fun blk ->
+                truncate_blk ~blk ~blk_off |> fun blk ->
+                (* FIXME we need a rewrite here *)
+                dev.write ~blk_id ~blk)
+          | false -> return ()
+        ) >>= fun () -> 
+        set_state {file_size=size; blk_index_map_root=r})
+  in
   let read_blk {index=(i:int)} =
     with_state (fun ~state:inode ~set_state -> 
       bind.find ~r:inode.blk_index_map_root ~k:i >>= function
       | None -> (
-        alloc () >>= fun r -> 
-        let blk = empty_blk in
-        (* this ensures that every blk_id corresponds to a blk that has been written *)
-        dev.write ~blk_id:r ~blk >>= fun () ->
-        (* NOTE need to add to index map *)
-        bind.insert ~r:inode.blk_index_map_root ~k:i ~v:r >>= fun ropt ->
-        match ropt with
-        | None -> return (r,blk)
-        | Some blk_index_map_root -> 
-          set_state {inode with blk_index_map_root} >>= fun () ->
-          return (r,blk))
+          alloc () >>= fun r -> 
+          let blk = empty_blk () in
+          (* this ensures that every blk_id corresponds to a blk that has been written *)
+          dev.write ~blk_id:r ~blk >>= fun () ->
+          (* NOTE need to add to index map *)
+          bind.insert ~r:inode.blk_index_map_root ~k:i ~v:r >>= fun ropt ->
+          match ropt with
+          | None -> return (r,blk)
+          | Some blk_index_map_root -> 
+            set_state {inode with blk_index_map_root} >>= fun () ->
+            return (r,blk))
       | Some blk_id -> 
         dev.read ~blk_id >>= fun blk ->
         return (blk_id,blk))
@@ -337,11 +440,36 @@ let make (type fid blk blk_id t)
     dev.write ~blk_id ~blk >>= fun () -> return ()
   in
   let int_index_iso = {a_to_b=(fun x -> x); b_to_a=(fun x -> x) } in
-  let { pread;pwrite;_ } = 
+  let Iter_block_blit.{ pread;pwrite } = 
     Iter_block_blit.make ~monad_ops ~buf_ops ~blk_ops ~int_index_iso ~read_blk 
-       ~alloc_and_write_blk ~rewrite_blk_or_alloc
+      ~alloc_and_write_blk ~rewrite_blk_or_alloc
   in
-  { size; pread; pwrite }
+  let pread ~off ~len =     
+    with_state (fun ~state:inode ~set_state:_ ->
+      let size = inode.file_size in
+      (* don't attempt to read beyond end of file *)
+      let len = {len=min len.len (size.size - off.off)} in
+      pread_check ~size ~off ~len |> function 
+      | Ok () -> pread ~off ~len >>= fun x -> return (Ok x)
+      | Error s -> return (Error (Pread_error s)))
+  in
+  let pwrite ~src ~src_off ~src_len ~dst_off =
+    with_state (fun ~state:inode ~set_state ->
+      let size = inode.file_size in
+      pwrite_check ~buf_ops ~src ~src_off ~src_len ~dst_off |> function
+      | Error s -> return (Error (Pwrite_error s))
+      | Ok () -> pwrite ~src ~src_off ~src_len ~dst_off >>= fun x -> 
+        (* now may need to adjust the size of the file *)
+        begin
+          let size' = dst_off.off+src_len.len in
+          match size' > size.size with
+          | true -> set_state {inode with file_size={size=size'}}
+          | false -> return ()
+        end >>= fun () ->
+        return (Ok x)
+    )
+  in
+  { size; truncate; pread; pwrite }
 
 let _ = make
 
@@ -420,6 +548,10 @@ let test () =
       delete=(fun ~r ~k -> 
         M.remove k !blk_index_ref |> fun x ->
         blk_index_ref:=x;
+        return r);
+      delete_after=(fun ~r ~k -> 
+        M.split k !blk_index_ref |> fun (_,_,after) -> 
+        M.iter (fun k _v -> M.remove k !blk_index_ref |> fun x -> blk_index_ref:=x) after;
         return r)
     }
       
@@ -428,29 +560,43 @@ let test () =
 
     let _ = file_ops
 
-    let { pread; pwrite; size=_ } = file_ops
+    let { truncate=_; pread; pwrite; size=_ } = file_ops
 
     open Imperative
 
     let _ = 
       Printf.printf "File_impl: tests starting...\n";
-      pread ~off:{off=0} ~len:{len=100} |> of_m |> fun buf ->
-      assert(bytes_buf_ops.to_string buf = String.make 100 '\x00');
+      (* read from empty file *)
+      pread ~off:{off=0} ~len:{len=100} |> of_m |> fun (Ok buf) ->
+      assert(bytes_buf_ops.to_string buf = "");  (* file initially empty *)
+
+      (* write "tom" *)
       let src = bytes_buf_ops.of_string "tom" in
-      pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=0} |> of_m |> fun Int_like.{size=_} ->
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=3} ~dst_off:{off=0} |> of_m |> fun (Ok Int_like.{size=_}) ->
       (* Printf.printf "%d\n" size; *)
-      pread ~off:{off=0} ~len:{len=3} |> of_m |> fun buf ->
+      pread ~off:{off=0} ~len:{len=3} |> of_m |> fun (Ok buf) ->
+      assert(
+        bytes_buf_ops.to_string buf = "tom" || (
+          Printf.printf "|%s|\n" (bytes_buf_ops.to_string buf); false));
+
+      (* try to read 10 bytes from file *)
+      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun (Ok buf) ->
       assert(bytes_buf_ops.to_string buf = "tom");
-      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun buf ->
-      assert(bytes_buf_ops.to_string buf = "tom\x00\x00\x00\x00\x00\x00\x00");
+
+      (* make file contain 20xNULL *)
       let src = bytes_buf_ops.of_string (String.make 20 '\x00') in
-      pwrite ~src ~src_off:{off=0} ~src_len:{len=20} ~dst_off:{off=0} |> of_m |> fun Int_like.{size=_} ->
+      pwrite ~src ~src_off:{off=0} ~src_len:{len=20} ~dst_off:{off=0} |> of_m |> fun (Ok Int_like.{size=_}) ->
+
+      (* write "homas" at off 1 *)
       let src = bytes_buf_ops.of_string "thomas" in
-      pwrite ~src ~src_off:{off=1} ~src_len:{len=5} ~dst_off:{off=1} |> of_m |> fun Int_like.{size=_} ->
-      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun buf ->
+      pwrite ~src ~src_off:{off=1} ~src_len:{len=5} ~dst_off:{off=1} |> of_m |> fun (Ok Int_like.{size=_}) ->
+
+      (* read 10 bytes *)
+      pread ~off:{off=0} ~len:{len=10} |> of_m |> fun (Ok buf) ->
       assert(bytes_buf_ops.to_string buf = "\x00homas\x00\x00\x00\x00");
       Printf.printf "File_impl: tests end!\n";
       ()
+      [@@warning "-8"]
       
   end
   in
