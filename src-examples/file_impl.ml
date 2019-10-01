@@ -1,8 +1,42 @@
 (** A simple file implementation. Primarily this is here so that we
    can use it to marshall the free list 
 
-Terminology: (file) block-index map: the map from blk index to blk_id 
+Terminology: (file) block-index map: the map from blk index to blk_id
 
+We implement a file as a map from blk_index to blk. The map is
+typically implemented by a B-tree or similar.
+
+The inode contains the file size and the root of the blk_index map.
+
+New blocks are allocated as needed (by default the map is empty, and a
+block is only allocated when that block is written to; so files are
+"sparse").
+
+The "iterated block read/write" component has been abstracted out
+because it appears in a lot of other places.
+
+The components we require are as follows (see "make" function below; NOTE missing free, since
+this is not currently implemented for file.truncate).
+
+{%html: 
+<pre>
+let make (type fid blk blk_id t) 
+      ~monad_ops
+      ~(blk_ops       : blk blk_ops)
+      ~(blk_dev_ops   : (blk_id,blk,t) blk_dev_ops)
+      ~(blk_index_map : (int,blk_id,blk_id,t)pre_map_ops)
+      ~(with_inode    : ((fid,blk_id)inode,t)with_state)
+      ~(alloc         : unit -> (blk_id,t)m)
+  =
+</pre>
+%}
+
+TODO:
+- b-tree to implement delete_after (or some alternative approach)
+- validate against "normal" file semantics
+- ensure the tests are run by some top-level test executable
+- implement freeing of blocks after truncate
+- maybe worth distinguishing the blk_id used by the map from the blk_id used to store data
 *)
 
 open Int_like
@@ -343,7 +377,20 @@ end
    when an inode is locked for more than a certain length of time. *)
 
 (** NOTE The pread,pwrite functions that result will lock the inode
-    whilst executing, in order to udpate the B-tree root *)
+    whilst executing, in order to udpate the B-tree root 
+{%html: 
+<pre>
+let make (type fid blk blk_id t) 
+      ~monad_ops
+      ~(blk_ops       : blk blk_ops)
+      ~(blk_dev_ops   : (blk_id,blk,t) blk_dev_ops)
+      ~(blk_index_map : (int,blk_id,blk_id,t)pre_map_ops)
+      ~(with_inode    : ((fid,blk_id)inode,t)with_state)
+      ~(alloc         : unit -> (blk_id,t)m)
+  =
+</pre>
+%}
+*)
 let make (type fid blk blk_id t) 
       ~monad_ops
       ~(blk_ops       : blk blk_ops)
