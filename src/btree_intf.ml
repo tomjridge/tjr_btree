@@ -10,7 +10,7 @@ Then the main functionality of this library is provided by the {!Tjr_btree.Make}
 
  *)
 
-
+(* moved to shared 
 module Blk_allocator_ops_type = struct
   (** A type for managing the free space on the disk. *)
   (* open Tjr_monad.Types *)
@@ -23,6 +23,7 @@ module Blk_allocator_ops_type = struct
   }
 end
 include Blk_allocator_ops_type
+*)
 
 
 (*
