@@ -205,7 +205,7 @@ module Make(S:S2) = struct
     in
     let add_write_back_cache ~blk_dev_ops ~store_ops ~with_write_back_cache = 
       Store_cache.add_write_back_cache_to_store ~monad_ops ~store_ops 
-        ~alloc:blk_allocator_ops.alloc
+        ~alloc:blk_allocator_ops.blk_alloc
         ~evict:(evict ~blk_dev_ops)
         ~write_back_cache_ops:wbc.ops
         ~with_write_back_cache

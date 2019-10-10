@@ -148,12 +148,12 @@ module Internal2 = struct
     let ( >>= ) = monad_ops.bind in
     let return = monad_ops.return in
     let { with_state } = blk_allocator in
-    let alloc () = with_state (fun ~state:s ~set_state ->
+    let blk_alloc () = with_state (fun ~state:s ~set_state ->
         set_state {min_free_blk_id=Blk_id.incr s.min_free_blk_id} >>= fun _ 
         -> return s.min_free_blk_id)
     in
-    let free _blk_id = return () in
-    {alloc;free}
+    let blk_free _blk_id = return () in
+    {blk_alloc;blk_free}
 
   let make_disk_ops ~marshalling_ops ~blk_dev_ops ~blk_allocator_ops =
     { marshalling_ops; blk_dev_ops; blk_allocator_ops }

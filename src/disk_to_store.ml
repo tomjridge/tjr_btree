@@ -17,7 +17,7 @@ let disk_to_store ~monad_ops ~disk_ops =
         read ~blk_id:r >>= fun blk ->
         blk |> blk_to_dnode |> return);
     wrte=(fun dn ->
-        alloc.alloc () >>= fun blk_id -> 
+        alloc.blk_alloc () >>= fun blk_id -> 
         dn |> dnode_to_blk |> fun blk -> 
         write ~blk_id ~blk >>= fun () -> 
         return blk_id);
