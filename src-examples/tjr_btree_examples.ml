@@ -1,6 +1,7 @@
 (** Examples for {!Tjr_btree} *)
 
 module Intf = Intf_
+module Bin_prot_intf = Bin_prot_intf
 
 (** {2 Introduction} 
 
