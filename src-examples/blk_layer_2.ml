@@ -64,11 +64,6 @@ end
 
 let write_root_block,read_root_block = Internal_root_block_util.(write_root_block,read_root_block)
 
-type ('a,'b) from_file_and_close = {
-  from_file: 'a;
-  close: 'b
-}
-
 let make_from_file_and_close ~monad_ops ~blk_ops ~empty_leaf_as_blk =
   let module A = struct
     (* let monad_ops = imperative_monad_ops *)

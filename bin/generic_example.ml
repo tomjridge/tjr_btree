@@ -91,8 +91,8 @@ let make_generic_main ~fn ~int_to_k ~int_to_v ~example =
   let Examples.{monad_ops;blk_ops;empty_leaf_as_blk; blk_dev_ops; blk_allocator_ref; btree_root_ref; flush_wbc; _} = example in
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
-  let Blk_layer.{ from_file; close } =
-    Blk_layer.make_from_file_and_close ~monad_ops ~blk_ops
+  let { from_file; close } =
+    Blk_layer_2.make_from_file_and_close ~monad_ops ~blk_ops
     ~empty_leaf_as_blk in
   from_file ~fn ~create:true ~init:true >>= fun (fd,ba_root,bt_root) -> 
   let run = {run=Tjr_monad.Imperative.of_m} in

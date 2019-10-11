@@ -3,6 +3,7 @@
 open Tjr_btree
 open Btree_intf
 open Intf_
+open Bin_prot_intf
 (* open Fstore_layer *)
 
 (** The steps to construct an example are:
@@ -40,7 +41,7 @@ type ('k,'v,'r,'t,'blk_id,'blk,'blk_dev_ops,'fd,'node,'leaf,'leaf_stream,'store_
   blk_allocator_ref     : 'blk_id blk_allocator_state ref; 
   blk_allocator         : ('blk_id blk_allocator_state,'t)with_state;
   blk_allocator_ops     : ('blk_id, 't) blk_allocator_ops;
-  reader_writers        : ('k,'v)Bin_prot_marshalling.reader_writers;
+  reader_writers        : ('k,'v)reader_writers;
   nlc                   : ('k,'v,'r,'node,'leaf) nlc;
   marshalling_ops       : ('dnode,'blk) marshalling_ops;
   disk_ops              : 'fd -> ('blk_id,'t,'dnode,'blk) disk_ops;
@@ -111,45 +112,42 @@ module type S1 = sig
   val k_size: int
   val v_size: int
   val cs: constants
-  val reader_writers: (k,v) Bin_prot_marshalling.reader_writers
+  val reader_writers: (k,v) reader_writers
 end
 
 module Without_monad = struct
   module Int_int = struct
     include Inc1
-    open Bin_prot_marshalling
     type k = int
     type v = int
     let k_cmp = Int_.compare
     let k_size=int_bin_prot_info.max_size
     let v_size=int_bin_prot_info.max_size
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int
+    let reader_writers = Common_reader_writers.int_int
   end
 
   module String_string = struct
     include Inc1
-    open Bin_prot_marshalling
     type k = ss
     type v = ss
     let k_cmp = Small_string.compare
     let k_size=ss_bin_prot_info.max_size
     let v_size=ss_bin_prot_info.max_size
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size     
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.ss_ss
+    let reader_writers = Common_reader_writers.ss_ss
   end
 
 
   module Int_int2 = struct
     include Inc1
-    open Bin_prot_marshalling
     type k = int
     type v = int * int
     let k_cmp = Int_.compare
     let k_size=int_bin_prot_info.max_size
     let v_size=int_bin_prot_info.max_size * 2
     let cs = Bin_prot_marshalling.make_constants ~blk_sz ~k_size ~v_size 
-    let reader_writers = Bin_prot_marshalling.Common_reader_writers.int_int2
+    let reader_writers = Common_reader_writers.int_int2
   end
 
 end
@@ -186,16 +184,16 @@ module Make(S:S2) = struct
     let blk_allocator_ref = ref { min_free_blk_id=(Blk_id.of_int (-1)) } in
     (* NOTE we assume the -1 value is never used *) 
     let blk_allocator = with_imperative_ref ~monad_ops blk_allocator_ref in
-    let blk_allocator_ops = Blk_layer.make_blk_allocator_ops
+    let blk_allocator_ops = Blk_layer_2.make_blk_allocator_ops
         ~monad_ops ~blk_allocator in
     let reader_writers = reader_writers in
     let nlc = node_leaf_list_conversions in
-    let marshalling_ops = Blk_layer.make_marshalling_ops ~blk_ops
+    let marshalling_ops = Blk_layer_2.make_marshalling_ops ~blk_ops
         ~node_leaf_list_conversions
         ~reader_writers
     in  
     let disk_ops fd = 
-      Blk_layer.make_disk_ops ~marshalling_ops
+      Blk_layer_2.make_disk_ops ~marshalling_ops
         ~blk_dev_ops:(blk_dev_ops fd) ~blk_allocator_ops in    
     let evict ~blk_dev_ops writes = 
       (* these writes are dnodes; we need to marshall them first *)

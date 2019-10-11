@@ -48,6 +48,14 @@ type btree_from_file = {
 }
 
 
+(** Used in blk_layer_2 *)
+type ('a,'b) from_file_and_close = {
+  from_file: 'a;
+  close: 'b
+}
+
+
+
 
 (** INTERNAL PLEASE IGNORE This is another attempt to isolate the
    various stages of type construction. *)

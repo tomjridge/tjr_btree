@@ -36,7 +36,7 @@ Description:
 |}
 
 open Examples
-open Blk_layer
+(* open Blk_layer *)
 
 let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
   (* let example = Examples.Imperative.int_int_example in *)
@@ -67,7 +67,7 @@ let generic_main ~example ~args ~s2k ~s2v ~k2s ~v2s ~i2k ~i2v =
 
     let create,init = false,false (* defaults *)
 
-    let { from_file; close } = make_from_file_and_close ~monad_ops:imperative_monad_ops ~blk_ops ~empty_leaf_as_blk 
+    let { from_file; close } = Blk_layer_2.make_from_file_and_close ~monad_ops:imperative_monad_ops ~blk_ops ~empty_leaf_as_blk 
 
     (* link from_file and close to the example refs *)
     let from_file ~fn ~create ~init =
