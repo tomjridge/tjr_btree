@@ -129,6 +129,7 @@ end
 
 
 
+(*
 (** {2 Internal interface} *)
 
 module Internal = struct
@@ -148,3 +149,4 @@ module Internal = struct
 end
 
 let internal_disk_to_x = Internal.internal_disk_to_x
+*)
