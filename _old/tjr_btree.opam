@@ -1,0 +1,27 @@
+opam-version : "2.0"
+name         : "tjr_btree"
+version      : "0.0.1"
+synopsis     : "B-tree library"
+
+# ----------------------------------------------------------------------
+
+authors      : "Tom Ridge <tom.j.ridge@googlemail.com>"
+maintainer   : "Tom Ridge <tom.j.ridge@googlemail.com>"
+homepage     : "https://github.com/tomjridge/tjr_btree"
+bug-reports  : "https://github.com/tomjridge/tjr_btree/issues"
+dev-repo     : "git+https://github.com/tomjridge/tjr_btree.git"
+
+# ----------------------------------------------------------------------
+
+depends: [
+  "bin_prot" 
+  "ppx_bin_prot"
+  "isa_btree" 
+]
+
+# ----------------------------------------------------------------------
+
+# taken from JS base
+build: [
+  ["dune" "build" "-p" name "-j" jobs]
+]
