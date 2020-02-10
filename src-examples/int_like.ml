@@ -1,5 +1,7 @@
 (** Int-like types with unboxed record wrappers, for documentation purposes *)
 
+(* FIXME move to fs_shared *)
+
 type 'int size_ = {
   size:'int
 } [@@unboxed]

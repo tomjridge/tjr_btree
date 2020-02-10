@@ -10,6 +10,7 @@ promote_docs::
 
 # for auto-completion of Makefile target
 clean::
+	rm -f btree.store
 
 run_eg1:
 	$(DUNE) exec bin/btree_main.exe eg1

@@ -1,3 +1,4 @@
+(* FIXME move this elsewhere eg fs_shared (and combine with other similar modules) *)
 open Int_like 
 
 (** "mutable", fixed size buffers; it is an error to attempt to write
