@@ -1,7 +1,7 @@
 (** Examples for {!Tjr_btree} *)
 
-module Intf = Intf_
-module Bin_prot_intf = Bin_prot_intf
+(* module Intf = Intf_ *)
+(* module Bin_prot_intf = Bin_prot_intf *)
 
 (** {2 Introduction} 
 
@@ -28,15 +28,6 @@ Use Jane St. marshalling libraries.
 module Bin_prot_marshalling = Bin_prot_marshalling
 
 
-(** {2 Blk layer impl} *)
-
-(* module Fstore_layer = Fstore_layer *)
-
-module Blk_layer_2 = Blk_layer_2
-
-(* include Blk_dev_on_fd_util *)
-
-
 (** {2 Actual examples} *)
 
 module Examples = Examples
@@ -45,4 +36,16 @@ module Examples = Examples
 (** {2 Internal} *)
 
 module Profilers = Profilers_
-module File_impl = File_impl
+
+
+
+(** {2 Blk layer impl} *)
+
+(* module File_impl = File_impl *)
+
+(* module Fstore_layer = Fstore_layer *)
+
+(* module Blk_layer_2 = Blk_layer_2 *)
+
+(* include Blk_dev_on_fd_util *)
+

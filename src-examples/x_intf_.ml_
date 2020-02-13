@@ -32,6 +32,7 @@ type root_block = {
 
 (* FIXME remove the following *)
 
+(*
 (** FIXME why use fstore and fstore_passing? *)
 type btree_from_file_result = {
   fd         :Unix.file_descr;
@@ -41,12 +42,14 @@ type btree_from_file_result = {
   run        :'a. ('a, fstore_passing) m -> 'a; (* uses the fstore field! *)
   close      :unit -> unit;  (* FIXME should be monadic ? *)
 }
+*)
 
+(*
 type btree_from_file = {
   btree_from_file: 
     fn:string -> create:bool -> init:bool -> btree_from_file_result
 }
-
+*)
 
 (** Used in blk_layer_2 *)
 type ('a,'b) from_file_and_close = {

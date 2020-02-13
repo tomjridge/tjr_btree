@@ -1,6 +1,5 @@
 (** Separate out the main interface types and values from bin_prot_marshalling *)
 
-
 (** {2 A type for holding information about a particular type we marshal (such as k)} *)
 
 type 'k bin_prot_info = {

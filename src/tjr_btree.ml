@@ -41,7 +41,6 @@ module type S = (* Isa_btree_intf.S *) sig
 
 module Make(S:S) : sig
   open S
-  open Node_leaf_list_conversions
 
   type leaf
   type node
@@ -50,7 +49,7 @@ module Make(S:S) : sig
   val leaf_ops : (k, v, leaf) Isa_btree_intf.leaf_ops
   val node_ops : (k, r, node) Isa_btree_intf.node_ops
 
-  val node_leaf_list_conversions : (k, v, r, node, leaf) node_leaf_list_conversions
+  val node_cnvs : (k, v, r, node, leaf) node_cnvs
 
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 
@@ -88,15 +87,15 @@ end = struct
 
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 
-  let node_leaf_list_conversions = Node_leaf_list_conversions.{
-      node_to_krs=node_ops.node_to_krs;
-      krs_to_node=node_ops.krs_to_node;
-      leaf_to_kvs=leaf_ops.leaf_to_kvs;
-      kvs_to_leaf=leaf_ops.kvs_to_leaf
-    }
+  let node_cnvs = {
+    node_to_krs=node_ops.node_to_krs;
+    krs_to_node=node_ops.krs_to_node;
+    leaf_to_kvs=leaf_ops.leaf_to_kvs;
+    kvs_to_leaf=leaf_ops.kvs_to_leaf
+  }
 
   let disk_to_store ~disk_ops = 
-    let { marshalling_ops; blk_dev_ops; blk_allocator_ops } = disk_ops in
+    let { dnode_mshlr; blk_dev_ops; blk_alloc } = disk_ops in
     let store_ops = disk_to_store ~monad_ops ~disk_ops in
     store_ops
 

@@ -1,92 +1,132 @@
 (** A simple example of a kv store. *)
+open Tjr_monad.With_lwt
 
-type t = {
-  do_write : unit -> unit;
-  do_delete : unit -> unit;
-  do_check : unit -> unit;
-  do_full_check : unit -> unit;
-  do_all : unit -> unit
-}
+(* FIXME put in tjr_profile *)
+module Profile() = struct
+  let t1 = ref 0
+  let t2 = ref 0
+  let start () = t1:= Tjr_profile.now()
+  let stop () = t2:= Tjr_profile.now()
+  let print s = Printf.printf "%s took: %d\n%!" s (!t2 - !t1)
+end
 
-let profile s f = Tjr_profile.measure_execution_time_and_print s f
+module Make(S:sig
+    type k
+    type v
+    type r = Blk_id_as_int.blk_id
+    type t = lwt
+    type leaf_stream
+    val map_ops_with_ls:(k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls
+    val int_to_k: int -> k
+    val int_to_v: int -> v
+  end)
+=
+struct
+  open S
 
-type 't run = {
-  run: 'a. ('a,'t)m -> 'a
-}
+  (* FIXME config *)
+  let max_writes = 10000
 
-let make_generic_example (type k v r leaf_stream t) 
-    ~(map_ops_with_ls: (k,v,r,leaf_stream,t)Btree_intf.Map_ops_with_ls.map_ops_with_ls)
-    ~run
-    ~int_to_k ~int_to_v
-  =
+  let ops = map_ops_with_ls  
 
-  let module A = struct
+  let profile s (f:unit -> (unit,lwt)m) = 
+    let module P = Profile() in
+    let open P in
+    return () >>= fun () ->
+    start ();
+    f () >>= fun () ->
+    stop ();
+    print s;
+    return ()
 
-    (* let {btree_from_file} = btree_from_file  *)
-    
-    (* FIXME config *)
-    let max_writes = 10000
+  (* create and init store, write some values, and close *)
+  let do_write () = profile "do_write" @@ fun () -> 
+    Printf.printf "Executing %d writes...\n%!" max_writes;
+    print_endline "Writing...";
+    1 |> iter_k (fun ~k x ->
+        match x > max_writes with
+        | true -> return ()
+        | false -> 
+          ops.insert ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
+          k (x+1))
 
-    let {run} = run
+  let _ = do_write
 
-    let ops = map_ops_with_ls
+  (* delete some values *)
+  let do_delete () = profile "do_delete" @@ fun () -> 
+    print_endline "Deleting...";
+    100 |> iter_k (fun ~k x -> 
+        match x > 200 with
+        | true -> return ()
+        | false -> 
+          ops.delete ~k:(int_to_k x) >>= fun () ->
+          k (x+1))
 
-    (* create and init store, write some values, and close *)
-    let do_write () = profile "do_write" @@ fun () -> 
-      Printf.printf "Executing %d writes...\n%!" max_writes;
-      print_endline "Writing...";
-      (* write values *)
-      for x=1 to max_writes do
-        let k,v = int_to_k x,int_to_v x in
-        run (ops.insert ~k ~v)
-      done
+  (* open store and check whether various keys and values are correct *)
+  let do_check () = 
+    print_endline "Checking...";
+    ops.find ~k:(int_to_k 100) >>= fun v ->
+    assert(v=None);
+    ops.find ~k:(int_to_k 1000) >>= fun v -> 
+    assert(v = Some (int_to_v 1000));
+    return ()
 
-    let _ = do_write
+  let do_full_check () = profile "do_full_check" @@ fun () -> 
+    print_endline "Full check...";
+    1 |> iter_k (fun ~k x ->
+        match x > max_writes with
+        | true -> return ()
+        | false -> 
+          ops.find ~k:(int_to_k x) >>= fun v -> 
+          assert( (100 <= x && x <= 200 && v=None) || v=Some(int_to_v x));
+          k (x+1))
 
-    (* delete some values *)
-    let do_delete () = profile "do_delete" @@ fun () -> 
-      print_endline "Deleting...";
-      for x=100 to 200 do
-        let k = int_to_k x in
-        run (ops.delete ~k);
-      done
+  (* actually execute the above *)
+  let do_all() = 
+    do_write () >>= fun () ->
+    do_delete () >>= fun () ->
+    do_check () >>= fun () ->
+    do_full_check()
+end
 
-    (* open store and check whether various keys and values are correct *)
-    let do_check () = 
-      print_endline "Checking...";
-      assert(run (ops.find ~k:(int_to_k 100)) = None);      
-      assert(run (ops.find ~k:(int_to_k 1000)) = Some (int_to_v 1000));
-      ()
-      
-    let do_full_check () = profile "do_full_check" @@ fun () -> 
-      print_endline "Full check...";
-      for i = 1 to max_writes do
-        let k = int_to_k i in
-        if (100 <= i && i <= 200) then
-          assert(run (ops.find ~k) = None)
-        else
-          assert(run (ops.find ~k) = Some(int_to_v i))
-      done
 
-    (* actually execute the above *)
-    let do_all() = 
-      do_write ();
-      do_delete ();
-      do_check ();
-      do_full_check();
+type arg = 
+  | A1_int_int
+
+type res = 
+  | R1 of (unit -> (unit,lwt)m)
+
+
+let filename = "btree.store"
+
+let make_1 () = 
+  let module X = Examples.Make_1() in
+  X.mk_blk_dev_ops ~filename >>= fun m ->   
+  let module M = (val m) in
+  let open M in
+  let module Y = X.Make_2(struct let blk_dev_ops = blk_dev end) in
+  Y.initialize_blk_dev () >>= fun () ->
+  let module Z = struct
+    type k = int
+    type v = int
+    type r = Blk_id_as_int.blk_id
+    type t = lwt
+    type leaf_stream = X.Btree.leaf_stream
+    let map_ops_with_ls:(k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls = Y.map_ops_with_ls
+    let int_to_k: int -> k = fun x -> x
+    let int_to_v: int -> v = fun x -> x
   end
   in
-  A.{  
-    do_write;
-    do_delete;
-    do_check;
-    do_full_check;
-    do_all}
+  let module W = Make(Z) in
+  W.do_all () >>= fun () ->
+  M.close_blk_dev ()
+
+let _ = make_1
+  
 
 
-let _ = make_generic_example
 
-
+(* FIXME add this stuff back in
 let make_generic_main ~fn ~int_to_k ~int_to_v ~example = 
   let Examples.{monad_ops;blk_ops;empty_leaf_as_blk; blk_dev_ops; blk_allocator_ref; btree_root_ref; flush_wbc; _} = example in
   let ( >>= ) = monad_ops.bind in
@@ -107,3 +147,4 @@ let make_generic_main ~fn ~int_to_k ~int_to_v ~example =
   example.do_all ();
   run.run (flush_wbc ~blk_dev_ops:(blk_dev_ops fd) ());
   close ~fd ~blk_allocator_state:!blk_allocator_ref ~btree_root_state:!btree_root_ref
+*)

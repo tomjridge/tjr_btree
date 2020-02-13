@@ -7,9 +7,9 @@ let map_range = List_.map_range
 
 let _ = 
   let f x = x in
-  assert_(fun () -> map_range ~f 1 1 = [1]);
-  assert_(fun () -> map_range ~f 1 0 = []);
-  assert_(fun () -> map_range ~f 1 2 = [1;2]);
+  assert(map_range ~f 1 1 = [1]);
+  assert(map_range ~f 1 0 = []);
+  assert(map_range ~f 1 2 = [1;2]);
   ()
 
 let usage = {|

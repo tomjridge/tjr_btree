@@ -12,8 +12,8 @@ promote_docs::
 clean::
 	rm -f btree.store
 
-run_eg1:
-	$(DUNE) exec bin/btree_main.exe eg1
+run:
+	$(DUNE) exec bin/btree_main.exe 1
 
 run_examples: # FIXME todo
 	@echo ======================================================================

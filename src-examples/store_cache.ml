@@ -97,7 +97,7 @@ let add_write_back_cache_to_store (type blk_id)
       ~monad_ops ~store_ops 
       ~alloc 
       ~(evict:(blk_id * 'v)list -> (unit,'t)m)
-      ~(write_back_cache_ops:(blk_id,'v,_,'wb) write_back_cache_ops)
+      ~(write_back_cache_ops:(blk_id,'v,_,'wb) Write_back_cache.write_back_cache_ops)
       ~with_write_back_cache 
   = 
   let module A = struct
@@ -122,7 +122,7 @@ let add_write_back_cache_to_store (type blk_id)
     let store_ops = 
       let {read;wrte=_NOTE_NOT_USED;rewrite=_NOTE_NOT_USED';free} = store_ops in
       (* Add some memoization *)
-      let module L = Make_write_back_cache(struct
+      let module L = Write_back_cache.Make_write_back_cache(struct
                        type t = blk_id
                        let compare : t -> t -> int = Pervasives.compare  (* FIXME don't use pervasives for real code *)
                      end)
@@ -222,6 +222,6 @@ let _
 store_ops:('a, 'v, 't) store_ops ->
 alloc:(unit -> ('a, 't) m) ->
 evict:(('a * 'v) list -> (unit, 't) m) ->
-write_back_cache_ops:('a, 'v, 'a * 'v, 'wb) write_back_cache_ops ->
+write_back_cache_ops:('a, 'v, 'a * 'v, 'wb) Write_back_cache.write_back_cache_ops ->
 with_write_back_cache:('wb, 't) with_state -> ('a, 'v, 't) store_ops
 = add_write_back_cache_to_store
