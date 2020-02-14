@@ -8,11 +8,20 @@
 
 tjr_btree is a B-tree library written for OCaml, and based on code extracted from an Isabelle formalization.
 
+Library structure: 
+
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vSqzipIxfOtcWhtSEqcBUpEKPVp1ALtHYyVVBldz7WNP3idcaQTY0iHoLBMf9n4vNMUjDvoIi_gr2gE/pub?w=550&amp;h=336">
+
+
+System structure:
+
 <img src="https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&amp;h=766">
 
 
+Type dependencies:
 
-<img src="https://docs.google.com/drawings/d/e/2PACX-1vSqzipIxfOtcWhtSEqcBUpEKPVp1ALtHYyVVBldz7WNP3idcaQTY0iHoLBMf9n4vNMUjDvoIi_gr2gE/pub?w=550&amp;h=336">
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vRpuIadu1YMpruLuyKu5ActBCj9IOfQFnUs6wL91uDpMAh_UG085rhdv5ePmu8IP4xC-TISFa3Tso9D/pub?w=940&amp;h=601">
+
 
 ## Quick links
 
