@@ -34,6 +34,22 @@ simple int->int example
 
 *)
 
+(* (write_back_cache,(r,dnode,r*dnode,write_back_cache) write_back_cache_ops) *)
+module Make_write_back_cache'(S:sig type r val r_cmp: r->r->int type dnode end) = struct
+  open S
+  module K = struct
+    type t = r
+    let compare: t -> t -> int = S.r_cmp
+  end
+  module V = struct
+    type t = dnode
+  end
+  module B = Write_back_cache.Make_write_back_cache(K)(V)
+  include B
+  let make_write_back_cache = B.make_write_back_cache
+  type write_back_cache = B.Internal.Lru.t    
+end
+
 
 module Make(S: sig
     type blk_id = Blk_id_as_int.blk_id[@@deriving bin_io]
@@ -42,6 +58,7 @@ module Make(S: sig
     type k[@@deriving bin_io]
     type v[@@deriving bin_io]
     val k_cmp: k -> k -> int
+    val r_cmp: r -> r -> int (* needed for write_back_cache *)
     val cs: constants
     (* val kv_mrshlr: (k,v,ba_buf) kv_mshlr *)
   end)
@@ -49,7 +66,11 @@ module Make(S: sig
 struct
   open S
 
+  let r_cmp = r_cmp
+
   let blk_sz = blk_sz_4096
+
+  let monad_ops = lwt_monad_ops
   
   module Btree = Tjr_btree.Make(
     struct
@@ -59,7 +80,9 @@ struct
     end)
   open Btree
 
+  module Write_back_cache = Make_write_back_cache'(struct include S type nonrec dnode = (node,leaf)dnode end)
 
+  
   module X_ = Bin_prot_marshalling.Make(
     struct
       include S
@@ -113,14 +136,47 @@ struct
     open U
     (* at this point, we have the blk_dev_ops *)
     let disk_ops = { dnode_mshlr; blk_dev_ops; blk_alloc }
-    let map_ops_with_ls = Btree.disk_to_map ~disk_ops ~root_ops
 
     let initialize_blk_dev () =
       blk_dev_ops.write ~blk_id:(Blk_id_as_int.of_int 0) ~blk:(empty_leaf_as_blk ()) >>= fun () ->
       bt_rt_ref:=0;
-      blk_alloc_ref:=0;
+      blk_alloc_ref:=1;
       return ()
 
+    let evict writes = 
+      (* these writes are dnodes; we need to marshall them first *)
+      writes |> List.map (fun (blk_id,dn) -> 
+          (blk_id,dnode_mshlr.dnode_to_blk dn))
+      |> blk_dev_ops.write_many
+
+    let store_ops = Btree.disk_to_store ~disk_ops
+
+    (* initial state and ops *)
+    let cache = Write_back_cache.make_write_back_cache ~cap:5200 ~delta:10
+
+    let cache_ref = ref cache.initial_state
+
+    let with_cache = {
+      with_state = fun f -> f ~state:!cache_ref ~set_state:(fun s -> cache_ref:=s; return ())
+    }
+
+    let store_ops = 
+      Store_cache.add_write_back_cache_to_store 
+        ~monad_ops 
+        ~store_ops 
+        ~alloc:blk_alloc.blk_alloc
+        ~evict
+        ~write_back_cache_ops:cache.ops
+        ~with_write_back_cache:with_cache
+        
+    (* make sure to call before close *)
+    let flush_cache () = 
+      cache.ops.trim_all (!cache_ref) |> fun (writes,_) ->
+      evict writes
+
+    let pre_btree_ops = Btree.store_to_pre_btree ~store_ops
+
+    let map_ops_with_ls = Btree.pre_btree_to_map ~pre_btree_ops ~root_ops
   end
 end
 
@@ -133,6 +189,7 @@ module Make_1() = struct
       open Bin_prot.Std
       type blk_id = Blk_id_as_int.blk_id[@@deriving bin_io]
       type r      = blk_id[@@deriving bin_io]
+      let r_cmp: r -> r -> int = Pervasives.compare
       type blk    = ba_buf
       type k = int[@@deriving bin_io]
       type v = int[@@deriving bin_io]
@@ -206,19 +263,4 @@ end
 *)
 
 
-(* (write_back_cache,(r,dnode,r*dnode,write_back_cache) write_back_cache_ops) *)
-module Make_write_back_cache'(S:sig type r val compare: r->r->int type dnode end) = struct
-  open S
-  module K = struct
-    type t = r
-    let compare: t -> t -> int = S.compare
-  end
-  module V = struct
-    type t = dnode
-  end
-  module B = Write_back_cache.Make_write_back_cache(K)(V)
-  include B
-  let make_write_back_cache = B.make_write_back_cache
-  type write_back_cache = B.Internal.Lru.t    
-end
 

@@ -16,6 +16,7 @@ module Make(S:sig
     type r = Blk_id_as_int.blk_id
     type t = lwt
     type leaf_stream
+    val flush_cache: unit -> (unit,t)m
     val map_ops_with_ls:(k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls
     val int_to_k: int -> k
     val int_to_v: int -> v
@@ -48,9 +49,10 @@ struct
         | true -> return ()
         | false -> 
           ops.insert ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
-          k (x+1))
+          k (x+1)) >>= fun () ->
+    flush_cache()
 
-  let _ = do_write
+  let _ = do_write 
 
   (* delete some values *)
   let do_delete () = profile "do_delete" @@ fun () -> 
@@ -60,7 +62,8 @@ struct
         | true -> return ()
         | false -> 
           ops.delete ~k:(int_to_k x) >>= fun () ->
-          k (x+1))
+          k (x+1)) >>= fun () ->
+    flush_cache()
 
   (* open store and check whether various keys and values are correct *)
   let do_check () = 
@@ -86,7 +89,8 @@ struct
     do_write () >>= fun () ->
     do_delete () >>= fun () ->
     do_check () >>= fun () ->
-    do_full_check()
+    do_full_check() >>= fun () ->
+    flush_cache() (* not needed *)
 end
 
 
@@ -115,6 +119,7 @@ let make_1 () =
     let map_ops_with_ls:(k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls = Y.map_ops_with_ls
     let int_to_k: int -> k = fun x -> x
     let int_to_v: int -> v = fun x -> x
+    let flush_cache = Y.flush_cache
   end
   in
   let module W = Make(Z) in

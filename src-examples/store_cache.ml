@@ -1,9 +1,17 @@
-(** Add LRU caching to an existing store. This is a read cache; writes
-   are passed through in addition to being cached. So there is no need
-   to flush anything. *)
+(** Add LRU caching to an existing store; two versions: a read cache,
+   and a write back cache. FIXME superseded by fs_shared write_back_cache?
 
 
-(* FIXME move elsewhere eg fs_shared *)
+- Read cache: writes are passed through in addition to being
+   cached. So there is no need to flush anything. This dramatically
+   improves performance.
+
+- Write cache: writes are buffered; multiple writes to the same block
+   commit when LRU overflows (using the last write). Using a write
+   back cache improves performance even more. *)
+
+
+(* FIXME move elsewhere eg fs_shared? *)
 
 open Profilers_.Lru_profiler
 
@@ -89,10 +97,14 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
   A.store_ops
 
 
-(** NOTE alloc is necessary because a write of a node may only allocate the block, rather than actually writing.
+(** NOTE alloc is necessary because a write of a node may only
+   allocate the block, rather than actually writing.
 
-NOTE that eviction should be handled asynchronously, by repeatedly calling wrte on the lower store_ops
- *)
+NOTE that eviction should be handled asynchronously, by repeatedly
+   calling wrte on the lower store_ops. Obviously evicted writes
+   should not be overtaken by writes to the same blocks (the lower
+   store should be accessed serially).  
+*)
 let add_write_back_cache_to_store (type blk_id)
       ~monad_ops ~store_ops 
       ~alloc 
