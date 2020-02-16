@@ -3,7 +3,7 @@
 
 (executables
   (package tjr_btree_examples)
-  (preprocess (pps ppx_deriving_yojson))
+  (preprocess (pps ppx_deriving_yojson ppx_jane))
   (public_names btree_main)
     (libraries tjr_btree tjr_btree_examples))
 
