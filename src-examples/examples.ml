@@ -11,23 +11,6 @@ open Make_example
 
 *)
 
-module type S = sig 
-    type k[@@deriving bin_io]
-    type v[@@deriving bin_io]
-    val k_cmp: k -> k -> int
-    val cs : constants
-  end
-
-module Make(S:S) = struct
-  include Make(struct
-      include S
-      type blk_id = Blk_id_as_int.blk_id[@@deriving bin_io]
-      type r      = blk_id[@@deriving bin_io]
-      let r_cmp: r -> r -> int = Pervasives.compare
-      type blk    = ba_buf
-    end)
-end
-
 type arg = 
   | A1_int_int
 
