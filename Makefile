@@ -13,7 +13,7 @@ clean::
 	rm -f btree.store
 
 run:
-	$(DUNE) exec bin/btree_main.exe 1
+	$(DUNE) exec bin/btree_main.exe 1 # >tmp.txt 2>&1
 
 run_examples: # FIXME todo
 	@echo ======================================================================

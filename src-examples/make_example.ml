@@ -9,6 +9,8 @@ module Make(S: sig
     type v                              [@@deriving bin_io]
     val k_cmp : k -> k -> int
     val cs    : constants
+      
+    val debug_k_and_v_are_int: bool
   end)
 = 
 struct
@@ -77,11 +79,14 @@ struct
     {
       blk_alloc=(fun () -> 
         assert(!blk_alloc_ref>=0);
+        (* Printf.printf "Allocating blk: %d\n" (!blk_alloc_ref); *)
         let r = !blk_alloc_ref |> Blk_id_as_int.of_int in
         incr blk_alloc_ref;
         return r);
       blk_free=(fun _ -> return ())
     }
+
+  module B = Blk_id_as_int
 
   module Root_blk = struct
     open Bin_prot.Std
@@ -101,7 +106,6 @@ struct
       let x = bin_read_t blk ~pos_ref:(ref 0) in
       x
 
-    module B = Blk_id_as_int
     let b0 = B.of_int 0 (* where we store the "superblock" *)
     let b1 = 1 (* where we store the initial empty btree leaf node *)
     let b2 = 2 (* first free blk *)
@@ -165,14 +169,68 @@ struct
         (blk_id,dnode_mshlr.dnode_to_blk dn))
     |> t.blk_dev_ops.write_many
 
+
+  let k_to_int k = 
+    assert(debug_k_and_v_are_int);
+    let k_to_int : k -> int = Obj.magic in
+    k_to_int k
+
+  let v_to_int v = 
+    assert(debug_k_and_v_are_int);
+    let v_to_int : v -> int = Obj.magic in
+    v_to_int v
+
+(*
+  module Pvt = struct
+    type ('a,'b) dn = Dnode of 'a | Dleaf of 'b [@@deriving show]
+    type cache_bindings = (int * ((int list * int list, (int * int) list) dn * bool)) list[@@deriving show]
+  end
+  open Pvt
+*)
+  (* (int * ((k list * int list, (k * v) list) dn * bool)) list *)
+(*
+  let show_cache t = 
+    let c = (!(t.cache_ref)) in
+    cache_ops.bindings c |> fun xs -> 
+    xs |> List.map (fun (r,(dn,dirty)) -> 
+        r |> B.to_int |> fun r -> 
+        dn |> (function 
+          | Disk_node n -> Dnode (
+              n |> node_cnvs.node_to_krs |> fun (ks,rs) -> 
+              (ks |> List.map k_to_int, List.map B.to_int rs))
+          | Disk_leaf l -> Dleaf (l |> node_cnvs.leaf_to_kvs
+                                  |> List.map (fun (k,v) -> (k_to_int k, v_to_int v))))
+        |> fun dn -> 
+        (r,(dn,dirty))) |> fun xs ->
+    Printf.printf "Cache is: %s\n%!" (show_cache_bindings xs); 
+    return ()
+*)
+  let show_cache _t = 
+    (* Printf.printf "Call to show_cache\n%!"; *)
+    return ()
+
   (* make sure to call before close *)
   let flush_cache t = 
-    cache_ops.trim_all (!(t.cache_ref)) |> fun (writes,cache) ->
-    assert(cache_ops.size cache=0);
-    t.cache_ref := cache;
-    (* FIXME don't we need to set the cache to empty at this point? or
-       at least, with all elts marked as clean*)
-    evict t writes 
+    show_cache t >>= fun () ->
+    (* Printf.printf "Cache size: %d\n%!" (cache_ops.size (!(t.cache_ref))); *)
+    cache_ops.trim_all (!(t.cache_ref)) |> fun (writes,_cache) ->
+    assert(cache_ops.size _cache=0);
+    evict t writes >>= fun () ->
+    (* FIXME we want to use the original cache, but updated so that no
+       entries are dirty; this probably needs a modification to the
+       LRU interface https://github.com/pqwy/lru/issues/7 ; wait for
+       new lru version then replace the following *)
+    let c = !(t.cache_ref) in
+    (writes,c) |> iter_k (fun ~k (ws,c) -> 
+        match ws with
+        | [] -> c
+        | (r,dn)::ws -> 
+          W_.Internal.Lru.add r (dn,false) c |> fun c -> 
+          k (ws,c)) |> fun c -> 
+    t.cache_ref := c; 
+    (* the following shouldn't be necessary if we have serialized access to t.fd *)
+    (* from_lwt (Lwt_unix.fsync t.fd) >>= fun () -> *)
+    return ()
 
   let map_ops_with_ls t = 
     let with_cache t = with_ref t.cache_ref in
@@ -185,15 +243,18 @@ struct
             ~state:(
               assert(!bt_rt_ref >= 0);
               !bt_rt_ref|> Blk_id_as_int.of_int)
-            ~set_state:(fun blk_id -> bt_rt_ref:=Blk_id_as_int.to_int blk_id; return ()))
+            ~set_state:(fun blk_id ->
+              let blk_id = B.to_int blk_id in
+              (* Printf.printf "Updating bt_rt to %d\n%!" blk_id; *)
+              bt_rt_ref:=blk_id; return ()))
       }
     in
-    let store_ops = Btree.disk_to_store ~disk_ops:(disk_ops t) in
+    let uncached_store_ops = Btree.disk_to_store ~disk_ops:(disk_ops t) in
     (* add cache *)
     let store_ops = 
-      Store_cache.add_write_back_cache_to_store 
+      Store_write_back_cache.add_write_back_cache_to_store
         ~monad_ops 
-        ~store_ops 
+        ~uncached_store_ops
         ~alloc:(blk_alloc t).blk_alloc
         ~evict:(evict t)
         ~write_back_cache_ops:cache_ops

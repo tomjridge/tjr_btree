@@ -4,7 +4,7 @@
 (library
   (name tjr_btree_examples)
   (public_name tjr_btree_examples)
-  (preprocess (pps ppx_deriving_yojson ppx_bin_prot ppx_jane))
+  (preprocess (pps ppx_deriving_yojson ppx_bin_prot ppx_jane ppx_show))
   (preprocessor_deps (file "config.ml"))
-  (libraries lru tjr_fs_shared isa_btree tjr_btree tjr_profile ppx_jane))
+  (libraries lru tjr_fs_shared isa_btree tjr_btree tjr_profile ppx_jane ppx_show ppx_show.runtime))
 

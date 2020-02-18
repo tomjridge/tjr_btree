@@ -17,6 +17,7 @@ module Make(S:sig
     type r = Blk_id_as_int.blk_id
     type t = lwt
     type leaf_stream
+    val show_cache: btree_descr -> (unit,t)m (* FIXME only for debugging *)
     val flush_cache: btree_descr -> (unit,t)m
     val map_ops_with_ls: btree_descr -> (k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls
     val int_to_k: int -> k
@@ -52,7 +53,12 @@ struct
             | false -> 
               (ops bd).insert ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
               k (x+1)) >>= fun () ->
-        flush_cache bd
+        show_cache bd >>= fun () ->
+        (* Printf.printf "Before write flush\n"; *)
+        flush_cache bd >>= fun () -> 
+        (* Printf.printf "After write flush\n"; *)
+        show_cache bd
+        
     end
 
   let _ = do_write 
@@ -65,11 +71,13 @@ struct
             match x > 200 with
             | true -> return ()
             | false -> 
+              (* Printf.printf "Deleting %d\n" x; *)
               (ops bd).delete ~k:(int_to_k x) >>= fun () ->
+              show_cache bd >>= fun () ->
               k (x+1)) >>= fun () ->
-        Printf.printf "About to flush\n";
+        (* Printf.printf "About to flush\n"; *)
         flush_cache bd >>= fun () -> 
-        Printf.printf "Post flush\n";
+        (* Printf.printf "Post flush\n"; *)
         return ()
     end
 
@@ -88,7 +96,7 @@ struct
         match x > max_writes with
         | true -> return ()
         | false ->  
-          Printf.printf "full_check: %d\n%!" x;
+          (* Printf.printf "full_check: %d\n%!" x; *)
           (ops bd).find ~k:(int_to_k x) >>= fun v -> 
           assert( (100 <= x && x <= 200 && v=None) || v=Some(int_to_v x));
           k (x+1))
@@ -126,6 +134,7 @@ let make_1 () =
     let int_to_k: int -> k = fun x -> x
     let int_to_v: int -> v = fun x -> x
     let flush_cache = flush_cache
+    let show_cache = show_cache
   end
   in
   let module W = Make(Z) in
