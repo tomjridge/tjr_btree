@@ -4,16 +4,16 @@
 
 open Tjr_monad.With_lwt
 
-module Make(S: sig
+module type S = sig
     type k                              [@@deriving bin_io]
     type v                              [@@deriving bin_io]
     val k_cmp : k -> k -> int
     val cs    : constants
       
     val debug_k_and_v_are_int: bool
-  end)
-= 
-struct
+  end
+
+module Make(S:S) = struct
   (* open S *)
 
   module S2 = struct
