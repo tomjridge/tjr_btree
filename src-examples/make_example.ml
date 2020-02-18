@@ -16,9 +16,14 @@ module type S = sig
 module Make(S:S) = struct
   (* open S *)
 
+  (** following aliases make the documentation more concise *)
+  type ba_buf = Tjr_fs_shared.ba_buf
+  type lwt = Tjr_monad.With_lwt.lwt 
+  type r' = Blk_id_as_int.blk_id [@@deriving bin_io]
+
   module S2 = struct
     include S
-    type blk_id = Blk_id_as_int.blk_id  [@@deriving bin_io]
+    type blk_id = r'                     [@@deriving bin_io]
     type r      = blk_id                [@@deriving bin_io]
     type blk    = ba_buf
 
@@ -27,15 +32,29 @@ module Make(S:S) = struct
     let monad_ops = lwt_monad_ops
   end
   open S2
+  type r = S2.r
+  type k = S2.k
+  type v = S2.v
 
   let monad_ops = lwt_monad_ops
 
-  let blk_sz = blk_sz_4096
+  module B = Blk_id_as_int
 
-  let blk_ops = Blk_factory.make_3 ()
+  module Blk = struct
+    let blk_sz = blk_sz_4096
+    let blk_ops = Blk_factory.make_3 ()
+  end
+  open Blk
   
   module Btree = Tjr_btree.Make(S2)
   open Btree
+  type node = Btree.node
+  type leaf = Btree.leaf
+
+
+  type nonrec dnode = (Btree.node,Btree.leaf)dnode
+
+
 
   module Dnode_mrshlr = Bin_prot_marshalling.Make(
     struct
@@ -44,17 +63,17 @@ module Make(S:S) = struct
       let node_cnvs = node_cnvs
       let blk_sz = blk_sz
     end)
-  let dnode_mshlr = Dnode_mrshlr.dnode_mshlr
+  let dnode_mshlr : (dnode,ba_buf)dnode_mshlr = Dnode_mrshlr.dnode_mshlr  (* FIXME use open (struct let dnode_mshlr = Dnode_mrshlr.dnode_mshlr end) from 4.08 *)
 
   let empty_leaf_as_blk () = 
     dnode_mshlr.dnode_to_blk (Disk_leaf (node_cnvs.kvs_to_leaf []))
 
   module W_ = Write_back_cache.Make_write_back_cache
       (struct type t = r let compare = r_cmp end)
-      (struct type t = (node,leaf)dnode end)
+      (struct type t = dnode end)
   type write_back_cache = W_.Internal.Lru.t
-  let make_write_back_cache = W_.make_write_back_cache
-  let {initial_state=init_cache;ops=cache_ops} = make_write_back_cache ~cap:5200 ~delta:10
+  (* let make_write_back_cache = W_.make_write_back_cache *)
+  let {initial_state=init_cache;ops=cache_ops} = W_.make_write_back_cache ~cap:5200 ~delta:10
   let _ = init_cache
   let _ = cache_ops  
 
@@ -63,7 +82,7 @@ module Make(S:S) = struct
       f ~state:(!r) ~set_state:(fun s -> r:=s; return ()) in
     { with_state }
 
-  (* a container for fd, and various refs *)
+  (** Run-time state of the example; container for fd, and various refs *)
   type t = {
     fd: Lwt_unix.file_descr;
     blk_dev_ops: (r,ba_buf,lwt) blk_dev_ops;
@@ -85,8 +104,6 @@ module Make(S:S) = struct
         return r);
       blk_free=(fun _ -> return ())
     }
-
-  module B = Blk_id_as_int
 
   module Root_blk = struct
     open Bin_prot.Std
@@ -169,7 +186,7 @@ module Make(S:S) = struct
         (blk_id,dnode_mshlr.dnode_to_blk dn))
     |> t.blk_dev_ops.write_many
 
-
+  (* FIXME remove this unsafe use of magic *)
   let k_to_int k = 
     assert(debug_k_and_v_are_int);
     let k_to_int : k -> int = Obj.magic in
@@ -232,7 +249,7 @@ module Make(S:S) = struct
     (* from_lwt (Lwt_unix.fsync t.fd) >>= fun () -> *)
     return ()
 
-  let map_ops_with_ls t = 
+  let map_ops_with_ls t : (k,v,r,Btree.leaf_stream,lwt) map_ops_with_ls = 
     let with_cache t = with_ref t.cache_ref in
     (* NOTE reserve block 0 for the system root block *)
     let root_ops t : (r,lwt) btree_root_ops = 
