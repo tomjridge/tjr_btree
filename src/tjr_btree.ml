@@ -1,5 +1,12 @@
 (** Export the main functionality of this library. *)
 
+(** 
+{%html: 
+<img src="https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&amp;h=766"> 
+%}
+
+*)
+
 (** {2 Main interfaces} *)
 
 module Btree_intf = Btree_intf

@@ -4,13 +4,6 @@
 
 open Make_example
 
-(** 
-{%html: 
-<img src="https://docs.google.com/drawings/d/e/2PACX-1vSbPmP9hfqwpYdJefrAYVY_7nSf6Mf5kzAXHYEaaAbw6cLwkWJH9GImYG_4KwKRDLOOjDGMvePbodwt/pub?w=1137&amp;h=766"> 
-%}
-
-*)
-
 type arg = 
   | A1_int_int
 
