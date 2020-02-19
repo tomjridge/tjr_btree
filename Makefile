@@ -10,7 +10,7 @@ promote_docs::
 
 # for auto-completion of Makefile target
 clean::
-	rm -f btree.store
+	rm -f example.store
 
 run:
 	$(DUNE) exec bin/btree_main.exe example # >tmp.txt 2>&1

@@ -75,58 +75,53 @@ module Make(S:S) = struct
 
   (* let filename = "btree.store" *)
 
+  module B = Blk_id_as_int
+
   let main args =
     let run x = x in
     match args with  (* FIXME fn is already set by this point *)
     | ["init"; fn] -> run (
-        open_ ~flag:Init_empty fn >>= fun t -> 
+        open_ ~flg:Init_empty ~fn >>= fun bd -> 
         print_endline "init ok";
-        close t)
+        close ~bd)
 
     | ["count"; fn] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls t in
-        let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
-        make_leaf_stream (!(t.bt_rt_ref) |> B.of_int) >>= fun lss -> 
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        ls_create ~bd >>= fun ls -> 
         let count = ref 0 in
-        lss |> iter_k (fun ~k lss -> 
-            count:=!count + (List.length (ls_kvs lss)); 
-            ls_step lss >>= function
+        ls |> iter_k (fun ~k ls -> 
+            count:=!count + (List.length (ls_kvs ~bd ~ls)); 
+            ls_step ~bd ~ls >>= function
             | None -> return ()
             | Some lss -> k lss) >>= fun _ -> 
         Printf.printf "count ok; %d entries\n%!" !count;
-        close t)
+        close ~bd)
 
     | ["insert";fn;k;v] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls t in
-        insert ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
-        close t)
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        insert ~bd ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
+        close ~bd)
 
     | ["delete";fn;k] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ delete; _ } = map_ops_with_ls t in
-        delete ~k:(s2k k) >>= fun () -> 
-        close t)
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        delete ~bd ~k:(s2k k) >>= fun () -> 
+        close ~bd)
 
     | ["list";fn] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t ->         
-        let Map_ops_with_ls.{ leaf_stream_ops; _ } = map_ops_with_ls t in
-        let { make_leaf_stream; ls_step; ls_kvs } = leaf_stream_ops in
-        make_leaf_stream (!(t.bt_rt_ref) |> B.of_int) >>= fun lss -> 
-        lss |> iter_k (fun ~k lss ->
-            ls_kvs lss |> fun kvs ->
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd ->         
+        ls_create ~bd >>= fun ls -> 
+        ls |> iter_k (fun ~k ls ->
+            ls_kvs ~bd ~ls |> fun kvs ->
             List.iter (fun (k,v) -> 
-              Printf.printf "%s -> %s\n" (k2s k) (v2s v)) kvs;
-            ls_step lss >>= function
+                Printf.printf "%s -> %s\n" (k2s k) (v2s v)) kvs;
+            ls_step ~bd ~ls >>= function
             | None -> return ()
             | Some lss -> k lss) >>= fun _ -> 
         print_endline "list ok";
-        close t)
+        close ~bd)
 
     | ["insert_range";fn;l;h] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t ->
-        let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls t in
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd ->
         let l,h = int_of_string l, int_of_string h in
         l |> iter_k (fun ~k l ->
             match l >= h with
@@ -134,15 +129,14 @@ module Make(S:S) = struct
             | false -> 
               let h' = min (l+chunk_size) h in
               let kvs = List_.map_range ~f:(fun x -> int2kv x) l h' in
-              insert_all ~kvs >>= fun () ->
+              insert_all ~bd ~kvs >>= fun () ->
               k h') >>= fun () ->
         (* measure_execution_time_and_print "insert_range" f; *)
         print_endline "insert_range ok";
-        close t)
+        close ~bd)
 
     | ["test_random_reads";fn;l;h;n] -> run (
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ find; _ } = map_ops_with_ls t in
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random reads between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -150,15 +144,14 @@ module Make(S:S) = struct
             | true -> return ()
             | false -> 
               let k = i2k (rand ~l ~h) in
-              find ~k >>= fun _ ->
+              find ~bd ~k >>= fun _ ->
               kont (i+1)) >>= fun () ->
         print_endline "test_random_reads ok";
-        close t)
+        close ~bd)
 
     | ["test_random_writes";fn;l;h;n] -> run (
         (* version using plain insert *)
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ insert; _ } = map_ops_with_ls t in
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -167,16 +160,15 @@ module Make(S:S) = struct
             | false -> 
               let k = rand ~l ~h in 
               let (k,v) = int2kv k in
-              insert ~k ~v >>= fun () ->
+              insert ~bd ~k ~v >>= fun () ->
               kont (i+1)) >>= fun () ->
         (* measure_execution_time_and_print "test_random_writes" f; *)
         print_endline "test_random_writes ok";
-        close t)
+        close ~bd)
 
     | ["test_random_writes_im";fn;l;h;n] -> run (
         (* version using insert_many, with sorting and chunks *)
-        open_ ~flag:Init_from_b0 fn >>= fun t -> 
-        let Map_ops_with_ls.{ insert_all; _ } = map_ops_with_ls t in
+        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)        
         0 |> iter_k (fun ~k i -> 
@@ -188,11 +180,11 @@ module Make(S:S) = struct
               let kvs = map_range ~f i h' in
               let kvs = List.sort Pervasives.compare kvs in
               let kvs = List.map int2kv kvs in
-              insert_all ~kvs >>= fun () ->
+              insert_all ~bd ~kvs >>= fun () ->
               k h') >>= fun () ->
         (* measure_execution_time_and_print "test_random_writes_im" f; *)
         print_endline "test_random_writes_im ok";
-        close t)
+        close ~bd)
 
     | ["nop"] -> (print_endline "nop ok"; return ())
 

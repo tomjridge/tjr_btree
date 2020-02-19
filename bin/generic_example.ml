@@ -11,18 +11,27 @@ module Profile() = struct
 end
 
 module Make(S:sig
-    type btree_descr
     type k
     type v
-    type r = Blk_id_as_int.blk_id
-    type t = lwt
-    type leaf_stream
-    val show_cache: btree_descr -> (unit,t)m (* FIXME only for debugging *)
-    val flush_cache: btree_descr -> (unit,t)m
-    val map_ops_with_ls: btree_descr -> (k,v,r,leaf_stream,t)Map_ops_with_ls.map_ops_with_ls
+    (* type r = Blk_id_as_int.blk_id *)
+    (* type t = lwt *)
+    type ls
+    type bd
+
+    val find         : bd:bd -> k:k -> (v option, lwt) m
+    val insert       : bd:bd -> k:k -> v:v -> (unit, lwt) m
+    val insert_many  : bd:bd -> k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, lwt) m[@@warning "-32"]
+    val insert_all   : bd:bd -> kvs:(k * v) list -> (unit, lwt) m
+    val delete       : bd:bd -> k:k -> (unit, lwt) m
+    val ls_create    : bd:bd -> (ls, lwt) m
+    val ls_step      : bd:bd -> ls:ls -> (ls option, lwt) m
+    val ls_kvs       : bd:bd -> ls:ls -> (k * v) list
+    val sync_to_disk : bd:bd -> (unit, lwt) m
+    val flush_cache  : bd:bd -> (unit, lwt) m
+        
     val int_to_k: int -> k
     val int_to_v: int -> v
-  end)
+  end[@warning "-32"])
 =
 struct
   open S
@@ -30,7 +39,7 @@ struct
   (* FIXME config *)
   let max_writes = 10000
 
-  let ops = map_ops_with_ls  
+  (* let ops = map_ops_with_ls   *)
 
   let profile s (f:unit -> (unit,lwt)m) = 
     let module P = Profile() in
@@ -51,14 +60,14 @@ struct
             match x > max_writes with
             | true -> return ()
             | false -> 
-              (ops bd).insert ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
+              insert ~bd ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
               k (x+1)) >>= fun () ->
-        show_cache bd >>= fun () ->
+        (* show_cache bd >>= fun () -> *)
         (* Printf.printf "Before write flush\n"; *)
-        flush_cache bd >>= fun () -> 
+        flush_cache ~bd >>= fun () -> 
         (* Printf.printf "After write flush\n"; *)
-        show_cache bd
-        
+        (* show_cache bd *)
+        return ()
     end
 
   let _ = do_write 
@@ -72,11 +81,11 @@ struct
             | true -> return ()
             | false -> 
               (* Printf.printf "Deleting %d\n" x; *)
-              (ops bd).delete ~k:(int_to_k x) >>= fun () ->
-              show_cache bd >>= fun () ->
+              delete ~bd ~k:(int_to_k x) >>= fun () ->
+              (* show_cache bd >>= fun () -> *)
               k (x+1)) >>= fun () ->
         (* Printf.printf "About to flush\n"; *)
-        flush_cache bd >>= fun () -> 
+        flush_cache ~bd >>= fun () -> 
         (* Printf.printf "Post flush\n"; *)
         return ()
     end
@@ -84,9 +93,9 @@ struct
   (* open store and check whether various keys and values are correct *)
   let do_check bd = 
     print_endline "Checking...";
-    (ops bd).find ~k:(int_to_k 100) >>= fun v ->
+    find ~bd ~k:(int_to_k 100) >>= fun v ->
     assert(v=None);
-    (ops bd).find ~k:(int_to_k 1000) >>= fun v -> 
+    find ~bd ~k:(int_to_k 1000) >>= fun v -> 
     assert(v = Some (int_to_v 1000));
     return ()
 
@@ -97,7 +106,7 @@ struct
         | true -> return ()
         | false ->  
           (* Printf.printf "full_check: %d\n%!" x; *)
-          (ops bd).find ~k:(int_to_k x) >>= fun v -> 
+          find ~bd ~k:(int_to_k x) >>= fun v -> 
           assert( (100 <= x && x <= 200 && v=None) || v=Some(int_to_v x));
           k (x+1))
 
@@ -107,7 +116,7 @@ struct
     do_delete bd >>= fun () ->
     (* do_check bd >>= fun () -> *)
     do_full_check bd >>= fun () ->
-    flush_cache bd (* not needed? *)
+    flush_cache ~bd (* not needed? *)
 end
 
 
@@ -117,29 +126,24 @@ type arg =
 type res = 
   | R1 of (unit -> (unit,lwt)m)
 
-let filename = "btree.store"
+let filename = "example.store"
 
 let make_1 () = 
   let module X = Examples.Make_1() in
   let open X in
-  open_ ~flag:Init_empty filename >>= fun bd ->
+  open_ ~flg:Init_empty ~fn:filename >>= fun bd ->
   let module Z = struct
-    type btree_descr=X.t
     type k = int
     type v = int
-    type r = Blk_id_as_int.blk_id
-    type t = lwt
-    type leaf_stream = X.Btree.leaf_stream
-    let map_ops_with_ls = map_ops_with_ls
+    (* type t = lwt *)
+    include X
     let int_to_k: int -> k = fun x -> x
     let int_to_v: int -> v = fun x -> x
-    let flush_cache = flush_cache
-    let show_cache = show_cache
   end
   in
   let module W = Make(Z) in
   W.do_all bd >>= fun () ->
-  close bd
+  close ~bd
 
 let _ = make_1
 

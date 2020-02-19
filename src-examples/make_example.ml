@@ -13,7 +13,7 @@ module type S = sig
     val debug_k_and_v_are_int: bool
   end
 
-module Make(S:S) = struct
+module Make(S:S) = (struct
   (* open S *)
 
   (** following aliases make the documentation more concise *)
@@ -42,15 +42,16 @@ module Make(S:S) = struct
 
   module Blk = struct
     let blk_sz = blk_sz_4096
-    let blk_ops = Blk_factory.make_3 ()
+    (* let blk_ops = Blk_factory.make_3 () *)
   end
   open Blk
   
   module Btree = Tjr_btree.Make(S2)
   open Btree
-  type node = Btree.node
-  type leaf = Btree.leaf
-
+  (* type node = Btree.node *)
+  (* type leaf = Btree.leaf *)
+  type leaf_stream = Btree.leaf_stream
+  type ls = leaf_stream
 
   type nonrec dnode = (Btree.node,Btree.leaf)dnode
 
@@ -83,7 +84,7 @@ module Make(S:S) = struct
     { with_state }
 
   (** Run-time state of the example; container for fd, and various refs *)
-  type t = {
+  type bd = {
     fd: Lwt_unix.file_descr;
     blk_dev_ops: (r,ba_buf,lwt) blk_dev_ops;
     blk_alloc_ref: int ref;
@@ -93,7 +94,7 @@ module Make(S:S) = struct
     cache_ref: write_back_cache ref;
   }
 
-  let blk_alloc (t:t) : (r,lwt) blk_allocator_ops = 
+  let blk_alloc (t:bd) : (r,lwt) blk_allocator_ops = 
     let blk_alloc_ref = t.blk_alloc_ref in
     {
       blk_alloc=(fun () -> 
@@ -136,7 +137,7 @@ module Make(S:S) = struct
       (from_blk blk |> set_roots t);
       return ()
 
-    let sync_to_disk t = 
+    let sync_to_disk ~bd:t = 
       (get_roots t |> to_blk) |> fun blk ->
       write_root_block t blk
 
@@ -149,7 +150,7 @@ module Make(S:S) = struct
       t.bt_rt_ref:=b1; 
       (* we assume the next blk is free *)
       t.blk_alloc_ref:=b2;
-      sync_to_disk t >>= fun () ->
+      sync_to_disk ~bd:t >>= fun () ->
       return ()
   end
 
@@ -158,10 +159,11 @@ module Make(S:S) = struct
   let disk_ops t = { dnode_mshlr; blk_dev_ops=t.blk_dev_ops; blk_alloc=(blk_alloc t) }
 
   type open_flag = Init_empty | Init_from_b0
+  type flg = open_flag = Init_empty | Init_from_b0 
 
   (* NOTE this does not attempt to read the initial blk *)
-  let open_ ~flag filename = 
-    Blk_dev_factory.(make_6 (Filename filename)) >>= fun x -> 
+  let open_ ~flg ~fn = 
+    Blk_dev_factory.(make_6 (Filename fn)) >>= fun x -> 
     let module A = (val x) in
     let open A in (* close_blk_dev is just close on fd *)
     let t = {
@@ -172,7 +174,7 @@ module Make(S:S) = struct
       cache_ref=ref init_cache
     }
     in
-    match flag with
+    match flg with
     | Init_empty -> (
         Root_blk.initialize_blk_dev t >>= fun () ->
         return t)
@@ -187,16 +189,19 @@ module Make(S:S) = struct
     |> t.blk_dev_ops.write_many
 
   (* FIXME remove this unsafe use of magic *)
+         (*
   let k_to_int k = 
     assert(debug_k_and_v_are_int);
     let k_to_int : k -> int = Obj.magic in
     k_to_int k
+*)
 
+  (*
   let v_to_int v = 
     assert(debug_k_and_v_are_int);
     let v_to_int : v -> int = Obj.magic in
     v_to_int v
-
+*)
 (*
   module Pvt = struct
     type ('a,'b) dn = Dnode of 'a | Dleaf of 'b [@@deriving show]
@@ -227,7 +232,7 @@ module Make(S:S) = struct
     return ()
 
   (* make sure to call before close *)
-  let flush_cache t = 
+  let flush_cache ~bd:t = 
     show_cache t >>= fun () ->
     (* Printf.printf "Cache size: %d\n%!" (cache_ops.size (!(t.cache_ref))); *)
     cache_ops.trim_all (!(t.cache_ref)) |> fun (writes,_cache) ->
@@ -281,9 +286,56 @@ module Make(S:S) = struct
     let map_ops_with_ls = Btree.pre_btree_to_map ~pre_btree_ops ~root_ops:(root_ops t) in
     map_ops_with_ls
 
-  let close t =
-    flush_cache t >>= fun () ->
-    sync_to_disk t >>= fun () ->
+  module Pub = struct
+    let find ~bd:t = (map_ops_with_ls t).find
+    let insert ~bd:t = (map_ops_with_ls t).insert
+    let insert_many ~bd:t = (map_ops_with_ls t).insert_many
+    let insert_all ~bd:t = (map_ops_with_ls t).insert_all
+    let delete ~bd:t = (map_ops_with_ls t).delete
+    let ls_create ~bd:t = 
+      let r = !(t.bt_rt_ref) in
+      (map_ops_with_ls t).leaf_stream_ops.make_leaf_stream (B.of_int r)
+    (* FIXME ls_step and ls_kvs are independent of t *)
+    let ls_step ~bd:t ~ls:lss = (map_ops_with_ls t).leaf_stream_ops.ls_step lss 
+    let ls_kvs ~bd:t ~ls:lss = (map_ops_with_ls t).leaf_stream_ops.ls_kvs lss 
+  end
+  include Pub
+
+  let close ~bd:t =
+    flush_cache ~bd:t >>= fun () ->
+    sync_to_disk ~bd:t >>= fun () ->
     from_lwt (Lwt_unix.close t.fd)
-end
+end : 
+sig
+  open S
+  (* type r = Blk_id_as_int.blk_id *)
+
+  type lwt = Tjr_monad.lwt
+
+  (** ls is "leaf stream" *)
+  type ls
+
+  (** bd is "B-tree descriptor" *)
+  type bd
+
+  type flg =
+    | Init_empty
+    | Init_from_b0
+
+  val open_ : flg:flg -> fn:string -> (bd, lwt) m
+  val close : bd:bd -> (unit, lwt) m
+
+  val find         : bd:bd -> k:k -> (v option, lwt) m
+  val insert       : bd:bd -> k:k -> v:v -> (unit, lwt) m
+  val insert_many  : bd:bd -> k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, lwt) m
+  val insert_all   : bd:bd -> kvs:(k * v) list -> (unit, lwt) m
+  val delete       : bd:bd -> k:k -> (unit, lwt) m
+
+  val sync_to_disk : bd:bd -> (unit, lwt) m
+  val flush_cache  : bd:bd -> (unit, lwt) m
+
+  val ls_create    : bd:bd -> (ls, lwt) m
+  val ls_step      : bd:bd -> ls:ls -> (ls option, lwt) m
+  val ls_kvs       : bd:bd -> ls:ls -> (k * v) list
+end)
 
