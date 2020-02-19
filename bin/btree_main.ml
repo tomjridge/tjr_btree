@@ -24,6 +24,6 @@ let _ =
     let prg = Generic_example.make_1 () in    
     Lwt_main.run (With_lwt.to_lwt prg)
   | args -> 
-    let prg = Generic_main.Make_int_int.main args in
+    let prg = Generic_main.Int_int.main args in
     Lwt_main.run (With_lwt.to_lwt prg)
 

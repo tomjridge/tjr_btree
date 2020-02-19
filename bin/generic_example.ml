@@ -129,7 +129,7 @@ type res =
 let filename = "example.store"
 
 let make_1 () = 
-  let module X = Examples.Make_1() in
+  let module X = Examples.Int_int_ex in
   let open X in
   open_ ~flg:Init_empty ~fn:filename >>= fun bd ->
   let module Z = struct

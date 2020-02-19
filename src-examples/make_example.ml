@@ -1,9 +1,10 @@
-(** Various examples, using lwt, bin_prot and bigarray *)
+(** Construct an example API, using lwt, bin_prot and bigarray *)
 
 (* FIXME need to recode all the functionality from 7dd9b63 *)
 
 open Tjr_monad.With_lwt
 
+(** Input signature (types k and v, and related info) *)
 module type S = sig
     type k                              [@@deriving bin_io]
     type v                              [@@deriving bin_io]
@@ -13,7 +14,42 @@ module type S = sig
     val debug_k_and_v_are_int: bool
   end
 
-module Make(S:S) = (struct
+(** Output signature (EX is "example") *)
+module type EX = sig
+  type k
+  type v
+
+  type lwt = Tjr_monad.lwt
+
+  (** ls is "leaf stream" *)
+  type ls
+
+  (** bd is "B-tree descriptor" *)
+  type bd
+
+  type flg =
+    | Init_empty
+    | Init_from_b0
+
+  val open_ : flg:flg -> fn:string -> (bd, lwt) m
+  val close : bd:bd -> (unit, lwt) m
+
+  val find         : bd:bd -> k:k -> (v option, lwt) m
+  val insert       : bd:bd -> k:k -> v:v -> (unit, lwt) m
+  val insert_many  : bd:bd -> k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, lwt) m
+  val insert_all   : bd:bd -> kvs:(k * v) list -> (unit, lwt) m
+  val delete       : bd:bd -> k:k -> (unit, lwt) m
+
+  val sync_to_disk : bd:bd -> (unit, lwt) m
+  val flush_cache  : bd:bd -> (unit, lwt) m
+
+  val ls_create    : bd:bd -> (ls, lwt) m
+  val ls_step      : bd:bd -> ls:ls -> (ls option, lwt) m
+  val ls_kvs       : bd:bd -> ls:ls -> (k * v) list
+end
+
+
+module Make(S:S) : EX with type k:=S.k and type v:=S.v = (struct
   (* open S *)
 
   (** following aliases make the documentation more concise *)
@@ -305,37 +341,5 @@ module Make(S:S) = (struct
     flush_cache ~bd:t >>= fun () ->
     sync_to_disk ~bd:t >>= fun () ->
     from_lwt (Lwt_unix.close t.fd)
-end : 
-sig
-  open S
-  (* type r = Blk_id_as_int.blk_id *)
-
-  type lwt = Tjr_monad.lwt
-
-  (** ls is "leaf stream" *)
-  type ls
-
-  (** bd is "B-tree descriptor" *)
-  type bd
-
-  type flg =
-    | Init_empty
-    | Init_from_b0
-
-  val open_ : flg:flg -> fn:string -> (bd, lwt) m
-  val close : bd:bd -> (unit, lwt) m
-
-  val find         : bd:bd -> k:k -> (v option, lwt) m
-  val insert       : bd:bd -> k:k -> v:v -> (unit, lwt) m
-  val insert_many  : bd:bd -> k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, lwt) m
-  val insert_all   : bd:bd -> kvs:(k * v) list -> (unit, lwt) m
-  val delete       : bd:bd -> k:k -> (unit, lwt) m
-
-  val sync_to_disk : bd:bd -> (unit, lwt) m
-  val flush_cache  : bd:bd -> (unit, lwt) m
-
-  val ls_create    : bd:bd -> (ls, lwt) m
-  val ls_step      : bd:bd -> ls:ls -> (ls option, lwt) m
-  val ls_kvs       : bd:bd -> ls:ls -> (k * v) list
 end)
 

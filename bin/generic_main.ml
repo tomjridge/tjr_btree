@@ -199,11 +199,13 @@ module Make(S:S) = struct
       
 end
 
-module Int_int = struct
-  include Examples.Int_int
-  let i2k = fun i -> i
-  let i2v = fun i -> i
-  let debug_k_and_v_are_int = true
+module Pvt = struct
+  module Int_int = struct
+    include Examples.Pvt.Int_int
+    let i2k = fun i -> i
+    let i2v = fun i -> i
+    let debug_k_and_v_are_int = true
+  end
 end
 
-module Make_int_int = Make(Int_int)
+module Int_int = Make(Pvt.Int_int)

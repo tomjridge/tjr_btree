@@ -1,12 +1,21 @@
 (** Examples for {!Tjr_btree} *)
 
-(* module Intf = Intf_ *)
-(* module Bin_prot_intf = Bin_prot_intf *)
+(** WARNING! Documentation produced by odoc is often incorrect. For
+   example, destructive substitution is not handled properly, see {{:https://github.com/ocaml/odoc/issues/96} this issue}. So please
+   take care when interpreting this documentation. As an example, the
+   documentation for {!module-type:Examples.INT_INT_EX} is incorrect (k
+   and v have actually been replaced by int). *)
 
-(** {2 Introduction} 
 
-There are two main types of example: in-memory and on-disk.
-*)
+(** {2 Actual examples} *)
+
+module Make_example = Make_example
+
+module Examples = Examples
+
+(**/**)
+
+(** {2 Internal} *)
 
 (** {2 In-memory store} *)
 
@@ -29,13 +38,6 @@ Use Jane St. marshalling libraries.
 module Bin_prot_marshalling = Bin_prot_marshalling
 
 
-(** {2 Actual examples} *)
-
-module Make_example = Make_example
-
-module Examples = Examples
-
-
-(** {2 Internal} *)
-
 module Profilers = Profilers_
+
+(**/**)
