@@ -8,9 +8,9 @@ doc: "https://tomjridge.github.io/tjr_btree"
 bug-reports: "https://github.com/tomjridge/tjr_btree/issues"
 depends: [
   "dune" {>= "2.0"}
+  "isa_btree"
   "bin_prot"
   "ppx_bin_prot"
-  "isa_btree"
 ]
 build: [
   ["dune" "subst"] {pinned}

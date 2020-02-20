@@ -1,5 +1,4 @@
 /btree.store
-/dune-project
 *.install
 .merlin
 /example.store
