@@ -26,7 +26,7 @@ Type dependencies:
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
-* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/tjr_btree/Tjr_btree/index.html). 
+* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/tjr_btree/). 
 * Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory.
 * To **install**, try the Dockerfile (`docker build .`) and then to build locally, strip the "RUN" prefix from the relevant Dockerfile lines and use opam pin.
 
@@ -61,17 +61,28 @@ wrapper round the core OCaml code extracted from Isabelle.
 
 The easiest way to install is via opam, pinning the github repos. See the `Dockerfile`.
 
+
+## Usage
+
+In your code, use:
+
+~~~
+open Tjr_btree
+open Tjr_btree.Btree_intf
+open Tjr_btree_examples
+~~~
+
 ## Examples
 
 After installing, you can run the examples by typing:
 
 ~~~bash
-make run_examples
+make run
 ~~~
 
 The output should look something like:
 
-![Imgur](https://i.imgur.com/sW7QiGS.png)
+![Imgur](https://i.imgur.com/Cvumjbe.png)
 
 
 

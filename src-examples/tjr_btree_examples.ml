@@ -1,17 +1,22 @@
 (** Examples for {!Tjr_btree} *)
 
-(** WARNING! Documentation produced by odoc is often incorrect. For
-   example, destructive substitution is not handled properly, see {{:https://github.com/ocaml/odoc/issues/96} this issue}. So please
-   take care when interpreting this documentation. As an example, the
-   documentation for {!module-type:Examples.INT_INT_EX} is incorrect (k
-   and v have actually been replaced by int). *)
+(** Usage: open Tjr_btree;; open Tjr_btree.Btree_intf;; open Tjr_btree_examples *)
 
+(** WARNING! Documentation produced by odoc is often incorrect. For
+   example, destructive substitution is not handled properly, see
+   {{:https://github.com/ocaml/odoc/issues/96} this issue}. So please
+   take care when interpreting this documentation. *)
+
+
+include Intf_
 
 (** {2 Actual examples} *)
 
 module Make_example = Make_example
 
 module Examples = Examples
+
+include Examples
 
 (**/**)
 

@@ -33,7 +33,7 @@ Description:
 open Tjr_monad.With_lwt
 
 module type S = sig
-  include Make_example.S
+  include Tjr_btree_examples.S
   val i2k: int -> k
   val i2v: int -> v
   val debug_k_and_v_are_int: bool
@@ -81,12 +81,12 @@ module Make(S:S) = struct
     let run x = x in
     match args with  (* FIXME fn is already set by this point *)
     | ["init"; fn] -> run (
-        open_ ~flg:Init_empty ~fn >>= fun bd -> 
+        open_ ~flgs:[O_TRUNC] fn >>= fun bd -> 
         print_endline "init ok";
         close ~bd)
 
     | ["count"; fn] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         ls_create ~bd >>= fun ls -> 
         let count = ref 0 in
         ls |> iter_k (fun ~k ls -> 
@@ -98,17 +98,17 @@ module Make(S:S) = struct
         close ~bd)
 
     | ["insert";fn;k;v] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         insert ~bd ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
         close ~bd)
 
     | ["delete";fn;k] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         delete ~bd ~k:(s2k k) >>= fun () -> 
         close ~bd)
 
     | ["list";fn] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd ->         
+        open_ fn >>= fun bd ->         
         ls_create ~bd >>= fun ls -> 
         ls |> iter_k (fun ~k ls ->
             ls_kvs ~bd ~ls |> fun kvs ->
@@ -121,7 +121,7 @@ module Make(S:S) = struct
         close ~bd)
 
     | ["insert_range";fn;l;h] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd ->
+        open_ fn >>= fun bd ->
         let l,h = int_of_string l, int_of_string h in
         l |> iter_k (fun ~k l ->
             match l >= h with
@@ -136,7 +136,7 @@ module Make(S:S) = struct
         close ~bd)
 
     | ["test_random_reads";fn;l;h;n] -> run (
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random reads between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -151,7 +151,7 @@ module Make(S:S) = struct
 
     | ["test_random_writes";fn;l;h;n] -> run (
         (* version using plain insert *)
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -168,7 +168,7 @@ module Make(S:S) = struct
 
     | ["test_random_writes_im";fn;l;h;n] -> run (
         (* version using insert_many, with sorting and chunks *)
-        open_ ~flg:Init_from_b0 ~fn >>= fun bd -> 
+        open_ fn >>= fun bd -> 
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)        
         0 |> iter_k (fun ~k i -> 

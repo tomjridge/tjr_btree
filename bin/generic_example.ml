@@ -131,10 +131,8 @@ let filename = "example.store"
 let make_1 () = 
   let module X = Examples.Int_int_ex in
   let open X in
-  open_ ~flg:Init_empty ~fn:filename >>= fun bd ->
+  open_ ~flgs:[O_TRUNC] filename >>= fun bd ->
   let module Z = struct
-    type k = int
-    type v = int
     (* type t = lwt *)
     include X
     let int_to_k: int -> k = fun x -> x

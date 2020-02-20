@@ -3,54 +3,14 @@
 (* FIXME need to recode all the functionality from 7dd9b63 *)
 
 open Tjr_monad.With_lwt
-
-(** Input signature (types k and v, and related info) *)
-module type S = sig
-    type k                              [@@deriving bin_io]
-    type v                              [@@deriving bin_io]
-    val k_cmp : k -> k -> int
-    val cs    : constants
-      
-    val debug_k_and_v_are_int: bool
-  end
-
-(** Output signature (EX is "example") *)
-module type EX = sig
-  type k
-  type v
-
-  type lwt = Tjr_monad.lwt
-
-  (** ls is "leaf stream" *)
-  type ls
-
-  (** bd is "B-tree descriptor" *)
-  type bd
-
-  type flg =
-    | Init_empty
-    | Init_from_b0
-
-  val open_ : flg:flg -> fn:string -> (bd, lwt) m
-  val close : bd:bd -> (unit, lwt) m
-
-  val find         : bd:bd -> k:k -> (v option, lwt) m
-  val insert       : bd:bd -> k:k -> v:v -> (unit, lwt) m
-  val insert_many  : bd:bd -> k:k -> v:v -> kvs:(k * v) list -> ((k * v) list, lwt) m
-  val insert_all   : bd:bd -> kvs:(k * v) list -> (unit, lwt) m
-  val delete       : bd:bd -> k:k -> (unit, lwt) m
-
-  val sync_to_disk : bd:bd -> (unit, lwt) m
-  val flush_cache  : bd:bd -> (unit, lwt) m
-
-  val ls_create    : bd:bd -> (ls, lwt) m
-  val ls_step      : bd:bd -> ls:ls -> (ls option, lwt) m
-  val ls_kvs       : bd:bd -> ls:ls -> (k * v) list
-end
+open Intf_
 
 
-module Make(S:S) : EX with type k:=S.k and type v:=S.v = (struct
+module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
   (* open S *)
+
+  type t = lwt
+  (* type nonrec flg=flg *)
 
   (** following aliases make the documentation more concise *)
   type ba_buf = Tjr_fs_shared.ba_buf
@@ -194,11 +154,7 @@ module Make(S:S) : EX with type k:=S.k and type v:=S.v = (struct
 
   let disk_ops t = { dnode_mshlr; blk_dev_ops=t.blk_dev_ops; blk_alloc=(blk_alloc t) }
 
-  type open_flag = Init_empty | Init_from_b0
-  type flg = open_flag = Init_empty | Init_from_b0 
-
-  (* NOTE this does not attempt to read the initial blk *)
-  let open_ ~flg ~fn = 
+  let open_ ?flgs:(flgs=[]) fn = 
     Blk_dev_factory.(make_6 (Filename fn)) >>= fun x -> 
     let module A = (val x) in
     let open A in (* close_blk_dev is just close on fd *)
@@ -210,13 +166,16 @@ module Make(S:S) : EX with type k:=S.k and type v:=S.v = (struct
       cache_ref=ref init_cache
     }
     in
-    match flg with
-    | Init_empty -> (
-        Root_blk.initialize_blk_dev t >>= fun () ->
-        return t)
-    | Init_from_b0 -> (
-        sync_from_disk t >>= fun () ->
-        return t)
+    (match List.mem O_TRUNC flgs with
+     | true -> Root_blk.initialize_blk_dev t
+     | false -> return ()) >>= fun () ->
+    (* NOTE we always attempt to sync back from the root blk, even if
+       we have already done this with initialize_blk_dev *)
+    sync_from_disk t >>= fun () -> 
+    (match List.mem O_NOCACHE flgs with 
+     | true -> (Printf.printf "Warning: O_NOCACHE not implemented"; return ())
+     | false -> return ()) >>= fun () ->
+    return t
 
   let evict t writes = 
     (* these writes are dnodes; we need to marshall them first *)
