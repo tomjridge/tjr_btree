@@ -1,7 +1,7 @@
 [%%import "config.ml"]
 
 [%%if PROFILING_ENABLED]
-let _ = assert(Printf.printf "%s: profiling enabled\n%!" __FILE__; true)
+let _ : unit = assert(Printf.printf "%s: profiling enabled\n%!" __FILE__; true)
 let profiling_enabled = true
 [%%else]
 let profiling_enabled = false

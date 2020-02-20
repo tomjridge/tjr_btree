@@ -67,7 +67,7 @@ module Make(S:S) = struct
 
   let int2kv = fun k -> (i2k k,i2v (2*k)) 
 
-  let _ = Random.self_init ()
+  let _ : unit = Random.self_init ()
 
   (* when reading, either the file exists, in which case we assume it
      is valid and proceed, or it doesn't, in which case we initialize
@@ -178,7 +178,7 @@ module Make(S:S) = struct
               let h' = min (i+chunk_size) n in
               let f _ = rand ~l ~h in
               let kvs = map_range ~f i h' in
-              let kvs = List.sort Pervasives.compare kvs in
+              let kvs = List.sort Stdlib.compare kvs in
               let kvs = List.map int2kv kvs in
               insert_all ~bd ~kvs >>= fun () ->
               k h') >>= fun () ->

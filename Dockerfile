@@ -1,5 +1,4 @@
-
-FROM ocaml/opam2:4.07
+FROM ocaml/opam2:ubuntu-19.04
 
 # some of the following apt packages are likely already installed
 RUN sudo apt-get install -y git make
@@ -21,6 +20,8 @@ RUN opam install re
 
 # drop the RUN prefix from the following lines (and ignore previous lines!)
 # to build using local opam install
+
+RUN echo .
 
 RUN opam pin -y -n add tjr_lib_core https://github.com/tomjridge/tjr_lib.git
 RUN opam pin -y -n add tjr_lib https://github.com/tomjridge/tjr_lib.git

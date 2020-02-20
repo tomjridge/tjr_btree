@@ -23,7 +23,7 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
     type r      = blk_id                [@@deriving bin_io]
     type blk    = ba_buf
 
-    let r_cmp : r -> r -> int = Pervasives.compare (* needed for write_back_cache *)
+    let r_cmp : r -> r -> int = Stdlib.compare (* needed for write_back_cache *)
     type t = lwt
     let monad_ops = lwt_monad_ops
   end

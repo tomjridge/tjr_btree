@@ -40,7 +40,7 @@ let add_write_back_cache_to_store (type blk_id wb)
       (* Add some memoization *)
       let module L = Write_back_cache.Make_write_back_cache(struct
                        type t = blk_id
-                       let compare : t -> t -> int = Pervasives.compare  (* FIXME don't use pervasives for real code *)
+                       let compare : t -> t -> int = Stdlib.compare  (* FIXME don't use pervasives for real code *)
                      end)
       in
       let wb = write_back_cache_ops in
@@ -109,7 +109,7 @@ let add_write_back_cache_to_store (type blk_id wb)
       in
       let free blk_ids = 
         print_endline "Call to free";
-        ignore(failwith __LOC__); (* FIXME remove *)
+        ignore(failwith __LOC__ : unit); (* FIXME remove *)
         (* these blocks are guaranteed to never be accessed again; so we can remove them from the cache *)
         with_write_back_cache.with_state (fun ~state:cache ~set_state -> 
           let cache = 

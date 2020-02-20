@@ -17,7 +17,7 @@ Documentation for main:
 |}
               Generic_main.usage
 
-let _ = 
+let _ : unit = 
   match args with
   | [] -> (print_endline usage; exit 0)
   | ["example"] -> 

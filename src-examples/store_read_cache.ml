@@ -41,7 +41,7 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
       (* Add some memoization *)
       let module L = Lru.M.Make(struct
           type t = blk_id
-          let equal : t -> t -> bool = Pervasives.(=)  (* FIXME don't use pervasives for real code *)
+          let equal : t -> t -> bool = Stdlib.(=)  (* FIXME don't use pervasives for real code *)
           let hash: t -> int = Hashtbl.hash
         end)(struct
           type t = (node, leaf) dnode  (* FIXME dnode_impl *)
