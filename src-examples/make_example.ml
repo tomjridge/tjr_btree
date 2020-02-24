@@ -5,6 +5,75 @@
 open Tjr_monad.With_lwt
 open Intf_
 
+(** Internal root block operations *)
+module type RT_BLK = sig
+
+  type blk_id = Blk_id_as_int.blk_id
+  type blk = ba_buf
+    
+  type rt_blk
+
+  (** typically lwt *)
+  type t = lwt
+
+  type data[@@deriving bin_io]
+
+  (* NOTE the blk operations and the identity of the root blk are set
+     at creation time *)
+
+  val sync_to_disk: rt_blk -> (unit,t)m
+  (* val sync_from_disk: unit -> (rt_blk,t)m *)
+
+  (** typically blk_id is 0 *)
+  val make: blk_dev_ops:(blk_id,blk,t)blk_dev_ops -> blk_id:blk_id -> (rt_blk,t)m
+      
+end
+
+module Rt_blk = struct
+  module Make(S:sig type data[@@deriving bin_io] end) = struct
+    include S
+
+    type blk_id = Blk_id_as_int.blk_id
+    type blk = ba_buf
+
+    (** typically lwt *)
+    type t = lwt
+
+    type rt_blk = {
+      blk_dev_ops:(blk_id,blk,t)blk_dev_ops;
+      blk_id:blk_id;
+      data:data;
+    }
+
+    let make ~(blk_dev_ops:(blk_id,blk,t)blk_dev_ops) ~blk_id = 
+      (* let blk_id = Blk_id_as_int.of_int 0 in *)
+      blk_dev_ops.read ~blk_id >>= fun blk -> 
+      let data = S.bin_read_data blk ~pos_ref:(ref 0) in
+      return {
+        blk_dev_ops;
+        blk_id;
+        data=data
+      }
+
+    let write_to_disk ~(blk_dev_ops:(blk_id,blk,t)blk_dev_ops) ~blk_id ~data = 
+      let buf = ba_buf_ops.create 4096 in
+      let _ : int = S.bin_write_data buf ~pos:0 data in
+      blk_dev_ops.write ~blk_id:blk_id ~blk:buf >>= fun () -> 
+      return ()
+
+    let read_from_disk ~(blk_dev_ops:(blk_id,blk,t)blk_dev_ops) ~blk_id = 
+      blk_dev_ops.read ~blk_id >>= fun blk -> 
+      S.bin_read_data blk ~pos_ref:(ref 0) |> fun data -> 
+      return data
+
+    let sync_to_disk rt_blk = 
+      write_to_disk ~blk_dev_ops:(rt_blk.blk_dev_ops) ~blk_id:(rt_blk.blk_id) ~data:rt_blk.data
+
+  end
+end
+
+module Pvt : RT_BLK = Rt_blk.Make(struct open Bin_prot.Std type data = int[@@deriving bin_io] end)
+
 
 module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
   (* open S *)
@@ -79,103 +148,77 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
       f ~state:(!r) ~set_state:(fun s -> r:=s; return ()) in
     { with_state }
 
+  open Bin_prot.Std
+  type rt_pair = {
+    bt_rt:int ref;
+    blk_alloc:int ref
+  }[@@deriving bin_io]    
+
+  module Rt_blk_ = struct
+    module X = Rt_blk.Make(struct type data = rt_pair[@@deriving bin_io] end)
+    include X
+  end
+
+  type rt_blk = Rt_blk_.rt_blk
+
+
   (** Run-time state of the example; container for fd, and various refs *)
   type bd = {
     fd: Lwt_unix.file_descr;
     blk_dev_ops: (r,ba_buf,lwt) blk_dev_ops;
-    blk_alloc_ref: int ref;
-    (* blk_alloc_ops: (r,lwt) blk_allocator_ops; this can be a function from t *)
-    bt_rt_ref: int ref;
-    (* root_ops: (r,lwt) btree_root_ops; *)
+    rt_blk: Rt_blk_.rt_blk;
     cache_ref: write_back_cache ref;
   }
 
   let blk_alloc (t:bd) : (r,lwt) blk_allocator_ops = 
-    let blk_alloc_ref = t.blk_alloc_ref in
     {
       blk_alloc=(fun () -> 
-        assert(!blk_alloc_ref>=0);
         (* Printf.printf "Allocating blk: %d\n" (!blk_alloc_ref); *)
-        let r = !blk_alloc_ref |> Blk_id_as_int.of_int in
-        incr blk_alloc_ref;
-        return r);
+        let data = t.rt_blk.data in
+        let r = data.blk_alloc in
+        assert(!r>=0);
+        let r' = !r |> Blk_id_as_int.of_int in
+        incr r;
+        return r');
       blk_free=(fun _ -> return ())
     }
 
-  module Root_blk = struct
-    open Bin_prot.Std
-    type t = {
-      bt_rt:int;
-      blk_alloc:int
-    }[@@deriving bin_io]
-    let get_roots t = { bt_rt=(!(t.bt_rt_ref)); blk_alloc=(!(t.blk_alloc_ref)) }
-    let set_roots t x = 
-      t.bt_rt_ref := x.bt_rt;
-      t.blk_alloc_ref:= x.blk_alloc
-    let to_blk x = 
-      let blk = Bigstring.make 4096 chr0 in
-      let _n = bin_write_t blk ~pos:0 x in
-      blk       
-    let from_blk blk = 
-      let x = bin_read_t blk ~pos_ref:(ref 0) in
-      x
-
-    let b0 = B.of_int 0 (* where we store the "superblock" *)
-    let b1 = 1 (* where we store the initial empty btree leaf node *)
-    let b2 = 2 (* first free blk *)
-
-    let read_root_block t = t.blk_dev_ops.read ~blk_id:b0
-
-    let write_root_block t blk = t.blk_dev_ops.write ~blk_id:b0 ~blk
-
-    let sync_from_disk t = 
-      read_root_block t >>= fun blk ->
-      (from_blk blk |> set_roots t);
-      return ()
-
-    let sync_to_disk ~bd:t = 
-      (get_roots t |> to_blk) |> fun blk ->
-      write_root_block t blk
-
-    (* NOTE this creates a blk_dev with no kvs *)
-    let initialize_blk_dev t =      
-      from_lwt (Lwt_unix.ftruncate t.fd 0) >>= fun () ->
-      t.blk_dev_ops.write 
-        ~blk_id:(B.of_int b1)
-        ~blk:(empty_leaf_as_blk ()) >>= fun () ->
-      t.bt_rt_ref:=b1; 
-      (* we assume the next blk is free *)
-      t.blk_alloc_ref:=b2;
-      sync_to_disk ~bd:t >>= fun () ->
-      return ()
-  end
-
-  let sync_to_disk,sync_from_disk = Root_blk.(sync_to_disk,sync_from_disk)
+  let b0 = B.of_int 0 (* where we store the "superblock" *)
+  let b1 = 1 (* where we store the initial empty btree leaf node *)
+  let b2 = 2 (* first free blk *)
 
   let disk_ops t = { dnode_mshlr; blk_dev_ops=t.blk_dev_ops; blk_alloc=(blk_alloc t) }
+
+  let initialize_blk_dev ~fd ~(blk_dev_ops:(blk_id,blk,t)blk_dev_ops) =
+    (* truncate file *)
+    from_lwt (Lwt_unix.ftruncate fd 0) >>= fun () ->
+    (* write empty leaf into b1, and update bt_rt and blk_alloc *)
+    let rt_pair = { bt_rt=ref b1; blk_alloc=ref b2 } in
+    blk_dev_ops.write 
+      ~blk_id:(B.of_int b1)
+      ~blk:(empty_leaf_as_blk ()) >>= fun () ->
+    (* sync rt blk *)
+    Rt_blk_.write_to_disk ~blk_dev_ops ~blk_id:b0 ~data:rt_pair >>= fun () ->
+    let t : rt_blk = { blk_dev_ops; blk_id=b0; data=rt_pair } in
+    return t
 
   let open_ ?flgs:(flgs=[]) fn = 
     Blk_dev_factory.(make_6 (Filename fn)) >>= fun x -> 
     let module A = (val x) in
     let open A in (* close_blk_dev is just close on fd *)
-    let t = {
-      fd;
-      blk_dev_ops=blk_dev;
-      blk_alloc_ref=ref(-1);
-      bt_rt_ref=ref(-1);
-      cache_ref=ref init_cache
-    }
-    in
     (match List.mem O_TRUNC flgs with
-     | true -> Root_blk.initialize_blk_dev t
-     | false -> return ()) >>= fun () ->
-    (* NOTE we always attempt to sync back from the root blk, even if
-       we have already done this with initialize_blk_dev *)
-    sync_from_disk t >>= fun () -> 
+     | true -> initialize_blk_dev ~fd ~blk_dev_ops:blk_dev
+     | false -> Rt_blk_.make ~blk_dev_ops:blk_dev ~blk_id:b0) >>= fun rt_blk ->
     (match List.mem O_NOCACHE flgs with 
      | true -> (Printf.printf "Warning: O_NOCACHE not implemented"; return ())
      | false -> return ()) >>= fun () ->
-    return t
+    return {
+      fd;
+      blk_dev_ops=blk_dev;
+      rt_blk;
+      cache_ref=ref init_cache
+    }
+      
 
   let evict t writes = 
     (* these writes are dnodes; we need to marshall them first *)
@@ -249,21 +292,21 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
     (* from_lwt (Lwt_unix.fsync t.fd) >>= fun () -> *)
     return ()
 
-  let map_ops_with_ls t : (k,v,r,Btree.leaf_stream,lwt) map_ops_with_ls = 
+  let map_ops_with_ls (t:bd) : (k,v,r,Btree.leaf_stream,lwt) map_ops_with_ls = 
     let with_cache t = with_ref t.cache_ref in
     (* NOTE reserve block 0 for the system root block *)
     let root_ops t : (r,lwt) btree_root_ops = 
-      let bt_rt_ref = t.bt_rt_ref in
+      let bt_rt_ref = t.rt_blk.data.bt_rt in
       {
         with_state=(fun f -> 
-          f 
-            ~state:(
-              assert(!bt_rt_ref >= 0);
-              !bt_rt_ref|> Blk_id_as_int.of_int)
-            ~set_state:(fun blk_id ->
-              let blk_id = B.to_int blk_id in
-              (* Printf.printf "Updating bt_rt to %d\n%!" blk_id; *)
-              bt_rt_ref:=blk_id; return ()))
+            f 
+              ~state:(
+                assert(!bt_rt_ref >= 0);
+                !bt_rt_ref|> Blk_id_as_int.of_int)
+              ~set_state:(fun blk_id ->
+                  let blk_id = B.to_int blk_id in
+                  (* Printf.printf "Updating bt_rt to %d\n%!" blk_id; *)
+                  bt_rt_ref:=blk_id; return ()))
       }
     in
     let uncached_store_ops = Btree.disk_to_store ~disk_ops:(disk_ops t) in
@@ -288,7 +331,7 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
     let insert_all ~bd:t = (map_ops_with_ls t).insert_all
     let delete ~bd:t = (map_ops_with_ls t).delete
     let ls_create ~bd:t = 
-      let r = !(t.bt_rt_ref) in
+      let r = !(t.rt_blk.data.bt_rt) in
       (map_ops_with_ls t).leaf_stream_ops.make_leaf_stream (B.of_int r)
     (* FIXME ls_step and ls_kvs are independent of t *)
     let ls_step ~bd:t ~ls:lss = (map_ops_with_ls t).leaf_stream_ops.ls_step lss 
@@ -296,9 +339,14 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
   end
   include Pub
 
-  let close ~bd:t =
-    flush_cache ~bd:t >>= fun () ->
-    sync_to_disk ~bd:t >>= fun () ->
-    from_lwt (Lwt_unix.close t.fd)
+  let sync_to_disk ~bd = 
+    flush_cache ~bd >>= fun () ->
+    Rt_blk_.sync_to_disk bd.rt_blk >>= fun () ->
+    return ()
+
+  let close ~bd =
+    sync_to_disk ~bd >>= fun () ->
+    from_lwt (Lwt_unix.close bd.fd)
 end)
+
 
