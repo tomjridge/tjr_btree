@@ -201,7 +201,7 @@ end
 
 module Pvt = struct
   module Int_int = struct
-    include Examples.Pvt.Int_int
+    include Examples.S_int_int
     let i2k = fun i -> i
     let i2v = fun i -> i
     let debug_k_and_v_are_int = true
