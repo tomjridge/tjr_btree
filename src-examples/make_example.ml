@@ -196,14 +196,14 @@ module Make(S:S) : (EX with type k=S.k and type v=S.v and type t=lwt) = (struct
     let module A = (val x) in
     let open A in (* close_blk_dev is just close on fd *)
     (match List.mem O_TRUNC flgs with
-     | true -> initialize_blk_dev ~fd ~blk_dev_ops:blk_dev
-     | false -> Rt_blk_.make ~blk_dev_ops:blk_dev ~blk_id:b0) >>= fun rt_blk ->
+     | true -> initialize_blk_dev ~fd ~blk_dev_ops
+     | false -> Rt_blk_.make ~blk_dev_ops ~blk_id:b0) >>= fun rt_blk ->
     (match List.mem O_NOCACHE flgs with 
      | true -> (Printf.printf "Warning: O_NOCACHE not implemented"; return ())
      | false -> return ()) >>= fun () ->
     return {
       fd;
-      blk_dev_ops=blk_dev;
+      blk_dev_ops;
       rt_blk;
       cache_ref=ref init_cache
     }
