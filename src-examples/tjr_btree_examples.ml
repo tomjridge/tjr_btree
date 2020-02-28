@@ -10,9 +10,25 @@
 
 include Intf_
 
-(** {2 Actual examples} *)
+(** {2 Refined construction} *)
 
-module Make_example = Make_example
+(** These are more restricted versions of the make functor from
+   {!Tjr_btree}. The monad is lwt; the blk_id is int; blk is ba_buf;
+   blk_dev_ops are lwt/ba_buf. Marshalling uses binprot and
+   information about max size of marshalled types (dnode_mshlr in
+   disk_ops). The construction function takes a blk_dev_ops and a
+   blk_alloc. *)
+module Make_1 = Make_1
+
+
+(** This is a variation where we expose a "btree descriptor" which is
+   a file descriptor+some extra stuff. The interface is also via a
+   module rather than a record. This is primarily for standalone use
+   in examples, not as part of a bigger system. *)
+module Make_2 = Make_2
+
+
+(** {2 Actual examples} *)
 
 module Examples = Examples
 

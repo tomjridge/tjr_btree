@@ -1,8 +1,8 @@
 (** Various examples *)
 
 (* FIXME need to recode all the functionality from 7dd9b63 *)
-open Intf_
-open Make_example
+(* open Intf_ *)
+open Make_2
 
 (** k,v are both int *)
 module S_int_int = struct

@@ -1,4 +1,7 @@
-(** Export the main functionality of this library. *)
+(** Export the main functionality of this library. 
+
+Usage: open Tjr_btree;; open Tjr_btree.Btree_intf;; 
+*)
 
 (** 
 {%html: 
@@ -37,15 +40,16 @@ include Pre_btree_to_map
 (** This interface should be equal to {!Isa_btree_intf.S}. Duplicated
    here so that ocamldoc can exhibit the definition. *)
 module type S = (* Isa_btree_intf.S *) sig
-    type k
-    type v
-    type r
-    type t
-    val k_cmp: k -> k -> int
-    val monad_ops: t monad_ops
-    val cs: Constants.constants
-  end
+  type k
+  type v
+  type r
+  type t
+  val k_cmp: k -> k -> int
+  val monad_ops: t monad_ops
+  val cs: Constants.constants
+end
 
+(** The basic Make functor, with most things parameterizable. See also the more refined {!Tjr_btree_examples.Make_example} functor. *)
 module Make(S:S) : sig
   open S
 
@@ -63,6 +67,9 @@ module Make(S:S) : sig
   type nonrec store_ops = (r, (node, leaf) dnode, t) store_ops
 
   type nonrec pre_btree_ops = (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+
+  type nonrec map_ops_with_ls = (k, v, r, leaf_stream, t) map_ops_with_ls
+
 
   val disk_to_store: 
     disk_ops:'blk disk_ops ->
@@ -131,6 +138,9 @@ end = struct
 
   type nonrec pre_btree_ops = 
     (k, v, r, t, leaf, node, leaf_stream) pre_btree_ops
+
+  type nonrec map_ops_with_ls = 
+    (k, v, r, leaf_stream, t) map_ops_with_ls
 end
 
 
