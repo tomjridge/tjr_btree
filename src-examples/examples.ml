@@ -2,7 +2,7 @@
 
 (* FIXME need to recode all the functionality from 7dd9b63 *)
 (* open Intf_ *)
-open Make_2
+open Make_1
 
 (** k,v are both int *)
 module S_int_int = struct
@@ -14,7 +14,7 @@ module S_int_int = struct
   let debug_k_and_v_are_int = true
 end
 
-module type INT_INT_EX = EX with type k=int and type v=int and type t=lwt
+module type INT_INT_EX = T with type k=int and type v=int and type t=lwt
 
 module Int_int_ex : INT_INT_EX = Make(S_int_int)
 

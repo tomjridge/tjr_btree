@@ -28,8 +28,10 @@ module type S = sig
   val cs: constants
 end
 
-module Make(S:S) : sig
-  open S
+module type T = sig
+  type k
+  type v
+  type t
   type buf = ba_buf
   type blk = ba_buf
   type r = blk_id
@@ -37,19 +39,20 @@ module Make(S:S) : sig
   module type S =
   sig
     val empty_leaf_as_blk : unit -> blk
-    val flush_cache : (unit, lwt) Tjr_monad.m
+    val flush_cache : unit -> (unit, t) Tjr_monad.m
     val map_ops_with_ls :
-      (k, v, r, ls, lwt) Tjr_btree.Btree_intf.map_ops_with_ls
+      (k, v, r, ls, t) Tjr_btree.Btree_intf.map_ops_with_ls
   end
   val make :
-    blk_dev_ops:(r, blk, lwt) Tjr_fs_shared.blk_dev_ops ->
-    blk_alloc:(r, lwt) Tjr_fs_shared.blk_allocator_ops ->
-    root_ops:(r, lwt) Tjr_btree.Btree_intf.btree_root_ops -> (module S)
+    blk_dev_ops:(r, blk, t) Tjr_fs_shared.blk_dev_ops ->
+    blk_alloc:(r, t) Tjr_fs_shared.blk_allocator_ops ->
+    root_ops:(r, t) Tjr_btree.Btree_intf.btree_root_ops -> (module S)
 end 
-= 
-struct
+
+module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   (* open S *)
-  (* type t = lwt *)
+  (* open S *)
+  type t = lwt
   (* type nonrec flg=flg *)
 
   [@@@warning "-34"]
@@ -130,7 +133,7 @@ struct
     |> blk_dev_ops.write_many
 
 
-  let flush_cache ~blk_dev_ops ~cache_ref = 
+  let flush_cache ~blk_dev_ops ~cache_ref () = 
     cache_ops.trim_all !cache_ref |> fun (writes,_cache) ->
     assert(cache_ops.size _cache=0);
     evict ~blk_dev_ops writes >>= fun () ->
@@ -152,7 +155,7 @@ struct
 
   module type S = sig
     val empty_leaf_as_blk : unit -> blk
-    val flush_cache       : (unit, lwt) m
+    val flush_cache       : unit -> (unit, lwt) m
     val map_ops_with_ls   : (k, v, r, ls, lwt) Btree_intf.map_ops_with_ls
   end
 
@@ -175,9 +178,54 @@ struct
       let flush_cache = flush_cache ~blk_dev_ops ~cache_ref
       let pre_btree_ops = Btree.store_to_pre_btree ~store_ops
       let map_ops_with_ls = Btree.pre_btree_to_map ~pre_btree_ops ~root_ops
+
     end
     in
     (module A : S)    
+
+  (** NOTE from here is open/close functionality *)
+
+  open Intf_
+
+  open Bin_prot.Std
+  type rt_blk = {
+    bt_rt:blk_id ref;
+    blk_alloc:blk_id ref
+  }[@@deriving bin_io]    
+
+  module Rt_blk_ = struct
+    open Tjr_fs_shared.Rt_blk
+    module X = Rt_blk.Make(struct type data = rt_blk[@@deriving bin_io] end)
+    include X
+  end
+
+  let initialize_blk_dev ~fd =
+    let open (val Blk_dev_factory.(make_7 fd)) in
+    (* write empty leaf into b1, and update bt_rt and blk_alloc *)
+    let rt_pair = { bt_rt=ref b1; blk_alloc=ref b2 } in
+    lwt_file_ops.write_blk fd (*b1*)1 (empty_leaf_as_blk ()) >>= fun () ->
+    (* sync rt blk *)
+    Rt_blk_.write_to_disk ~blk_dev_ops ~blk_id:b0 ~data:rt_pair >>= fun () ->
+    return rt_pair
+
+  let open_ ?flgs:(flgs=[]) fn = 
+    Blk_dev_factory.(make_6 (Filename fn)) >>= fun x -> 
+    let open (val x) in (* close_blk_dev is just close on fd *)
+    (match List.mem O_TRUNC flgs with
+     | true -> 
+       (* truncate file *)
+       from_lwt (Lwt_unix.ftruncate fd 0) >>= fun () ->
+       initialize_blk_dev ~fd
+     | false -> Rt_blk_.make ~blk_dev_ops ~blk_id:b0) >>= fun rt_blk ->
+    (match List.mem O_NOCACHE flgs with 
+     | true -> (Printf.printf "Warning: O_NOCACHE not implemented"; return ())
+     | false -> return ()) >>= fun () ->
+    return {
+      fd;
+      blk_dev_ops;
+      rt_blk;
+      cache_ref=ref init_cache
+    }
 end
 
 (* module X = Make *)

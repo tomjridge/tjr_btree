@@ -33,7 +33,7 @@ Description:
 open Tjr_monad.With_lwt
 
 module type S = sig
-  include Tjr_btree_examples.Make_2.S
+  include Tjr_btree_examples.Make_1.S
   val i2k: int -> k
   val i2v: int -> v
   val debug_k_and_v_are_int: bool
@@ -41,7 +41,7 @@ end
 
 module Make(S:S) = struct
   open S
-  module E = Make_2.Make(S)
+  module E = Make_1.Make(S)
   open E
 
   (* allow float representation *)
