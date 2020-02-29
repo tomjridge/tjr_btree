@@ -28,11 +28,12 @@ module Make_1 = Make_1
 module Make_2 = Make_2
 
 
+(** {2 Root block, for lwt} *)
+module Rt_blk = Rt_blk
+
 (** {2 Actual examples} *)
 
-module Examples = Examples
-
-include Examples
+module Int_int_ex = Make_1.Int_int_ex
 
 (**/**)
 

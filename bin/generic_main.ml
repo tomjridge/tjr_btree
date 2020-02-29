@@ -76,52 +76,100 @@ module Make(S:S) = struct
   (* let filename = "btree.store" *)
 
   module B = Blk_id_as_int
+  open B
+  module type Y = sig
+    include Rt_blk.T
+    val blk_alloc : (r, lwt) blk_allocator_ops
+    val root_ops : (blk_id, lwt)with_state
+    include E.S
+    val ops : (k, v, r, ls, t) Btree_intf.map_ops_with_ls
+    val ls_create : unit -> (ls,t)m
+    val ls_step : ls -> (ls option, t) m
+    val ls_kvs : ls -> (k * v) list
+  end
 
   let main args =
     let run x = x in
+    let open_ ?flgs:(flgs=[]) fn = 
+      Tjr_btree_examples.Rt_blk.open_ ~flgs ~empty_leaf_as_blk fn >>= fun x -> 
+      let module X = (val x) in
+      (* tie the rt_blk together with blk_alloc and root_ops *)
+      let module Y = struct
+        include X
+        let blk_alloc : (r,lwt) blk_allocator_ops = {
+          blk_alloc=(fun () -> 
+              (* Printf.printf "Allocating blk: %d\n" (!blk_alloc_ref); *)
+              let r = X.rt_blk.blk_alloc in
+              assert(!r |> B.to_int >=0);
+              let r' = !r in
+              B.incr r;
+              return r');
+          blk_free=(fun _ -> return ())
+        }
+
+        let root_ops = with_ref X.rt_blk.bt_rt
+
+        let x = E.make ~blk_dev_ops ~blk_alloc ~root_ops
+        include (val x)
+
+        let ops = map_ops_with_ls
+
+        let ls_create () = ops.leaf_stream_ops.make_leaf_stream !(rt_blk.bt_rt)
+        let ls_step = ops.leaf_stream_ops.ls_step
+        let ls_kvs = ops.leaf_stream_ops.ls_kvs
+      end
+      in
+      return (module Y : Y)
+    in
     match args with  (* FIXME fn is already set by this point *)
     | ["init"; fn] -> run (
-        open_ ~flgs:[O_TRUNC] fn >>= fun bd -> 
+        open_ ~flgs:[O_TRUNC] fn >>= fun x -> 
         print_endline "init ok";
-        close ~bd)
-
+        let module X = (val x) in
+        X.close ())
+        
     | ["count"; fn] -> run (
-        open_ fn >>= fun bd -> 
-        ls_create ~bd >>= fun ls -> 
+        open_ fn >>= fun x -> 
+        let module X = (val x) in        
+        X.ls_create () >>= fun ls -> 
         let count = ref 0 in
         ls |> iter_k (fun ~k ls -> 
-            count:=!count + (List.length (ls_kvs ~bd ~ls)); 
-            ls_step ~bd ~ls >>= function
+            count:=!count + (List.length (X.ls_kvs ls)); 
+            X.ls_step ls >>= function
             | None -> return ()
             | Some lss -> k lss) >>= fun _ -> 
         Printf.printf "count ok; %d entries\n%!" !count;
-        close ~bd)
+        X.close ())
 
     | ["insert";fn;k;v] -> run (
-        open_ fn >>= fun bd -> 
-        insert ~bd ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
-        close ~bd)
+        open_ fn >>= fun x -> 
+        let module X = (val x) in        
+        X.ops.insert ~k:(s2k k) ~v:(s2v v) >>= fun () -> 
+        X.close ())
 
     | ["delete";fn;k] -> run (
-        open_ fn >>= fun bd -> 
-        delete ~bd ~k:(s2k k) >>= fun () -> 
-        close ~bd)
+        open_ fn >>= fun x -> 
+        let module X = (val x) in        
+        X.ops.delete ~k:(s2k k) >>= fun () -> 
+        X.close ())
 
     | ["list";fn] -> run (
-        open_ fn >>= fun bd ->         
-        ls_create ~bd >>= fun ls -> 
+        open_ fn >>= fun x ->         
+        let module X = (val x) in        
+        X.ls_create () >>= fun ls -> 
         ls |> iter_k (fun ~k ls ->
-            ls_kvs ~bd ~ls |> fun kvs ->
+            X.ls_kvs ls |> fun kvs ->
             List.iter (fun (k,v) -> 
                 Printf.printf "%s -> %s\n" (k2s k) (v2s v)) kvs;
-            ls_step ~bd ~ls >>= function
+            X.ls_step ls >>= function
             | None -> return ()
             | Some lss -> k lss) >>= fun _ -> 
         print_endline "list ok";
-        close ~bd)
+        X.close ())
 
     | ["insert_range";fn;l;h] -> run (
-        open_ fn >>= fun bd ->
+        open_ fn >>= fun x ->
+        let module X = (val x) in        
         let l,h = int_of_string l, int_of_string h in
         l |> iter_k (fun ~k l ->
             match l >= h with
@@ -129,14 +177,15 @@ module Make(S:S) = struct
             | false -> 
               let h' = min (l+chunk_size) h in
               let kvs = List_.map_range ~f:(fun x -> int2kv x) l h' in
-              insert_all ~bd ~kvs >>= fun () ->
+              X.ops.insert_all ~kvs >>= fun () ->
               k h') >>= fun () ->
         (* measure_execution_time_and_print "insert_range" f; *)
         print_endline "insert_range ok";
-        close ~bd)
+        X.close ())
 
     | ["test_random_reads";fn;l;h;n] -> run (
-        open_ fn >>= fun bd -> 
+        open_ fn >>= fun x -> 
+        let module X = (val x) in        
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random reads between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -144,14 +193,15 @@ module Make(S:S) = struct
             | true -> return ()
             | false -> 
               let k = i2k (rand ~l ~h) in
-              find ~bd ~k >>= fun _ ->
+              X.ops.find ~k >>= fun _ ->
               kont (i+1)) >>= fun () ->
         print_endline "test_random_reads ok";
-        close ~bd)
+        X.close ())
 
     | ["test_random_writes";fn;l;h;n] -> run (
         (* version using plain insert *)
-        open_ fn >>= fun bd -> 
+        open_ fn >>= fun x -> 
+        let module X = (val x) in        
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)
         0 |> iter_k (fun ~k:kont i -> 
@@ -160,15 +210,16 @@ module Make(S:S) = struct
             | false -> 
               let k = rand ~l ~h in 
               let (k,v) = int2kv k in
-              insert ~bd ~k ~v >>= fun () ->
+              X.ops.insert ~k ~v >>= fun () ->
               kont (i+1)) >>= fun () ->
         (* measure_execution_time_and_print "test_random_writes" f; *)
         print_endline "test_random_writes ok";
-        close ~bd)
+        X.close ())
 
     | ["test_random_writes_im";fn;l;h;n] -> run (
         (* version using insert_many, with sorting and chunks *)
-        open_ fn >>= fun bd -> 
+        open_ fn >>= fun x -> 
+        let module X = (val x) in
         let l,h,n = int_of_string l, int_of_string h, int_of_string n in
         (* n random writes between >=l and <h *)        
         0 |> iter_k (fun ~k i -> 
@@ -180,11 +231,11 @@ module Make(S:S) = struct
               let kvs = map_range ~f i h' in
               let kvs = List.sort Stdlib.compare kvs in
               let kvs = List.map int2kv kvs in
-              insert_all ~bd ~kvs >>= fun () ->
+              X.ops.insert_all ~kvs >>= fun () ->
               k h') >>= fun () ->
         (* measure_execution_time_and_print "test_random_writes_im" f; *)
         print_endline "test_random_writes_im ok";
-        close ~bd)
+        X.close ())
 
     | ["nop"] -> (print_endline "nop ok"; return ())
 
@@ -201,7 +252,7 @@ end
 
 module Pvt = struct
   module Int_int = struct
-    include Examples.S_int_int
+    include Make_1.S_int_int
     let i2k = fun i -> i
     let i2v = fun i -> i
     let debug_k_and_v_are_int = true

@@ -36,9 +36,8 @@ module type T = sig
   type blk = ba_buf
   type r = blk_id
   type ls
-  module type S =
-  sig
-    val empty_leaf_as_blk : unit -> blk
+  val empty_leaf_as_blk : unit -> blk
+  module type S = sig
     val flush_cache : unit -> (unit, t) Tjr_monad.m
     val map_ops_with_ls :
       (k, v, r, ls, t) Tjr_btree.Btree_intf.map_ops_with_ls
@@ -121,11 +120,6 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   let _ = init_cache
   let _ = cache_ops  
 
-
-  let b0 = Blk_id.of_int 0 (* where we store the "superblock" *)
-  let b1 = Blk_id.of_int 1 (* where we store the initial empty btree leaf node *)
-  let b2 = Blk_id.of_int 2 (* first free blk *)
-
   let evict ~blk_dev_ops writes = 
     (* these writes are dnodes; we need to marshall them first *)
     writes |> List.map (fun (blk_id,dn) -> 
@@ -153,8 +147,10 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
     (* from_lwt (Lwt_unix.fsync t.fd) >>= fun () -> *)
     return ()
 
+  let empty_leaf_as_blk = empty_leaf_as_blk
+
   module type S = sig
-    val empty_leaf_as_blk : unit -> blk
+    (* val empty_leaf_as_blk : unit -> blk *)
     val flush_cache       : unit -> (unit, lwt) m
     val map_ops_with_ls   : (k, v, r, ls, lwt) Btree_intf.map_ops_with_ls
   end
@@ -182,51 +178,27 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
     end
     in
     (module A : S)    
-
-  (** NOTE from here is open/close functionality *)
-
-  open Intf_
-
-  open Bin_prot.Std
-  type rt_blk = {
-    bt_rt:blk_id ref;
-    blk_alloc:blk_id ref
-  }[@@deriving bin_io]    
-
-  module Rt_blk_ = struct
-    open Tjr_fs_shared.Rt_blk
-    module X = Rt_blk.Make(struct type data = rt_blk[@@deriving bin_io] end)
-    include X
-  end
-
-  let initialize_blk_dev ~fd =
-    let open (val Blk_dev_factory.(make_7 fd)) in
-    (* write empty leaf into b1, and update bt_rt and blk_alloc *)
-    let rt_pair = { bt_rt=ref b1; blk_alloc=ref b2 } in
-    lwt_file_ops.write_blk fd (*b1*)1 (empty_leaf_as_blk ()) >>= fun () ->
-    (* sync rt blk *)
-    Rt_blk_.write_to_disk ~blk_dev_ops ~blk_id:b0 ~data:rt_pair >>= fun () ->
-    return rt_pair
-
-  let open_ ?flgs:(flgs=[]) fn = 
-    Blk_dev_factory.(make_6 (Filename fn)) >>= fun x -> 
-    let open (val x) in (* close_blk_dev is just close on fd *)
-    (match List.mem O_TRUNC flgs with
-     | true -> 
-       (* truncate file *)
-       from_lwt (Lwt_unix.ftruncate fd 0) >>= fun () ->
-       initialize_blk_dev ~fd
-     | false -> Rt_blk_.make ~blk_dev_ops ~blk_id:b0) >>= fun rt_blk ->
-    (match List.mem O_NOCACHE flgs with 
-     | true -> (Printf.printf "Warning: O_NOCACHE not implemented"; return ())
-     | false -> return ()) >>= fun () ->
-    return {
-      fd;
-      blk_dev_ops;
-      rt_blk;
-      cache_ref=ref init_cache
-    }
 end
+
+(** {2 Int->int example} *)
+
+(** k,v are both int *)
+module S_int_int = struct
+  open Bin_prot.Std
+  type k = int[@@deriving bin_io]
+  type v = int[@@deriving bin_io]
+  let k_cmp: k -> k -> int = Stdlib.compare
+  let cs = Bin_prot_marshalling.make_constants ~blk_sz:blk_sz_4096 ~k_size:9 ~v_size:9 (* FIXME constants should be part of a factory *)
+  let debug_k_and_v_are_int = true
+end
+
+module type INT_INT_EX = T with type k=int and type v=int and type t=lwt
+
+module Int_int_ex : INT_INT_EX = Make(S_int_int)
+
+
+
+
 
 (* module X = Make *)
 

@@ -1,3 +1,5 @@
+(* FIXME
+
 (** A simple example of a kv store. *)
 open Tjr_monad.With_lwt
 
@@ -129,9 +131,9 @@ type res =
 let filename = "example.store"
 
 let make_1 () = 
-  let module X = Examples.Int_int_ex in
+  let module X = Tjr_btree_examples.Int_int_ex in
   let open X in
-  open_ ~flgs:[O_TRUNC] filename >>= fun bd ->
+  Tjr_btree_examples.Rt_blk.open_ ~flgs:[O_TRUNC] ~empty_leaf_as_blk:X.empty_leaf_as_blk filename >>= fun bd ->
   let module Z = struct
     (* type t = lwt *)
     include X
@@ -145,3 +147,4 @@ let make_1 () =
 
 let _ = make_1
 
+*)
