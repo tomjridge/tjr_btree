@@ -61,6 +61,19 @@ module Make(X: sig
 struct
   open X
 
+  open Profilers_.Blk_profiler
+
+  let [d2blk;d2blk';blk2d;blk2d';fb;fb';fc;fc'] = 
+    ["d2blk";"d2blk'";"blk2d";"blk2d'";"fb";"fb'";"fc";"fc'"] |> List.map intern
+  [@@ocaml.warning "-8"]
+
+  (* FIXME this takes advantage of the fact that -1*m is m' *)
+  let mark' s f = 
+    mark s;
+    f () |> fun r ->
+    mark (-1*s);
+    r
+
   type r = blk_id[@@deriving bin_io]
 
   module BP = Bin_prot
@@ -107,10 +120,11 @@ struct
        should it? *)
     let blk_sz' = Blk_sz.to_int blk_sz in
     let dnode_to_blk dn = 
+      mark' d2blk (fun () -> 
       let buf = BP.Common.create_buf blk_sz' in (* NOTE not necessarily zeroed *)
       let n = bin_write_tree buf ~pos:0 (dn|>dn2tree) in
       assert(n<=blk_sz');
-      buf
+      buf)
     in
     let blk_to_dnode blk = 
       let _ : unit = 
@@ -118,8 +132,9 @@ struct
           Printf.printf "blk_to_dnode: %s...\n%!" 
             (blk |> Bigstring.to_string |> fun s -> String.sub s 0 4 |> String.escaped)
       in
+      mark' blk2d (fun () ->
       let t = bin_read_tree blk ~pos_ref:(ref 0) in
-      tree2dn t
+      tree2dn t)
     in
     ({ dnode_to_blk; blk_to_dnode; blk_sz }:('a,blk)dnode_mshlr)
 end

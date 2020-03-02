@@ -9,13 +9,13 @@ let profiling_enabled = false
 
 module Blk_profiler = struct
   let { mark; _ } = 
-    if profiling_enabled then make_profiler ~print_header:"bt blk profiler" ()
+    if profiling_enabled then make_profiler ~print_header:(Printf.sprintf "bt blk profiler %s" __LOC__) ()
     else dummy_profiler
 end
 
 module Lru_profiler = struct
   let { mark; _ } = 
-    if profiling_enabled then make_profiler ~print_header:"bt lru profiler" ()
+    if profiling_enabled then make_profiler ~print_header:(Printf.sprintf "bt lru profiler %s" __LOC__) ()
     else dummy_profiler
 end
     
