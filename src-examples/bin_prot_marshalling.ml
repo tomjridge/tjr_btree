@@ -69,6 +69,7 @@ struct
       FIXME inefficient *)
   module Tree = struct
     type tree = 
+      | Impossible (** this is to avoid 0 as a marshalled constructor, which hopefully identifies bugs in marshalling early *)
       | N of k list * blk_id list 
       | L of (k*v) list [@@deriving bin_io]
   end  
@@ -81,11 +82,25 @@ struct
     let { node_to_krs; krs_to_node; leaf_to_kvs; kvs_to_leaf } = node_cnvs in
     let open Isa_btree_intf in  (* for node_ops fields *)
     let dn2tree = function
-      | Disk_node n -> n |> node_to_krs |> fun (ks,rs) -> N (ks,rs)
+      | Disk_node n -> 
+        n |> node_to_krs |> fun (ks,rs) -> 
+        Test.assert_(fun () ->
+          let b = 1+List.length ks = List.length rs in
+          let _ : unit = if not b then Printf.printf "%s: ks rs lengths not aligned, %d %d\n%!" __LOC__ (List.length ks) (List.length rs) in
+          assert(b));
+        N (ks,rs)
       | Disk_leaf l -> l |> leaf_to_kvs |> fun kvs -> L kvs
     in
     let tree2dn = function
-      | N (ks,rs) -> (ks,rs) |> krs_to_node |> fun n -> Disk_node n
+      | Impossible -> failwith ("impossible: "^__LOC__)
+      | N (ks,rs) -> 
+        Test.assert_(fun () -> 
+            let b = 1+List.length ks = List.length rs in
+            let _ : unit = 
+              if not b then Printf.printf "%s: ks rs lengths not aligned, %d %d\n%!" __LOC__ (List.length ks) (List.length rs)
+            in
+            assert(b));
+        (ks,rs) |> krs_to_node |> fun n -> Disk_node n
       | L kvs -> kvs |> kvs_to_leaf |> fun l -> Disk_leaf l
     in
     (* pull this out because frame_to_page takes an explicit blk_sz; FIXME
@@ -98,6 +113,11 @@ struct
       buf
     in
     let blk_to_dnode blk = 
+      let _ : unit = 
+        if Debug_.debug_enabled then 
+          Printf.printf "blk_to_dnode: %s...\n%!" 
+            (blk |> Bigstring.to_string |> fun s -> String.sub s 0 4 |> String.escaped)
+      in
       let t = bin_read_tree blk ~pos_ref:(ref 0) in
       tree2dn t
     in

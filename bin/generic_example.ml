@@ -1,6 +1,8 @@
 (** A simple example of a kv store. *)
 open Tjr_monad.With_lwt
 
+module B = Blk_id_as_int
+
 (* FIXME put in tjr_profile *)
 module Profile() = struct
   let t1 = ref 0
@@ -47,10 +49,10 @@ struct
     return ()
 
   (* create and init store, write some values, and close *)
-  let do_write = profile "do_write" begin
+  let do_write () = profile "do_write" begin
       fun () -> 
         Printf.printf "Executing %d writes...\n%!" max_writes;
-        print_endline "Writing...";
+        Printf.printf "Writing...\n%!";
         1 |> iter_k (fun ~k x ->
             match x > max_writes with
             | true -> return ()
@@ -58,19 +60,20 @@ struct
               insert ~k:(int_to_k x) ~v:(int_to_v x) >>= fun () -> 
               k (x+1)) >>= fun () ->
         (* show_cache bd >>= fun () -> *)
-        (* Printf.printf "Before write flush\n"; *)
+        Printf.printf "Before write flush\n";
         flush_cache () >>= fun () -> 
-        (* Printf.printf "After write flush\n"; *)
+        Printf.printf "After write flush\n";
         (* show_cache bd *)
+        Printf.printf "Finished writing\n%!";
         return ()
     end
 
   let _ = do_write 
 
   (* delete some values *)
-  let do_delete = profile "do_delete" begin
+  let do_delete () = profile "do_delete" begin
       fun () -> 
-        print_endline "Deleting...";
+        Printf.printf "Deleting...\n%!";
         100 |> iter_k (fun ~k x -> 
             match x > 200 with
             | true -> return ()
@@ -82,20 +85,22 @@ struct
         (* Printf.printf "About to flush\n"; *)
         flush_cache () >>= fun () -> 
         (* Printf.printf "Post flush\n"; *)
+        Printf.printf "Finished deleting\n%!";
         return ()
     end
 
   (* open store and check whether various keys and values are correct *)
   let do_check () = 
-    print_endline "Checking...";
+    Printf.printf "Checking...\n%!";
     find ~k:(int_to_k 100) >>= fun v ->
     assert(v=None);
     find ~k:(int_to_k 1000) >>= fun v -> 
     assert(v = Some (int_to_v 1000));
+    Printf.printf "Finished checking\n%!";
     return ()
 
-  let do_full_check = profile "do_full_check" @@ fun () -> 
-    print_endline "Full check...";
+  let do_full_check () = profile "do_full_check" @@ fun () -> 
+    Printf.printf "Full check...\n%!";
     1 |> iter_k (fun ~k x ->
         match x > max_writes with
         | true -> return ()
@@ -103,34 +108,39 @@ struct
           (* Printf.printf "full_check: %d\n%!" x; *)
           find ~k:(int_to_k x) >>= fun v -> 
           assert( (100 <= x && x <= 200 && v=None) || v=Some(int_to_v x));
-          k (x+1))
+          k (x+1)) >>= fun () ->
+    Printf.printf "Finished full check\n%!";
+    return ()
+
 
   (* actually execute the above *)
   let do_all () = 
-    do_write >>= fun () ->
-    do_delete >>= fun () ->
+    do_write () >>= fun () ->
+    do_delete () >>= fun () ->
     (* do_check bd >>= fun () -> *)
-    do_full_check >>= fun () ->
+    do_full_check () >>= fun () ->
     flush_cache () (* not needed? *)
 end
 
 
 let filename = "example.store"
+    
 
 let make () = 
-  let module X = Tjr_btree_examples.Int_int_ex in
-  (* let open X in *)
+  let module Ex = Tjr_btree_examples.Int_int_ex in
   Tjr_btree_examples.Rt_blk.open_ 
-    ~flgs:[O_TRUNC] ~empty_leaf_as_blk:X.empty_leaf_as_blk filename >>= fun rbs ->
-  let module Rbs = (val rbs) in
-  let open Rbs in
-  let module X2 = (val X.make ~blk_dev_ops ~blk_alloc ~root_ops) in
-  let open X2 in
+    ~flgs:[O_TRUNC] ~empty_leaf_as_blk:Ex.empty_leaf_as_blk filename >>= fun from_open ->
+  let module From_open = (val from_open) in
+  let open From_open in
+  let module Map_ops_and_flush = (val Ex.make ~blk_dev_ops ~blk_alloc ~root_ops) in
+  let open Map_ops_and_flush in
   let module Z = struct
-    include X
+    include Ex
     let Btree_intf.Map_ops_with_ls.{find;insert;insert_many;insert_all;delete;_} = 
-      X2.map_ops_with_ls
-    let flush_cache=flush_cache
+      map_ops_with_ls
+    let _flush_cache=flush_cache
+    (* debug: disable flush_cache *)
+    let flush_cache=fun () -> return ()
     (* type t = lwt *)
     let int_to_k: int -> k = fun x -> x
     let int_to_v: int -> v = fun x -> x
@@ -138,7 +148,8 @@ let make () =
   in
   let module W = Make(Z) in
   W.do_all () >>= fun () ->
-  close ()
+  Map_ops_and_flush.flush_cache() >>= fun () ->
+  From_open.wrt_rt_and_close ()
 
 let _ = make
 

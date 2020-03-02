@@ -25,7 +25,7 @@ module Make_1 = Make_1
    a file descriptor+some extra stuff. The interface is also via a
    module rather than a record. This is primarily for standalone use
    in examples, not as part of a bigger system. *)
-module Make_2 = Make_2
+(* module Make_2 = Make_2 *)
 
 
 (** {2 Root block, for lwt} *)

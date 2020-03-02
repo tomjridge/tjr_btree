@@ -41,8 +41,8 @@ end
 
 module Make(S:S) = struct
   open S
-  module E = Make_1.Make(S)
-  open E
+  module From_make_1 = Make_1.Make(S)
+  open From_make_1
 
   (* allow float representation *)
   let int_of_string s = 
@@ -81,42 +81,34 @@ module Make(S:S) = struct
     include Rt_blk.T
     val blk_alloc : (r, lwt) blk_allocator_ops
     val root_ops : (blk_id, lwt)with_state
-    include E.S
+    (* include From_make_1.S *)
     val ops : (k, v, r, ls, t) Btree_intf.map_ops_with_ls
     val ls_create : unit -> (ls,t)m
     val ls_step : ls -> (ls option, t) m
     val ls_kvs : ls -> (k * v) list
+    val close : unit -> (unit,t)m
   end
 
   let main args =
     let run x = x in
     let open_ ?flgs:(flgs=[]) fn = 
-      Tjr_btree_examples.Rt_blk.open_ ~flgs ~empty_leaf_as_blk fn >>= fun x -> 
-      let module X = (val x) in
+      Tjr_btree_examples.Rt_blk.open_ ~flgs ~empty_leaf_as_blk fn >>= fun from_open -> 
+      let module From_open = (val from_open) in
       (* tie the rt_blk together with blk_alloc and root_ops *)
       let module Y = struct
-        include X
-        let blk_alloc : (r,lwt) blk_allocator_ops = {
-          blk_alloc=(fun () -> 
-              (* Printf.printf "Allocating blk: %d\n" (!blk_alloc_ref); *)
-              let r = X.rt_blk.blk_alloc in
-              assert(!r |> B.to_int >=0);
-              let r' = !r in
-              B.incr r;
-              return r');
-          blk_free=(fun _ -> return ())
-        }
+        include From_open
+        let map_ops_and_flush = From_make_1.make ~blk_dev_ops ~blk_alloc ~root_ops
+        module Map_ops_and_flush = (val map_ops_and_flush)
 
-        let root_ops = with_ref X.rt_blk.bt_rt
-
-        let x = E.make ~blk_dev_ops ~blk_alloc ~root_ops
-        include (val x)
-
-        let ops = map_ops_with_ls
+        let ops = Map_ops_and_flush.map_ops_with_ls
 
         let ls_create () = ops.leaf_stream_ops.make_leaf_stream !(rt_blk.bt_rt)
         let ls_step = ops.leaf_stream_ops.ls_step
         let ls_kvs = ops.leaf_stream_ops.ls_kvs
+
+        let close () = 
+          Map_ops_and_flush.flush_cache() >>= fun () -> 
+          From_open.wrt_rt_and_close()
       end
       in
       return (module Y : Y)
