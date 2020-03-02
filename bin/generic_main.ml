@@ -105,7 +105,7 @@ module Make(S:S) = struct
         let ls_create () = ops.leaf_stream_ops.make_leaf_stream !(rt_blk.bt_rt)
         let ls_step = ops.leaf_stream_ops.ls_step
         let ls_kvs = ops.leaf_stream_ops.ls_kvs
-
+                       
         let close () = 
           Map_ops_and_flush.flush_cache() >>= fun () -> 
           From_open.wrt_rt_and_close()

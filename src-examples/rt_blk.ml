@@ -61,7 +61,13 @@ let open_ ?flgs:(flgs=[]) ~empty_leaf_as_blk fn =
     else return ()
   in
   maybe_truncate >>= fun () ->
-  initialize_blk_dev ~blk_dev_ops ~empty_leaf_as_blk >>= fun rt_blk ->
+  let maybe_init =
+    if List.mem O_TRUNC flgs then
+      initialize_blk_dev ~blk_dev_ops ~empty_leaf_as_blk
+    else
+      Root_block_.read_from_disk ~blk_dev_ops ~blk_id:b0
+  in
+  maybe_init >>= fun rt_blk ->
   let maybe_nocache = 
     match List.mem O_NOCACHE flgs with 
     | true -> (
@@ -70,6 +76,10 @@ let open_ ?flgs:(flgs=[]) ~empty_leaf_as_blk fn =
   in
   maybe_nocache >>= fun () ->
   let wrt_rt_and_close () = 
+    let _ : unit = 
+      if Debug_.debug_enabled then
+        Printf.printf "Writing rt and closing: %d %d\n%!" (rt_blk.bt_rt |> (!) |> B.to_int) (rt_blk.blk_alloc |> (!) |> B.to_int)
+    in
     Root_block_.write_to_disk ~blk_dev_ops ~blk_id:b0 ~data:rt_blk >>= fun () ->
     from_lwt (Lwt_unix.close Blk_dev.fd)
   in
