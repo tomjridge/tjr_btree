@@ -127,8 +127,8 @@ let filename = "example.store"
     
 
 let make () = 
-  let module Ex = Tjr_btree_examples.Int_int_ex in
-  Tjr_btree_examples.Rt_blk.open_ 
+  let module Ex = Make_1.Int_int_ex in
+  Rt_blk.open_ 
     ~flgs:[O_TRUNC] ~empty_leaf_as_blk:Ex.empty_leaf_as_blk filename >>= fun from_open ->
   let module From_open = (val from_open) in
   let open From_open in

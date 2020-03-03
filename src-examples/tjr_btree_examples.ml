@@ -35,6 +35,10 @@ module Rt_blk = Rt_blk
 
 module Int_int_ex = Make_1.Int_int_ex
 
+module Generic_main = Generic_main
+(* module Generic_example = Generic_example *)
+module Generic_example_v2 = Generic_example_v2
+
 (**/**)
 
 (** {2 Internal} *)

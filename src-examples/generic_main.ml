@@ -33,7 +33,7 @@ Description:
 open Tjr_monad.With_lwt
 
 module type S = sig
-  include Tjr_btree_examples.Make_1.S
+  include Make_1.S
   val i2k: int -> k
   val i2v: int -> v
   val debug_k_and_v_are_int: bool
@@ -92,7 +92,7 @@ module Make(S:S) = struct
   let main args =
     let run x = x in
     let open_ ?flgs:(flgs=[]) fn = 
-      Tjr_btree_examples.Rt_blk.open_ ~flgs ~empty_leaf_as_blk fn >>= fun from_open -> 
+      Rt_blk.open_ ~flgs ~empty_leaf_as_blk fn >>= fun from_open -> 
       let module From_open = (val from_open) in
       (* tie the rt_blk together with blk_alloc and root_ops *)
       let module Y = struct

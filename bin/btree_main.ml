@@ -21,7 +21,7 @@ let _ : unit =
   match args with
   | [] -> (print_endline usage; exit 0)
   | ["example"] -> 
-    let prg = Generic_example.make () in    
+    let prg = Generic_example_v2.make () in    
     Lwt_main.run (With_lwt.to_lwt prg) 
   | args -> 
     let prg = Generic_main.Int_int.main args in

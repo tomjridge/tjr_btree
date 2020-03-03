@@ -87,4 +87,40 @@ sig
   val close       : unit -> (unit,t) m
 end
 
-type ('k,'v,'ls) btree = (module FROM_OPEN_BTREE with type k='k and type v='v and type ls='ls)
+(* type ('k,'v,'ls) btree = (module FROM_OPEN_BTREE with type k='k and type v='v and type ls='ls) *)
+
+
+
+(** {2 Interfaces based on classes and objects} *)
+
+class type ['k, 'v, 'ls ] btree = 
+  object
+    (* val bt_rt         : blk_id ref *)
+    (* method with_bt_rt       : (blk_id,t)with_state *)
+    (* method blk_dev_ops      : (blk_id,blk,t) blk_dev_ops *)
+    method map_ops          : ('k,'v,r,'ls,t)map_ops_with_ls
+    method flush_cache      : unit -> (unit,t)m
+    (* method write_empty_leaf : blk_id -> (unit,t)m *)
+  end 
+
+class type open_fd = 
+  object
+    method fd          : Lwt_unix.file_descr
+    method blk_dev_ops : (blk_id,blk,t) blk_dev_ops
+    method close_fd    : unit -> (unit,t)m
+  end
+    
+(** NOTE: typically one of the init functions must be called *)
+class type rt_blk = 
+  object
+    method init_from_disk   : unit -> (unit,t)m
+    method init_as_empty    : empty_leaf_as_blk:(unit -> blk) -> (unit,t)m
+    method blk_dev_ops      : (blk_id,blk,t) blk_dev_ops
+    method with_bt_rt       : (blk_id,t) with_state
+    method blk_alloc        : (blk_id, lwt) blk_allocator_ops
+    method sync             : unit -> (unit,t)m
+  end
+
+    (* method bt_rt_ref     : blk_id ref (\** equal to the single b-tree rt *\) *)
+    (* method blk_alloc_ref : blk_id ref *)
+
