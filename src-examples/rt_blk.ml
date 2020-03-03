@@ -4,16 +4,7 @@ module Blk_id = Blk_id_as_int
 open Blk_id
 open Intf_
 
-open Bin_prot.Std
-
-(** The specific rt_blk type, a pair of refs *)
-module Rt_blk_type = struct
-  type rt_blk = {
-    bt_rt:blk_id ref;
-    blk_alloc:blk_id ref
-  }[@@deriving bin_io]    
-end
-open Rt_blk_type
+open Intf_.Rt_blk_type
 
 (** Instantiate Tjr_fs_shared.Rt_blk *)
 module Root_block_ = Root_block.Make(struct type data = rt_blk[@@deriving bin_io] end)
@@ -36,18 +27,7 @@ module Pvt = struct
 end
 open Pvt
 
-module type T = 
-sig
-  val fd               : Lwt_unix.file_descr
-  val blk_dev_ops      : (blk_id, ba_buf,lwt)blk_dev_ops
-  val rt_blk           : rt_blk
-
-  (** Close writes the root blk, then closes the fd; NOTE it does not flush the cache *)
-  val wrt_rt_and_close : unit -> (unit, lwt)m
-
-  val blk_alloc        : (blk_id, lwt) blk_allocator_ops
-  val root_ops         : (blk_id, lwt) with_state
-end
+module type T = Intf_.FROM_OPEN
 
 module B = Blk_id_as_int
 
