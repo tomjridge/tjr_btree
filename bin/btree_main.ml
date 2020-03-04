@@ -15,7 +15,7 @@ Documentation for main:
 
 %s
 |}
-              Generic_main.usage
+              Generic_main_v2.usage
 
 let _ : unit = 
   match args with
@@ -24,6 +24,6 @@ let _ : unit =
     let prg = Generic_example_v2.make () in    
     Lwt_main.run (With_lwt.to_lwt prg) 
   | args -> 
-    let prg = Generic_main.Int_int.main args in
+    let prg = Generic_main_v2.Int_int.main args in
     Lwt_main.run (With_lwt.to_lwt prg)
 

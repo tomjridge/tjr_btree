@@ -21,21 +21,23 @@ include Intf_
 module Make_1 = Make_1
 
 
-(** This is a variation where we expose a "btree descriptor" which is
-   a file descriptor+some extra stuff. The interface is also via a
-   module rather than a record. This is primarily for standalone use
-   in examples, not as part of a bigger system. *)
-(* module Make_2 = Make_2 *)
+(** This is a variation where we try to use objects. *)
+module Make_2 = Make_2
 
 
+module Open_fd_and_rt_blk = Open_fd_and_rt_blk
+
+
+(*
 (** {2 Root block, for lwt} *)
 module Rt_blk = Rt_blk
+*)
 
 (** {2 Actual examples} *)
 
 module Int_int_ex = Make_1.Int_int_ex
 
-module Generic_main = Generic_main
+module Generic_main_v2 = Generic_main_v2
 (* module Generic_example = Generic_example *)
 module Generic_example_v2 = Generic_example_v2
 

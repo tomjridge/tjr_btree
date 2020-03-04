@@ -1,9 +1,4 @@
-(** Flags:
 
-- O_TRUNC, reinitialize B-tree root to point to an empty leaf; possibly also truncate the underlying file
-- O_NOCACHE, do not use a write back cache (the underlying file may still need to be sync'ed tho)
-*)
-type flg = O_TRUNC | O_NOCACHE
 
 (** Standard types: t = lwt; blk=ba_buf; r=blk_id *)
 module Std_types = struct
@@ -13,6 +8,16 @@ module Std_types = struct
   type r = blk_id
 end
 open Std_types
+
+(*
+
+(** Flags:
+
+- O_TRUNC, reinitialize B-tree root to point to an empty leaf; possibly also truncate the underlying file
+- O_NOCACHE, do not use a write back cache (the underlying file may still need to be sync'ed tho)
+*)
+type flg = O_TRUNC | O_NOCACHE
+
 
 (** The specific rt_blk type, a pair of refs (the B-tree root, and the
    blk_alloc min free blk) *)
@@ -88,7 +93,7 @@ sig
 end
 
 (* type ('k,'v,'ls) btree = (module FROM_OPEN_BTREE with type k='k and type v='v and type ls='ls) *)
-
+*)
 
 
 (** {2 Interfaces based on classes and objects} *)
@@ -101,6 +106,9 @@ class type ['k, 'v, 'ls ] btree =
     method map_ops          : ('k,'v,r,'ls,t)map_ops_with_ls
     method flush_cache      : unit -> (unit,t)m
     (* method write_empty_leaf : blk_id -> (unit,t)m *)
+    method ls_create : unit -> ('ls,t)m
+    method ls_step : 'ls -> ('ls option,t)m
+    method ls_kvs  : 'ls -> ('k*'v) list
   end 
 
 class type open_fd = 

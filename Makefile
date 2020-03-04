@@ -12,6 +12,9 @@ promote_docs::
 clean::
 	rm -f example.store
 
+cln_stores:
+	rm -f *.store
+
 run:
 	$(DUNE) exec bin/btree_main.exe example # >tmp.txt 2>&1
 
