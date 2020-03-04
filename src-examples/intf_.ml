@@ -1,12 +1,4 @@
 
-
-(** Standard types: t = lwt; blk=ba_buf; r=blk_id *)
-module Std_types = struct
-  type t = lwt
-  type blk = ba_buf
-  type blk_id = Blk_id_as_int.blk_id[@@deriving bin_io]
-  type r = blk_id
-end
 open Std_types
 
 (*
