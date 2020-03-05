@@ -12,17 +12,13 @@ include Intf_
 
 (** {2 Refined construction} *)
 
-(** These are more restricted versions of the make functor from
-   {!Tjr_btree}. The monad is lwt; the blk_id is int; blk is ba_buf;
-   blk_dev_ops are lwt/ba_buf. Marshalling uses binprot and
-   information about max size of marshalled types (dnode_mshlr in
-   disk_ops). The construction function takes a blk_dev_ops and a
-   blk_alloc. *)
 module Make_1 = Make_1
 
 
-(** This is a variation where we try to use objects. *)
 module Make_2 = Make_2
+
+
+module Make_3 = Make_3
 
 
 module Open_fd_and_rt_blk = Open_fd_and_rt_blk

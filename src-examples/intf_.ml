@@ -90,6 +90,7 @@ end
 
 (** {2 Interfaces based on classes and objects} *)
 
+
 class type ['k, 'v, 'ls ] btree = 
   object
     (* val bt_rt         : blk_id ref *)
@@ -102,6 +103,18 @@ class type ['k, 'v, 'ls ] btree =
     method ls_step : 'ls -> ('ls option,t)m
     method ls_kvs  : 'ls -> ('k*'v) list
   end 
+
+class type ['k, 'v, 'ls ] uncached_btree = 
+  object
+    (* val bt_rt         : blk_id ref *)
+    method bt_rt : blk_id ref    
+    method with_bt_rt       : (blk_id,t)with_state
+    method map_ops          : ('k,'v,r,'ls,t)map_ops_with_ls
+    method ls_create : unit -> ('ls,t)m
+    method ls_step : 'ls -> ('ls option,t)m
+    method ls_kvs  : 'ls -> ('k*'v) list
+  end 
+
 
 class type open_fd = 
   object

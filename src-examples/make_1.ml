@@ -3,20 +3,8 @@
 (* FIXME need to recode all the functionality from 7dd9b63 *)
 
 open Tjr_monad.With_lwt
+open Std_types
 (* open Intf_ *)
-
-
-
-(** NOTE hidden doc: blk_id as int *)
-
-(**/**)
-module Blk_id = Blk_id_as_int
-
-type blk_id = Blk_id.blk_id[@@deriving bin_io]
-
-(**/**)
-
-let r_size = 9 (* max size of r=blk_id when marshalled *)
 
 (** Use this to construct constants for S if necessary *)
 let make_constants ~k_size ~v_size = Bin_prot_marshalling.make_constants ~blk_sz:blk_sz_4096 ~k_size ~v_size
@@ -49,10 +37,7 @@ module type T = sig
 end 
 
 module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
-  (* open S *)
-  (* open S *)
   type t = lwt
-  (* type nonrec flg=flg *)
 
   [@@@warning "-34"]
   [@@@warning "-32"]
