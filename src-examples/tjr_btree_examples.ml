@@ -7,7 +7,7 @@
    {{:https://github.com/ocaml/odoc/issues/96} this issue}. So please
    take care when interpreting this documentation. *)
 
-
+module Intf_ = Intf_
 include Intf_
 
 (** {2 Refined construction} *)
