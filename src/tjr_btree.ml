@@ -31,5 +31,9 @@ include Pre_btree_to_map
 
 (** {2 Main functionality: disk to map} *)
 
+module Make_1 = Make_1
 include Make_1
 
+(** {2 Alternative version, using binprot, with simpler intf} *)
+
+module Make_2 = Make_2

@@ -1,6 +1,7 @@
-(** Like make_1, but targeting an object *)
+(** Wrapper around make_1, targeting an object *)
 
-(** Construct an example API, using lwt, bin_prot and bigarray *)
+(** Construct an example API, using lwt, bin_prot and bigarray, with a write-back cache *)
+
 
 open Tjr_monad.With_lwt
 open Intf_

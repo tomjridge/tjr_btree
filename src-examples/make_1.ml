@@ -1,4 +1,4 @@
-(** Construct an example API, using lwt, bin_prot and bigarray *)
+(** Construct an example API, using lwt, bin_prot and bigarray and a write-back cache *)
 
 (* FIXME need to recode all the functionality from 7dd9b63 *)
 

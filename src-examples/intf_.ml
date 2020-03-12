@@ -90,7 +90,7 @@ end
 
 (** {2 Interfaces based on classes and objects} *)
 
-
+(** B-tree, with a write-back cache *)
 class type ['k, 'v, 'ls ] btree = 
   object
     (* val bt_rt         : blk_id ref *)
@@ -104,6 +104,7 @@ class type ['k, 'v, 'ls ] btree =
     method ls_kvs  : 'ls -> ('k*'v) list
   end 
 
+(** B-tree, no cache (write-back or read!) *)
 class type ['k, 'v, 'ls ] uncached_btree = 
   object
     (* val bt_rt         : blk_id ref *)
@@ -115,7 +116,7 @@ class type ['k, 'v, 'ls ] uncached_btree =
     method ls_kvs  : 'ls -> ('k*'v) list
   end 
 
-
+(** Lwt-specific fd,blk_dev_ops *)
 class type open_fd = 
   object
     method fd          : Lwt_unix.file_descr
@@ -123,7 +124,8 @@ class type open_fd =
     method close_fd    : unit -> (unit,t)m
   end
     
-(** NOTE: typically one of the init functions must be called *)
+(** Root block for simple examples NOTE: typically one of the init
+   functions must be called *)
 class type rt_blk = 
   object
     method init_from_disk   : unit -> (unit,t)m

@@ -1,5 +1,5 @@
 (** Like Tjr_btree.Make, but using Std_types and binprot marshalling,
-   and targetting an object *)
+   and targetting an object; uncached *)
 
 (** Construct an example API, using lwt, bin_prot and bigarray *)
 

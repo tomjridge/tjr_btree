@@ -4,5 +4,6 @@
 (library
   (name tjr_btree)
   (public_name tjr_btree)
-  (libraries isa_btree))
+  (preprocess (pps ppx_bin_prot))
+  (libraries isa_btree ppx_bin_prot))
 

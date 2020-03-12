@@ -5,7 +5,9 @@ Convert a disk to a store using pickling and a freespace allocator for
 
 open Btree_intf
 
-let disk_to_store ~monad_ops ~disk_ops = 
+let disk_to_store 
+    ~(monad_ops:'t monad_ops) ~(disk_ops:('r,'t,'dnode,'blk)disk_ops) 
+  = 
   let { dnode_mshlr=marshal; blk_dev_ops; blk_alloc } = disk_ops in
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
