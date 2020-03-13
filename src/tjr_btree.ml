@@ -37,3 +37,8 @@ include Make_1
 (** {2 Alternative version, using binprot, with simpler intf} *)
 
 module Make_2 = Make_2
+
+
+(** {2 Alternative version, using binprot, with objects and no type generation} *)
+
+module Make_3 = Make_3

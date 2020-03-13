@@ -51,7 +51,7 @@ module type S = sig
   val monad_ops : t monad_ops
   val k_cmp     : k -> k -> int
   val blk_sz    : blk_sz
-  val cs        : Constants.constants
+  val cs        : Constants.constants  (* FIXME we shouldn't need this if we have k_mshlr withmax_sz etc*)
   val k_mshlr   : k bin_mshlr
   val v_mshlr   : v bin_mshlr
   val r_mshlr   : r bin_mshlr
