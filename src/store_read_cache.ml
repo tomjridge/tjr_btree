@@ -1,19 +1,27 @@
-(** Add LRU caching to an existing store; two versions: a read cache,
-   and a write back cache. FIXME superseded by fs_shared write_back_cache?
-
-
-- Read cache: writes are passed through in addition to being
-   cached. So there is no need to flush anything. This dramatically
-   improves performance.
-
-- Write cache: writes are buffered; multiple writes to the same block
-   commit when LRU overflows (using the last write). Using a write
-   back cache improves performance even more. *)
+(** Add LRU caching to an existing store; this version is a read cache
+   (writes update the cache and go to disk immediately)
+*)
 
 
 (* FIXME move elsewhere eg fs_shared? *)
 
-open Profilers_.Lru_profiler
+[%%import "config.ml"]
+
+[%%if READ_CACHE_PROFILING_ENABLED]
+let _ : unit = assert(Printf.printf "%s: profiling enabled\n%!" __FILE__; true)
+let profiling_enabled = true
+[%%else]
+let profiling_enabled = false
+[%%endif]
+
+module Lru_profiler = struct
+  open Tjr_profile
+  let { mark; _ } = 
+    if profiling_enabled then make_profiler ~print_header:(Printf.sprintf "bt lru profiler %s" __LOC__) ()
+    else dummy_profiler
+end
+open Lru_profiler
+    
 
 (** NOTE this adds an imperative read cache; take care with testing etc *)
 let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id node leaf) ~monad_ops ~store_ops =
@@ -22,7 +30,7 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
     let return = monad_ops.return
 
     let [m1;m2;m3] = 
-      ["m1";"m2";"m3"] |> List.map intern
+      ["m1";"m2";"m3"] |> List.map Tjr_profile.intern
     [@@ocaml.warning "-8"]
 
     (* FIXME possibly inefficient *)
@@ -69,6 +77,7 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
       in
       let wrte dn = 
         wrte dn >>= fun r -> 
+        (* FIXME may need to add promote explicitly in wrte and rewrite? *)
         L.add r dn lru;
         trim lru;
         return r

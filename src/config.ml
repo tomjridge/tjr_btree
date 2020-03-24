@@ -1,0 +1,1 @@
+[%%define READ_CACHE_PROFILING_ENABLED true]

@@ -51,7 +51,7 @@ module type S = sig
   val monad_ops : t monad_ops
   val k_cmp     : k -> k -> int
   val blk_sz    : blk_sz
-  val cs        : Constants.constants  (* FIXME we shouldn't need this if we have k_mshlr withmax_sz etc*)
+  (* val cs        : Constants.constants  (\* FIXME we shouldn't need this if we have k_mshlr withmax_sz etc*\) *)
   val k_mshlr   : k bin_mshlr
   val v_mshlr   : v bin_mshlr
   val r_mshlr   : r bin_mshlr
@@ -67,6 +67,7 @@ module type T = sig
   type ls
 
   val make_uncached_btree: 
+    ?with_read_cache:bool ->
     blk_dev_ops:(r,blk,t)blk_dev_ops ->
     blk_alloc:(r,t)blk_allocator_ops ->
     root_ops:(r,t)with_state -> 
@@ -101,7 +102,21 @@ module Make(S:S)
   end
   open Tree
 
-  module Btree = Make_1.Make(S)
+  module S' = struct
+    include S
+    (* NOTE this taken from bin_prot_marshalling in src-examples *)
+    let make_constants ~blk_sz ~k_size ~v_size = 
+      let blk_sz = blk_sz |> Blk_sz.to_int in
+      let r_size = 9 in (* page_ref size in bytes; assume int63 *)
+      let max_node_keys = (blk_sz - 7 - r_size) / (k_size + r_size) in
+      let max_leaf_size = (blk_sz - 4) / (k_size + v_size) in
+      let constants=Isa_btree.Constants.(
+          {min_leaf_size=2;max_leaf_size;min_node_keys=2; max_node_keys}) in
+      constants
+
+    let cs = make_constants ~blk_sz ~k_size:K.max_sz ~v_size:V.max_sz
+  end
+  module Btree = Make_1.Make(S')
   open Btree
   type ls = Btree.leaf_stream
 
@@ -153,11 +168,17 @@ module Make(S:S)
     in
     ({ dnode_to_blk; blk_to_dnode; blk_sz }:('a,blk)dnode_mshlr)
 
-  let make_uncached_btree ~blk_dev_ops ~blk_alloc ~root_ops 
+  let make_uncached_btree ?with_read_cache:(with_read_cache=true) 
+      ~blk_dev_ops ~blk_alloc ~root_ops 
     : (_,_,_,_,_) uncached_btree 
     =
     let disk_ops = {dnode_mshlr;blk_dev_ops; blk_alloc} in
     let store_ops = Btree.disk_to_store ~disk_ops in
+    (* add a read cache *)
+    let store_ops = match with_read_cache with
+      | true -> Store_read_cache.add_imperative_read_cache_to_store ~monad_ops ~store_ops 
+      | false -> store_ops 
+    in
     let pre_btree_ops = Btree.store_to_pre_btree ~store_ops in
     let map_ops = Btree.pre_btree_to_map ~pre_btree_ops ~root_ops in
     let ls_create () = root_ops.with_state (fun ~state ~set_state:_ -> 

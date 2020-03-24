@@ -14,6 +14,12 @@ Usage: open Tjr_btree;; open Tjr_btree.Btree_intf;;
 
 module Btree_intf = Btree_intf
 
+
+(** {2 Store read cache} *)
+
+module Store_read_cache = Store_read_cache
+
+
 (** {2 Disk_to_store} *)
 
 include Disk_to_store
@@ -42,3 +48,5 @@ module Make_2 = Make_2
 (** {2 Alternative version, using binprot, with objects and no type generation} *)
 
 module Make_3 = Make_3
+
+module Make_4 = Make_4

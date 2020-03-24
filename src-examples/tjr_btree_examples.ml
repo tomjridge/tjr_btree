@@ -50,7 +50,7 @@ let mk_in_mem_store_ops = Store_in_mem.mk_store_ops
 
 (** {2 Read cache and write-back cache based on LRU} *)
 
-module Store_read_cache = Store_read_cache
+(* module Store_read_cache = Store_read_cache *)
 module Store_write_back_cache = Store_write_back_cache
 
 
