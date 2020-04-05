@@ -52,6 +52,9 @@ module type T = sig
     disk_ops:'blk disk_ops ->
     root_ops:(r, t) btree_root_ops ->
     map_ops_with_ls
+
+  val empty_leaf_as_blk: dnode_to_blk:((node, leaf) Isa_btree.dnode -> 'blk) -> 'blk
+
 end
 
 (** The basic Make functor, with most things parameterizable. See also the more refined {!Tjr_btree_examples.Make_example} functor. *)

@@ -2,8 +2,13 @@
 
 
 open Tjr_fs_shared.Std_types
-(* open Btree_intf *)
 open Make_3
+(* open Btree_intf *)
+
+
+type ('k, 'v, 't) uncached_btree = ('k,'v,'t) Make_3.uncached_btree
+type 'a bin_mshlr = 'a Make_3.bin_mshlr
+
 
 class type ['k,'v] args = object
   method k_cmp: 'k -> 'k -> int
@@ -20,7 +25,9 @@ end
 let r_mshlr : blk_id bin_mshlr = (module R_mshlr)
   
 (**/**)
-let make ~(args:('k,'v)args) ~(blk_dev_ops:std_blk_dev_ops) ~blk_alloc ~root_ops =
+let with_read_cache = true
+
+let make ~(args:('k,'v)args) =
   let args:(_,_,_,_)Make_3.args = object
     method monad_ops=monad_ops
     method k_cmp=args#k_cmp
@@ -29,25 +36,36 @@ let make ~(args:('k,'v)args) ~(blk_dev_ops:std_blk_dev_ops) ~blk_alloc ~root_ops
     method k_mshlr=args#k_mshlr
     method v_mshlr=args#v_mshlr
     method r_mshlr=r_mshlr
-    method with_read_cache=true
+    (* method with_read_cache=true *)
   end
   in
-  Make_3.make_uncached ~args ~blk_dev_ops ~blk_alloc ~root_ops
+  Make_3.make_uncached ~args (* ~blk_dev_ops ~blk_alloc ~root_ops *) |> fun (x,`K1 k) ->
+  object
+    method empty_leaf_as_blk=x.empty_leaf_as_blk
+    method rest = fun ~(blk_dev_ops:std_blk_dev_ops) ~blk_alloc ~root_ops -> 
+    k ~with_read_cache ~blk_dev_ops ~blk_alloc ~root_ops
+  end
 (**/**)
 
 let make : 
 args:('k, 'v) args ->
-blk_dev_ops:std_blk_dev_ops ->
-blk_alloc:(blk_id, t) blk_allocator_ops ->
-root_ops:(blk_id, t) with_state ->
-('k, 'v, t) uncached_btree
+< empty_leaf_as_blk: unit -> ba_buf;
+  rest: 
+    blk_dev_ops:std_blk_dev_ops ->
+    blk_alloc:(blk_id, t) blk_allocator_ops ->
+    root_ops:(blk_id, t) with_state ->
+    ('k, 'v, t) uncached_btree
+>
 = make
 (** {[
 args:('k, 'v) args ->
-blk_dev_ops:std_blk_dev_ops ->
-blk_alloc:(blk_id, t) blk_allocator_ops ->
-root_ops:(blk_id, t) with_state ->
-('k, 'v, t) uncached_btree
+< empty_leaf_as_blk: unit -> ba_buf;
+  rest: 
+    blk_dev_ops:std_blk_dev_ops ->
+    blk_alloc:(blk_id, t) blk_allocator_ops ->
+    root_ops:(blk_id, t) with_state ->
+    ('k, 'v, t) uncached_btree
+>
 ]} *)
 
 (** {2 Some examples} *)
@@ -86,10 +104,14 @@ include Std_types
 (**/**)
 
 (** This defn just to abbreviate types in the following *)
-type ('k,'v) f = blk_dev_ops:std_blk_dev_ops ->
-blk_alloc:(blk_id, t) blk_allocator_ops ->
-root_ops:(blk_id, t) with_state ->
-('k, 'v, t) uncached_btree
+type ('k,'v) f = 
+< empty_leaf_as_blk: unit -> ba_buf;
+  rest: 
+    blk_dev_ops:std_blk_dev_ops ->
+    blk_alloc:(blk_id, t) blk_allocator_ops ->
+    root_ops:(blk_id, t) with_state ->
+    ('k, 'v, t) uncached_btree
+>
 
 let int_int_btree : (_,_)f = make ~args:(object 
     method k_cmp : int->int->int = Stdlib.compare

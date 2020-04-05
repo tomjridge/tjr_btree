@@ -31,6 +31,7 @@ class type ['k, 'v, 't ] uncached_btree =
     (* method insert_many : ('k*'v) -> ('k*'v)list -> (('k*'v)list,'t)m *)
     (* method insert_all  : ('k*'v)list -> (unit,'t)m *)
     method ls_create   : unit -> (('k,'v,'t)ls,'t)m
+    (* method empty_leaf_as_blk: unit -> ba_buf *)
   end 
 
 module type Bin_mshlr = sig
@@ -48,10 +49,12 @@ class type ['k,'v,'r,'t] args = object
   method k_mshlr: 'k bin_mshlr
   method v_mshlr: 'v bin_mshlr
   method r_mshlr: 'r bin_mshlr
-  method with_read_cache: bool
+  (* method with_read_cache: bool *)
 end
 
 (* blk = buf = ba_buf *)
+
+type empty_leaf_as_blk = { empty_leaf_as_blk: unit -> ba_buf }
 
 let make_uncached (type k v r t)
       ~(args:(k,v,r,t)args)
@@ -78,12 +81,13 @@ let make_uncached (type k v r t)
     module M2 = Make_2.Make(S)
   end)
   in
-  fun 
+  M2.{empty_leaf_as_blk}, `K1 begin fun 
+    ~with_read_cache
     ~blk_dev_ops
     ~blk_alloc
     ~root_ops
     ->
-      M2.make_uncached_btree ~with_read_cache:args#with_read_cache
+      M2.make_uncached_btree ~with_read_cache
         ~blk_dev_ops ~blk_alloc ~root_ops |> fun bt ->
       let monad_ops = args#monad_ops in
       let ( >>= ) = monad_ops.bind in
@@ -106,5 +110,6 @@ let make_uncached (type k v r t)
         method insert = fun k v -> map_ops.insert ~k ~v
         method delete = fun k -> map_ops.delete ~k
         method ls_create = ls_create
+        (* method empty_leaf_as_blk=bt#empty_leaf_as_blk *)
       end : (k,v,t) uncached_btree)
-
+  end

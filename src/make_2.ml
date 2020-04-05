@@ -31,6 +31,7 @@ class type ['k, 'v, 'r, 'ls, 't ] uncached_btree =
     method ls_create  : unit -> ('ls,'t)m
     method ls_step    : 'ls -> ('ls option,'t)m
     method ls_kvs     : 'ls -> ('k*'v) list
+    method empty_leaf_as_blk: unit -> ba_buf
   end 
 
 module type Bin_mshlr = sig
@@ -65,6 +66,9 @@ module type T = sig
   type t
   type blk
   type ls
+
+
+  val empty_leaf_as_blk: unit -> ba_buf
 
   val make_uncached_btree: 
     ?with_read_cache:bool ->
@@ -168,6 +172,8 @@ module Make(S:S)
     in
     ({ dnode_to_blk; blk_to_dnode; blk_sz }:('a,blk)dnode_mshlr)
 
+  let empty_leaf_as_blk () = Btree.empty_leaf_as_blk ~dnode_to_blk:dnode_mshlr.dnode_to_blk
+
   let make_uncached_btree ?with_read_cache:(with_read_cache=true) 
       ~blk_dev_ops ~blk_alloc ~root_ops 
     : (_,_,_,_,_) uncached_btree 
@@ -191,6 +197,7 @@ module Make(S:S)
       method ls_create=ls_create
       method ls_step=ls_step
       method ls_kvs=ls_kvs
+      method empty_leaf_as_blk=empty_leaf_as_blk
     end
     
 end
