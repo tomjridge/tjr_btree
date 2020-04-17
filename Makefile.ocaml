@@ -1,11 +1,35 @@
 # -*- makefile -*-
 SHELL:=bash
 
-# NOTE minimal dune/opam files might be at /tmp/l/github/notes/minimal_ocaml_proj/
+# This is a generic Makefile.ocaml file, intended to be included in a
+# top-level Makefile. NOTE that this file in turn attempts to include
+# Makefile.local, which you can use to override defaults if needed.
 
-ifndef TMP_DOC_DIR
-$(error TMP_DOC_DIR is not set)
-endif
+# There are two envvars:
+
+# scratch - the Makefile.ocaml will check here for updates to
+# Makefile.ocaml itself; if this path doesn't exist on your system
+# there is nothing to worry about
+# 
+# 
+
+scratch?=/tmp/l/github/scratch
+
+# TMP_DOC_DIR_ROOT - where docs are placed temporarily (before
+# updating docs/); this could be /tmp for example (docs are placed in
+# subdirs of this root, according to the name of the root dir of this
+# repo)
+
+TMP_DOC_DIR_ROOT?=/tmp
+TMP_DOC_DIR?=$(TMP_DOC_DIR_ROOT)/$(notdir $(abspath .))
+
+
+# generic makefile follows ---------------------------------------------
+
+# allow overriding locally
+-include Makefile.local
+
+# NOTE minimal dune/opam files might be at /tmp/l/github/notes/minimal_ocaml_proj/
 
 # allow overriding from main makefile
 DUNE?=dune
@@ -50,11 +74,11 @@ promote_docs:: FORCE
 view_doc:
 	google-chrome  $(SRC)/index.html
 
-scratch?=/tmp
 Makefile.ocaml: FORCE
 	@if test -f $(scratch)/Makefile.ocaml; then diff ./Makefile.ocaml $(scratch)/Makefile.ocaml; fi
   # FIXME update Makefile.ocaml itself, from scratch; error if
   # different, forcing user to update manually
 
-FORCE:
+# https://www.gnu.org/software/make/manual/html_node/Overriding-Makefiles.html
+FORCE: ;
 
