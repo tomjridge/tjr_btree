@@ -1,5 +1,12 @@
 (** Add LRU caching to an existing store; this version is a read cache
    (writes update the cache and go to disk immediately)
+
+*)
+
+(*
+$(FIXME("""
+improve profiling interface to make it simple and succinct to use
+"""))
 *)
 
 
@@ -7,24 +14,27 @@
 
 [%%import "config.ml"]
 
-[%%if READ_CACHE_PROFILING_ENABLED]
-let _ : unit = assert(Printf.printf "%s: profiling enabled\n%!" __FILE__; true)
-let profiling_enabled = true
-[%%else]
-let profiling_enabled = false
-[%%endif]
+open struct
+  [%%if READ_CACHE_PROFILING_ENABLED]
+  let _ : unit = Printf.printf "NOTE profiling enabled (%s)\n%!" __FILE__
+  let rc_profiling_enabled = true
+  [%%else]
+  let rc_profiling_enabled = false
+  [%%endif]
 
-module Lru_profiler = struct
   open Tjr_profile
   let { mark; _ } = 
-    if profiling_enabled then make_profiler ~print_header:(Printf.sprintf "bt lru profiler %s" __LOC__) ()
+    if rc_profiling_enabled 
+    then make_profiler 
+        ~print_header:(Printf.sprintf "bt read cache profiler (bt/%s)" __FILE__) ()
     else dummy_profiler
 end
-open Lru_profiler
     
 
 (** NOTE this adds an imperative read cache; take care with testing etc *)
-let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id node leaf) ~monad_ops ~store_ops =
+let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id node leaf) 
+    ~monad_ops ~store_ops 
+  =
   let module A = struct
     let ( >>= ) = monad_ops.bind 
     let return = monad_ops.return
@@ -49,7 +59,8 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
       (* Add some memoization *)
       let module L = Lru.M.Make(struct
           type t = blk_id
-          let equal : t -> t -> bool = Stdlib.(=)  (* FIXME don't use pervasives for real code *)
+          let equal : t -> t -> bool = Stdlib.(=)  
+          (* FIXME don't use pervasives for real code *)
           let hash: t -> int = Hashtbl.hash
         end)(struct
           type t = (node, leaf) dnode  (* FIXME dnode_impl *)
