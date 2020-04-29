@@ -4,7 +4,7 @@
 (** FIXME need to remove cs from interface (also in make_2); need to
    add read cache; need to add version with wbc *)
 
-(* open Btree_intf *)
+open Btree_intf
 
 (** Given the relevant sizes (blocks,keys,values), construct the
    B-tree size constants *)
@@ -14,6 +14,7 @@ let make_constants = Isa_btree.Constants.mk_constants
 
 (** B-tree, no write-back cache *)
 
+(*
 type finished = {finished:bool}
 
 class type ['k, 'v, 't ] ls = object
@@ -40,6 +41,7 @@ module type Bin_mshlr = sig
 end
 
 type 'a bin_mshlr = (module Bin_mshlr with type t='a)
+*)
 
 class type ['k,'v,'r,'t] args = object
   method monad_ops: 't monad_ops

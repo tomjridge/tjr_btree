@@ -20,6 +20,11 @@ module Btree_intf = Btree_intf
 module Store_read_cache = Store_read_cache
 
 
+(** {2 Store write back cache} *)
+
+module Store_write_back_cache = Store_write_back_cache
+
+
 (** {2 Disk_to_store} *)
 
 include Disk_to_store

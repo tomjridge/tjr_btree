@@ -5,6 +5,6 @@
   (name tjr_btree)
   (public_name tjr_btree)
   (preprocess (pps ppx_bin_prot ppx_jane))
-  (preprocessor_deps (file "config.ml"))
+  (preprocessor_deps (file "optcomp_config.ml"))
   (libraries isa_btree ppx_bin_prot))
 

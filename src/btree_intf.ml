@@ -61,3 +61,37 @@ module Disk_ops_type = struct
 
 end
 include Disk_ops_type
+
+
+(** {2 Class interfaces} *)
+
+
+(* NOTE previously in make_3 *)
+
+type finished = {finished:bool}
+
+class type ['k, 'v, 't ] ls = object
+  method ls_step: unit -> (finished,'t)m
+  method ls_kvs: unit -> ('k*'v)list
+end
+
+(** NOTE uncached here means "no write back cache"; a read cache is
+   not observable except for performance and memory usage *)    
+class type ['k, 'v, 't ] uncached_btree = 
+  object
+    method find        : 'k -> ('v option,'t)m
+    method insert      : 'k -> 'v -> (unit,'t)m
+    method delete      : 'k -> (unit,'t)m
+    (* method insert_many : ('k*'v) -> ('k*'v)list -> (('k*'v)list,'t)m *)
+    (* method insert_all  : ('k*'v)list -> (unit,'t)m *)
+    method ls_create   : unit -> (('k,'v,'t)ls,'t)m
+    (* method empty_leaf_as_blk: unit -> ba_buf *)
+  end 
+
+module type Bin_mshlr = sig
+  type t[@@deriving bin_io]
+  val max_sz: int
+end
+
+type 'a bin_mshlr = (module Bin_mshlr with type t='a)
+

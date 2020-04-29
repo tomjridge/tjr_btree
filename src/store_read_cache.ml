@@ -12,11 +12,14 @@ improve profiling interface to make it simple and succinct to use
 
 (* FIXME move elsewhere eg fs_shared? *)
 
-[%%import "config.ml"]
+[%%import "optcomp_config.ml"]
 
+let mark = Profilers_.Read_cache_profiler.mark
+
+(*
 open struct
-  [%%if READ_CACHE_PROFILING_ENABLED]
-  let _ : unit = Printf.printf "NOTE profiling enabled (%s)\n%!" __FILE__
+  [%%if PROFILING_ENABLED]
+  let _ : unit = Printf.printf "NOTE profiling enabled (bt/%s)\n%!" __FILE__
   let rc_profiling_enabled = true
   [%%else]
   let rc_profiling_enabled = false
@@ -29,7 +32,7 @@ open struct
         ~print_header:(Printf.sprintf "bt read cache profiler (bt/%s)" __FILE__) ()
     else dummy_profiler
 end
-    
+*)    
 
 (** NOTE this adds an imperative read cache; take care with testing etc *)
 let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id node leaf) 
