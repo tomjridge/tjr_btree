@@ -14,6 +14,8 @@ Usage: open Tjr_btree;; open Tjr_btree.Btree_intf;;
 
 module Btree_intf = Btree_intf
 
+module Btree_intf_v2 = Btree_intf_v2
+
 
 (** {2 Store read cache} *)
 
@@ -54,4 +56,14 @@ module Make_2 = Make_2
 
 module Make_3 = Make_3
 
-module Make_4 = Make_4
+
+module Make_5 = Make_5
+
+
+(** {2 Bin prot marshalling} *)
+
+module Bin_prot_marshalling = Bin_prot_marshalling
+
+(** {2 Misc} *)
+
+module Debug_ = Debug_

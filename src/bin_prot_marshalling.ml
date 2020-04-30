@@ -35,7 +35,7 @@ Bin_prot marshalling calculations for a type
 
 *)
 
-
+open Tjr_profile
 
 open Btree_intf
 (* open Bin_prot_intf *)
@@ -47,8 +47,7 @@ open Bin_prot.Std
 let int_size_is_63 = assert (Sys.int_size = 63); true
 
 module Make(X: sig 
-    (** NOTE we fix page_ref as int *)
-    type blk_id = Blk_id.blk_id[@@deriving bin_io]
+    type blk_id[@@deriving bin_io]
     type k[@@deriving bin_io]
     type v[@@deriving bin_io]
     type blk = ba_buf

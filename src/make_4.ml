@@ -1,3 +1,5 @@
+(*
+
 (** Like {!Make_3} but with {!Std_types}; don't open; has some examples *)
 
 
@@ -149,7 +151,7 @@ let examples =
         method v_mshlr=int_mshlr
       end)
 
-    let add_wbc ~ = Store_write_back_cache.add_write_back_cache_to_store
+    let add_wbc = Store_write_back_cache.add_write_back_cache_to_store
                     ~monad_ops
   end)
   in
@@ -161,3 +163,4 @@ let examples =
     end
     method with_write_back_cache=object
       method int_bid_btree=
+*)

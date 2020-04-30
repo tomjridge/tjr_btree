@@ -95,3 +95,21 @@ end
 
 type 'a bin_mshlr = (module Bin_mshlr with type t='a)
 
+
+
+(** {2 Util} *)
+
+
+(* $(FIXME("Move this to shared")) *)
+
+class ['a] set_once = object
+  val mutable x = ((Obj.magic ()):'a)
+  val mutable is_set = false
+  method get =
+    assert(is_set);
+    x
+  method set y = 
+    assert(not is_set);
+    x<-y
+  method is_set = is_set
+end

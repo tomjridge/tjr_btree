@@ -44,7 +44,6 @@ let profiling_enabled = true
 let profiling_enabled = false
 [%%endif]
 
-(*
 module Blk_profiler = struct
   let { mark; _ } = 
     if profiling_enabled 
@@ -52,7 +51,6 @@ module Blk_profiler = struct
         ~print_header:(Printf.sprintf "bt blk profiler (bt/%s)" __FILE__) ()
     else dummy_profiler
 end
-*)
 
 module Read_cache_profiler = struct
   let { mark; _ } = 
