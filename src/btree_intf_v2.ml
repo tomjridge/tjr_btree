@@ -4,8 +4,8 @@
 (**
 
 {%html:
+<img width='100%' src="https://docs.google.com/drawings/d/e/2PACX-1vRaddM5Jrk-qNGkt1wH4-bQE2izLIe3BSuN-WqC0hePBForvaOBhvYMifGpADFdgMA7iyrAOYBSeeb_/pub?w=1474&amp;h=1401">
 
-<img width='100%' src="https://docs.google.com/drawings/d/e/2PACX-1vRaddM5Jrk-qNGkt1wH4-bQE2izLIe3BSuN-WqC0hePBForvaOBhvYMifGpADFdgMA7iyrAOYBSeeb_/pub?w=1440&amp;h=1080">
 
 %}
 
