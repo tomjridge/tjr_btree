@@ -96,14 +96,12 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   let empty_leaf_as_blk () = 
     dnode_mshlr.dnode_to_blk (Disk_leaf (node_cnvs.kvs_to_leaf []))
 
-  module W_ = Write_back_cache.Make_write_back_cache
+  module W_ = Write_back_cache.Make
       (struct type t = r let compare = r_cmp end)
       (struct type t = dnode end)
-  type write_back_cache = W_.Internal.Lru.t
-  (* let make_write_back_cache = W_.make_write_back_cache *)
-  let {initial_state=init_cache;ops=cache_ops} = W_.make_write_back_cache ~cap:5200 ~delta:10
-  let _ = init_cache
-  let _ = cache_ops  
+  type write_back_cache = W_.wbc
+  let wbc = W_.wbc_factory#make_wbc ~cap:5200 ~delta:10
+  let init_cache,cache_ops = wbc#empty,wbc#ops
 
   let evict ~blk_dev_ops writes = 
     (* these writes are dnodes; we need to marshall them first *)
@@ -113,19 +111,20 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
 
 
   let flush_cache ~blk_dev_ops ~cache_ref () = 
-    cache_ops.trim_all !cache_ref |> fun (writes,_cache) ->
+    cache_ops.clean !cache_ref |> fun (writes,_cache) ->
     assert(cache_ops.size _cache=0);
     evict ~blk_dev_ops writes >>= fun () ->
-    (* FIXME we want to use the original cache, but updated so that no
-       entries are dirty; this probably needs a modification to the
-       LRU interface https://github.com/pqwy/lru/issues/7 ; wait for
-       new lru version then replace the following *)
+    (* $(FIXME(""" we want to use the original cache, but updated so
+       that no entries are dirty; this probably needs a modification
+       to the LRU interface https://github.com/pqwy/lru/issues/7 ;
+       wait for new lru version then replace the following which is
+       very inefficient """)) *)
     let c = !cache_ref in
     (writes,c) |> iter_k (fun ~k (ws,c) -> 
         match ws with
         | [] -> c
         | (r,dn)::ws -> 
-          W_.Internal.Lru.add r (dn,false) c |> fun c -> 
+          cache_ops.insert r (dn,false) c |> fun c -> 
           k (ws,c)) |> fun c -> 
     cache_ref := c; 
     (* the following shouldn't be necessary if we have serialized access to t.fd *)
@@ -135,7 +134,6 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   let empty_leaf_as_blk = empty_leaf_as_blk
 
   module type S = sig
-    (* val empty_leaf_as_blk : unit -> blk *)
     val flush_cache       : unit -> (unit, lwt) m
     val map_ops_with_ls   : (k, v, r, ls, lwt) Btree_intf.map_ops_with_ls
   end

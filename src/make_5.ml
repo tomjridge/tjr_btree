@@ -26,7 +26,7 @@ module Make(S:S) = struct
     module M1 = Make_1.Make(S)
     open M1
 
-    module W_ = Write_back_cache.Make_write_back_cache
+    module W_ = Write_back_cache.Make
         (struct type t = r let compare = S.r_cmp end)
         (struct type t = (node,leaf)Isa_btree.dnode end)
 
@@ -36,7 +36,7 @@ module Make(S:S) = struct
       type nonrec leaf = leaf
       type nonrec node = node
       type ls = leaf_stream
-      type wb = W_.Internal.Lru.t
+      type wb = W_.wbc
     end
 
     (** virtual classes *)
@@ -127,8 +127,8 @@ module Make(S:S) = struct
 
     val pvt_y : _ set_once = new set_once
 
-    method write_back_cache_ops = (pvt_y#get).ops
-    method empty_write_back_cache = (pvt_y#get).initial_state
+    method write_back_cache_ops = (pvt_y#get)#ops
+    method empty_write_back_cache = (pvt_y#get)#empty
 
     val pvt_z : _ set_once = new set_once
     method store_ops_with_cache = pvt_z#get
@@ -138,7 +138,7 @@ module Make(S:S) = struct
       let open (struct
         (* type write_back_cache = W_.Internal.Lru.t *)
         (* let make_write_back_cache = W_.make_write_back_cache *)
-        let _ : unit = pvt_y#set (W_.make_write_back_cache ~cap:5200 ~delta:10)
+        let _ : unit = pvt_y#set (W_.wbc_factory#make_wbc ~cap:5200 ~delta:10)
 
         let evict writes = 
           (* these writes are dnodes; we need to marshall them first *)

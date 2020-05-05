@@ -107,11 +107,11 @@ end
 (* To introduce the wbc, we can use the store -> disk refinement, and
    add the cache there, so that the store_ops are cached *)
 
-type ('k,'v,'a,'t) wbc_ops = ('k,'v,'a,'t) Write_back_cache.write_back_cache_ops
+type ('k,'v,'wbc) wbc_ops = ('k,'v,'wbc) Write_back_cache.wbc_ops
 
 class virtual ['k,'v,'r,'t,'leaf,'node,'ls,'blk,'wb] c7 = object
   inherit ['k,'v,'r,'t,'leaf,'node,'ls,'blk]c4
-  method virtual write_back_cache_ops:('r, ('node,'leaf)dnode, 'r * ('node,'leaf)dnode, 'wb) wbc_ops
+  method virtual write_back_cache_ops:('r, ('node,'leaf)dnode, 'wb) wbc_ops
 
   method virtual with_write_back_cache: ('wb,'t) with_state
 
@@ -205,7 +205,7 @@ module Make(S:S) = struct
 
   class virtual c7 = object
     inherit c4
-    method virtual write_back_cache_ops:(r, dnode, r * dnode, wb) wbc_ops
+    method virtual write_back_cache_ops:(r, dnode, wb) wbc_ops
 
     method virtual with_write_back_cache: (wb,t) with_state
 
