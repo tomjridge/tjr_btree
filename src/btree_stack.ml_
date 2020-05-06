@@ -1,0 +1,30 @@
+  class type virtual btree_stack = object
+    method cs : constants
+    method k_cmp : k -> k -> int
+    method monad_ops : t monad_ops
+
+    method blk_alloc : (r, t) blk_allocator_ops
+    method virtual blk_dev_ops : blk_dev_ops
+    method virtual blk_sz : blk_sz
+
+
+    method empty_write_back_cache : wb
+    method virtual with_write_back_cache : (wb, t) with_state
+    method write_back_cache_ops : (r, dnode, wb) wbc_ops
+
+    method dnode_mshlr : (dnode, blk) dnode_mshlr
+    method empty_leaf_as_blk : blk
+    method virtual kvr_mshlrs : k type_with_mshlr *
+                                v type_with_mshlr *
+                                r type_with_mshlr
+
+    method node_cnvs : node_cnvs
+
+    method virtual store_ops : store_ops
+    method store_ops_with_cache : store_ops
+    method uncached_store_ops : store_ops
+    method pre_btree_ops : pre_btree_ops
+
+    method virtual with_btree_root : (r, t) with_btree_root
+    method map_ops_with_ls : map_ops_with_ls
+  end

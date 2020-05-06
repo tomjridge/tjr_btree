@@ -7,6 +7,7 @@ open Tjr_monad.With_lwt
 open Intf_
 
 (** NOTE hidden Std_types module binding and open *)
+
 (**/**)
 (* shorter types in doc *)
 module Std_types = Std_types
@@ -40,9 +41,9 @@ module Make(S:S) : T with type k=S.k and type v=S.v = struct
     include Std_types
   end
 
-  module M1 = Tjr_btree.Make(S2)
+  module M1 = Tjr_btree.Make_1.Make(S2)
   open M1
-  type ls = leaf_stream
+  type ls = M1.leaf_stream
 
 
   module Dnode_mrshlr = Bin_prot_marshalling.Make(

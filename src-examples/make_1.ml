@@ -70,7 +70,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   let blk_sz = blk_sz_4096
 
   module Btree = struct
-    include Tjr_btree.Make(S2)
+    include Tjr_btree.Make_1.Make(S2)
     type nonrec disk_ops =
       (r, lwt, (node, leaf) Isa_btree.dnode, blk)
         Tjr_btree.Btree_intf.disk_ops
@@ -109,7 +109,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
         (blk_id,dnode_mshlr.dnode_to_blk dn))
     |> blk_dev_ops.write_many
 
-
+  (* $(FIXME(""" this flush code should be ported to bt/make_5""")) *)
   let flush_cache ~blk_dev_ops ~cache_ref () = 
     cache_ops.clean !cache_ref |> fun (writes,_cache) ->
     assert(cache_ops.size _cache=0);
@@ -147,7 +147,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
       let uncached_store_ops = Btree.disk_to_store ~disk_ops:disk_ops
       (* add cache *)
       let store_ops = 
-        Store_write_back_cache.add_write_back_cache_to_store
+        Tjr_btree.Pvt.Store_write_back_cache.add_write_back_cache_to_store
           ~monad_ops 
           ~uncached_store_ops
           ~alloc:blk_alloc.blk_alloc

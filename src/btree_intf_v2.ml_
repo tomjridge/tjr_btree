@@ -11,7 +11,46 @@
 
 *)
 
-open Btree_intf
+(* open Btree_intf *)
+
+module type TYPE_WITH_MSHLR = sig
+  type t[@@deriving bin_io]
+end
+
+type 'a type_with_mshlr = (module TYPE_WITH_MSHLR with type t='a) 
+
+type ('a,'t) with_btree_root = ('a,'t)with_state
+
+(*
+module type S = sig
+  type k
+  type v 
+  type r
+  type t
+  type blk
+  type leaf
+  type node
+  type ls
+  type wb
+end
+
+module Make_abbrevs(S:S) = struct
+  open Btree_intf
+  open S
+  (* type nonrec leaf_ops = (k,v,leaf)leaf_ops *)
+  (* type nonrec node_ops = (k,v,node)node_ops *)
+  type nonrec node_cnvs = (k,v,r,node,leaf)node_cnvs
+
+  type nonrec dnode = (node,leaf)dnode
+  type nonrec store_ops = (r,dnode,t)store_ops
+  type nonrec pre_btree_ops = (k, v, r, t, leaf, node, ls)pre_btree_ops
+  type nonrec map_ops_with_ls = (k,v,r,ls,t) map_ops_with_ls
+
+  type nonrec blk_dev_ops = (r,blk,t)blk_dev_ops
+end
+*)
+
+(*
 
 (** {2 c1 and c2, basic types and ops} *)
 
@@ -68,11 +107,6 @@ end
 
 (** {2 c5 is binprot marshalling; only for 'blk=ba_buf} *)
 
-module type TYPE_WITH_MSHLR = sig
-  type t[@@deriving bin_io]
-end
-
-type 'a type_with_mshlr = (module TYPE_WITH_MSHLR with type t='a) 
 
 class virtual ['k,'v,'r,'t,'leaf,'node,'blk] c5 = object
   method virtual blk_sz: blk_sz
@@ -109,10 +143,13 @@ end
 
 type ('k,'v,'wbc) wbc_ops = ('k,'v,'wbc) Write_back_cache.wbc_ops
 
-class virtual ['k,'v,'r,'t,'leaf,'node,'ls,'blk,'wb] c7 = object
-  inherit ['k,'v,'r,'t,'leaf,'node,'ls,'blk]c4
-  method virtual write_back_cache_ops:('r, ('node,'leaf)dnode, 'wb) wbc_ops
+open Write_back_cache
 
+class virtual ['k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wb] c7 = object
+  inherit ['k,'v,'r,'t,'leaf,'node,'ls,'blk]c4
+
+  method virtual wbc_o : ('r,'dnode,'wb)wbc_o
+  method virtual wbc_factory : ('r, 'dnode,'wb) wbc_factory
   method virtual with_write_back_cache: ('wb,'t) with_state
 
   (* we fulfill the store ops with a version that uses the cache *)
@@ -125,17 +162,6 @@ end
 
 (** Same classes as above, but with no type parameters *)
 
-module type S = sig
-  type k
-  type v 
-  type r
-  type t
-  type blk
-  type leaf
-  type node
-  type ls
-  type wb
-end
 
 
 module Make(S:S) = struct
@@ -252,3 +278,4 @@ The final collection of all methods:
           (S.r, Abbrevs.dnode, S.r * Abbrevs.dnode, S.wb) wbc_ops
       end
 ]} *)
+*)
