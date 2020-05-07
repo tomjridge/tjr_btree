@@ -20,39 +20,43 @@ module type S1 = sig
 end
 
 (** Make the btree_stack class type *)
-module Make_class_type(S:S1) = struct
-  open S
+module Btree_stack = struct
 
-  type nonrec blk_dev_ops = (r,blk,t)blk_dev_ops
-  type nonrec store_ops = (r, dnode, t) store_ops
-  type nonrec map_ops_with_ls = (k, v, r, ls, t) map_ops_with_ls
+  (* type nonrec blk_dev_ops = (r,blk,t)blk_dev_ops *)
+  (* type nonrec store_ops = (r, dnode, t) store_ops *)
+  (* type nonrec map_ops_with_ls = (k, v, r, ls, t) map_ops_with_ls *)
 
-  (** NOTE the order or initialization for classes is rather fiddly;
-     in particular, virtual slots like blk_dev_ops need to be defined
-     in the subclass proper, not in the class initializer *)
+  (* $(EXECC("""sed -n '/type[ ]btree_stack/,/end/p' >GEN.btree_stack.ml_""")) *)
+  (** The following type is what we depend on in subsequent code; in
+     this file, we provide something stronger - a virtual class, which
+     we can mix in with other classes to provide the final class from
+     which we create the object of type btree_stack *)
+  type ('k,'v,'r,'t,'ls,'blk,'dnode,'wbc) btree_stack = <
+    monad_ops             : 't monad_ops;
 
-  (* $(EXECC("""sed -n '/virtual[ ]btree_stack/,/end/p' >btree_stack_export.ml_""")) *)
-  class type virtual btree_stack = object
-    method monad_ops : t monad_ops
+    blk_alloc             : ('r, 't) blk_allocator_ops;
+    blk_dev_ops           : ('r,'blk,'t) blk_dev_ops;
+    blk_sz                : blk_sz;
 
-    method virtual blk_alloc : (r, t) blk_allocator_ops
-    method virtual blk_dev_ops : blk_dev_ops
-    method virtual blk_sz : blk_sz
+    empty_leaf_as_blk     : 'blk;
 
-
-    method empty_leaf_as_blk : blk
-
-    method wbc_o : (r,dnode,wbc)wbc_o
-    method virtual with_write_back_cache : (wbc, t) with_state
-    method flush_wbc : unit -> (unit, t) Tjr_monad.m
+    wbc_o                 : ('r,'dnode,'wbc) wbc_o;
+    with_write_back_cache : ('wbc, 't) with_state;
+    flush_wbc             : unit -> (unit, 't) m;
    
-    method virtual store_ops : store_ops
-    method store_ops_with_cache : store_ops
-    method uncached_store_ops : store_ops
+    store_ops             : ('r,'dnode,'t) store_ops;
 
-    method virtual with_btree_root : (r, t) with_btree_root
-    method map_ops_with_ls : map_ops_with_ls
-  end
+    with_btree_root       : ('r, 't) with_btree_root;
+    map_ops_with_ls       : ('k,'v,'r,'ls,'t) map_ops_with_ls;
+  >
+
+(*
+
+    kvr_mshlrs            :
+      k type_with_mshlr *
+      v type_with_mshlr *
+      r type_with_mshlr;
+*)
 
 end
 
@@ -98,6 +102,11 @@ module Make(S:S) = struct
   type nonrec blk_dev_ops = (r,blk,t)blk_dev_ops
   type nonrec node_cnvs = (k,v,r,node,leaf)node_cnvs
 
+
+  (** WARNING the order or initialization for classes is rather fiddly;
+     in particular, virtual slots like blk_dev_ops need to be defined
+     in the subclass proper, not in the class initializer *)
+
   class c1 = object 
     method monad_ops = S.monad_ops
     method k_cmp = S.k_cmp
@@ -115,9 +124,9 @@ module Make(S:S) = struct
   class virtual c3 = object (self)
     inherit c2
 
-    method virtual kvr_mshlrs : k type_with_mshlr *
-                                v type_with_mshlr *
-                                r type_with_mshlr
+    method virtual k_mshlr: k type_with_mshlr
+    method virtual v_mshlr: v type_with_mshlr
+    method virtual r_mshlr: r type_with_mshlr
 
     val pvt_d = new set_once
     method dnode_mshlr = pvt_d#get
@@ -128,7 +137,7 @@ module Make(S:S) = struct
       empty_leaf_as_blk ~dnode_to_blk:(self#dnode_mshlr.dnode_to_blk)
 
     initializer
-      let (k,v,r) = self#kvr_mshlrs in
+      let (k,v,r) = (self#k_mshlr,self#v_mshlr,self#r_mshlr) in
       let module K = (val k) in
       let module V = (val v) in
       let module R = (val r) in
@@ -230,11 +239,10 @@ module Make(S:S) = struct
     type nonrec wbc   = wbc  
   end
 
-  module Class_type = Make_class_type(S2)
-  open Class_type
+  open Btree_stack
 
   (* check agreement between c6 and btree_stack *)
-  let coerce (x:c6) = (x : c6 :> btree_stack)
+  let coerce (x:c6) = (x : c6 :> (_,_,_,_,_,_,_,_)btree_stack)
 
 end
 
@@ -278,4 +286,33 @@ class type virtual ['k,'v,'r,'t,'ls,'blk,'dnode,'wbc] btree_stack' = object
   method virtual with_btree_root : ('r, 't) with_btree_root
   method map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls
 end
+*)
+
+
+(*
+  (* $ (EXECC("""sed -n '/virtual[ ]btree_stack/,/end/p' >btree_stack_export.ml_""")) *)
+  class type virtual btree_stack = object
+    method monad_ops : t monad_ops
+
+    method virtual blk_alloc : (r, t) blk_allocator_ops
+    method virtual blk_dev_ops : blk_dev_ops
+    method virtual blk_sz : blk_sz
+
+    method virtual k_mshlr: k type_with_mshlr
+    method virtual v_mshlr: v type_with_mshlr
+    method virtual r_mshlr: r type_with_mshlr
+
+    method empty_leaf_as_blk : blk
+
+    method wbc_o : (r,dnode,wbc)wbc_o
+    method virtual with_write_back_cache : (wbc, t) with_state
+    method flush_wbc : unit -> (unit, t) Tjr_monad.m
+   
+    method virtual store_ops : store_ops
+    method store_ops_with_cache : store_ops
+    method uncached_store_ops : store_ops
+
+    method virtual with_btree_root : (r, t) with_btree_root
+    method map_ops_with_ls : map_ops_with_ls
+  end
 *)
