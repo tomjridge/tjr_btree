@@ -8,59 +8,41 @@ open Btree_intf
 open Make_1
 open Write_back_cache
 
-module type S1 = sig
-  type k
-  type v
-  type r 
-  type t
-  type ls
-  type blk
-  type dnode
-  type wbc
-end
 
-(** Make the btree_stack class type *)
-module Btree_stack = struct
+(** The btree factory type *)
+module Btree_factory = struct
 
-  (* type nonrec blk_dev_ops = (r,blk,t)blk_dev_ops *)
-  (* type nonrec store_ops = (r, dnode, t) store_ops *)
-  (* type nonrec map_ops_with_ls = (k, v, r, ls, t) map_ops_with_ls *)
-
-  (* $(EXECC("""sed -n '/type[ ]btree_stack/,/end/p' >GEN.btree_stack.ml_""")) *)
-  (** The following type is what we depend on in subsequent code; in
-     this file, we provide something stronger - a virtual class, which
-     we can mix in with other classes to provide the final class from
-     which we create the object of type btree_stack *)
-  type ('k,'v,'r,'t,'ls,'blk,'dnode,'wbc) btree_stack = <
-    monad_ops             : 't monad_ops;
-
-    blk_alloc             : ('r, 't) blk_allocator_ops;
-    blk_dev_ops           : ('r,'blk,'t) blk_dev_ops;
-    blk_sz                : blk_sz;
-
-    empty_leaf_as_blk     : 'blk;
-
-    wbc_o                 : ('r,'dnode,'wbc) wbc_o;
-    with_write_back_cache : ('wbc, 't) with_state;
-    flush_wbc             : unit -> (unit, 't) m;
-   
-    store_ops             : ('r,'dnode,'t) store_ops;
-
-    with_btree_root       : ('r, 't) with_btree_root;
-    map_ops_with_ls       : ('k,'v,'r,'ls,'t) map_ops_with_ls;
+  (** uncached *)
+  (* $(PIPE2SH("""sed -n '/type[ ].*bt_1/,/[ ]>/p' >GEN.bt_1.ml_""")) *)
+  type ('k,'v,'r,'ls,'t) bt_1 = <
+    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
   >
 
-(*
+  (** cached *)
+  (* $(PIPE2SH("""sed -n '/type[ ].*bt_2/,/[ ]>/p' >GEN.bt_2.ml_""")) *)
+  type ('k,'v,'r,'ls,'t) bt_2 = <
+    flush_wbc: unit -> (unit,'t)m;
+    sync_key: 'k -> (unit,'t)m;
+    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
+  >
 
-    kvr_mshlrs            :
-      k type_with_mshlr *
-      v type_with_mshlr *
-      r type_with_mshlr;
-*)
+  (** factory with blk_dev_ops and blk_allocator_ops and blk_sz already provided *)
+  (* $(PIPE2SH("""sed -n '/type[ ].*btree_factory/,/[ ]>/p' >GEN.btree_factory.ml_""")) *)
+  type ('k,'v,'r,'t,'ls,'blk,'dnode,'wbc) btree_factory = <
+    (* method blk_dev_ops: ('r,'blk,'t) blk_dev_ops *)
+    (* method blk_allocator_ops: ('r,'t)blk_allocator_ops *)
+    empty_leaf_as_blk: 'blk;
+    wbc_factory: ('r,'dnode,'wbc)wbc_factory;
+    make_uncached: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_1;
+    make_cached_1: ('r, 't) with_btree_root -> ('wbc,'t)with_state -> ('k,'v,'r,'ls,'t) bt_2;
+    make_cached_2: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_2;
+  >
+  (** [make_cached_2]: use an empty write_back_cache, stored in a mutable reference *)
+
 
 end
 
-
+(* FIXME perhaps we just declare that k,v,r need to implement bin_prot? *)
 module type S = (* Isa_btree_intf.S *) sig
   type k
   type v
@@ -129,7 +111,7 @@ module Make(S:S) = struct
     method virtual r_mshlr: r type_with_mshlr
 
     val pvt_d = new set_once
-    method dnode_mshlr = pvt_d#get
+    method dnode_mshlr : (dnode,blk)dnode_mshlr = pvt_d#get
 
     method node_cnvs = node_cnvs
 
@@ -161,27 +143,28 @@ module Make(S:S) = struct
 
   end
 
+  let wbc_factory = W_.wbc_factory
+
   (* wbc *)
   class virtual c4 = object (self)
     inherit c3
-    method wbc_o = W_.wbc_factory#make_wbc ~cap:5200 ~delta:10
-    method wbc_factory = W_.wbc_factory
+
+    method wbc_o = W_.wbc_factory#make_wbc ~cap:5200 ~delta:10 
+
+    method wbc_factory = wbc_factory
+
     method wbc_evict = fun writes -> 
       (* these writes are dnodes; we need to marshall them first *)
       writes |> List.map (fun (blk_id,dn) -> 
           (blk_id,self#dnode_mshlr.dnode_to_blk dn))
       |> self#blk_dev_ops.write_many        
 
-    method virtual with_write_back_cache : (wbc, t) with_state
-
-    (* val pvt_a = new set_once *)
-    method flush_wbc = fun () -> 
+    method flush_wbc with_write_back_cache = fun () -> 
       let (>>=) = self#monad_ops.bind in
-      self#with_write_back_cache.with_state (fun ~state ~set_state -> 
+      with_write_back_cache.with_state (fun ~state ~set_state -> 
           self#wbc_o#ops.clean state |> fun (evictees,state) -> 
           self#wbc_evict evictees >>= fun () -> 
           set_state state)
-
   end
 
 
@@ -196,34 +179,32 @@ module Make(S:S) = struct
         blk_alloc=self#blk_alloc
       }
 
-    val pvt_e = new set_once
-    method store_ops_with_cache : store_ops = pvt_e#get
-
-    method virtual store_ops: store_ops
-
-    method pre_btree_ops = store_to_pre_btree ~store_ops:(self#store_ops)
-
-    initializer
-      pvt_e#set @@ Store_write_back_cache.add_write_back_cache_to_store
+    method store_ops_with_cache with_write_back_cache : store_ops = 
+      Store_write_back_cache.add_write_back_cache_to_store
         ~monad_ops:S.monad_ops
         ~uncached_store_ops:self#uncached_store_ops
         ~alloc:self#blk_alloc.blk_alloc
         ~evict:self#wbc_evict
         ~write_back_cache_ops:self#wbc_o#ops
-        ~with_write_back_cache:self#with_write_back_cache
+        ~with_write_back_cache
 
+    val mutable config_cached: (wbc,t) with_state option = None
+    method set_cached x = config_cached <- x
 
+    method pre_btree_ops = store_to_pre_btree ~store_ops:(
+        match config_cached with
+        | None -> self#uncached_store_ops 
+        | Some with_write_back_cache -> 
+          self#store_ops_with_cache with_write_back_cache)
   end
 
   class virtual c6 = object (self)
     inherit c5
-    method virtual with_btree_root : (r, t) with_btree_root
-    method map_ops_with_ls = 
+    method map_ops_with_ls with_btree_root = 
       pre_btree_to_map 
         ~pre_btree_ops:(self#pre_btree_ops)
-        ~root_ops:(self#with_btree_root)
+        ~root_ops:(with_btree_root)
   end
-
 
 
   (** The [btree_stack] type should match c6 *)
@@ -239,80 +220,64 @@ module Make(S:S) = struct
     type nonrec wbc   = wbc  
   end
 
-  open Btree_stack
+  open Btree_factory
 
-  (* check agreement between c6 and btree_stack *)
-  let coerce (x:c6) = (x : c6 :> (_,_,_,_,_,_,_,_)btree_stack)
+  let k_mshlr : k type_with_mshlr = failwith "FIXME"
+  let v_mshlr : v type_with_mshlr = failwith "FIXME"
+  let r_mshlr : r type_with_mshlr = failwith "FIXME"
+
+  let btree_factory ~(blk_dev_ops:blk_dev_ops) 
+      ~(blk_allocator_ops:(r,t)blk_allocator_ops) 
+      ~(blk_sz:blk_sz) 
+    : (_,_,_,_,_,blk,dnode,_) btree_factory 
+    = 
+    let open (struct
+      class c = object
+        method k_mshlr = k_mshlr
+        method v_mshlr = v_mshlr
+        method r_mshlr = r_mshlr
+        method blk_dev_ops = blk_dev_ops
+        method blk_alloc = blk_allocator_ops
+        method blk_sz = blk_sz
+      end  
+      class d = object
+        inherit c6
+        inherit c
+      end
+    end)
+    in      
+    let factory = object (self)
+      method empty_leaf_as_blk = (new d)#empty_leaf_as_blk
+      method wbc_factory = wbc_factory
+      method make_uncached with_btree_root = object
+        method map_ops_with_ls = (new d)#map_ops_with_ls with_btree_root
+      end
+
+      method make_cached_1 with_btree_root with_wbc =
+        let d = new d in
+        d#set_cached (Some with_wbc);
+        object
+          method flush_wbc = d#flush_wbc with_wbc
+          method sync_key (_k:k) : (unit,t)m = failwith "FIXME"
+          method map_ops_with_ls = d#map_ops_with_ls with_btree_root
+        end
+
+      method make_cached_2 with_btree_root =
+        let d = new d in
+        let wbc = ref (d#wbc_o#empty) in
+        let with_wbc = Tjr_monad.with_imperative_ref ~monad_ops:(d#monad_ops) wbc in
+        self#make_cached_1 with_btree_root with_wbc
+    end
+    in
+    factory
+
+  let _ :
+blk_dev_ops:blk_dev_ops ->
+blk_allocator_ops:(r, t) Tjr_fs_shared.blk_allocator_ops ->
+blk_sz:Tjr_fs_shared.blk_sz ->
+(k, v, r, t, ls, blk, dnode, wbc) btree_factory
+= btree_factory
 
 end
 
 
-
-(*
-  (* check can cast to external type *)
-  let _f (x:btree_stack) = (x : btree_stack :> (_,_,_,_,_,_,_,_) btree_stack')
-
-(** This is the result of the Make functor below, with type variables
-   rather than fixed types *)
-class type virtual ['k,'v,'r,'t,'ls,'blk,'dnode,'wbc] btree_stack' = object
-  method cs : constants
-  method k_cmp : 'k -> 'k -> int
-  method monad_ops : 't monad_ops
-
-  method blk_alloc : ('r, 't) blk_allocator_ops
-  method virtual blk_dev_ops : ('r,'blk,'t) blk_dev_ops
-  method virtual blk_sz : blk_sz
-
-
-  method virtual kvr_mshlrs : 'k type_with_mshlr *
-                              'v type_with_mshlr *
-                              'r type_with_mshlr
-  (* method dnode_mshlr : (dnode, blk) dnode_mshlr *)
-  method empty_leaf_as_blk : 'blk
-  (* method node_cnvs : node_cnvs *)
-
-
-  method wbc_o : ('r,'dnode,'wbc)wbc_o
-  (* method wbc_factory : ('r, 'dnode,'wbc) Write_back_cache.wbc_factory *)
-  (* method wbc_evict : ('r * 'dnode) list -> (unit, t) m *)
-  method virtual with_write_back_cache : ('wbc, 't) with_state
-
-
-  method virtual store_ops : ('r,'dnode,'t) store_ops
-  method store_ops_with_cache :  ('r,'dnode,'t) store_ops
-  method uncached_store_ops : ('r,'dnode,'t) store_ops
-  (* method pre_btree_ops : pre_btree_ops *)
-
-  method virtual with_btree_root : ('r, 't) with_btree_root
-  method map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls
-end
-*)
-
-
-(*
-  (* $ (EXECC("""sed -n '/virtual[ ]btree_stack/,/end/p' >btree_stack_export.ml_""")) *)
-  class type virtual btree_stack = object
-    method monad_ops : t monad_ops
-
-    method virtual blk_alloc : (r, t) blk_allocator_ops
-    method virtual blk_dev_ops : blk_dev_ops
-    method virtual blk_sz : blk_sz
-
-    method virtual k_mshlr: k type_with_mshlr
-    method virtual v_mshlr: v type_with_mshlr
-    method virtual r_mshlr: r type_with_mshlr
-
-    method empty_leaf_as_blk : blk
-
-    method wbc_o : (r,dnode,wbc)wbc_o
-    method virtual with_write_back_cache : (wbc, t) with_state
-    method flush_wbc : unit -> (unit, t) Tjr_monad.m
-   
-    method virtual store_ops : store_ops
-    method store_ops_with_cache : store_ops
-    method uncached_store_ops : store_ops
-
-    method virtual with_btree_root : (r, t) with_btree_root
-    method map_ops_with_ls : map_ops_with_ls
-  end
-*)

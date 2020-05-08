@@ -2,3 +2,4 @@
 *.install
 .merlin
 /example.store
+GEN.*.ml_
