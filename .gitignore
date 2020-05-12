@@ -1,5 +1,1 @@
 /btree.store
-*.install
-.merlin
-/example.store
-GEN.*.ml_
