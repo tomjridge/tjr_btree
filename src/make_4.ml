@@ -1,9 +1,9 @@
 (*
 
-(** Like {!Make_3} but with {!Std_types}; don't open; has some examples *)
+(** Like {!Make_3} but with {!Sh_std_ctxt}; don't open; has some examples *)
 
 
-open Tjr_fs_shared.Std_types
+open Tjr_fs_shared.Sh_std_ctxt
 open Make_3
 open Btree_intf
 
@@ -103,9 +103,9 @@ let s256_mshlr : str_256 bin_mshlr =
   in
   (module A)
 
-(** NOTE hidden include of Std_types, to abbrev types in following *)
+(** NOTE hidden include of Sh_std_ctxt, to abbrev types in following *)
 (**/**)
-include Std_types
+include Sh_std_ctxt
 (**/**)
 
 type ('k,'v) f = 

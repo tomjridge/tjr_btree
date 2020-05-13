@@ -1,4 +1,4 @@
-(** Like Tjr_btree.Make, but using Std_types and binprot marshalling,
+(** Like Tjr_btree.Make, but using Sh_std_ctxt and binprot marshalling,
    and targetting an object; uncached *)
 
 (** Construct an example API, using lwt, bin_prot and bigarray *)
@@ -6,12 +6,12 @@
 open Tjr_monad.With_lwt
 open Intf_
 
-(** NOTE hidden Std_types module binding and open *)
+(** NOTE hidden Sh_std_ctxt module binding and open *)
 
 (**/**)
 (* shorter types in doc *)
-module Std_types = Std_types
-open Std_types
+module Sh_std_ctxt = Sh_std_ctxt
+open Sh_std_ctxt
 (**/**)
 
 module type S = sig
@@ -38,7 +38,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v = struct
   (* we want to use Tjr_btree.Make *)
   module S2 = struct
     include S
-    include Std_types
+    include Sh_std_ctxt
   end
 
   module M1 = Tjr_btree.Make_1.Make(S2)
