@@ -10,8 +10,8 @@ open Intf_
 
 (**/**)
 (* shorter types in doc *)
-module Sh_std_ctxt = Sh_std_ctxt
-open Sh_std_ctxt
+module Shared_ctxt = Shared_ctxt
+open Shared_ctxt
 (**/**)
 
 module type S = sig
@@ -27,8 +27,8 @@ module type T = sig
   type ls
   val empty_leaf_as_blk : unit -> blk
   val make_as_object: 
-    blk_dev_ops:std_blk_dev_ops ->
-    blk_alloc:std_blk_allocator_ops ->
+    blk_dev_ops:blk_dev_ops' ->
+    blk_alloc:(r,t)blk_allocator_ops ->
     bt_rt:blk_id ->
     (k, v, ls) uncached_btree
 end 
@@ -38,7 +38,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v = struct
   (* we want to use Tjr_btree.Make *)
   module S2 = struct
     include S
-    include Sh_std_ctxt
+    include Shared_ctxt
   end
 
   module M1 = Tjr_btree.Make_1.Make(S2)
