@@ -115,12 +115,16 @@ class ['a] set_once = object
 end
 
 
+
 (** {2 For [Make_5] } *)
+
+(* replaced with shared/bp_mshlr
 
 module type TYPE_WITH_MSHLR = sig
   type t[@@deriving bin_io]
 end
 
 type 'a type_with_mshlr = (module TYPE_WITH_MSHLR with type t='a) 
+*)
 
 type ('a,'t) with_btree_root = ('a,'t)with_state

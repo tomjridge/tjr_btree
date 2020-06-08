@@ -1,4 +1,6 @@
-default: all
+default: 
+	$(MAKE) update_generated_doc 
+	$(MAKE) all
 
 -include Makefile.ocaml
 
@@ -11,6 +13,11 @@ clean::
 
 cln_stores:
 	rm -f *.store
+
+
+update_generated_doc::
+	cd src && (ocamldoc_pyexpander make_5.ml) # FIXME maybe move to intf
+	cd src && (ocamldoc_pyexpander tjr_btree.t.ml > tjr_btree.ml)
 
 run:
 	$(DUNE) exec bin/btree_main.exe example # >tmp.txt 2>&1

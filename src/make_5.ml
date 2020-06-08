@@ -42,8 +42,8 @@ module Btree_factory = struct
 
 end
 
-(* FIXME perhaps we just declare that k,v,r need to implement bin_prot? *)
-module type S = (* Isa_btree_intf.S *) sig
+(* $(PIPE2SH("""sed -n '/^module type S/,/end/p' >GEN.S.ml_""")) *)
+module type S = sig
   type k
   type v
   type r
@@ -51,6 +51,10 @@ module type S = (* Isa_btree_intf.S *) sig
   val k_cmp: k -> k -> int
   val monad_ops: t monad_ops
   val cs: Constants.constants
+
+  val k_mshlr: k bp_mshlr
+  val v_mshlr: v bp_mshlr
+  val r_mshlr: r bp_mshlr
 
   val r_cmp: r -> r -> int (* for wbc *)
 end
@@ -106,9 +110,9 @@ module Make(S:S) = struct
   class virtual c3 = object (self)
     inherit c2
 
-    method virtual k_mshlr: k type_with_mshlr
-    method virtual v_mshlr: v type_with_mshlr
-    method virtual r_mshlr: r type_with_mshlr
+    method virtual k_mshlr: k bp_mshlr
+    method virtual v_mshlr: v bp_mshlr
+    method virtual r_mshlr: r bp_mshlr
 
     val pvt_d = new set_once
     method dnode_mshlr : (dnode,blk)dnode_mshlr = pvt_d#get
@@ -222,9 +226,11 @@ module Make(S:S) = struct
 
   open Btree_factory
 
+(*
   let k_mshlr : k type_with_mshlr = failwith "FIXME"
   let v_mshlr : v type_with_mshlr = failwith "FIXME"
   let r_mshlr : r type_with_mshlr = failwith "FIXME"
+*)
 
   let btree_factory ~(blk_dev_ops:blk_dev_ops) 
       ~(blk_allocator_ops:(r,t)blk_allocator_ops) 
@@ -233,9 +239,9 @@ module Make(S:S) = struct
     = 
     let open (struct
       class c = object
-        method k_mshlr = k_mshlr
-        method v_mshlr = v_mshlr
-        method r_mshlr = r_mshlr
+        method k_mshlr = S.k_mshlr
+        method v_mshlr = S.v_mshlr
+        method r_mshlr = S.r_mshlr
         method blk_dev_ops = blk_dev_ops
         method blk_alloc = blk_allocator_ops
         method blk_sz = blk_sz

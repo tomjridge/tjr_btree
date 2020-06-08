@@ -1,30 +1,28 @@
-(** Marshal frames to blocks using binprot. Currently assumes that blk_ids are ints. *)
+(** Marshal frames to blocks using binprot FIXME needs polish. Currently assumes that blk_ids are ints. *)
 
 (** 
 
+{[
 Bin_prot marshalling calculations for a type 
-{[    type tree = 
+
+    type tree = 
       | N of k list * blk_id list 
       | L of (k*v) list [@@deriving bin_io]
-]}
-
 
   - a size (Bin_prot.Nat0.t) < 0x10000 = 65536 takes 3 bytes
-  - for a sum type constructor, 1 byte (assumign <=256 total constructors)
-
-
+  - for a sum type constructor, 1 byte (assuming <=256 total constructors)
 
   - if we assume that a block size is less than 65536 then any list
     stored in a block will require 3 bytes or less
 
- - for a node, we need:
-   - 1 byte;  tag for N
-   - 0 ; tag for pair
-   - 3 bytes; tag for ks, which is just length of ks (assume <65536)
-   - 3 bytes; tag for rs (assume...)
-   - |ks| * k_size ; for ks
-   - |rs| * r_size ; for rs; safe to assume r_size is 9 bytes
-   - total: 7 + |ks|*(k_size+r_size) + r_size
+  - for a node, we need:
+    - 1 byte;  tag for N
+    - 0 ; tag for pair
+    - 3 bytes; tag for ks, which is just length of ks (assume <65536)
+    - 3 bytes; tag for rs (assume...)
+    - |ks| * k_size ; for ks
+    - |rs| * r_size ; for rs; safe to assume r_size is 9 bytes
+    - total: 7 + |ks|*(k_size+r_size) + r_size
 
 
   - for a leaf, we need:
@@ -32,6 +30,8 @@ Bin_prot marshalling calculations for a type
     - 3 bytes; tag for kvs list, which is length
     - |kvs| * kv_size; for kvs
     - total: 4 + |kvs|*kv_size
+
+]}
 
 *)
 
