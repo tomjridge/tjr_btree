@@ -75,6 +75,24 @@ class type ['k, 'v, 't ] ls = object
   method ls_kvs: unit -> ('k*'v)list
 end
 
+(** Convert a standard ls to a class interface *)
+let ls2object ~monad_ops ~(leaf_stream_ops:(_,_,_,_,_)Isa_btree.Isa_btree_intf.leaf_stream_ops) ~get_r = 
+  let ( >>= ) = monad_ops.bind in
+  let return = monad_ops.return in
+  fun () ->        
+    get_r () >>= fun r ->
+    leaf_stream_ops.make_leaf_stream r >>= fun ls ->     
+    let ls = ref ls in
+    let ls_step () = (leaf_stream_ops.ls_step) !ls >>= fun (x:_ option) -> 
+      match x with
+      | None -> return {finished=true}
+      | Some x -> ls:=x; return {finished=false} 
+    in
+    let ls_kvs () = leaf_stream_ops.ls_kvs !ls in
+    let obj : (_,_,_) ls = object method ls_step=ls_step method ls_kvs=ls_kvs end in
+    return obj
+
+
 (** NOTE uncached here means "no write back cache"; a read cache is
    not observable except for performance and memory usage *)    
 class type ['k, 'v, 't ] uncached_btree = 
