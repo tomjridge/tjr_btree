@@ -1,5 +1,4 @@
 default: 
-	$(MAKE) update_generated_doc 
 	$(MAKE) all
 
 -include Makefile.ocaml

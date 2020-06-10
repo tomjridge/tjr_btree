@@ -76,7 +76,11 @@ class type ['k, 'v, 't ] ls = object
 end
 
 (** Convert a standard ls to a class interface *)
-let ls2object ~monad_ops ~(leaf_stream_ops:(_,_,_,_,_)Isa_btree.Isa_btree_intf.leaf_stream_ops) ~get_r = 
+let ls2object 
+    ~monad_ops 
+    ~(leaf_stream_ops:(_,_,_,_,_)Isa_btree.Isa_btree_intf.leaf_stream_ops) 
+    ~get_r 
+  = 
   let ( >>= ) = monad_ops.bind in
   let return = monad_ops.return in
   fun () ->        
@@ -115,34 +119,6 @@ type 'a bin_mshlr = (module Bin_mshlr with type t='a)
 
 
 
-(** {2 Util} *)
-
-
-(* $(FIXME("Move this to shared")) *)
-
-class ['a] set_once = object
-  val mutable x = ((Obj.magic ()):'a)
-  val mutable is_set = false
-  method get =
-    assert(is_set);
-    x
-  method set y = 
-    assert(not is_set);
-    x<-y
-  method is_set = is_set
-end
-
-
-
 (** {2 For [Make_5] } *)
-
-(* replaced with shared/bp_mshlr
-
-module type TYPE_WITH_MSHLR = sig
-  type t[@@deriving bin_io]
-end
-
-type 'a type_with_mshlr = (module TYPE_WITH_MSHLR with type t='a) 
-*)
 
 type ('a,'t) with_btree_root = ('a,'t)with_state

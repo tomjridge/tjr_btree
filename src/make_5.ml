@@ -114,7 +114,7 @@ module Make(S:S) = struct
     method virtual v_mshlr: v bp_mshlr
     method virtual r_mshlr: r bp_mshlr
 
-    val pvt_d = new set_once
+    val pvt_d = new set_once "pvt_d"
     method dnode_mshlr : (dnode,blk)dnode_mshlr = pvt_d#get
 
     method node_cnvs = node_cnvs
@@ -142,7 +142,7 @@ module Make(S:S) = struct
 
         module Y = Bin_prot_marshalling.Make(X)
       end)
-      in
+      in      
       pvt_d#set Y.dnode_mshlr
 
   end
