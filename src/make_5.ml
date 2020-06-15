@@ -12,6 +12,18 @@ open Write_back_cache
 (** The btree factory type *)
 module Btree_factory = struct
 
+(*
+  (* \$(PIPE2SH("""sed -n '/bt_0[ ]is used/,/}/p' >GEN.bt_0.ml_""")) *)
+  (** uncached, pre-btree; bt_0 is used by ImpFS's [file_impl] *)
+  type ('k,'v,'r,'t) bt_0 = {
+    find         : r:'r -> k:'k -> ('v option,'t) m;
+    insert       : r:'r -> k:'k -> v:'v -> ('r option,'t) m;
+    delete       : r:'r -> k:'k -> ('r,'t) m;
+    delete_after : r:'r -> k:'k -> ('r,'t) m;
+    (** delete all entries for keys > r; used for truncate *)    
+  }
+*)
+
   (** uncached *)
   (* $(PIPE2SH("""sed -n '/type[ ].*bt_1/,/[ ]>/p' >GEN.bt_1.ml_""")) *)
   type ('k,'v,'r,'ls,'t) bt_1 = <
