@@ -145,6 +145,6 @@ let make () =
   T.do_all () >>= fun () ->
   btree#flush_cache() >>= fun () ->
   rt_blk#sync () >>= fun () ->
-  open_fd#close_fd ()
+  open_fd#close ()
 
 

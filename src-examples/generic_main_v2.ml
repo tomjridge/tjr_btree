@@ -84,7 +84,7 @@ module Make(S:S) = struct
   let close ~(open_fd:open_fd) ~(rt_blk:rt_blk) ~(btree:(_,_,_)btree) = 
     btree#flush_cache () >>= fun () ->
     rt_blk#sync () >>= fun () ->
-    open_fd#close_fd ()
+    open_fd#close ()
     
 
   let main args =
@@ -95,7 +95,7 @@ module Make(S:S) = struct
       rt_blk#init_as_empty ~empty_leaf_as_blk >>= fun () ->
       print_endline "init ok";
       rt_blk#sync () >>= fun () ->
-      open_fd#close_fd ()
+      open_fd#close ()
         
     | ["count"; fn] -> 
       Lwt_unix.(open_ ~flgs:[O_RDWR] ~fn) >>= fun open_fd ->
@@ -201,7 +201,7 @@ module Make(S:S) = struct
             kont (i+1)) >>= fun () ->
       (* measure_execution_time_and_print "test_random_writes" f; *)
       print_endline "test_random_writes ok";
-      open_fd#close_fd ()
+      open_fd#close ()
 
     | ["test_random_writes_im";fn;l;h;n] -> 
       (* version using insert_many, with sorting and chunks *)
@@ -226,7 +226,7 @@ module Make(S:S) = struct
             k h') >>= fun () ->
       (* measure_execution_time_and_print "test_random_writes_im" f; *)
       print_endline "test_random_writes_im ok";
-      open_fd#close_fd ()
+      open_fd#close ()
 
     | ["nop"] -> (print_endline "nop ok"; return ())
 

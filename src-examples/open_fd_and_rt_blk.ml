@@ -6,19 +6,11 @@ module B = Blk_id_as_int
 
 let open_ ~flgs ~fn = 
   from_lwt (Lwt_unix.openfile fn flgs Tjr_file.default_create_perm) >>= fun fd -> 
-  Blk_dev_factory.(make_7 fd) |> fun (x : (module Blk_dev_factory.R6)) ->
-  let module Blk_dev = (val x) in (* close_blk_dev is just close on fd *)
-  let open Blk_dev in
-  object
-    method fd = fd
-    method blk_dev_ops = blk_dev_ops
-    method close_fd = close_blk_dev
-  end 
-  |> fun o -> return (o : open_fd)
+  return (blk_devs#with_ba_buf#from_fd fd)
 
 let _ = open_
 
-let rt_blk ~(open_fd:open_fd) : rt_blk = 
+let rt_blk ~open_fd : rt_blk = 
   let blk_dev_ops = open_fd#blk_dev_ops in
   let module A = struct
     (* open Bin_prot.Std *)

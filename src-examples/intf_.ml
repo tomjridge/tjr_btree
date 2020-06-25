@@ -116,13 +116,6 @@ class type ['k, 'v, 'ls ] uncached_btree =
     method ls_kvs  : 'ls -> ('k*'v) list
   end 
 
-(** Lwt-specific fd,blk_dev_ops *)
-class type open_fd = 
-  object
-    method fd          : Lwt_unix.file_descr
-    method blk_dev_ops : (blk_id,blk,t) blk_dev_ops
-    method close_fd    : unit -> (unit,t)m
-  end
     
 (** Root block for simple examples NOTE: typically one of the init
    functions must be called *)
