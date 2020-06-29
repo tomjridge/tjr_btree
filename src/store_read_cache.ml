@@ -36,7 +36,7 @@ end
 
 (** NOTE this adds an imperative read cache; take care with testing etc *)
 let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id node leaf) 
-    ~monad_ops ~store_ops 
+    ~monad_ops ~(store_ops:(_,_,_)Isa_btree_intf.store_ops)
   =
   let module A = struct
     let ( >>= ) = monad_ops.bind 
@@ -58,7 +58,7 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
     (* we add some profiling; we also take the opportunity to add some
        simple caching; FIXME add LRU caching for store *)
     let store_ops = 
-      let {read;wrte;rewrite;free} = store_ops in
+      let Store_ops.{read;wrte;rewrite;free} = store_ops in
       (* Add some memoization *)
       let module L = Lru.M.Make(struct
           type t = blk_id
@@ -108,7 +108,7 @@ let add_imperative_read_cache_to_store (* make_store_with_lru *) (type blk_id no
             trim lru;
             return (Some r'))
       in
-      {
+      Store_ops.{
         read=(fun r -> profile_m m1 (read r));
         wrte=(fun dn -> profile_m m2 (wrte dn));
         rewrite=(fun r dn -> profile_m m3 (rewrite r dn));

@@ -1,11 +1,15 @@
-(** A collection of the main interfaces. This should be read first. *)
+(** A collection of the main interfaces. This should be read first.
+
+NOTE that this uses some terminology established in package [isa_btree].
+ *)
 
 
 (** A type for recording the marshalling functions *)
+(* $(PIPE2SH("""sed -n '/type[ ].*dnode_mshlr/,/}/p' >GEN.dnode_mshlr.ml_""")) *)
 type ('dnode,'blk) dnode_mshlr = {
-  dnode_to_blk: 'dnode -> 'blk;
-  blk_to_dnode: 'blk -> 'dnode;
-  blk_sz: blk_sz
+  dnode_to_blk : 'dnode -> 'blk;
+  blk_to_dnode : 'blk -> 'dnode;
+  blk_sz       : blk_sz
 }
 
 
@@ -13,6 +17,7 @@ type ('dnode,'blk) dnode_mshlr = {
     lists. This allows us to assume little about node and leaf
     implementations. These fields have the same names and types as
     the corresponding fields in node_ops and leaf_ops. *)
+(* $(PIPE2SH("""sed -n '/type[ ].*node_cnvs/,/}/p' >GEN.node_cnvs.ml_""")) *)
 type ('k,'v,'r,'node,'leaf) node_cnvs = {
   node_to_krs: 'node -> 'k list * 'r list;
   krs_to_node: ('k list * 'r list) -> 'node;
@@ -33,30 +38,31 @@ type ('k,'v,'r,'node,'leaf) node_cnvs = {
 type ('r,'t) btree_root_ops = ('r,'t)with_state
 
 
-(* module Map_ops_etc_type = struct *)
 (** As map ops, but with leaf_stream operations *)
 module Map_ops_with_ls = struct
 
-  type ('k,'v,'r,'leaf_stream,'t) map_ops_with_ls = {
-    find: k:'k -> ('v option, 't)m;
-    insert: k:'k -> v:'v -> (unit,'t) m;
-    delete: k:'k -> (unit,'t)m;
-    insert_many: k:'k -> v:'v -> kvs:('k * 'v) list -> (('k * 'v) list, 't) m;
-    insert_all: kvs:('k * 'v) list -> (unit, 't) m;    
-    leaf_stream_ops: ('k,'v,'r,'leaf_stream,'t)Isa_btree_intf.leaf_stream_ops;
+  (* $(PIPE2SH("""sed -n '/type[ ].*map_ops_with_ls = {/,/}/p' >GEN.map_ops_with_ls.ml_""")) *)
+  type ('k,'v,'r,'ls,'t) map_ops_with_ls = {
+    find            : k:'k -> ('v option, 't)m;
+    insert          : k:'k -> v:'v -> (unit,'t) m;
+    delete          : k:'k -> (unit,'t)m;
+    insert_many     : k:'k -> v:'v -> kvs:('k * 'v) list -> (('k * 'v) list, 't) m;
+    insert_all      : kvs:('k * 'v) list -> (unit, 't) m;    
+    leaf_stream_ops : ('k,'v,'r,'ls,'t)Isa_btree_intf.leaf_stream_ops;
   }
 
 end
-type ('k,'v,'r,'leaf_stream,'t) map_ops_with_ls = 
-  ('k,'v,'r,'leaf_stream,'t) Map_ops_with_ls.map_ops_with_ls
+type ('k,'v,'r,'ls,'t) map_ops_with_ls = 
+  ('k,'v,'r,'ls,'t) Map_ops_with_ls.map_ops_with_ls
 
 module Disk_ops_type = struct
   
+  (* $(PIPE2SH("""sed -n '/A[ ]collection of block-based/,/}/p' >GEN.disk_ops.ml_""")) *)
   (** A collection of block-based interfaces *)
   type ('r,'t,'dnode,'blk) disk_ops = {
-    dnode_mshlr:('dnode,'blk)dnode_mshlr;
-    blk_dev_ops:('r,'blk,'t)blk_dev_ops;
-    blk_alloc:('r,'t)blk_allocator_ops
+    dnode_mshlr : ('dnode,'blk)dnode_mshlr;
+    blk_dev_ops : ('r,'blk,'t)blk_dev_ops;
+    blk_alloc   : ('r,'t)blk_allocator_ops
   }
 
 end
@@ -109,14 +115,6 @@ class type ['k, 'v, 't ] uncached_btree =
     method ls_create   : unit -> (('k,'v,'t)ls,'t)m
     (* method empty_leaf_as_blk: unit -> ba_buf *)
   end 
-
-module type Bin_mshlr = sig
-  type t[@@deriving bin_io]
-  val max_sz: int
-end
-
-type 'a bin_mshlr = (module Bin_mshlr with type t='a)
-
 
 
 (** {2 For [Make_5] } *)

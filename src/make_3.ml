@@ -48,9 +48,9 @@ class type ['k,'v,'r,'t] args = object
   method k_cmp: 'k -> 'k -> int
   method blk_sz: blk_sz
   (* method cs: Constants.constants *)
-  method k_mshlr: 'k bin_mshlr
-  method v_mshlr: 'v bin_mshlr
-  method r_mshlr: 'r bin_mshlr
+  method k_mshlr: 'k bp_mshlr
+  method v_mshlr: 'v bp_mshlr
+  method r_mshlr: 'r bp_mshlr
   (* method with_read_cache: bool *)
 end
 

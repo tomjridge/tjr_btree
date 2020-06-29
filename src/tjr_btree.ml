@@ -10,6 +10,8 @@ Usage: open Tjr_btree;; open Tjr_btree.Btree_intf;;
 
 *)
 
+include Summary
+
 (** {2 Main interfaces} *)
 
 module Btree_intf = Btree_intf
@@ -60,49 +62,6 @@ end
 module Make_1 = Make_1
 
 module Make_5 = Make_5
-
-(** [Make_5] main interfaces:
-
-{[
-module type S = sig
-  type k
-  type v
-  type r
-  type t
-  val k_cmp: k -> k -> int
-  val monad_ops: t monad_ops
-  val cs: Constants.constants
-
-  val k_mshlr: k bp_mshlr
-  val v_mshlr: v bp_mshlr
-  val r_mshlr: r bp_mshlr
-
-  val r_cmp: r -> r -> int (* for wbc *)
-end
-
-  type ('k,'v,'r,'ls,'t) bt_1 = <
-    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
-  >
-
-  type ('k,'v,'r,'ls,'t) bt_2 = <
-    flush_wbc: unit -> (unit,'t)m;
-    sync_key: 'k -> (unit,'t)m;
-    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
-  >
-
-  type ('k,'v,'r,'t,'ls,'blk,'dnode,'wbc) btree_factory = <
-    (* method blk_dev_ops: ('r,'blk,'t) blk_dev_ops *)
-    (* method blk_allocator_ops: ('r,'t)blk_allocator_ops *)
-    empty_leaf_as_blk: 'blk;
-    wbc_factory: ('r,'dnode,'wbc)wbc_factory;
-    make_uncached: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_1;
-    make_cached_1: ('r, 't) with_btree_root -> ('wbc,'t)with_state -> ('k,'v,'r,'ls,'t) bt_2;
-    make_cached_2: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_2;
-  >
-
-]}
-
-*)
 
 
 (** {2 Bin prot marshalling} *)

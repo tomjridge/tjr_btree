@@ -60,15 +60,15 @@ module type S = sig
   type v
   type r
   type t
-  val k_cmp: k -> k -> int
-  val monad_ops: t monad_ops
-  val cs: Constants.constants
+  val k_cmp     : k -> k -> int
+  val monad_ops : t monad_ops
+  val cs        : Constants.constants
 
-  val k_mshlr: k bp_mshlr
-  val v_mshlr: v bp_mshlr
-  val r_mshlr: r bp_mshlr
+  val k_mshlr   : k bp_mshlr
+  val v_mshlr   : v bp_mshlr
+  val r_mshlr   : r bp_mshlr
 
-  val r_cmp: r -> r -> int (* for wbc *)
+  val r_cmp     : r -> r -> int (* for wbc *)
 end
 
 

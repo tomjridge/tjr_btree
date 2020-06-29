@@ -15,8 +15,9 @@ cln_stores:
 
 
 update_generated_doc::
+	cd src && (ocamldoc_pyexpander btree_intf.ml)
 	cd src && (ocamldoc_pyexpander make_5.ml) # FIXME maybe move to intf
-	cd src && (ocamldoc_pyexpander tjr_btree.t.ml > tjr_btree.ml)
+	cd src && (ocamldoc_pyexpander summary.t.ml > summary.ml)
 
 run:
 	$(DUNE) exec bin/btree_main.exe example # >tmp.txt 2>&1

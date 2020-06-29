@@ -60,7 +60,7 @@ end
 (** The basic Make functor, with most things parameterizable. See also the more refined {!Tjr_btree_examples.Make_example} functor. *)
 module Make(S:S) : T with type k=S.k and type v=S.v and type r=S.r and type t=S.t = struct
   include S
-  include Isa_btree.Make(S)
+  include Isa_btree.Make.Make_v2(S)
 
   type nonrec 'blk disk_ops = (r,t,(node,leaf)dnode,'blk) disk_ops
 

@@ -14,7 +14,7 @@ let disk_to_store
   let { blk_sz; read; write; write_many=_ } = blk_dev_ops in
   let { blk_sz=blk_sz'; dnode_to_blk; blk_to_dnode } = marshal in
   Test.check(fun _ -> assert (blk_sz = blk_sz'));
-  let ops = {
+  let ops : (_,_,_) store_ops = {
     read=(fun r ->
         read ~blk_id:r >>= fun blk ->
         blk |> blk_to_dnode |> return);

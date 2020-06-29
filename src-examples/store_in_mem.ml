@@ -34,7 +34,7 @@ let mk_store_ops ~monad_ops ~(mem_ops:('dnode,'t)mem_ops) =
         return None)
   in    
   let free _rs : (unit,'t) m = return () in (* no-op *)
-  { read; wrte; rewrite; free }
+  Store_ops.{ read; wrte; rewrite; free }
 
 let _ = mk_store_ops
 

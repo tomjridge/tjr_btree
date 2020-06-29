@@ -47,7 +47,9 @@ let add_write_back_cache_to_store (type blk_id wb)
     (* we add some profiling; we also take the opportunity to add some
        simple caching; FIXME add LRU caching for store *)
     let store_ops = 
-      let {read;wrte=_NOTE_NOT_USED;rewrite=_NOTE_NOT_USED';free} = uncached_store_ops in
+      let Store_ops.{read;wrte=_NOTE_NOT_USED;rewrite=_NOTE_NOT_USED';free} = 
+        uncached_store_ops 
+      in
       (* Add some memoization *)
       let wb = write_back_cache_ops in
       (* lift trim_if_over_cap to monad FIXME rename to trim_and_set_cache *)
@@ -129,7 +131,7 @@ let add_write_back_cache_to_store (type blk_id wb)
             set_state cache) >>= fun () -> 
         free blk_ids
       in
-      {
+      Store_ops.{
         read=(fun r -> profile_m read_ (read r));
         wrte=(fun dn -> profile_m wrte_ (wrte dn));
         rewrite=(fun r dn -> profile_m rewrite_ (rewrite r dn));
