@@ -51,14 +51,18 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
     init_btree_root : 'r -> 
-    ('k,'v,'r,'ls,'t) map_ops_with_ls;
-
+    < 
+      get_btree_root  : unit -> ('r,'t)m;
+      map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls
+    >;
+  
   cached:
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
     wbc_params      : wbc_params ->  
     init_btree_root : 'r -> 
     <
+      get_btree_root  : unit -> ('r,'t)m;
       flush_wbc       : unit -> (unit,'t)m;
       (* sync_key        : 'k -> (unit,'t)m; *)
       map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls;
@@ -207,7 +211,12 @@ module Make_v1(S:S) = struct
     make_store_ops ~blk_dev_ops ~blk_alloc |> fun x -> 
     x#uncached_store_ops |> fun store_ops ->
     pre_btree_ops store_ops |> fun pre_btree_ops -> 
-    map_ops_with_ls ~pre_btree_ops ~with_btree_root
+    let get_btree_root = fun () -> return (!ref_) in
+    let map_ops_with_ls = map_ops_with_ls ~pre_btree_ops ~with_btree_root in
+    object 
+      method get_btree_root=get_btree_root
+      method map_ops_with_ls=map_ops_with_ls
+    end
                                               
   let cached = 
     fun ~(blk_dev_ops:(_,_,_)blk_dev_ops) ~blk_alloc ~(wbc_params:wbc_params) ~init_btree_root ->
@@ -223,6 +232,7 @@ module Make_v1(S:S) = struct
     pre_btree_ops y#store_ops_with_wbc |> fun pre_btree_ops -> 
     map_ops_with_ls ~pre_btree_ops ~with_btree_root |> fun map_ops_with_ls -> 
     object
+      method get_btree_root=(fun () -> return !ref_)
       method flush_wbc=y#flush_wbc
       method map_ops_with_ls=map_ops_with_ls
     end
