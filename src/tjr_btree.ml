@@ -55,14 +55,19 @@ module Pvt = struct
 
   module Make_3 = Make_3
 
+  module Make_5 = Make_5
 
 end
 
 
 module Make_1 = Make_1
 
-module Make_5 = Make_5
+module Make_6 = Make_6
 
+let btree_examples = object
+  method int_int_factory = Make_6.Examples.int_int_factory
+  method int_r_factory = Make_6.Examples.int_r_factory
+end
 
 (** {2 Bin prot marshalling} *)
 

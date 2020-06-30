@@ -17,7 +17,7 @@ type ('dnode,'blk) dnode_mshlr = {
     lists. This allows us to assume little about node and leaf
     implementations. These fields have the same names and types as
     the corresponding fields in node_ops and leaf_ops. *)
-(* $(PIPE2SH("""sed -n '/type[ ].*node_cnvs/,/}/p' >GEN.node_cnvs.ml_""")) *)
+(* \$(PIPE2SH("""sed -n '/type[ ].*node_cnvs/,/}/p' >GEN.node_cnvs.ml_""")) *)
 type ('k,'v,'r,'node,'leaf) node_cnvs = {
   node_to_krs: 'node -> 'k list * 'r list;
   krs_to_node: ('k list * 'r list) -> 'node;
@@ -57,7 +57,7 @@ type ('k,'v,'r,'ls,'t) map_ops_with_ls =
 
 module Disk_ops_type = struct
   
-  (* $(PIPE2SH("""sed -n '/A[ ]collection of block-based/,/}/p' >GEN.disk_ops.ml_""")) *)
+  (* \$(PIPE2SH("""sed -n '/A[ ]collection of block-based/,/}/p' >GEN.disk_ops.ml_""")) *)
   (** A collection of block-based interfaces *)
   type ('r,'t,'dnode,'blk) disk_ops = {
     dnode_mshlr : ('dnode,'blk)dnode_mshlr;

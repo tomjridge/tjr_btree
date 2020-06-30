@@ -1,5 +1,4 @@
-
-(** [Make_5] main interfaces:
+(** [Make_6] main interfaces:
 
 {[
 $(INCLUDE("GEN*"))

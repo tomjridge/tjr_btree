@@ -1,5 +1,4 @@
-
-(** [Make_5] main interfaces:
+(** [Make_6] main interfaces:
 
 {[
 module type S = sig
@@ -18,32 +17,65 @@ module type S = sig
   val r_cmp     : r -> r -> int (* for wbc *)
 end
 
-  type ('k,'v,'r,'ls,'t) bt_1 = <
-    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
-  >
+type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
+  (* monad_ops, k_cmp, cs given *)
+  leaf_ops: ('k,'v,'leaf)leaf_ops;
+  node_ops: ('k,'r,'node)node_ops;
 
-  type ('k,'v,'r,'ls,'t) bt_2 = <
-    flush_wbc: unit -> (unit,'t)m;
-    sync_key: 'k -> (unit,'t)m;
-    map_ops_with_ls: ('k,'v,'r,'ls,'t) map_ops_with_ls
-  >
+  wbc_factory : ('r,'dnode,'wbc)wbc_factory;
 
-  type ('k,'v,'r,'t,'ls,'blk,'dnode,'wbc) btree_factory = <
-    (* method blk_dev_ops: ('r,'blk,'t) blk_dev_ops *)
-    (* method blk_allocator_ops: ('r,'t)blk_allocator_ops *)
-    empty_leaf_as_blk: 'blk;
-    wbc_factory: ('r,'dnode,'wbc)wbc_factory;
-    make_uncached: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_1;
-    make_cached_1: ('r, 't) with_btree_root -> ('wbc,'t)with_state -> ('k,'v,'r,'ls,'t) bt_2;
-    make_cached_2: ('r, 't) with_btree_root -> ('k,'v,'r,'ls,'t) bt_2;
-  >
+  dnode_mshlr : blk_sz -> ('dnode, 'blk) dnode_mshlr;
 
-  (** A collection of block-based interfaces *)
-  type ('r,'t,'dnode,'blk) disk_ops = {
-    dnode_mshlr : ('dnode,'blk)dnode_mshlr;
-    blk_dev_ops : ('r,'blk,'t)blk_dev_ops;
-    blk_alloc   : ('r,'t)blk_allocator_ops
-  }
+
+  (* Store layer *)
+
+  make_store_ops:
+    blk_dev_ops : ('r, 'blk, 't) blk_dev_ops -> 
+    blk_alloc   : ('r, 't) blk_allocator_ops -> 
+    <
+      uncached_store_ops : ('r,'dnode,'t)store_ops;
+
+      with_wbc : 
+        (* with_btree_root : ('r,'t)with_state ->  *)
+        wbc_ops         : ('r,'dnode,'wbc)wbc_ops ->
+        with_wbc        : ('wbc,'t)with_state ->
+        <
+          flush_wbc          : unit -> (unit,'t)m;
+          store_ops_with_wbc : ('r,'dnode,'t)store_ops
+        >;
+    >;
+
+  (* Upper layers *)
+
+  pre_btree_ops: 
+    ('r,'dnode,'t)store_ops -> 
+    ('k, 'v, 'r, 't, 'leaf, 'node, 'ls) pre_btree_ops;
+
+  map_ops_with_ls: 
+    pre_btree_ops   : ('k, 'v, 'r, 't, 'leaf, 'node, 'ls) pre_btree_ops ->
+    with_btree_root : ('r,'t)with_state -> 
+    ('k,'v,'r,'ls,'t) map_ops_with_ls;
+
+
+  (* Convenience *)
+
+  uncached:
+    blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
+    blk_alloc       : ('r, 't) blk_allocator_ops -> 
+    init_btree_root : 'r -> 
+    ('k,'v,'r,'ls,'t) map_ops_with_ls;
+
+  cached:
+    blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
+    blk_alloc       : ('r, 't) blk_allocator_ops -> 
+    wbc_params      : wbc_params ->  
+    init_btree_root : 'r -> 
+    <
+      flush_wbc       : unit -> (unit,'t)m;
+      (* sync_key        : 'k -> (unit,'t)m; *)
+      map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls;
+    >; 
+>
 
 type ('dnode,'blk) dnode_mshlr = {
   dnode_to_blk : 'dnode -> 'blk;
@@ -59,13 +91,6 @@ type ('dnode,'blk) dnode_mshlr = {
     insert_all      : kvs:('k * 'v) list -> (unit, 't) m;    
     leaf_stream_ops : ('k,'v,'r,'ls,'t)Isa_btree_intf.leaf_stream_ops;
   }
-
-type ('k,'v,'r,'node,'leaf) node_cnvs = {
-  node_to_krs: 'node -> 'k list * 'r list;
-  krs_to_node: ('k list * 'r list) -> 'node;
-  leaf_to_kvs: 'leaf -> ('k * 'v) list;
-  kvs_to_leaf: ('k * 'v) list -> 'leaf;
-}
 
 ]}
 

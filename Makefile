@@ -16,7 +16,7 @@ cln_stores:
 
 update_generated_doc::
 	cd src && (ocamldoc_pyexpander btree_intf.ml)
-	cd src && (ocamldoc_pyexpander make_5.ml) # FIXME maybe move to intf
+	cd src && (ocamldoc_pyexpander make_6.ml)
 	cd src && (ocamldoc_pyexpander summary.t.ml > summary.ml)
 
 run:
