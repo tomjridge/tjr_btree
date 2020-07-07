@@ -14,6 +14,10 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
 
   dnode_mshlr : blk_sz -> ('dnode, 'blk) dnode_mshlr;
 
+  write_empty_leaf: 
+    blk_dev_ops : ('r, 'blk, 't) blk_dev_ops -> 
+    blk_id : 'r -> 
+    (unit,'t)m;
 
   (* Store layer *)
 
@@ -154,6 +158,12 @@ module Make_v1(S:S) = struct
     in      
     Y.dnode_mshlr
 
+  let write_empty_leaf ~(blk_dev_ops: _ blk_dev_ops) ~blk_id =
+    (* FIXME this sourcing of blk_sz from elsewhere is a bit hairy *)
+    let blk_sz = blk_dev_ops.blk_sz in
+    let d = dnode_mshlr blk_sz in
+    let blk = M1.empty_leaf_as_blk ~dnode_to_blk:d.dnode_to_blk in
+    blk_dev_ops.write ~blk_id ~blk
 
   let make_store_ops 
       ~(blk_dev_ops : ('r, 'blk, 't) blk_dev_ops)  
@@ -242,6 +252,7 @@ module Make_v1(S:S) = struct
     method node_ops = node_ops
     method wbc_factory = wbc_factory
     method dnode_mshlr = dnode_mshlr
+    method write_empty_leaf = write_empty_leaf
     method make_store_ops = make_store_ops
     method pre_btree_ops = pre_btree_ops
     method map_ops_with_ls = map_ops_with_ls
