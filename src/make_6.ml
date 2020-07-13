@@ -51,6 +51,7 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
 
   (* Convenience *)
 
+  (* NOTE this does not initialize init_btree_root *)
   uncached:
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
@@ -60,6 +61,7 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
       map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls
     >;
   
+  (* NOTE this does not initialize init_btree_root *)
   cached:
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
