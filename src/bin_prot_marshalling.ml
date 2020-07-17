@@ -120,7 +120,7 @@ struct
     let blk_sz' = Blk_sz.to_int blk_sz in
     let dnode_to_blk dn = 
       mark' d2blk (fun () -> 
-      let buf = BP.Common.create_buf blk_sz' in (* NOTE not necessarily zeroed *)
+      let buf = ba_buf_ops.create blk_sz' in (* NOTE this should be zeroed *)
       let n = bin_write_tree buf ~pos:0 (dn|>dn2tree) in
       assert(n<=blk_sz');
       buf)
