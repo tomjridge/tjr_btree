@@ -1,10 +1,10 @@
 (env
   (_ (flags (:standard -w -39-26 -open Tjr_lib -open Tjr_monad -open Tjr_fs_shared -open Isa_btree -open Tjr_btree -open Btree_intf -open Tjr_profile))))
 
-(library
-  (name tjr_btree_examples)
-  (public_name tjr_btree_examples)
-  (preprocess (pps ppx_deriving_yojson ppx_bin_prot ppx_jane))
-  (preprocessor_deps (file "config.ml"))
-  (libraries lru tjr_fs_shared isa_btree tjr_btree tjr_profile ppx_jane))
+;; (library
+;;   (name tjr_btree_examples)
+;;   (public_name tjr_btree_examples)
+;;   (preprocess (pps ppx_deriving_yojson ppx_bin_prot ppx_jane))
+;;   (preprocessor_deps (file "config.ml"))
+;;   (libraries lru tjr_fs_shared isa_btree tjr_btree tjr_profile ppx_jane))
 

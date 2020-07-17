@@ -18,14 +18,15 @@
    bin_prot
    ppx_bin_prot))
 
-(package 
- (name tjr_btree_examples)
- (synopsis "B-tree library (examples)")
- (depends
-   tjr_btree
-   lru
-   core
-   ))
+;; FIXME resurrect these examples
+;; (package 
+;;  (name tjr_btree_examples)
+;;  (synopsis "B-tree library (examples)")
+;;  (depends
+;;    tjr_btree
+;;    lru
+;;    core
+;;    ))
 
 
 

@@ -41,8 +41,8 @@ module type T = sig
     blk_alloc:(r, t) Tjr_fs_shared.blk_allocator_ops ->
     root_ops:(r, t) Tjr_btree.Btree_intf.btree_root_ops -> 
     (k,v,ls)btree
-  val make_as_object: open_fd:open_fd -> rt_blk:rt_blk ->
-    (k, v, ls) btree
+(*  val make_as_object: open_fd:open_fd -> rt_blk:rt_blk ->
+    (k, v, ls) btree*)
 end 
 
 module Make(S:S) : T with type k=S.k and type v=S.v = struct

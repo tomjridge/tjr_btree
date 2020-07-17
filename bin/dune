@@ -1,10 +1,11 @@
 (env
   (_ (flags (:standard -w -8-39-26 -open Tjr_lib -open Tjr_monad -open Tjr_profile -open Tjr_fs_shared -open Isa_btree -open Isa_btree_intf -open Tjr_btree -open Tjr_btree.Btree_intf -open Tjr_btree_examples ))))
 
-(executables
-  (package tjr_btree_examples)
-  (preprocess (pps ppx_deriving_yojson ppx_jane))
-  (public_names btree_main)
-    (libraries tjr_btree tjr_btree_examples))
+;; FIXME resurrect examples
+;; (executables
+;;   (package tjr_btree_examples)
+;;   (preprocess (pps ppx_deriving_yojson ppx_jane))
+;;   (public_names btree_main)
+;;     (libraries tjr_btree tjr_btree_examples))
 
 

@@ -1,3 +1,4 @@
+(*
 (** Like make_1, but using bin_prot marshalling *)
 
 
@@ -299,3 +300,4 @@ blk_sz:Tjr_fs_shared.blk_sz ->
 end
 
 
+*)

@@ -27,7 +27,7 @@ module type T = sig
   type ls
   val empty_leaf_as_blk : unit -> blk
   val make_as_object: 
-    blk_dev_ops:blk_dev_ops' ->
+    blk_dev_ops:_ blk_dev_ops ->
     blk_alloc:(r,t)blk_allocator_ops ->
     bt_rt:blk_id ->
     (k, v, ls) uncached_btree
