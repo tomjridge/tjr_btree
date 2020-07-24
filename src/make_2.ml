@@ -155,7 +155,7 @@ module Make(S:S)
        should it? *)
     let blk_sz' = Blk_sz.to_int blk_sz in
     let dnode_to_blk dn = 
-      let buf = buf_ops.create blk_sz' in (* NOTE not necessarily zeroed *)
+      let buf = buf_ops.buf_create blk_sz' in (* NOTE not necessarily zeroed *)
       let n = bin_write_tree buf ~pos:0 (dn|>dn2tree) in
       assert(n<=blk_sz');
       buf

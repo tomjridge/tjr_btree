@@ -293,7 +293,8 @@ module Examples = struct
       let r_cmp = Shared_ctxt.r_cmp
     end)
 
-  let int_int_factory = Int_int.btree_factory
+  let int_int_factory : (int, int, _,_,_,_,_,_,_,_)
+      btree_factory = Int_int.btree_factory
 
   module Int_r = Make_v2(struct
       type k = int

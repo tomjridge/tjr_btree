@@ -26,7 +26,7 @@ Type dependencies:
 ## Quick links
 
 * The **Isabelle code** can be found [here](https://github.com/tomjridge/isa_btree).
-* Online **ocamldoc** documentation can be found [here](https://tomjridge.github.io/ocamldocs/). 
+* Online **OCamldoc** documentation can be found [here](https://tomjridge.github.io/ocamldocs/). 
 * Introductory **examples**, including a simple on-disk key-value store, can be found in the examples directory.
 * To **install**, try the Dockerfile (`docker build .`) and then to build locally, strip the "RUN" prefix from the relevant Dockerfile lines and use opam pin.
 
