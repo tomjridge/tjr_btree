@@ -64,6 +64,9 @@ module Make_1 = Make_1
 
 module Make_6 = Make_6
 
+type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = 
+  ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) Make_6.btree_factory
+
 let btree_examples = object
   method int_int_factory = Make_6.Examples.int_int_factory
   method int_r_factory = Make_6.Examples.int_r_factory
