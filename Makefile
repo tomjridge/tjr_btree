@@ -1,5 +1,6 @@
 default: 
 	$(MAKE) all
+#	$(MAKE) exes FIXME re-enable
 
 -include Makefile.ocaml
 
@@ -19,8 +20,15 @@ update_generated_doc::
 	cd src && (ocamldoc_pyexpander make_6.ml)
 	cd src && (ocamldoc_pyexpander summary.t.ml > summary.ml)
 
-run:
+run_example: exes
 	$(DUNE) exec bin/btree_main.exe example # >tmp.txt 2>&1
 
-run_test: # FIXME todo
-	dune exec src-test/test.exe
+exes: bin/btree_main.exe
+
+%.exe: FORCE
+	dune build $@
+
+# run_test: test_exes
+# 	dune exec src-test/test.exe
+
+FORCE:
