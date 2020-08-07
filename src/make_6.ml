@@ -57,6 +57,7 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
     init_btree_root : 'r -> 
     < 
+      with_state      : ('r,'t) with_state;
       get_btree_root  : unit -> ('r,'t)m;
       map_ops_with_ls : ('k,'v,'r,'ls,'t) map_ops_with_ls
     >;
@@ -226,6 +227,7 @@ module Make_v1(S:S) = struct
     let get_btree_root = fun () -> return (!ref_) in
     let map_ops_with_ls = map_ops_with_ls ~pre_btree_ops ~with_btree_root in
     object 
+      method with_state=with_btree_root
       method get_btree_root=get_btree_root
       method map_ops_with_ls=map_ops_with_ls
     end
