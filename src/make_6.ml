@@ -51,11 +51,11 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
 
   (* Convenience *)
 
-  (* NOTE this does not initialize init_btree_root *)
+  (* NOTE this does not initialize btree_root *)
   uncached:
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
-    init_btree_root : 'r -> 
+    btree_root      : [ `A of 'r | `B of ('r,'t) with_state ] -> 
     < 
       with_state      : ('r,'t) with_state;
       get_btree_root  : unit -> ('r,'t)m;
@@ -67,7 +67,7 @@ type ('k,'v,'r,'t,'leaf,'node,'dnode,'ls,'blk,'wbc) btree_factory = <
     blk_dev_ops     : ('r, 'blk, 't) blk_dev_ops -> 
     blk_alloc       : ('r, 't) blk_allocator_ops -> 
     wbc_params      : wbc_params ->  
-    init_btree_root : 'r -> 
+    btree_root      : [ `A of 'r | `B of ('r,'t) with_state ] -> 
     <
       get_btree_root  : unit -> ('r,'t)m;
       flush_wbc       : unit -> (unit,'t)m;
@@ -217,14 +217,18 @@ module Make_v1(S:S) = struct
     M1.pre_btree_to_map ~pre_btree_ops ~root_ops:with_btree_root
 
   let uncached = 
-    fun ~(blk_dev_ops:(_,_,_)blk_dev_ops) ~blk_alloc ~init_btree_root ->
+    fun ~(blk_dev_ops:(_,_,_)blk_dev_ops) ~blk_alloc ~btree_root ->
     let dnode_mshlr = dnode_mshlr blk_dev_ops.blk_sz in
-    let ref_ = ref init_btree_root in
-    let with_btree_root = Tjr_monad.with_imperative_ref ~monad_ops ref_ in
+    let with_btree_root = match btree_root with
+      | `A r -> 
+        let ref_ = ref r in
+        Tjr_monad.with_imperative_ref ~monad_ops ref_
+      | `B w -> w
+    in        
     make_store_ops ~blk_dev_ops ~blk_alloc |> fun x -> 
     x#uncached_store_ops |> fun store_ops ->
     pre_btree_ops store_ops |> fun pre_btree_ops -> 
-    let get_btree_root = fun () -> return (!ref_) in
+    let get_btree_root = fun () -> with_btree_root.with_state (fun ~state ~set_state:_ -> return state) in
     let map_ops_with_ls = map_ops_with_ls ~pre_btree_ops ~with_btree_root in
     object 
       method with_state=with_btree_root
@@ -233,20 +237,25 @@ module Make_v1(S:S) = struct
     end
                                               
   let cached = 
-    fun ~(blk_dev_ops:(_,_,_)blk_dev_ops) ~blk_alloc ~(wbc_params:wbc_params) ~init_btree_root ->
+    fun ~(blk_dev_ops:(_,_,_)blk_dev_ops) ~blk_alloc ~(wbc_params:wbc_params) ~btree_root ->
     let dnode_mshlr = dnode_mshlr blk_dev_ops.blk_sz in
-    let ref_ = ref init_btree_root in
     let wbc = wbc_factory#make_wbc ~cap:wbc_params#cap ~delta:wbc_params#delta in
     let wbc_ref = ref wbc#empty in
     let with_wbc = Tjr_monad.with_imperative_ref ~monad_ops wbc_ref in
     let wbc_ops = wbc#ops in
-    let with_btree_root = Tjr_monad.with_imperative_ref ~monad_ops ref_ in
+    let with_btree_root = match btree_root with
+      | `A r -> 
+        let ref_ = ref r in
+        Tjr_monad.with_imperative_ref ~monad_ops ref_
+      | `B w -> w
+    in  
+    let get_btree_root = fun () -> with_btree_root.with_state (fun ~state ~set_state:_ -> return state) in
     make_store_ops ~blk_dev_ops ~blk_alloc |> fun x -> 
     x#with_wbc ~wbc_ops ~with_wbc |> fun y ->
     pre_btree_ops y#store_ops_with_wbc |> fun pre_btree_ops -> 
     map_ops_with_ls ~pre_btree_ops ~with_btree_root |> fun map_ops_with_ls -> 
     object
-      method get_btree_root=(fun () -> return !ref_)
+      method get_btree_root=get_btree_root
       method flush_wbc=y#flush_wbc
       method map_ops_with_ls=map_ops_with_ls
     end
