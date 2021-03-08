@@ -5,23 +5,17 @@ SHELL:=bash
 # top-level Makefile. NOTE that this file in turn attempts to include
 # Makefile.local, which you can use to override defaults if needed.
 
-# There are two envvars:
-
 # scratch - the Makefile.ocaml will check here for updates to
 # Makefile.ocaml itself; if this path doesn't exist on your system
 # there is nothing to worry about
-# 
-# 
-
 scratch?=/tmp/l/github/scratch
 
-# TMP_DOC_DIR_ROOT - where docs are placed temporarily (before
-# updating docs/); this could be /tmp for example (docs are placed in
-# subdirs of this root, according to the name of the root dir of this
-# repo)
+BUILD_DOCS?=#empty for no, otherwise yes
 
-TMP_DOC_DIR_ROOT?=/tmp
-TMP_DOC_DIR?=$(TMP_DOC_DIR_ROOT)/$(notdir $(abspath .))
+# after building docs, we copy to this dir
+PROMOTE_DOCS?=#empty for no, otherwise yes
+PROMOTE_DIR?=/tmp/l/github/ocamldocs/$(notdir $(abspath .))
+
 
 
 # generic makefile follows ---------------------------------------------
@@ -40,9 +34,8 @@ build::
 	$(DUNE) build @install
 # note: add build:: to have more things built
 
-
 install::
-	$(DUNE) install
+	$(DUNE) install --display quiet 2>&1 | tail 
 
 uninstall::
 	$(DUNE) uninstall
@@ -54,25 +47,20 @@ all::
 	$(MAKE) Makefile.ocaml
 	$(MAKE) build
 	$(MAKE) install
-	$(MAKE) docs
+	$(if $(BUILD_DOCS), $(MAKE) docs, echo "NOTE: not building docs")
+	$(if $(PROMOTE_DOCS), $(MAKE) promote_docs, echo "NOTE: not promoting docs")
 
 clean_all::
 	$(MAKE) clean
 	$(MAKE) all
 
 SRC:=_build/default/_doc/_html
-DST:=docs
-DST2:=$(TMP_DOC_DIR)
 docs:: FORCE
 	$(DUNE) build @doc
-	@if [ ! -z "$$PROMOTE_DOCS" ]; then rm -rf $(DST)/* ; cp -R $(SRC)/* $(DST); echo "docs built and promoted to docs/"; else \
-	  rsync -vaz $(SRC)/* $(DST2); echo "docs built in $(DST2) but not promoted to docs/"; fi
 
 promote_docs:: FORCE
-	PROMOTE_DOCS=true $(MAKE) docs
+	rsync -vaz $(SRC)/* $(PROMOTE_DIR) 2>&1 | tail
 
-view_doc:
-	google-chrome  $(SRC)/index.html
 
 Makefile.ocaml: FORCE
 	@if test -f $(scratch)/Makefile.ocaml; then diff ./Makefile.ocaml $(scratch)/Makefile.ocaml; fi
