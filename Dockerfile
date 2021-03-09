@@ -22,9 +22,9 @@ RUN opam install re psq ppx_deriving_yojson extlib alcotest ke bos fmt fileutils
 # to build using local opam install
 
 RUN opam pin -y -n add tjr_monad https://github.com/tomjridge/tjr_monad.git
+RUN opam pin -y -n add tjr_profile https://github.com/tomjridge/tjr_profile.git
 RUN opam pin -y -n add tjr_lib_core https://github.com/tomjridge/tjr_lib.git
 RUN opam pin -y -n add tjr_lib https://github.com/tomjridge/tjr_lib.git
-RUN opam pin -y -n add tjr_profile https://github.com/tomjridge/tjr_profile.git
 RUN opam pin -y -n add tjr_fs_shared https://github.com/tomjridge/tjr_fs_shared.git
 RUN opam pin -y -n add tjr_plist https://github.com/tomjridge/tjr_plist.git
 RUN opam pin -y -n add isa_btree https://github.com/tomjridge/isa_btree.git
