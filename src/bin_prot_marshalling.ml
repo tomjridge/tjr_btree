@@ -50,7 +50,7 @@ module Make(X: sig
     type blk_id[@@deriving bin_io]
     type k[@@deriving bin_io]
     type v[@@deriving bin_io]
-    type blk = ba_buf
+    type blk = Shared_ctxt.blk
     val blk_sz : blk_sz
     type node
     type leaf
@@ -123,16 +123,17 @@ struct
       let buf = ba_buf_ops.buf_create blk_sz' in (* NOTE this should be zeroed *)
       let n = bin_write_tree buf ~pos:0 (dn|>dn2tree) in
       assert(n<=blk_sz');
-      buf)
+      Shared_ctxt.{ba_buf=buf})
     in
-    let blk_to_dnode blk = 
+    let blk_to_dnode (blk:Shared_ctxt.blk) = 
+      let ba_buf = blk.ba_buf in
       let _ : unit = 
         if Debug_.debug_enabled then 
           Printf.printf "blk_to_dnode: %s...\n%!" 
-            (blk |> Bigstring.to_string |> fun s -> String.sub s 0 4 |> String.escaped)
+            (ba_buf |> Bigstring.to_string |> fun s -> String.sub s 0 4 |> String.escaped)
       in
       mark' blk2d (fun () ->
-      let t = bin_read_tree blk ~pos_ref:(ref 0) in
+      let t = bin_read_tree ba_buf ~pos_ref:(ref 0) in
       tree2dn t)
     in
     ({ dnode_to_blk; blk_to_dnode; blk_sz }:('a,blk)dnode_mshlr)

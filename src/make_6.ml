@@ -101,7 +101,7 @@ module type T = sig
   type node
   type leaf
   type ls
-  type blk = ba_buf
+  type blk = Shared_ctxt.blk
   type wbc
 
   val btree_factory : (k,v,r,t,leaf,node,(node,leaf)dnode,ls,blk,wbc) btree_factory
@@ -115,7 +115,7 @@ module Make_v1(S:S) = struct
   type v = S.v
   type r = S.r
   type t = S.t
-  type blk = ba_buf
+  type blk = Shared_ctxt.blk
 
   module M1 = Make_1.Make(S)
 
@@ -149,7 +149,7 @@ module Make_v1(S:S) = struct
         type blk_id = R.t[@@deriving bin_io]
         type k = K.t[@@deriving bin_io]
         type v = V.t[@@deriving bin_io]
-        type blk = ba_buf
+        type blk = Shared_ctxt.blk
         let blk_sz = blk_sz
         type nonrec node = node
         type nonrec leaf = leaf
