@@ -75,6 +75,7 @@ module type T = sig
     blk_dev_ops:(r,blk,t)blk_dev_ops ->
     blk_alloc:(r,t)blk_allocator_ops ->
     root_ops:(r,t)with_state -> 
+    unit -> 
     (k,v,r,ls,t) uncached_btree
       
 (*  val make_cached_btree: 
@@ -175,7 +176,7 @@ module Make(S:S)
   let empty_leaf_as_blk () = Btree.empty_leaf_as_blk ~dnode_to_blk:dnode_mshlr.dnode_to_blk
 
   let make_uncached_btree ?with_read_cache:(with_read_cache=true) 
-      ~blk_dev_ops ~blk_alloc ~root_ops 
+      ~blk_dev_ops ~blk_alloc ~root_ops ()
     : (_,_,_,_,_) uncached_btree 
     =
     let disk_ops = {dnode_mshlr;blk_dev_ops; blk_alloc} in

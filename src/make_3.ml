@@ -90,7 +90,7 @@ let make_uncached (type k v r t)
     ~root_ops
     ->
       M2.make_uncached_btree ~with_read_cache
-        ~blk_dev_ops ~blk_alloc ~root_ops |> fun bt ->
+        ~blk_dev_ops ~blk_alloc ~root_ops () |> fun bt ->
       let monad_ops = args#monad_ops in
       let ( >>= ) = monad_ops.bind in
       let return = monad_ops.return in
