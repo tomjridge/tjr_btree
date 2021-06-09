@@ -18,6 +18,11 @@
    bin_prot
    ppx_bin_prot))
 
+(package 
+ (name tjr_btree_v2)
+ (synopsis "B-tree library (v2)")
+ (depends tjr_fs_shared))
+
 ;; FIXME resurrect these examples
 ;; (package 
 ;;  (name tjr_btree_examples)

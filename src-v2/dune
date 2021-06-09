@@ -1,0 +1,8 @@
+(env
+ (_ (flags (:standard -open Tjr_lib -open Tjr_monad -open Tjr_fs_shared))))
+
+(library
+  (name tjr_btree_v2)
+  (public_name tjr_btree_v2)
+  (libraries tjr_fs_shared))
+
