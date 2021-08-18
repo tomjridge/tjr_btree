@@ -50,7 +50,7 @@ module Make(S:sig
     (stk,None,None) |> iter_k (fun ~k x -> match x with
         | ([],lo,hi) -> (lo,hi)
         | ( (_,_,k1,_,k2)::stk,lo,hi) -> 
-          (* if we already have a bound, we stick with it, since it it
+          (* if we already have a bound, we stick with it, since it is
              tightest *)
           match lo,hi with
           | Some lo, Some hi -> (Some lo,Some hi)
@@ -161,7 +161,7 @@ module Make(S:sig
             match kvs with 
             | [] -> []
             | (k,v)::kvs -> 
-              match ordered lo k hi && leaf.leaf_nkeys l <= 2*max_leaf_keys with
+              match ordered lo k hi && leaf.leaf_nkeys l < 2*max_leaf_keys with
               | true -> 
                 leaf.insert k v l;
                 kont kvs
@@ -195,8 +195,9 @@ module Make(S:sig
   (** For delete, we just delete directly, with no attempt to
       rebalance; so some leaves may well be empty. The bad case for
       this hack is when we insert a huge number of kvs, which we then
-      delete. In this case, the tree may be somewhat tall, but so
-      lookup takes longer than it might. *)
+      delete. In this case, the tree may be somewhat tall, so lookup
+      takes longer than it might if we actually implemented delete
+      properly. *)
   let delete ~k ~r =
     find_leaf ~k ~r >>= fun (_,r,l) -> 
     leaf.remove k l;
