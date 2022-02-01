@@ -20,8 +20,18 @@ PROMOTE_DIR?=/tmp/l/github/ocamldocs/$(notdir $(abspath .))
 
 # generic makefile follows ---------------------------------------------
 
-# allow overriding locally
--include Makefile.local
+# if set, bash subprocesses will read env from this file
+BASH_ENV=bash_env.sh
+export BASH_ENV
+
+# setup bash_env
+bash_env.sh: FORCE
+	opam env > $(BASH_ENV)
+
+
+# just -include Makefile.local in your top-level Makefile, not here
+# # allow overriding locally
+# -include Makefile.local
 
 # NOTE minimal dune/opam files might be at /tmp/l/github/notes/minimal_ocaml_proj/
 
