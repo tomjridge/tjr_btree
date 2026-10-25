@@ -31,6 +31,32 @@ Type dependencies:
 * To **install**, try the Dockerfile (`docker build .`) and then to build locally, strip the "RUN" prefix from the relevant Dockerfile lines and use opam pin.
 
 
+## Where the online docs are hosted
+
+Two copies of the odoc HTML are online, both served by GitHub Pages:
+
+| URL | Source |
+| --- | --- |
+| http://www.tom-ridge.com/ocamldocs/c_tjr_btree/ | the `c_tjr_btree/` folder in the [ocamldocs](https://github.com/tomjridge/ocamldocs) repo; the Quick links above point here |
+| http://www.tom-ridge.com/tjr_btree/ | this repo's own Pages site, built from the `docs/` folder on `master` |
+
+Both URLs are on `www.tom-ridge.com` for these reasons:
+
+- `www.tom-ridge.com` is a DNS CNAME for `tomjridge.github.io`.
+- The [tomjridge.github.io](https://github.com/tomjridge/tomjridge.github.io) repo has a `CNAME` file containing `www.tom-ridge.com`. That makes it the custom domain for the account's user site.
+- GitHub serves the Pages site of every other repo on the account at `<custom domain>/<repo name>/`.
+
+This repo has no `docs/` folder on `master`, so each push to `master` starts a Pages build that fails at its "Build with Jekyll" step. A failed build leaves the last successful build online, so http://www.tom-ridge.com/tjr_btree/ still shows docs built from an older version of this code.
+
+To update the copy in `ocamldocs`:
+
+1. Run `dune build @doc`. It writes the HTML to `_build/default/_doc/_html`.
+2. Copy that folder's contents into `c_tjr_btree/` in a clone of `ocamldocs`.
+3. Commit and push `ocamldocs`.
+
+`make promote_docs` does step 2 with `rsync`, but its default target is `/tmp/l/github/ocamldocs/tjr_btree`. Set `PROMOTE_DIR` to the `c_tjr_btree` folder of your clone.
+
+
 ## Introduction
 
 This code implements a B-tree. The implementation can be copy-on-write, or mutate-in-place. 
