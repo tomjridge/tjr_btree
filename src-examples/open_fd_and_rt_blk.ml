@@ -4,28 +4,30 @@ open Tjr_monad.With_lwt
 open Intf_
 module B = Blk_id_as_int
 
-let open_ ~flgs ~fn = 
-  from_lwt (Lwt_unix.openfile fn flgs Tjr_file.default_create_perm) >>= fun fd -> 
-  return (blk_devs#with_ba_buf#from_fd fd)
+(** [flgs] are passed to [Lwt_unix.openfile]; a created file is
+   readable and writable by the user only *)
+let open_ ~flgs ~fn : (open_fd,lwt)m = 
+  from_lwt (Lwt_unix.openfile fn flgs 0o600) >>= fun fd -> 
+  return ((blk_devs#lwt#with_ ~blk_sz:blk_sz_4096)#from_fd fd :> open_fd)
 
 let _ = open_
 
-let rt_blk ~open_fd : rt_blk = 
+let rt_blk ~(open_fd:open_fd) : rt_blk = 
   let blk_dev_ops = open_fd#blk_dev_ops in
   let module A = struct
     (* open Bin_prot.Std *)
     let b0 = B.of_int 0
     type t = (* bt_rt *) B.blk_id * (* blk_alloc *)B.blk_id[@@deriving bin_io]
     let write_to_disk (t:t) = 
-      let buf = ba_buf_ops.create 4096 in
+      let buf = ba_buf_ops.buf_create 4096 in
       let _ : int = bin_write_t buf ~pos:0 t in
-      blk_dev_ops.write ~blk_id:b0 ~blk:buf >>= fun () -> 
+      blk_dev_ops.write ~blk_id:b0 ~blk:Shared_ctxt.{ba_buf=buf} >>= fun () -> 
       let x,y = t in
       Printf.printf "Wrote roots to disk: %d %d\n%!" (B.to_int x) (B.to_int y);
       return ()
     let read_from_disk () = 
       blk_dev_ops.read ~blk_id:b0 >>= fun blk -> 
-      bin_read_t blk ~pos_ref:(ref 0) |> fun (x,y) -> 
+      bin_read_t blk.Shared_ctxt.ba_buf ~pos_ref:(ref 0) |> fun (x,y) -> 
       Printf.printf "Read roots from disk: %d %d\n%!" (B.to_int x) (B.to_int y);
       return (x,y)
   end

@@ -3,7 +3,8 @@
 (* for insert_many operations *)
 let chunk_size = 1000
 
-let map_range = List_.map_range
+(** [map_range ~f l h] is [[f l; ...; f (h-1)]] *)
+let map_range ~f l h = List.init (max 0 (h-l)) (fun i -> f (l+i))
 
 let usage = {|
 
@@ -157,7 +158,7 @@ module Make(S:S) = struct
           | true -> return ()
           | false -> 
             let h' = min (l+chunk_size) h in
-            let kvs = List_.map_range ~f:(fun x -> int2kv x) l h' in
+            let kvs = map_range ~f:(fun x -> int2kv x) l h' in
             btree#map_ops.insert_all ~kvs >>= fun () ->
             k h') >>= fun () ->
       (* measure_execution_time_and_print "insert_range" f; *)
@@ -201,7 +202,7 @@ module Make(S:S) = struct
             kont (i+1)) >>= fun () ->
       (* measure_execution_time_and_print "test_random_writes" f; *)
       print_endline "test_random_writes ok";
-      open_fd#close ()
+      close ~open_fd ~rt_blk ~btree
 
     | ["test_random_writes_im";fn;l;h;n] -> 
       (* version using insert_many, with sorting and chunks *)
@@ -226,7 +227,7 @@ module Make(S:S) = struct
             k h') >>= fun () ->
       (* measure_execution_time_and_print "test_random_writes_im" f; *)
       print_endline "test_random_writes_im ok";
-      open_fd#close ()
+      close ~open_fd ~rt_blk ~btree
 
     | ["nop"] -> (print_endline "nop ok"; return ())
 

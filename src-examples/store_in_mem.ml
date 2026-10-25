@@ -8,6 +8,8 @@ open Blk_id
 type page_ref = blk_id[@@deriving bin_io]
 
 (** In-mem store, a map from r (int) to [('k,'v)dnode_impl] *)
+module Map_int = Map.Make(Int)
+
 type 'dnode mem = {free:int; map:'dnode Map_int.t}  
 
 type ('dnode,'t) mem_ops = ('dnode mem,'t) with_state

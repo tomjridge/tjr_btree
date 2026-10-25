@@ -13,25 +13,29 @@
 (package 
  (name tjr_btree)
  (synopsis "B-tree library")
- (depends 
+ (depends
    isa_btree
+   tjr_fs_shared
+   tjr_monad
+   tjr_profile
    bin_prot
-   ppx_bin_prot))
+   ppx_bin_prot
+   ppx_jane
+   ppx_optcomp))
 
 (package 
  (name tjr_btree_v2)
  (synopsis "B-tree library (v2)")
  (depends tjr_fs_shared))
 
-;; FIXME resurrect these examples
-;; (package 
-;;  (name tjr_btree_examples)
-;;  (synopsis "B-tree library (examples)")
-;;  (depends
-;;    tjr_btree
-;;    lru
-;;    core
-;;    ))
+(package 
+ (name tjr_btree_examples)
+ (synopsis "B-tree library (examples)")
+ (depends
+   tjr_btree
+   lru
+   lwt
+   ppx_deriving_yojson))
 
 
 

@@ -1,5 +1,5 @@
 
-FROM ocaml/opam2:4.09
+FROM ocaml/opam:debian-ocaml-5.5
 
 # some of the following apt packages are likely already installed
 RUN sudo apt-get install -y git make
@@ -26,7 +26,7 @@ RUN opam pin -y -n add tjr_profile https://github.com/tomjridge/tjr_profile.git
 RUN opam pin -y -n add tjr_fs_shared https://github.com/tomjridge/tjr_fs_shared.git
 RUN opam pin -y -n add tjr_plist https://github.com/tomjridge/tjr_plist.git
 RUN opam pin -y -n add isa_btree https://github.com/tomjridge/isa_btree.git
-RUN opam pin -y -n add tjr_btree https://github.com/tomjridge/tjr_btree.git#dev
+RUN opam pin -y -n add tjr_btree https://github.com/tomjridge/tjr_btree.git
 RUN opam pin -y -n add tjr_lru_cache https://github.com/tomjridge/tjr_lru_cache.git
 RUN opam pin -y -n add tjr_mem_queue https://github.com/tomjridge/tjr_mem_queue.git
 RUN opam pin -y -n add tjr_pcache https://github.com/tomjridge/tjr_pcache.git
@@ -35,6 +35,5 @@ RUN opam pin -y -n add tjr_path_resolution https://github.com/tomjridge/path_res
 RUN opam pin -y -n add tjr_net https://github.com/tomjridge/tjr_net.git
 RUN opam pin -y -n add tjr_minifs https://github.com/tomjridge/mini-fs.git
 
-RUN opam install -y tjr_btree
+RUN opam install -y tjr_btree tjr_btree_examples
 
-# FIXME also tjr_btree_examples tjr_pcache_example

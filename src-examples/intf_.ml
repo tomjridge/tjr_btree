@@ -90,6 +90,15 @@ end
 
 (** {2 Interfaces based on classes and objects} *)
 
+(** An open file, viewed as a block device *)
+class type open_fd =
+  object
+    method blk_dev_ops : (blk_id,blk,t) blk_dev_ops
+    method fd          : Lwt_unix.file_descr
+    method sync        : unit -> (unit,t)m
+    method close       : unit -> (unit,t)m
+  end
+
 (** B-tree, with a write-back cache *)
 class type ['k, 'v, 'ls ] btree = 
   object

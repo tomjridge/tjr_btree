@@ -21,7 +21,7 @@ module type T = sig
   type v
   type t
   type buf = ba_buf
-  type blk = ba_buf
+  type blk = Shared_ctxt.blk
   type r = blk_id
   type ls
   val empty_leaf_as_blk : unit -> blk
@@ -45,7 +45,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
   (** following aliases make the documentation more concise *)
   type ba_buf = Tjr_fs_shared.ba_buf
   type buf = ba_buf
-  type blk = ba_buf
+  type blk = Shared_ctxt.blk
   type lwt = Tjr_monad.With_lwt.lwt 
   type r' = Blk_id_as_int.blk_id [@@deriving bin_io]
 
@@ -53,7 +53,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
     include S
     type blk_id = r'                     [@@deriving bin_io]
     type r      = blk_id                [@@deriving bin_io]
-    type blk    = ba_buf
+    type blk    = Shared_ctxt.blk
 
     let r_cmp : r -> r -> int = Stdlib.compare (* needed for write_back_cache *)
     type t = lwt
@@ -91,7 +91,7 @@ module Make(S:S) : T with type k=S.k and type v=S.v and type t=lwt = struct
       let node_cnvs = node_cnvs
       let blk_sz = blk_sz
     end)
-  let dnode_mshlr : (dnode,ba_buf)dnode_mshlr = Dnode_mrshlr.dnode_mshlr  (* FIXME use open (struct let dnode_mshlr = Dnode_mrshlr.dnode_mshlr end) from 4.08 *)
+  let dnode_mshlr : (dnode,blk)dnode_mshlr = Dnode_mrshlr.dnode_mshlr  (* FIXME use open (struct let dnode_mshlr = Dnode_mrshlr.dnode_mshlr end) from 4.08 *)
 
   let empty_leaf_as_blk () = 
     dnode_mshlr.dnode_to_blk (Disk_leaf (node_cnvs.kvs_to_leaf []))
